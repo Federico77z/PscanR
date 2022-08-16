@@ -1,0 +1,5 @@
+Dependencies:
+
+RMariaDB (CRAN)
+GenomicFeatures (Biocondctor)
+GenomicRanges (Bioconductor)
