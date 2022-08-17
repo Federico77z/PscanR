@@ -3,3 +3,7 @@ Dependencies:
 RMariaDB (CRAN)
 GenomicFeatures (Biocondctor)
 GenomicRanges (Bioconductor)
+BSgenome (Bioconductor)
+
+BSgenome.Hsapiens.UCSC.hg38 (Bioconductor) (any other supported genome)
+BSgenome.Mmusculus.UCSC.mm10
