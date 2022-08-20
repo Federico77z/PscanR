@@ -4,12 +4,13 @@
 RMariaDB (CRAN)
 GenomicFeatures (Biocondctor)
 GenomicRanges (Bioconductor)
+Biostrings (Bioconductor)
 BSgenome (Bioconductor)
 BSgenome.Hsapiens.UCSC.hg38 (Bioconductor) (any other supported genome)
 BSgenome.Mmusculus.UCSC.mm10
 
 # PWMs
-PWMEnrich (Bioconductor)
+TFBSTools (Bioconductor)
 JASPAR2022
 JASPAR2020
 JASPAR2018
