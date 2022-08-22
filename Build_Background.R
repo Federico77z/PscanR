@@ -1,11 +1,12 @@
-ps_build_bg <- function(x, pwms)
+ps_build_bg <- function(x, pfms)
 {
-  checks(x, pwms)
+  checks(x, pfms)
   
   x <- BiocGenerics::unique(x)
   
-  #vapply(pwms, FUN = TFBSTools::name, FUN.VALUE = character(1))
+  #vapply(pfms, FUN = TFBSTools::name, FUN.VALUE = character(1))
   
-  pwms <- lapply(pwms, FUN = .ps_norm_matrix)
+  pfms <- lapply(pfms, FUN = as, "PSMatrix")
   
+  pfms <- lapply(pfms, FUN = ps_scan, x)
 }

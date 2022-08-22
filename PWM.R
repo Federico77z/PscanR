@@ -18,3 +18,5 @@ J2020_pwm <- toPWM(J2020, type = "prob", pseudocounts = 0.1)
 pwm <- Matrix(J2020_pwm$MA0818.1)
 
 hits <- matchPWM(pwm, prom_seq_unique$NR_046018.2, min.score = 0, with.score = TRUE)
+
+#system.time(hits_all <- mapply(FUN = Biostrings::matchPWM, subject = prom_seq_unique, MoreArgs= list(pwm = pwm, min.score = 0, with.score = TRUE)))
