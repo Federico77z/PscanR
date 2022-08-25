@@ -8,13 +8,16 @@
                                                          ps_hits_pos="integer", 
                                                          ps_hits_strand="character", 
                                                          ps_hits_score="numeric",
-                                                         .PS_PSEUDOCOUNT="numeric"), 
+                                                         .PS_PSEUDOCOUNT="numeric",
+                                                         .PS_ALPHABET="integer"), 
                       contains="PFMatrix")
 
-PSMatrix <- function(ps_bg_avg = NA, ps_bg_std_err = NA, ps_bg_size = NA, .PS_PSEUDOCOUNT = 0.01, ...)
+PSMatrix <- function(ps_bg_avg = NA, ps_bg_std_err = NA, ps_bg_size = NA, 
+                     .PS_PSEUDOCOUNT = 0.01, .PS_ALPHABET = setNames(1:4, c("A","C","G","T")), ...)
 {
   pfm <- PFMatrix(...)
-  .PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_bg_std_err = ps_bg_std_err, ps_bg_size = ps_bg_size, .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT)
+  .PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_bg_std_err = ps_bg_std_err, ps_bg_size = ps_bg_size, 
+            .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, .PS_ALPHABET=.PS_ALPHABET)
 }
 
 #' @export
@@ -34,6 +37,9 @@ setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
 setGeneric(".PS_PSEUDOCOUNT", function(x, ...) standardGeneric(".PS_PSEUDOCOUNT"))
 
 #' @export
+setGeneric(".PS_ALPHABET", function(x, ...) standardGeneric(".PS_ALPHABET"))
+
+#' @export
 setGeneric(".ps_norm_matrix", function(x, ...) standardGeneric(".ps_norm_matrix"))
 
 #' @export
@@ -41,6 +47,12 @@ setGeneric("ps_scan", function(x, ...) standardGeneric("ps_scan"))
 
 #' @export
 setGeneric(".ps_scan_s", function(x, ...) standardGeneric(".ps_scan_s"))
+
+#' @export
+setGeneric(".ps_assign_score", function(x, ...) standardGeneric(".ps_assign_score"))
+
+#' @export
+setGeneric(".ps_add_hit", function(x, ...) standardGeneric(".ps_add_hit"))
 
 #' @export
 setMethod("ps_bg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
@@ -82,6 +94,24 @@ setMethod(".PS_PSEUDOCOUNT", "PSMatrix", function(x, withDimnames = TRUE) {
 })
 
 #' @export
+
+setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@.PS_ALPHABET
+  
+  return(out)
+})
+
+#' @export
+setMethod(".ps_add_hit", "PSMatrix", function(x, Pos, Strand, Score, withDimnames = TRUE) {
+  
+  x@ps_hits_pos <- c(x@ps_hits_pos, Pos)
+  x@ps_hits_strand <- c(x@ps_hits_strand, Strand)
+  x@ps_hits_score <- c(x@ps_hits_score, Score)
+  
+  return(x)
+})
+
+#' @export
 #' @importMethodsFrom TFBSTools Matrix
 
 setMethod(".ps_norm_matrix", "PSMatrix", function(x){
@@ -111,7 +141,10 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs){
   if(!is(seqs, "DNAStringSet"))
     stop("seqs is not an object of DNAStringSet class")
   
-  return(x)
+  mapply(.ps_scan_s, list(x), seqs)
+  
+#  .ps_add_hit(x, Pos = which.max(scores), "+", mscore)
+  
 })
 
 #' @importMethodsFrom Biostrings maxScore minScore
@@ -119,23 +152,65 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs){
 
 setMethod(".ps_scan_s", "PSMatrix", function(x, Seq){
   
-  from <- 1
-  to <- length(Seq) - length(x)
-  width <- length(x)
+  subS <- as.character(Seq)
   
-  vapply(from:to, )
+  subS <- strsplit(substring(subS, 1:(nchar(subS) - length(x) + 1), length(x):nchar(subS)),"",
+                   fixed = TRUE)
+
+  rc_x <- reverseComplement(x)
   
-  return(x)
+  numx <- as.numeric(Matrix(x))
+  numx_rc <- as.numeric(Matrix(rc_x))
+  ncolx <- ncol(Matrix(x))
+  AB <- .PS_ALPHABET(x)
+  prot <- numeric(1)
+  
+  scores <- vapply(subS, FUN = .ps_assign_score4, FUN.VALUE = prot, x = numx, AB = AB, ncolx = ncolx)
+  scores_rc <- vapply(subS, FUN = .ps_assign_score4, FUN.VALUE = prot, x = numx_rc, AB = AB, ncolx = ncolx)
+  
+  mscore_pos <- which.max(scores)
+  mscore_rc_pos <- which.max(scores_rc)
+  
+  res <- list(score = numeric(), strand = character(), pos = integer())
+  
+  if(scores[mscore_pos] >= scores_rc[mscore_rc_pos])
+  {
+    res$score <- scores[mscore_pos]
+    res$strand <- "+"
+    res$pos <- mscore_pos
+  }
+  else
+  {
+    res$score <- scores_rc[mscore_rc_pos]
+    res$strand <- "-"
+    res$pos <- mscore_rc_pos
+  }
+  
+  return(res)
 })
 
 #' @importMethodsFrom Biostrings reverseComplement 
 #' @export
 
-setMethod(".ps_assign_score", "PSMatrix", function(x, Seq){
+setMethod(".ps_assign_score", "PSMatrix", function(x, S){
   
-  sum()
-  
+  sum(Matrix(x)[matrix(data = c(.PS_ALPHABET(x)[S], 1:length(x)), ncol = 2, nrow = length(x))])
 })
+
+.ps_assign_score2 <- function(x, S, AB)
+{
+  sum(x[matrix(data = c(AB[S], 1:ncol(x)), ncol = 2, nrow = ncol(x))])
+}
+
+.ps_assign_score3 <- function(S, x, AB)
+{
+  sum(x[matrix(data = c(AB[S], 1:ncol(x)), ncol = 2, nrow = ncol(x))])
+}
+
+.ps_assign_score4 <- function(S, x, AB,ncolx)
+{
+  sum(x[((0:(ncolx-1))*4)+AB[S]]) #fastest way to assign score to an oligo I was able to figure out (without recurring to C implementation)
+}
 
 #' @export
 
@@ -219,7 +294,8 @@ setReplaceMethod(".ps_bg_size", "PSMatrix", function(x,value){
 setAs("PFMatrix", "PSMatrix", function(from){
   
   .ps_norm_matrix(new("PSMatrix", from, ps_bg_avg = as.numeric(NA), ps_bg_std_err = as.numeric(NA), 
-                      ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = as.numeric(0.01)))
+                      ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = as.numeric(0.01), 
+                      .PS_ALPHABET = setNames(1:4, c("A","C","G","T"))))
   
 })
 

@@ -8,5 +8,5 @@ ps_build_bg <- function(x, pfms)
   
   pfms <- lapply(pfms, FUN = as, "PSMatrix")
   
-  pfms <- lapply(pfms, FUN = ps_scan, x)
+  #pfms <- lapply(pfms, FUN = ps_scan, x)
 }
