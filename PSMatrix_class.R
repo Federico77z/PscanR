@@ -48,8 +48,8 @@ setGeneric("ps_scan", function(x, ...) standardGeneric("ps_scan"))
 #' @export
 setGeneric(".ps_scan_s", function(x, ...) standardGeneric(".ps_scan_s"))
 
-#' @export
-setGeneric(".ps_assign_score", function(x, ...) standardGeneric(".ps_assign_score"))
+
+#setGeneric(".ps_assign_score", function(x, ...) standardGeneric(".ps_assign_score"))
 
 #' @export
 setGeneric(".ps_add_hit", function(x, ...) standardGeneric(".ps_add_hit"))
@@ -141,7 +141,16 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs){
   if(!is(seqs, "DNAStringSet"))
     stop("seqs is not an object of DNAStringSet class")
   
-  mapply(.ps_scan_s, list(x), seqs)
+  rc_x <- reverseComplement(x)
+  numx <- as.numeric(Matrix(x))
+  numx_rc <- as.numeric(Matrix(rc_x))
+  ncolx <- ncol(Matrix(x))
+  AB <- .PS_ALPHABET(x)
+  
+  Margs = list(numx = as.numeric(Matrix(x)), numx_rc = as.numeric(Matrix(rc_x)),
+               ncolx = ncol(Matrix(x)), AB = .PS_ALPHABET(x)) 
+  
+  mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
   
 #  .ps_add_hit(x, Pos = which.max(scores), "+", mscore)
   
@@ -150,23 +159,17 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs){
 #' @importMethodsFrom Biostrings maxScore minScore
 #' @export
 
-setMethod(".ps_scan_s", "PSMatrix", function(x, Seq){
+setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB){
   
   subS <- as.character(Seq)
   
   subS <- strsplit(substring(subS, 1:(nchar(subS) - length(x) + 1), length(x):nchar(subS)),"",
                    fixed = TRUE)
 
-  rc_x <- reverseComplement(x)
-  
-  numx <- as.numeric(Matrix(x))
-  numx_rc <- as.numeric(Matrix(rc_x))
-  ncolx <- ncol(Matrix(x))
-  AB <- .PS_ALPHABET(x)
   prot <- numeric(1)
   
-  scores <- vapply(subS, FUN = .ps_assign_score4, FUN.VALUE = prot, x = numx, AB = AB, ncolx = ncolx)
-  scores_rc <- vapply(subS, FUN = .ps_assign_score4, FUN.VALUE = prot, x = numx_rc, AB = AB, ncolx = ncolx)
+  scores <- vapply(subS, FUN = .ps_assign_score, FUN.VALUE = prot, x = numx, AB = AB, ncolx = ncolx)
+  scores_rc <- vapply(subS, FUN = .ps_assign_score, FUN.VALUE = prot, x = numx_rc, AB = AB, ncolx = ncolx)
   
   mscore_pos <- which.max(scores)
   mscore_rc_pos <- which.max(scores_rc)
@@ -192,22 +195,11 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq){
 #' @importMethodsFrom Biostrings reverseComplement 
 #' @export
 
-setMethod(".ps_assign_score", "PSMatrix", function(x, S){
-  
-  sum(Matrix(x)[matrix(data = c(.PS_ALPHABET(x)[S], 1:length(x)), ncol = 2, nrow = length(x))])
-})
+#setMethod(".ps_assign_score", "PSMatrix", function(x, S){
+#  sum(Matrix(x)[matrix(data = c(.PS_ALPHABET(x)[S], 1:length(x)), ncol = 2, nrow = length(x))])
+#})
 
-.ps_assign_score2 <- function(x, S, AB)
-{
-  sum(x[matrix(data = c(AB[S], 1:ncol(x)), ncol = 2, nrow = ncol(x))])
-}
-
-.ps_assign_score3 <- function(S, x, AB)
-{
-  sum(x[matrix(data = c(AB[S], 1:ncol(x)), ncol = 2, nrow = ncol(x))])
-}
-
-.ps_assign_score4 <- function(S, x, AB,ncolx)
+.ps_assign_score <- function(S, x, AB,ncolx)
 {
   sum(x[((0:(ncolx-1))*4)+AB[S]]) #fastest way to assign score to an oligo I was able to figure out (without recurring to C implementation)
 }
