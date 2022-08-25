@@ -144,7 +144,7 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs){
   rc_x <- reverseComplement(x)
   
   Margs = list(numx = as.numeric(Matrix(x)), numx_rc = as.numeric(Matrix(rc_x)),
-               ncolx = ncol(Matrix(x)) - 1, AB = .PS_ALPHABET(x)) 
+               ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), AB = .PS_ALPHABET(x)) 
   
   mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
   
@@ -197,7 +197,7 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB){
 
 .ps_assign_score <- function(S, x, AB,ncolx)
 {
-  sum(x[(0:(ncolx)*4)+AB[S]]) #fastest way to assign score to an oligo I was able to figure out (without recurring to C implementation)
+  sum(x[ncolx+AB[S]]) #fastest way to assign score to an oligo I was able to figure out (without recurring to C implementation)
 }
 
 #' @export
