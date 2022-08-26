@@ -1,5 +1,6 @@
 #Dependencies:
 
+
 ## Annotations and sequences
 RMariaDB (CRAN)
 GenomicFeatures (Biocondctor)
@@ -15,3 +16,6 @@ JASPAR2022
 JASPAR2020
 JASPAR2018
 JASPAR2016
+
+#Others
+BiocParallel (Bioconductor)

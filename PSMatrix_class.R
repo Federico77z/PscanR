@@ -104,9 +104,9 @@ setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
 #' @export
 setMethod(".ps_add_hit", "PSMatrix", function(x, Pos, Strand, Score, withDimnames = TRUE) {
   
-  x@ps_hits_pos <- c(x@ps_hits_pos, Pos)
-  x@ps_hits_strand <- c(x@ps_hits_strand, Strand)
-  x@ps_hits_score <- c(x@ps_hits_score, Score)
+  x@ps_hits_pos <- Pos
+  x@ps_hits_strand <- Strand
+  x@ps_hits_score <- Score
   
   return(x)
 })
@@ -146,9 +146,22 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs){
   Margs = list(numx = as.numeric(Matrix(x)), numx_rc = as.numeric(Matrix(rc_x)),
                ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), AB = .PS_ALPHABET(x)) 
   
-  mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
+  seqs <- as.character(seqs)
   
-#  .ps_add_hit(x, Pos = which.max(scores), "+", mscore)
+  res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
+  #bpmapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs, BPPARAM = MulticoreParam())
+  
+  x <- .ps_add_hit(x, Score = as.numeric(res["score",]), 
+                 Strand = as.character(res["strand",]), 
+                 Pos = as.integer(res["pos",]))
+  
+  #.ps_add_hit(x, Score = 5, 
+   #           Strand = "ciao",
+  #           Pos = 3L)
+
+ # print("qui")
+  
+  return(x)
   
 })
 
@@ -157,11 +170,8 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs){
 
 setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB){
   
-  subS <- as.character(Seq)
-  
-  subS <- strsplit(substring(subS, 1:(nchar(subS) - length(x) + 1), length(x):nchar(subS)),"",
-                   fixed = TRUE)
-
+  subS <- strsplit(substring(Seq, 1:(nchar(Seq) - length(x) + 1), length(x):nchar(Seq)),"",
+                                      fixed = TRUE)
   prot <- numeric(1)
   
   scores <- vapply(subS, FUN = .ps_assign_score, FUN.VALUE = prot, x = numx, AB = AB, ncolx = ncolx)
