@@ -22,7 +22,9 @@ PSMatrix <- function(ps_bg_avg = NA, ps_bg_std_dev = NA, ps_bg_size = NA,
 }
 
 #' @export
+setGeneric("get_name", function(x, ...) standardGeneric("ps_bg_avg"))
 
+#' @export
 setGeneric("ps_bg_avg", function(x, ...) standardGeneric("ps_bg_avg"))
 
 #' @export
@@ -54,6 +56,9 @@ setGeneric(".ps_norm_matrix", function(x, ...) standardGeneric(".ps_norm_matrix"
 
 #' @export
 setGeneric("ps_scan", function(x, ...) standardGeneric("ps_scan"))
+
+#' @export
+setGeneric(".ps_bg_from_file", function(x, ...) standardGeneric(".ps_bg_from_file"))
 
 #' @export
 setGeneric(".ps_scan_s", function(x, ...) standardGeneric(".ps_scan_s"))
@@ -146,6 +151,10 @@ setMethod(".ps_add_hits", "PSMatrix", function(x, Pos, Strand, Score, BG = FALSE
     ps_bg_size(x) <- length(x@ps_hits_pos)
     ps_bg_avg(x) <- mean(x@ps_hits_score, na.rm = TRUE)
     ps_bg_std_dev(x) <- sd(x@ps_hits_score, na.rm = TRUE)
+    
+    x@ps_hits_pos <- integer()
+    x@ps_hits_strand <- character()
+    x@ps_hits_score <- numeric()
   }
   
   return(x)
@@ -158,6 +167,24 @@ setMethod(".ps_norm_score", "PSMatrix", function(x) {
          (minScore(Matrix(x)) - maxScore(Matrix(x))))
   
   return(ps_score)
+})
+
+#' @export
+setMethod(".ps_bg_from_file", "PSMatrix", function(x, short.matrix) {
+  
+  if(any(row.names(short.matrix) == name(x)))
+  {
+    x@ps_bg_size <- as.integer(short.matrix[name(x),"BG_SIZE"])
+    x@ps_bg_avg <-  as.numeric(short.matrix[name(x),"BG_MEAN"])
+    x@ps_bg_std_dev <-  as.numeric(short.matrix[name(x),"BG_STDEV"])
+  }
+  else
+  {
+    warning(paste("No background values found for", name(x), ID(x)))
+  }
+
+  
+  return(x)
 })
 
 #' @export
