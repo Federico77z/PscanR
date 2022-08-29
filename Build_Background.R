@@ -7,5 +7,5 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   pfms <- lapply(pfms, FUN = as, "PSMatrix")
   
   #pfms <- lapply(pfms, FUN = ps_scan, x)
-  pfms <- bplapply(pfms, FUN = ps_scan, x, BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
+  pfms <- bplapply(pfms, FUN = ps_scan, x, BG = TRUE, BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
 }

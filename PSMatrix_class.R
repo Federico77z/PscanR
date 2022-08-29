@@ -3,7 +3,7 @@
 #' @importClassesFrom TFBSTools TFBSTools
 
 .PSMatrix <- setClass("PSMatrix", slots = representation(ps_bg_avg="numeric", 
-                                                         ps_bg_std_err="numeric", 
+                                                         ps_bg_std_dev="numeric", 
                                                          ps_bg_size="integer", 
                                                          ps_hits_pos="integer", 
                                                          ps_hits_strand="character", 
@@ -12,12 +12,13 @@
                                                          .PS_ALPHABET="integer"), 
                       contains="PFMatrix")
 
-PSMatrix <- function(ps_bg_avg = NA, ps_bg_std_err = NA, ps_bg_size = NA, 
+PSMatrix <- function(ps_bg_avg = NA, ps_bg_std_dev = NA, ps_bg_size = NA, 
                      .PS_PSEUDOCOUNT = 0.01, .PS_ALPHABET = setNames(1:4, c("A","C","G","T")), ...)
 {
   pfm <- PFMatrix(...)
-  .PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_bg_std_err = ps_bg_std_err, ps_bg_size = ps_bg_size, 
-            .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, .PS_ALPHABET=.PS_ALPHABET)
+  .PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_bg_std_dev = ps_bg_std_dev, ps_bg_size = ps_bg_size, 
+            .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, .PS_ALPHABET=.PS_ALPHABET, ps_hits_pos = integer(), 
+            ps_hits_strand = character(), ps_hits_score = numeric())
 }
 
 #' @export
@@ -25,13 +26,22 @@ PSMatrix <- function(ps_bg_avg = NA, ps_bg_std_err = NA, ps_bg_size = NA,
 setGeneric("ps_bg_avg", function(x, ...) standardGeneric("ps_bg_avg"))
 
 #' @export
-setGeneric("ps_bg_std_err", function(x, ...) standardGeneric("ps_bg_std_err"))
+setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 
 #' @export
 setGeneric("ps_bg_size", function(x, ...) standardGeneric("ps_bg_size"))
 
 #' @export
 setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
+
+#' @export
+setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
+
+#' @export
+setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
+
+#' @export
+setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 
 #' @export
 setGeneric(".PS_PSEUDOCOUNT", function(x, ...) standardGeneric(".PS_PSEUDOCOUNT"))
@@ -48,11 +58,13 @@ setGeneric("ps_scan", function(x, ...) standardGeneric("ps_scan"))
 #' @export
 setGeneric(".ps_scan_s", function(x, ...) standardGeneric(".ps_scan_s"))
 
+#' @export
+setGeneric(".ps_norm_score", function(x, ...) standardGeneric(".ps_norm_score"))
 
 #setGeneric(".ps_assign_score", function(x, ...) standardGeneric(".ps_assign_score"))
 
 #' @export
-setGeneric(".ps_add_hit", function(x, ...) standardGeneric(".ps_add_hit"))
+setGeneric(".ps_add_hits", function(x, ...) standardGeneric(".ps_add_hits"))
 
 #' @export
 setMethod("ps_bg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
@@ -63,8 +75,8 @@ setMethod("ps_bg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
 
 #' @export
 #' 
-setMethod("ps_bg_std_err", "PSMatrix", function(x, withDimnames = TRUE) {
-  out <- x@ps_bg_std_err
+setMethod("ps_bg_std_dev", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_bg_std_dev
   
   return(out)
 })
@@ -78,9 +90,29 @@ setMethod("ps_bg_size", "PSMatrix", function(x, withDimnames = TRUE) {
 })
 
 #' @export
-
 setMethod("ps_hits_size", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- length(x@ps_hits_pos)
+  
+  return(out)
+})
+
+#' @export
+setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_hits_score
+  
+  return(out)
+})
+
+#' @export
+setMethod("ps_hits_strand", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_hits_strand
+  
+  return(out)
+})
+
+#' @export
+setMethod("ps_hits_pos", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_hits_pos
   
   return(out)
 })
@@ -102,13 +134,30 @@ setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
 })
 
 #' @export
-setMethod(".ps_add_hit", "PSMatrix", function(x, Pos, Strand, Score, withDimnames = TRUE) {
+setMethod(".ps_add_hits", "PSMatrix", function(x, Pos, Strand, Score, BG = FALSE, withDimnames = TRUE) {
   
   x@ps_hits_pos <- Pos
   x@ps_hits_strand <- Strand
   x@ps_hits_score <- Score
+  x@ps_hits_score <- .ps_norm_score(x)
+  
+  if(BG)
+  {
+    ps_bg_size(x) <- length(x@ps_hits_pos)
+    ps_bg_avg(x) <- mean(x@ps_hits_score, na.rm = TRUE)
+    ps_bg_std_dev(x) <- sd(x@ps_hits_score, na.rm = TRUE)
+  }
   
   return(x)
+})
+
+#' @export
+setMethod(".ps_norm_score", "PSMatrix", function(x) {
+  
+  ps_score <- 1 + ((maxScore(Matrix(x)) - ps_hits_score(x)) / 
+         (minScore(Matrix(x)) - maxScore(Matrix(x))))
+  
+  return(ps_score)
 })
 
 #' @export
@@ -136,7 +185,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 
 #' @export
 
-setMethod("ps_scan", "PSMatrix", function(x, seqs){
+setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
   
   if(!is(seqs, "DNAStringSet"))
     stop("seqs is not an object of DNAStringSet class")
@@ -149,17 +198,10 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs){
   seqs <- as.character(seqs)
   
   res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
-  #bpmapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs, BPPARAM = MulticoreParam())
   
-  x <- .ps_add_hit(x, Score = as.numeric(res["score",]), 
+  x <- .ps_add_hits(x, Score = as.numeric(res["score",]), 
                  Strand = as.character(res["strand",]), 
-                 Pos = as.integer(res["pos",]))
-  
-  #.ps_add_hit(x, Score = 5, 
-   #           Strand = "ciao",
-  #           Pos = 3L)
-
- # print("qui")
+                 Pos = as.integer(res["pos",]), BG = BG)
   
   return(x)
   
@@ -216,14 +258,12 @@ validPSMatrix <- function(object)
 {
   if(length(object@ps_bg_avg) != 1)
     return("Background average must be of length 1")
-  if(length(object@ps_bg_std_err) != 1)
-    return("Background stderr must be of length 1")
-  if(length(object@ps_bg_std_err) != 1)
-    return("Background size must be of length 1")
+  if(length(object@ps_bg_std_dev) != 1)
+    return("Background stdev must be of length 1")
   if((object@ps_bg_avg < 0 | object@ps_bg_avg > 1) & !is.na(object@ps_bg_avg)) 
     return(paste("Invalid value for Background average: ", object@ps_bg_avg))
-  if((object@ps_bg_std_err < 0 | object@ps_bg_std_err > 1) & !is.na(object@ps_bg_std_err))
-    return(paste("Invalid value for Background stderr: ", object@ps_bg_std_err))
+  if((object@ps_bg_std_dev <= 0 | object@ps_bg_std_dev > 1) & !is.na(object@ps_bg_std_dev))
+    return(paste("Invalid value for Background stddev: ", object@ps_bg_std_dev))
   if(object@ps_bg_size <= 1000 & !is.na(object@ps_bg_size))
     return(paste("Invalid value for Background size: ", object@ps_bg_size, " Background must be of at least 1000 sequences"))
   if(length(object@ps_hits_pos) != length(object@ps_hits_strand) | length(object@ps_hits_pos) != length(object@ps_hits_score))
@@ -244,7 +284,7 @@ setMethod("show", "PSMatrix", function(object) {
   
   cat(
       "\nPscan Background Average: ", ps_bg_avg(object), "\n",
-      "\nPscan Backgroun StdErr: ", ps_bg_std_err(object), "\n",
+      "\nPscan Backgroun Stdev: ", ps_bg_std_dev(object), "\n",
       "\nPscan Background Size: ", ps_bg_size(object), "\n",
       "\nPscan Hits Size: ", ps_hits_size(object), "\n",
       sep = ""
@@ -252,17 +292,17 @@ setMethod("show", "PSMatrix", function(object) {
 })
 
 #' @export
-setGeneric(".ps_bg_avg<-", function(x, ..., value) standardGeneric(".ps_bg_avg<-"))
+setGeneric("ps_bg_avg<-", function(x, ..., value) standardGeneric("ps_bg_avg<-"))
 
 #' @export
-setGeneric(".ps_bg_std_err<-", function(x, ..., value) standardGeneric(".ps_bg_std_err<-"))
+setGeneric("ps_bg_std_dev<-", function(x, ..., value) standardGeneric("ps_bg_std_dev<-"))
 
 #' @export
-setGeneric(".ps_bg_size<-", function(x, ..., value) standardGeneric(".ps_bg_size<-"))
+setGeneric("ps_bg_size<-", function(x, ..., value) standardGeneric("ps_bg_size<-"))
 
 #' @export
 
-setReplaceMethod(".ps_bg_avg", "PSMatrix", function(x,value){
+setReplaceMethod("ps_bg_avg", "PSMatrix", function(x,value){
   
   x@ps_bg_avg <- value
   validObject(x)
@@ -271,16 +311,16 @@ setReplaceMethod(".ps_bg_avg", "PSMatrix", function(x,value){
 
 #' @export
 
-setReplaceMethod(".ps_bg_std_err", "PSMatrix", function(x,value){
+setReplaceMethod("ps_bg_std_dev", "PSMatrix", function(x,value){
   
-  x@ps_bg_std_err <- value
+  x@ps_bg_std_dev <- value
   validObject(x)
   x
 })
 
 #' @export
 
-setReplaceMethod(".ps_bg_size", "PSMatrix", function(x,value){
+setReplaceMethod("ps_bg_size", "PSMatrix", function(x,value){
   
   x@ps_bg_size <- value
   validObject(x)
@@ -291,7 +331,7 @@ setReplaceMethod(".ps_bg_size", "PSMatrix", function(x,value){
 
 setAs("PFMatrix", "PSMatrix", function(from){
   
-  .ps_norm_matrix(new("PSMatrix", from, ps_bg_avg = as.numeric(NA), ps_bg_std_err = as.numeric(NA), 
+  .ps_norm_matrix(new("PSMatrix", from, ps_bg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
                       ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = as.numeric(0.01), 
                       .PS_ALPHABET = setNames(1:4, c("A","C","G","T"))))
   
