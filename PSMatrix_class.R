@@ -58,7 +58,7 @@ setGeneric(".ps_norm_matrix", function(x, ...) standardGeneric(".ps_norm_matrix"
 setGeneric("ps_scan", function(x, ...) standardGeneric("ps_scan"))
 
 #' @export
-setGeneric(".ps_bg_from_file", function(x, ...) standardGeneric(".ps_bg_from_file"))
+setGeneric(".ps_bg_from_table", function(x, ...) standardGeneric(".ps_bg_from_table"))
 
 #' @export
 setGeneric(".ps_scan_s", function(x, ...) standardGeneric(".ps_scan_s"))
@@ -170,7 +170,7 @@ setMethod(".ps_norm_score", "PSMatrix", function(x) {
 })
 
 #' @export
-setMethod(".ps_bg_from_file", "PSMatrix", function(x, short.matrix) {
+setMethod(".ps_bg_from_table", "PSMatrix", function(x, short.matrix) {
   
   if(any(row.names(short.matrix) == name(x)))
   {
@@ -287,13 +287,13 @@ validPSMatrix <- function(object)
     return("Background average must be of length 1")
   if(length(object@ps_bg_std_dev) != 1)
     return("Background stdev must be of length 1")
-  if((object@ps_bg_avg < 0 | object@ps_bg_avg > 1) & !is.na(object@ps_bg_avg)) 
+  if((object@ps_bg_avg < 0 || object@ps_bg_avg > 1) && !is.na(object@ps_bg_avg)) 
     return(paste("Invalid value for Background average: ", object@ps_bg_avg))
-  if((object@ps_bg_std_dev <= 0 | object@ps_bg_std_dev > 1) & !is.na(object@ps_bg_std_dev))
+  if((object@ps_bg_std_dev <= 0 || object@ps_bg_std_dev > 1) && !is.na(object@ps_bg_std_dev))
     return(paste("Invalid value for Background stddev: ", object@ps_bg_std_dev))
-  if(object@ps_bg_size <= 1000 & !is.na(object@ps_bg_size))
+  if(object@ps_bg_size < 1000 && !is.na(object@ps_bg_size))
     return(paste("Invalid value for Background size: ", object@ps_bg_size, " Background must be of at least 1000 sequences"))
-  if(length(object@ps_hits_pos) != length(object@ps_hits_strand) | length(object@ps_hits_pos) != length(object@ps_hits_score))
+  if(length(object@ps_hits_pos) != length(object@ps_hits_strand) || length(object@ps_hits_pos) != length(object@ps_hits_score))
     return(paste("Invalid PSMatrix object: different values for hits, strands and scores vectors"))
   
   TRUE
