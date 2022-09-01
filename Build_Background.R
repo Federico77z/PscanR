@@ -4,9 +4,13 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   
   x <- BiocGenerics::unique(x)
   
-  pfms <- lapply(pfms, FUN = as, "PSMatrix")
+ # if(is(pfms, "PFMatrixList"))
+    pfms <- as(pfms, "PSMatrixList")
+    #pfms <- lapply(pfms, FUN = as, "PSMatrix")
   
   pfms <- bplapply(pfms, FUN = ps_scan, x, BG = TRUE, BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
+  
+  do.call(PSMatrixList, pfms)
 }
 
 ps_build_bg_from_file <- function(file, pfms)
@@ -27,7 +31,9 @@ ps_build_bg_from_table <- function(x, pfms)
   pfms <- lapply(pfms, FUN = as, "PSMatrix")
   
   if(length(pfms) != nrow(x))
-    warning("Mismatch between number of PFMs in PFMatrixList object and file table")
+    warning("Mismatch between number of PFMs in PFMatrixList/PSMatrixList object and file table")
   
   pfms <- lapply(pfms, FUN = .ps_bg_from_table, x)
+  
+  do.call(PSMatrixList, pfms)
 }

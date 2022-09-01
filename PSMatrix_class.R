@@ -12,13 +12,21 @@
                                                          .PS_ALPHABET="integer"), 
                       contains="PFMatrix")
 
-PSMatrix <- function(ps_bg_avg = NA, ps_bg_std_dev = NA, ps_bg_size = NA, 
+PSMatrix <- function(ps_bg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), ps_bg_size = as.integer(NA), 
                      .PS_PSEUDOCOUNT = 0.01, .PS_ALPHABET = setNames(1:4, c("A","C","G","T")), ...)
 {
   pfm <- PFMatrix(...)
   .PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_bg_std_dev = ps_bg_std_dev, ps_bg_size = ps_bg_size, 
             .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, .PS_ALPHABET=.PS_ALPHABET, ps_hits_pos = integer(), 
             ps_hits_strand = character(), ps_hits_score = numeric())
+}
+
+.PSMatrixList <-setClass("PSMatrixList", contains ="PFMatrixList")
+
+PSMatrixList <- function(..., use.names = TRUE)
+{
+  listData = list(...)
+  XMatrixList(listData, use.names = use.names, type = "PSMatrixList", matrixClass = "PSMatrix")
 }
 
 #' @export
@@ -192,7 +200,7 @@ setMethod(".ps_bg_from_table", "PSMatrix", function(x, short.matrix) {
 
 setMethod(".ps_norm_matrix", "PSMatrix", function(x){
   
-  mx <- TFBSTools::Matrix(x)
+  mx <- Matrix(x)
   
   sums <- apply(mx, 2, sum)
   
@@ -361,6 +369,16 @@ setAs("PFMatrix", "PSMatrix", function(from){
   .ps_norm_matrix(new("PSMatrix", from, ps_bg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
                       ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = as.numeric(0.01), 
                       .PS_ALPHABET = setNames(1:4, c("A","C","G","T"))))
+  
+})
+
+#' @exportMethods coerce
+
+setAs("PFMatrixList", "PSMatrixList", function(from){
+  
+  to <- lapply(from, as, "PSMatrix")
+  
+  do.call(PSMatrixList, to)
   
 })
 

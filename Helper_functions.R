@@ -4,9 +4,9 @@
   require("TFBSTools")
   require("BiocParallel")
   
-  if(!is(pfms, "PFMatrixList"))
+  if(!is(pfms, "PFMatrixList") && !is(pfms, "PSMatrixList"))
   {
-    stop("pfms is not an object of PFMatrixList class")  
+    stop("pfms is not an object of PFMatrixList or PSMatrixList class")  
   }
   
   if(is.character(x) && type == 2)
