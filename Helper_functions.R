@@ -4,7 +4,6 @@
   require("TFBSTools")
   require("BiocParallel")
   
-<<<<<<< HEAD
   if(type == 4 && !is(pfms, "PSMatrixList"))
   {
     stop("pfms is not an object of PSMatrixList class")
@@ -25,13 +24,7 @@
   }
   
   if(!is(pfms, "PFMatrixList") && !is(pfms, "PSMatrixList"))
-  {
-=======
-  if(!is(pfms, "PFMatrixList") && !is(pfms, "PSMatrixList"))
-  {
->>>>>>> 544f1eab6bcd43b76a3d484310e0a841514d60ee
     stop("pfms is not an object of PFMatrixList or PSMatrixList class")  
-  }
   
   if(is.character(x) && type == 2)
   {
