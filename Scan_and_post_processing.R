@@ -1,10 +1,10 @@
 pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
-  .ps_checks2(x, pfms)
+  .ps_checks(x, pfms,type = 4)
   
   x <- BiocGenerics::unique(x)
   
-  pfms <- lapply(pfms, FUN = as, "PSMatrix")
-  
   pfms <- bplapply(pfms, FUN = ps_scan, x, BG = FALSE, BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
+  
+  do.call(PSMatrixList, pfms)
 }
