@@ -3,6 +3,7 @@
 
 ## Annotations and sequences
 RMariaDB (CRAN)
+BSDA (CRAN)
 GenomicFeatures (Biocondctor)
 GenomicRanges (Bioconductor)
 Biostrings (Bioconductor)

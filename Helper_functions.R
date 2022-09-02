@@ -65,4 +65,5 @@
   require("Biostrings")
   require("TFBSTools")
   require("BiocParallel")
+  require("BSDA")
 }

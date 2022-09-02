@@ -8,3 +8,8 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   
   do.call(PSMatrixList, pfms)
 }
+
+ps_get_results_table <- function(pfms)
+{
+  
+}

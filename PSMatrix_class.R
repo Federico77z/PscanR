@@ -2,21 +2,28 @@
 #' @import methods
 #' @importClassesFrom TFBSTools TFBSTools
 
-.PSMatrix <- setClass("PSMatrix", slots = representation(ps_bg_avg="numeric", 
+.PSMatrix <- setClass("PSMatrix", slots = representation(ps_bg_avg="numeric",
+                                                         ps_fg_avg="numeric",
                                                          ps_bg_std_dev="numeric", 
-                                                         ps_bg_size="integer", 
+                                                         ps_bg_size="integer",
+                                                         ps_fg_size="integer",
                                                          ps_hits_pos="integer", 
                                                          ps_hits_strand="character", 
                                                          ps_hits_score="numeric",
+                                                         ps_zscore="numeric",
+                                                         ps_pvalue="numeric",
                                                          .PS_PSEUDOCOUNT="numeric",
                                                          .PS_ALPHABET="integer"), 
                       contains="PFMatrix")
 
-PSMatrix <- function(ps_bg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), ps_bg_size = as.integer(NA), 
-                     .PS_PSEUDOCOUNT = 0.01, .PS_ALPHABET = setNames(1:4, c("A","C","G","T")), ...)
+PSMatrix <- function(ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
+                     ps_bg_size = as.integer(NA), ps_fg_size = as.integer(NA), ps_zscore = as.numeric(NA),
+                     ps_pvalue = as.numeric(NA), .PS_PSEUDOCOUNT = 0.01, 
+                     .PS_ALPHABET = setNames(1:4, c("A","C","G","T")), ...)
 {
   pfm <- PFMatrix(...)
-  .PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_bg_std_dev = ps_bg_std_dev, ps_bg_size = ps_bg_size, 
+  .PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_fg_avg = ps_fg_avg, ps_bg_std_dev = ps_bg_std_dev, ps_bg_size = ps_bg_size, 
+            ps_fg_size = ps_fg_size, ps_zscore = ps_zscore, ps_pvalue = ps_pvalue,
             .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, .PS_ALPHABET=.PS_ALPHABET, ps_hits_pos = integer(), 
             ps_hits_strand = character(), ps_hits_score = numeric())
 }
@@ -30,16 +37,25 @@ PSMatrixList <- function(..., use.names = TRUE)
 }
 
 #' @export
-setGeneric("get_name", function(x, ...) standardGeneric("ps_bg_avg"))
+setGeneric("ps_zscore", function(x, ...) standardGeneric("ps_zscore"))
+
+#' @export
+setGeneric("ps_pvalue", function(x, ...) standardGeneric("ps_pvalue"))
 
 #' @export
 setGeneric("ps_bg_avg", function(x, ...) standardGeneric("ps_bg_avg"))
+
+#' @export
+setGeneric("ps_fg_avg", function(x, ...) standardGeneric("ps_fg_avg"))
 
 #' @export
 setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 
 #' @export
 setGeneric("ps_bg_size", function(x, ...) standardGeneric("ps_bg_size"))
+
+#' @export
+setGeneric("ps_fg_size", function(x, ...) standardGeneric("ps_fg_size"))
 
 #' @export
 setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
@@ -87,6 +103,27 @@ setMethod("ps_bg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
 })
 
 #' @export
+setMethod("ps_fg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_fg_avg
+  
+  return(out)
+})
+
+#' @export
+setMethod("ps_zscore", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_zscore
+  
+  return(out)
+})
+
+#' @export
+setMethod("ps_pvalue", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_pvalue
+  
+  return(out)
+})
+
+#' @export
 #' 
 setMethod("ps_bg_std_dev", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_bg_std_dev
@@ -98,6 +135,12 @@ setMethod("ps_bg_std_dev", "PSMatrix", function(x, withDimnames = TRUE) {
 #' 
 setMethod("ps_bg_size", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_bg_size
+  
+  return(out)
+})
+
+setMethod("ps_fg_size", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_fg_size
   
   return(out)
 })
@@ -163,6 +206,18 @@ setMethod(".ps_add_hits", "PSMatrix", function(x, Pos, Strand, Score, BG = FALSE
     x@ps_hits_pos <- integer()
     x@ps_hits_strand <- character()
     x@ps_hits_score <- numeric()
+  }
+  else
+  {
+    if(!is.na(x@ps_bg_avg) && !is.na(x@ps_bg_std_dev))
+    {
+      ztest <- z.test(x@ps_hits_score, mu = x@ps_bg_avg, sigma.x = x@ps_bg_std_dev, alternative = "greater")
+      
+      x@ps_zscore <- ztest$statistic["z"]
+      x@ps_pvalue <- as.numeric(ztest$p.value)
+      x@ps_fg_avg <- mean(x@ps_hits_score, na.rm = TRUE)
+      x@ps_fg_size <- length(x@ps_hits_pos)
+    }
   }
   
   return(x)
@@ -293,6 +348,8 @@ validPSMatrix <- function(object)
 {
   if(length(object@ps_bg_avg) != 1)
     return("Background average must be of length 1")
+  if(length(object@ps_fg_avg) != 1)
+    return("Foreground average must be of length 1")
   if(length(object@ps_bg_std_dev) != 1)
     return("Background stdev must be of length 1")
   if((object@ps_bg_avg < 0 || object@ps_bg_avg > 1) && !is.na(object@ps_bg_avg)) 
@@ -318,10 +375,13 @@ setMethod("show", "PSMatrix", function(object) {
   callNextMethod()
   
   cat(
-      "\nPscan Background Average: ", ps_bg_avg(object), "\n",
-      "\nPscan Backgroun Stdev: ", ps_bg_std_dev(object), "\n",
-      "\nPscan Background Size: ", ps_bg_size(object), "\n",
-      "\nPscan Hits Size: ", ps_hits_size(object), "\n",
+      "\nPscan Background Average: ", ps_bg_avg(object),
+      "\nPscan Foreground (your sample) Average: ", ps_fg_avg(object),
+      "\nPscan Backgroun Stdev: ", ps_bg_std_dev(object),
+      "\nPscan Background Size: ", ps_bg_size(object),
+      "\nPscan Foreground (your sample) Size: ", ps_fg_size(object),
+      "\nPscan Zscore: ", ps_zscore(object),
+      "\nPscan pvalue (z-test): ", ps_pvalue(object),
       sep = ""
   )
 })
@@ -366,9 +426,9 @@ setReplaceMethod("ps_bg_size", "PSMatrix", function(x,value){
 
 setAs("PFMatrix", "PSMatrix", function(from){
   
-  .ps_norm_matrix(new("PSMatrix", from, ps_bg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
-                      ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = as.numeric(0.01), 
-                      .PS_ALPHABET = setNames(1:4, c("A","C","G","T"))))
+  .ps_norm_matrix(new("PSMatrix", from, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
+                      ps_zscore = as.numeric(NA), ps_pvalue = as.numeric(NA), ps_bg_size = as.integer(NA), 
+                      ps_fg_size = as.integer(NA), .PS_PSEUDOCOUNT = as.numeric(0.01), .PS_ALPHABET = setNames(1:4, c("A","C","G","T"))))
   
 })
 
