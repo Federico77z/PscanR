@@ -1,13 +1,9 @@
 .ps_checks <- function(x, pfms, type)
 {
-  require("Biostrings")
-  require("TFBSTools")
-  require("BiocParallel")
+  .ps_required_packages()
   
   if(type == 4 && !is(pfms, "PSMatrixList"))
-  {
     stop("pfms is not an object of PSMatrixList class")
-  }
   
   if(type == 4)
   {
@@ -51,17 +47,22 @@
   }
 }
 
-# .ps_checks2 <- function(x, pfms)
-# {
-#   require("Biostrings")
-#   require("TFBSTools")
-#   require("BiocParallel")
-#   
-#   if(!all(vapply(pfms, is, logical(length = 1L), "PSMatrix")))
-#     stop("pfms is not a list of PSMatrix objects") 
-#   
-#   if(!is(x, "DNAStringSet") && type == 1)
-#     stop("x is not an object of DNAStringSet class")
-#   
-# }
+.ps_checks2 <- function(pfms, ...)
+{
+  .ps_required_packages()
 
+  if(!is(pfms, "PSMatrixList"))
+    stop("pfms is not an object of PSMatrixList class")  
+  
+ if(is.character(file))
+   if(file.access(x, mode = 2) != 0)
+     stop(paste("Cannot write to file path:", x))
+   
+}
+
+.ps_required_packages <- function()
+{
+  require("Biostrings")
+  require("TFBSTools")
+  require("BiocParallel")
+}

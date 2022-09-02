@@ -284,7 +284,7 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB){
 
 .ps_assign_score <- function(S, x, AB,ncolx)
 {
-  sum(x[ncolx+AB[S]]) #fastest way to assign score to an oligo I was able to figure out (without recurring to C implementation)
+  sum(x[ncolx+AB[S]]) #Assign score to oligo
 }
 
 #' @export

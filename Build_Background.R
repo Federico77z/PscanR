@@ -37,3 +37,25 @@ ps_build_bg_from_table <- function(x, pfms)
   
   do.call(PSMatrixList, pfms)
 }
+
+ps_get_bg_table <- function(pfms)
+{
+  .ps_checks2(pfms)
+  
+  BG_SIZE <- vapply(pfms, ps_bg_size, integer(length = 1)) 
+  BG_MEAN <- vapply(pfms, ps_bg_avg, numeric(length = 1))
+  BG_STDEV <- vapply(pfms, ps_bg_std_dev, numeric(length = 1))
+  
+  data.frame(BG_SIZE, BG_MEAN, BG_STDEV, row.names = name(pfms))
+}
+
+ps_write_bg_to_file <- function(pfms, file)
+{
+  .ps_checks2(pfms, file)
+  
+  tab <- ps_get_bg_table(pfms)
+  
+  write("[SHORT TFBS MATRIX]", file = file, append = FALSE)
+  
+  write.table(tab, file = file, quote = FALSE, sep = "\t", row.names = TRUE, col.names = FALSE, append = TRUE)
+}
