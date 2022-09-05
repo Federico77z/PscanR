@@ -12,18 +12,19 @@
                                                          ps_hits_score="numeric",
                                                          ps_zscore="numeric",
                                                          ps_pvalue="numeric",
+                                                         ps_seq_names="character",
                                                          .PS_PSEUDOCOUNT="numeric",
                                                          .PS_ALPHABET="integer"), 
                       contains="PFMatrix")
 
 PSMatrix <- function(ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
                      ps_bg_size = as.integer(NA), ps_fg_size = as.integer(NA), ps_zscore = as.numeric(NA),
-                     ps_pvalue = as.numeric(NA), .PS_PSEUDOCOUNT = 0.01, 
-                     .PS_ALPHABET = setNames(1:4, c("A","C","G","T")), ...)
+                     ps_pvalue = as.numeric(NA), ps_seq_names = as.character(NA),
+                     .PS_PSEUDOCOUNT = 0.01, .PS_ALPHABET = setNames(1:4, c("A","C","G","T")), ...)
 {
   pfm <- PFMatrix(...)
   .PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_fg_avg = ps_fg_avg, ps_bg_std_dev = ps_bg_std_dev, ps_bg_size = ps_bg_size, 
-            ps_fg_size = ps_fg_size, ps_zscore = ps_zscore, ps_pvalue = ps_pvalue,
+            ps_fg_size = ps_fg_size, ps_zscore = ps_zscore, ps_pvalue = ps_pvalue, ps_seq_names = ps_seq_names,
             .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, .PS_ALPHABET=.PS_ALPHABET, ps_hits_pos = integer(), 
             ps_hits_strand = character(), ps_hits_score = numeric())
 }
@@ -68,6 +69,12 @@ setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 
 #' @export
 setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
+
+#' @export
+setGeneric("ps_hits_table", function(x, ...) standardGeneric("ps_hits_table"))
+
+#' @export
+setGeneric("ps_seq_names", function(x, ...) standardGeneric("ps_seq_names"))
 
 #' @export
 setGeneric(".PS_PSEUDOCOUNT", function(x, ...) standardGeneric(".PS_PSEUDOCOUNT"))
@@ -174,6 +181,13 @@ setMethod("ps_hits_pos", "PSMatrix", function(x, withDimnames = TRUE) {
 })
 
 #' @export
+setMethod("ps_seq_names", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_seq_names
+  
+  return(out)
+})
+
+#' @export
 
 setMethod(".PS_PSEUDOCOUNT", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@.PS_PSEUDOCOUNT
@@ -185,6 +199,18 @@ setMethod(".PS_PSEUDOCOUNT", "PSMatrix", function(x, withDimnames = TRUE) {
 
 setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@.PS_ALPHABET
+  
+  return(out)
+})
+
+#' @export
+
+setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L, withDimnames = TRUE) {
+  
+  out <- data.frame("SCORE" = x@ps_hits_score, "POS" = x@ps_hits_pos + as.integer(pos_shift), "STRAND" = x@ps_hits_strand,
+                    row.names = x@ps_seq_names)
+  
+  out <- out[with(out, order(SCORE, POS, decreasing = c(TRUE,FALSE))),]
   
   return(out)
 })
@@ -257,15 +283,21 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
   
   mx <- Matrix(x)
   
-  sums <- apply(mx, 2, sum)
+  #sums <- apply(mx, 2, sum)
   
-  mx <- mx / sums
+  #mx <- mx / sums
+  
+  mx <- sweep(mx, 2, colSums(mx), FUN = "/")
   
   mx <- mx + x@.PS_PSEUDOCOUNT
   
-  sums <- apply(mx, 2, sum)
+#  sums <- apply(mx, 2, sum)
   
-  mx <- log(mx / sums)
+  mx <- sweep(mx, 2, colSums(mx), FUN = "/")
+  
+#  mx <- log(mx / sums)
+  
+  mx <- log(mx)
   
   Matrix(x) <- mx
   
@@ -284,6 +316,9 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
   
   Margs = list(numx = as.numeric(Matrix(x)), numx_rc = as.numeric(Matrix(rc_x)),
                ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), AB = .PS_ALPHABET(x)) 
+  
+  if(BG == FALSE)
+    x@ps_seq_names = names(seqs)
   
   seqs <- as.character(seqs)
   
@@ -428,7 +463,8 @@ setAs("PFMatrix", "PSMatrix", function(from){
   
   .ps_norm_matrix(new("PSMatrix", from, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
                       ps_zscore = as.numeric(NA), ps_pvalue = as.numeric(NA), ps_bg_size = as.integer(NA), 
-                      ps_fg_size = as.integer(NA), .PS_PSEUDOCOUNT = as.numeric(0.01), .PS_ALPHABET = setNames(1:4, c("A","C","G","T"))))
+                      ps_fg_size = as.integer(NA), ps_seq_names = as.character(NA),
+                      .PS_PSEUDOCOUNT = as.numeric(0.01), .PS_ALPHABET = setNames(1:4, c("A","C","G","T"))))
   
 })
 
