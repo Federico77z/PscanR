@@ -10,6 +10,7 @@
                                                          ps_hits_pos="integer", 
                                                          ps_hits_strand="character", 
                                                          ps_hits_score="numeric",
+                                                         ps_hits_oligo="character",
                                                          ps_zscore="numeric",
                                                          ps_pvalue="numeric",
                                                          ps_seq_names="character",
@@ -19,14 +20,14 @@
 
 PSMatrix <- function(ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
                      ps_bg_size = as.integer(NA), ps_fg_size = as.integer(NA), ps_zscore = as.numeric(NA),
-                     ps_pvalue = as.numeric(NA), ps_seq_names = as.character(NA),
+                     ps_pvalue = as.numeric(NA), ps_seq_names = as.character(NA), 
                      .PS_PSEUDOCOUNT = 0.01, .PS_ALPHABET = setNames(1:4, c("A","C","G","T")), ...)
 {
   pfm <- PFMatrix(...)
   .PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_fg_avg = ps_fg_avg, ps_bg_std_dev = ps_bg_std_dev, ps_bg_size = ps_bg_size, 
             ps_fg_size = ps_fg_size, ps_zscore = ps_zscore, ps_pvalue = ps_pvalue, ps_seq_names = ps_seq_names,
             .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, .PS_ALPHABET=.PS_ALPHABET, ps_hits_pos = integer(), 
-            ps_hits_strand = character(), ps_hits_score = numeric())
+            ps_hits_strand = character(), ps_hits_score = numeric(), ps_hits_oligo = character())
 }
 
 .PSMatrixList <-setClass("PSMatrixList", contains ="PFMatrixList")
@@ -69,6 +70,9 @@ setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 
 #' @export
 setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
+
+#' @export
+setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 
 #' @export
 setGeneric("ps_hits_table", function(x, ...) standardGeneric("ps_hits_table"))
@@ -126,6 +130,13 @@ setMethod("ps_zscore", "PSMatrix", function(x, withDimnames = TRUE) {
 #' @export
 setMethod("ps_pvalue", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_pvalue
+  
+  return(out)
+})
+
+#' @export
+setMethod("ps_hits_oligo", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_hits_oligo
   
   return(out)
 })
@@ -208,7 +219,7 @@ setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
 setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L, withDimnames = TRUE) {
   
   out <- data.frame("SCORE" = x@ps_hits_score, "POS" = x@ps_hits_pos + as.integer(pos_shift), "STRAND" = x@ps_hits_strand,
-                    row.names = x@ps_seq_names)
+                    "OLIGO" = x@ps_hits_oligo, row.names = x@ps_seq_names)
   
   out <- out[with(out, order(SCORE, POS, decreasing = c(TRUE,FALSE))),]
   
@@ -216,7 +227,7 @@ setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L, withDimnames 
 })
 
 #' @export
-setMethod(".ps_add_hits", "PSMatrix", function(x, Pos, Strand, Score, BG = FALSE, withDimnames = TRUE) {
+setMethod(".ps_add_hits", "PSMatrix", function(x, Pos, Strand, Score, Oligo, BG = FALSE, withDimnames = TRUE) {
   
   x@ps_hits_pos <- Pos
   x@ps_hits_strand <- Strand
@@ -243,6 +254,7 @@ setMethod(".ps_add_hits", "PSMatrix", function(x, Pos, Strand, Score, BG = FALSE
       x@ps_pvalue <- as.numeric(ztest$p.value)
       x@ps_fg_avg <- mean(x@ps_hits_score, na.rm = TRUE)
       x@ps_fg_size <- length(x@ps_hits_pos)
+      x@ps_hits_oligo <- Oligo
     }
   }
   
@@ -283,19 +295,11 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
   
   mx <- Matrix(x)
   
-  #sums <- apply(mx, 2, sum)
-  
-  #mx <- mx / sums
-  
   mx <- sweep(mx, 2, colSums(mx), FUN = "/")
   
   mx <- mx + x@.PS_PSEUDOCOUNT
   
-#  sums <- apply(mx, 2, sum)
-  
   mx <- sweep(mx, 2, colSums(mx), FUN = "/")
-  
-#  mx <- log(mx / sums)
   
   mx <- log(mx)
   
@@ -326,7 +330,7 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
   
   x <- .ps_add_hits(x, Score = as.numeric(res["score",]), 
                  Strand = as.character(res["strand",]), 
-                 Pos = as.integer(res["pos",]), BG = BG)
+                 Pos = as.integer(res["pos",]), Oligo = as.character(res["oligo",]), BG = BG)
   
   return(x)
   
@@ -347,19 +351,21 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB){
   mscore_pos <- which.max(scores)
   mscore_rc_pos <- which.max(scores_rc)
   
-  res <- list(score = numeric(), strand = character(), pos = integer())
+  res <- list(score = numeric(), strand = character(), pos = integer(), oligo = character())
   
   if(scores[mscore_pos] >= scores_rc[mscore_rc_pos])
   {
     res$score <- scores[mscore_pos]
     res$strand <- "+"
     res$pos <- mscore_pos
+    res$oligo <- paste(subS[[mscore_pos]], collapse = '')
   }
   else
   {
     res$score <- scores_rc[mscore_rc_pos]
     res$strand <- "-"
     res$pos <- mscore_rc_pos
+    res$oligo <- paste(subS[[mscore_rc_pos]], collapse = '')
   }
   
   return(res)
