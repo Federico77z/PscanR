@@ -66,6 +66,9 @@ setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
 setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 
 #' @export
+setGeneric("ps_hits_z", function(x, ...) standardGeneric("ps_hits_z"))
+
+#' @export
 setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 
 #' @export
@@ -88,6 +91,9 @@ setGeneric(".PS_ALPHABET", function(x, ...) standardGeneric(".PS_ALPHABET"))
 
 #' @export
 setGeneric(".ps_norm_matrix", function(x, ...) standardGeneric(".ps_norm_matrix"))
+
+#' @export
+setGeneric(".ps_seq_names", function(x, out) standardGeneric(".ps_seq_names"))
 
 #' @export
 setGeneric("ps_scan", function(x, ...) standardGeneric("ps_scan"))
@@ -137,12 +143,22 @@ setMethod("ps_pvalue", "PSMatrix", function(x, withDimnames = TRUE) {
 #' @export
 setMethod("ps_hits_oligo", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_hits_oligo
+
+  out <- .ps_seq_names(out, x)
   
   return(out)
 })
 
 #' @export
-#' 
+setMethod(".ps_seq_names", "PSMatrix", function(x, out) {
+  
+  if(!any(is.na(x@ps_seq_names)))
+    names(out) <- x@ps_seq_names
+  
+  return(out)
+})
+
+#' @export
 setMethod("ps_bg_std_dev", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_bg_std_dev
   
@@ -174,6 +190,17 @@ setMethod("ps_hits_size", "PSMatrix", function(x, withDimnames = TRUE) {
 setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_hits_score
   
+  out <- .ps_seq_names(x, out)
+  
+  return(out)
+})
+
+#' @export
+setMethod("ps_hits_z", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- (x@ps_hits_score - x@ps_bg_avg) / x@ps_bg_std_dev
+  
+  out <- .ps_seq_names(x, out)
+  
   return(out)
 })
 
@@ -181,12 +208,16 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
 setMethod("ps_hits_strand", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_hits_strand
   
+  out <- .ps_seq_names(x, out)
+  
   return(out)
 })
 
 #' @export
-setMethod("ps_hits_pos", "PSMatrix", function(x, withDimnames = TRUE) {
-  out <- x@ps_hits_pos
+setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L, withDimnames = TRUE) {
+  out <- x@ps_hits_pos + pos_shift
+  
+  out <- .ps_seq_names(x, out)
   
   return(out)
 })
@@ -218,8 +249,8 @@ setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
 
 setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L, withDimnames = TRUE) {
   
-  out <- data.frame("SCORE" = x@ps_hits_score, "POS" = x@ps_hits_pos + as.integer(pos_shift), "STRAND" = x@ps_hits_strand,
-                    "OLIGO" = x@ps_hits_oligo, row.names = x@ps_seq_names)
+  out <- data.frame("SCORE" = x@ps_hits_score, "POS" = ps_hits_pos(x, pos_shift = pos_shift), "STRAND" = x@ps_hits_strand,
+                    "OLIGO" = DNAStringSet(x@ps_hits_oligo), row.names = x@ps_seq_names)
   
   out <- out[with(out, order(SCORE, POS, decreasing = c(TRUE,FALSE))),]
   

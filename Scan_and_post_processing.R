@@ -26,3 +26,13 @@ ps_results_table <- function(pfms)
   
   tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE,TRUE))),]
 }
+
+ps_z_table <- function(pfms)
+{
+  .ps_checks2(pfms)
+  
+  tbl <- lapply(pfms, ps_hits_z)
+  
+  as.data.frame(tbl, col.names = name(pfms))
+
+}
