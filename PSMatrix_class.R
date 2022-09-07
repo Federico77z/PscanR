@@ -18,16 +18,15 @@
                                                          .PS_ALPHABET="integer"), 
                       contains="PFMatrix")
 
-PSMatrix <- function(ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
-                     ps_bg_size = as.integer(NA), ps_fg_size = as.integer(NA), ps_zscore = as.numeric(NA),
-                     ps_pvalue = as.numeric(NA), ps_seq_names = as.character(NA), 
-                     .PS_PSEUDOCOUNT = 0.01, .PS_ALPHABET = setNames(1:4, c("A","C","G","T")), ...)
+PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
+                     ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01, ...)
 {
-  pfm <- PFMatrix(...)
-  .PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_fg_avg = ps_fg_avg, ps_bg_std_dev = ps_bg_std_dev, ps_bg_size = ps_bg_size, 
-            ps_fg_size = ps_fg_size, ps_zscore = ps_zscore, ps_pvalue = ps_pvalue, ps_seq_names = ps_seq_names,
-            .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, .PS_ALPHABET=.PS_ALPHABET, ps_hits_pos = integer(), 
-            ps_hits_strand = character(), ps_hits_score = numeric(), ps_hits_oligo = character())
+  .ps_required_packages()
+  .ps_norm_matrix(.PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_fg_avg = ps_fg_avg, ps_bg_std_dev = ps_bg_std_dev, ps_bg_size = ps_bg_size, 
+            ps_fg_size = as.integer(NA), ps_zscore = as.numeric(NA), ps_pvalue = as.numeric(NA), ps_seq_names = character(),
+            .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, ps_hits_pos = integer(), 
+            ps_hits_strand = character(), ps_hits_score = numeric(), ps_hits_oligo = character(), 
+            .PS_ALPHABET = setNames(1:4, c("A","C","G","T"))))
 }
 
 .PSMatrixList <-setClass("PSMatrixList", contains ="PFMatrixList")
@@ -349,7 +348,7 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
   
   rc_x <- reverseComplement(x)
   
-  Margs = list(numx = as.numeric(Matrix(x)), numx_rc = as.numeric(Matrix(rc_x)),
+  Margs <- list(numx = as.numeric(Matrix(x)), numx_rc = as.numeric(Matrix(rc_x)),
                ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), AB = .PS_ALPHABET(x)) 
   
   if(BG == FALSE)
@@ -428,8 +427,8 @@ validPSMatrix <- function(object)
     return(paste("Invalid value for Background average: ", object@ps_bg_avg))
   if((object@ps_bg_std_dev <= 0 || object@ps_bg_std_dev > 1) && !is.na(object@ps_bg_std_dev))
     return(paste("Invalid value for Background stddev: ", object@ps_bg_std_dev))
-  if(object@ps_bg_size < 1000 && !is.na(object@ps_bg_size))
-    return(paste("Invalid value for Background size: ", object@ps_bg_size, " Background must be of at least 1000 sequences"))
+ # if(object@ps_bg_size < 1000 && !is.na(object@ps_bg_size))
+  #  return(paste("Invalid value for Background size: ", object@ps_bg_size, " Background must be of at least 1000 sequences"))
   if(length(object@ps_hits_pos) != length(object@ps_hits_strand) || length(object@ps_hits_pos) != length(object@ps_hits_score))
     return(paste("Invalid PSMatrix object: different values for hits, strands and scores vectors"))
   
@@ -498,12 +497,15 @@ setReplaceMethod("ps_bg_size", "PSMatrix", function(x,value){
 
 setAs("PFMatrix", "PSMatrix", function(from){
   
-  .ps_norm_matrix(new("PSMatrix", from, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
-                      ps_zscore = as.numeric(NA), ps_pvalue = as.numeric(NA), ps_bg_size = as.integer(NA), 
-                      ps_fg_size = as.integer(NA), ps_seq_names = as.character(NA),
-                      .PS_PSEUDOCOUNT = as.numeric(0.01), .PS_ALPHABET = setNames(1:4, c("A","C","G","T"))))
+  #.ps_norm_matrix(new("PSMatrix", from, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
+  #                    ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01))
+  
+  PSMatrix(from)
   
 })
+
+#PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
+#                     ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01, ...)
 
 #' @exportMethods coerce
 
