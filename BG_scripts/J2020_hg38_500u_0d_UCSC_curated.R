@@ -23,7 +23,7 @@ opts[["tax_group"]] <- "vertebrates"
 
 J2020 <- getMatrixSet(JASPAR2020, opts) #core Jaspar 2020 profiles for vertebrates
 
-J2020_Hs_500_PSBG <- ps_build_bg(prom_seq, J2020) #Build Pscan Background
+J2020_Hs_500_PSBG <- ps_build_bg(prom_seq, J2020, BPPARAM = MulticoreParam(36)) #Build Pscan Background
 
 ps_write_bg_to_file(J2020_Hs_500_PSBG, "J2020_hg38_500u_0d_UCSC.psbg.txt")
 
