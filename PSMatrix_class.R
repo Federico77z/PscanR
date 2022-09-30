@@ -1,6 +1,9 @@
+require("TFBSTools")
+
 #' @export
 #' @import methods
 #' @importClassesFrom TFBSTools TFBSTools
+
 
 .PSMatrix <- setClass("PSMatrix", slots = representation(ps_bg_avg="numeric",
                                                          ps_fg_avg="numeric",
@@ -303,15 +306,15 @@ setMethod(".ps_norm_score", "PSMatrix", function(x) {
 #' @export
 setMethod(".ps_bg_from_table", "PSMatrix", function(x, short.matrix) {
   
-  if(any(row.names(short.matrix) == name(x)))
+  if(any(row.names(short.matrix) == ID(x)))
   {
-    x@ps_bg_size <- as.integer(short.matrix[name(x),"BG_SIZE"])
-    x@ps_bg_avg <-  as.numeric(short.matrix[name(x),"BG_MEAN"])
-    x@ps_bg_std_dev <-  as.numeric(short.matrix[name(x),"BG_STDEV"])
+    x@ps_bg_size <- as.integer(short.matrix[ID(x),"BG_SIZE"])
+    x@ps_bg_avg <-  as.numeric(short.matrix[ID(x),"BG_MEAN"])
+    x@ps_bg_std_dev <-  as.numeric(short.matrix[ID(x),"BG_STDEV"])
   }
   else
   {
-    warning(paste("No background values found for", name(x), ID(x)))
+    warning(paste("No background values found for", ID(x), name(x)))
   }
 
   

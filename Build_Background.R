@@ -46,7 +46,7 @@ ps_get_bg_table <- function(pfms)
   BG_MEAN <- vapply(pfms, ps_bg_avg, numeric(length = 1))
   BG_STDEV <- vapply(pfms, ps_bg_std_dev, numeric(length = 1))
   
-  data.frame(BG_SIZE, BG_MEAN, BG_STDEV, row.names = name(pfms))
+  data.frame(BG_SIZE, BG_MEAN, BG_STDEV, row.names = names(pfms))
 }
 
 ps_write_bg_to_file <- function(pfms, file)
