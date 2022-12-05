@@ -1,6 +1,6 @@
 .ps_checks <- function(x, pfms, type)
 {
-  .ps_required_packages()
+ # .ps_required_packages()
   
   if(type == 4 && !is(pfms, "PSMatrixList"))
     stop("pfms is not an object of PSMatrixList class")
@@ -60,10 +60,10 @@
    
 }
 
-.ps_required_packages <- function()
-{
-  require("Biostrings")
-  require("TFBSTools")
-  require("BiocParallel")
-  require("BSDA")
-}
+#.ps_required_packages <- function()
+#{
+#  require("Biostrings")
+#  require("TFBSTools")
+#  require("BiocParallel")
+#  require("BSDA")
+#}

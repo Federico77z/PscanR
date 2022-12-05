@@ -1,4 +1,4 @@
-require("TFBSTools")
+#require("TFBSTools")
 
 #' @export
 #' @import methods
@@ -24,7 +24,7 @@ require("TFBSTools")
 PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
                      ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01, ...)
 {
-  .ps_required_packages()
+#  .ps_required_packages()
   .ps_norm_matrix(.PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_fg_avg = ps_fg_avg, ps_bg_std_dev = ps_bg_std_dev, ps_bg_size = ps_bg_size, 
             ps_fg_size = as.integer(NA), ps_zscore = as.numeric(NA), ps_pvalue = as.numeric(NA), ps_seq_names = character(),
             .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, ps_hits_pos = integer(), 
