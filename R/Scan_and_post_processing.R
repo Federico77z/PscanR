@@ -1,12 +1,29 @@
+#' Executes the Pscan algorithm on a set of sequences.
+#' @param x 
+#' The set of regulatory sequences from co-regulated or co-expressed genes (i.e.
+#' a set of gene promoters). This must be a DNAStringSet object (see Biostrings package)
+#' @param pfms 
+#' An object of PSMatrixList class containing PWMs and background values. See 
+#' ps_build_bg, ps_build_bg_from_file, ps_build_bg_from_table for how to create
+#' PSMatrixList objects.
+#' @param BPPARAM 
+#' The BPPARAM used by bplapply. See BiocParallel.
+#' @param BPOPTIONS 
+#' The BPOPTIONS used by bplapply. See BiocParallel.
+#' @return
+#' Returns pfms with foreground values computed on x.
+#' @export
+#' @examples
+#' 
 pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
   .ps_checks(x, pfms,type = 4)
   
   x <- BiocGenerics::unique(x)
   
-  pfms <- bplapply(pfms, FUN = ps_scan, x, BG = FALSE, BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
+  pfms <- BiocParallel::bplapply(pfms, FUN = ps_scan, x, BG = FALSE, BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
   
-  do.call(PSMatrixList, pfms)
+  BiocGenerics::do.call(PSMatrixList, pfms)
 }
 
 ps_results_table <- function(pfms)

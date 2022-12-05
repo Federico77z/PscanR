@@ -2,14 +2,10 @@
 .Rhistory
 .RData
 .Ruserdata
-Annotation
-FASTA
 .DS_Store
-FlatFileDir2016
-FlatFileDir2020
-FlatFileDir2022
 BGs
 Ranges_and_Sequences.R
 PWM.R
 Test
 Examples.html
+BG_scripts/*out
