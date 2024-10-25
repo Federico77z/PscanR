@@ -28,7 +28,7 @@ load_all() #PROVVISORIO
 txdb <- makeTxDbFromUCSC(genome="hg38", tablename="refGene") #import gtf annotation from UCSC
 seqlevels(txdb) <- seqlevels(txdb)[1:24] #use only annotations on canonical chromosomes
 
-prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
+?s
 
 prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, prom_rng) #promoter sequences
 ```
@@ -38,12 +38,15 @@ prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, prom_rng) #promoter sequence
 ```{r}
 library("TFBSTools")
 library("JASPAR2022")
+library("JASPAR2024") #doesn't work?
+library("RSQLite") #needed for Jaspar2024
 
 opts <- list()
 opts[["collection"]] <- "CORE"
 opts[["tax_group"]] <- "vertebrates"
 
 J2022 <- getMatrixSet(JASPAR2022, opts) #core Jaspar 2022 profiles for vertebrates
+#J2024 <- getMatrixSet(JASPAR2024, opts) #core Jaspar 2024 profiles for vertebrates
 ```
   
   **1.3. Building Pscan Background**
