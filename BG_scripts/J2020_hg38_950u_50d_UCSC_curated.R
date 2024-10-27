@@ -1,14 +1,9 @@
-library("GenomicFeatures")
-library("GenomicRanges")
-library("BSgenome")
-library("BSgenome.Hsapiens.UCSC.hg38")
-library("TFBSTools")
-library("JASPAR2020")
+source("load_packages.R", local = TRUE, echo = FALSE)
 
-source("PSMatrix_class.R", local = TRUE, echo = FALSE)
-source("Build_Background.R", local = TRUE, echo = FALSE)
-source("Helper_functions.R", local = TRUE, echo = FALSE)
-source("Scan_and_post_processing.R", local = TRUE, echo = FALSE)
+source("../R/PSMatrix_class.R", local = TRUE, echo = FALSE)
+source("../R/Build_Background.R", local = TRUE, echo = FALSE)
+source("../R/Helper_functions.R", local = TRUE, echo = FALSE)
+source("../R/Scan_and_post_processing.R", local = TRUE, echo = FALSE)
 
 
 txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated") #import gtf annotation from UCSC
