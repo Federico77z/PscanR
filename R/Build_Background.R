@@ -1,3 +1,36 @@
+#' ps_build_bg 
+#' 
+#' Generates a background probability profile matrix list.
+#' 
+#' @param x A DNAStringSet object (see Biostrings package) containing the set
+#' of regulatory sequences from co-regulated or co-expressed genes (i.e.
+#' a set of gene promoters). These sequences are the target for background scanning.
+#' 
+#' @param pfms A list of position frequency matrices representing transcription factor motifs,
+#' obtained from the JASPAR database.
+#' 
+#' @param BPPARAM Parallelization parameter passed to `bplapply`. See BiocParallel.
+#' 
+#' @param BPOPTIONS Optional configuration settings passed to `bplapply`. See BiocParallel.
+#' 
+#' @return A PSMatrixList object, containing each motif matrix from `pfms`, background-scored 
+#' against the sequences in `x`. 
+#'
+#' @details Duplicated sequences are removed from x, pfms is converted into PSMatrixList object,
+#' and the scoring of motif in parallel is performed by bplapply().
+#'
+#' @export
+#'
+#' @examples
+#' # Get promoter sequences
+#' prom_seq <- getSeq(BSgenome.Hsapiens.UCSC.hg38, promoters(txdb, upstream = 200, downstream = 50))
+#'
+#' # Load JASPAR motif matrices for vertebrates
+#' opts <- list(collection = "CORE", tax_group = "vertebrates")
+#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#'
+#' # Generate the background-scored motif matrices
+#' bg_matrices <- ps_build_bg(prom_seq, J2020, BPPARAM = MulticoreParam(24))
 ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
   .ps_checks(x, pfms, type = 1)
@@ -12,7 +45,32 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   
   do.call(PSMatrixList, pfms)
 }
-
+#' ps_build_bg_from_file
+#' 
+#' Generates a background probability profile matrix list from an input file.
+#' 
+#' @param file A character string representing the path for input file. 
+#' This file contains background information for regulatory sequences, generated 
+#' with the ps_build_bg function.
+#' 
+#' @param pfms A list of position frequency matrices representing transcription factor motif, 
+#' obtained from the JASPAR database.
+#' 
+#' @return A `PSMatrixList` object, containing each motif matrix from `pfms`, background-scored 
+#' using the values provided in `file`.
+#' 
+#' @export
+#' 
+#' @examples
+#' # Load a background information file
+#' file_path <- "../background.txt"
+#'
+#' # Load JASPAR motif matrices for vertebrates
+#' opts <- list(collection = "CORE", tax_group = "vertebrates")
+#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#'
+#' # Generate the background-scored motif matrices from file
+#' bg_matrices <- ps_build_bg_from_file(file_path, J2020)
 ps_build_bg_from_file <- function(file, pfms)
 {
   .ps_checks(file, pfms, type = 2)
@@ -23,7 +81,22 @@ ps_build_bg_from_file <- function(file, pfms)
   
   pfms <- ps_build_bg_from_table(short.matrix, pfms)
 }
-
+#' ps_build_bg_from_table
+#' 
+#' Generates a background probability profile matrix list from a background parameter table.
+#' 
+#' @param x A data frame containing background parameters for each motif.
+#' 
+#' @param pfms A list of position frequency matrices (PFMs) representing transcription factor 
+#' motifs, typically from the JASPAR database.
+#' 
+#' @return A `PSMatrixList` object containing each motif matrix from `pfms`, scored with background 
+#' parameters derived from `x`.
+#' 
+#' @export
+#'
+#' @examples
+#' 
 ps_build_bg_from_table <- function(x, pfms)
 {
   .ps_checks(x, pfms, type = 3)
@@ -37,7 +110,18 @@ ps_build_bg_from_table <- function(x, pfms)
   
   do.call(PSMatrixList, pfms)
 }
-
+#' ps_get_bg_table
+#' 
+#' Generates a background table from a list of position frequency matrices.
+#'
+#' @param pfms A list of position frequency matrices representing the transcription factor motifs.
+#'
+#' @return A dataframe with one row for each PFM in `pfms`. 
+#' Columns: `BG_SIZE`, `BG_MEAN`, and `BG_STDEV`.
+#' 
+#' @export
+#'
+#' @examples
 ps_get_bg_table <- function(pfms)
 {
   .ps_checks2(pfms)
