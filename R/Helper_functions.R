@@ -78,7 +78,17 @@
       stop("Required columns of x must be of numeric type")
   }
 }
-
+#' .ps_checks2()
+#' 
+#' Provides additional checks on `pfms` parameter and file accessibility for writing. 
+#'
+#' @param pfms `PSMatrixList` object. If it is not, an error is rised.
+#' @param ... Character string representing a file path. When provided, the function checks if it writable.
+#' 
+#' @return None, it gives errors if the checks are not met.
+#' @export
+#'
+#' @examples
 .ps_checks2 <- function(pfms, ...)
 {
   .ps_required_packages()
@@ -92,10 +102,10 @@
    
 }
 
-#.ps_required_packages <- function()
-#{
-#  require("Biostrings")
-#  require("TFBSTools")
-#  require("BiocParallel")
-#  require("BSDA")
-#}
+.ps_required_packages <- function()
+{
+  require("Biostrings")
+  require("TFBSTools")
+  require("BiocParallel")
+  require("BSDA")
+}
