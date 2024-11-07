@@ -2,12 +2,12 @@
 #' 
 #' Generates a background probability profile matrix list.
 #' 
-#' @param x A DNAStringSet object (see Biostrings package) containing the set
+#' @param x A `DNAStringSet` object (see Biostrings package) containing the set
 #' of regulatory sequences from co-regulated or co-expressed genes (i.e.
 #' a set of gene promoters). These sequences are the target for background scanning.
 #' 
 #' @param pfms A list of position frequency matrices representing transcription factor motifs,
-#' obtained from the JASPAR database.
+#' obtained from the JASPAR database. 
 #' 
 #' @param BPPARAM Parallelization parameter passed to `bplapply`. See BiocParallel.
 #' 
@@ -16,8 +16,8 @@
 #' @return A PSMatrixList object, containing each motif matrix from `pfms`, background-scored 
 #' against the sequences in `x`. 
 #'
-#' @details Duplicated sequences are removed from x, pfms is converted into PSMatrixList object,
-#' and the scoring of motif in parallel is performed by bplapply().
+#' @details Duplicated sequences are removed from `x`, `pfms` is converted into `PSMatrixList` object,
+#' and the scoring of motif in parallel is performed by `bplapply()`.
 #'
 #' @export
 #'
@@ -51,7 +51,7 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' 
 #' @param file A character string representing the path for input file. 
 #' This file contains background information for regulatory sequences, generated 
-#' with the ps_build_bg function.
+#' with the `ps_build_bg` function.
 #' 
 #' @param pfms A list of position frequency matrices representing transcription factor motif, 
 #' obtained from the JASPAR database.
@@ -85,7 +85,7 @@ ps_build_bg_from_file <- function(file, pfms)
 #' 
 #' Generates a background probability profile matrix list from a background parameter table.
 #' 
-#' @param x A data frame containing background parameters for each motif.
+#' @param x A `data.frame` containing background parameters for each motif.
 #' 
 #' @param pfms A list of position frequency matrices (PFMs) representing transcription factor 
 #' motifs, typically from the JASPAR database.
