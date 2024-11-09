@@ -1,23 +1,26 @@
-#' ps_build_bg 
+#' Build background matrices in parallel
 #' 
-#' Generates a background probability profile matrix list.
+#' Generates a background probability profile matrix list using the BiocParallel
+#' framework for parallel execution.
 #' 
-#' @param x A `DNAStringSet` object (see Biostrings package) containing the set
-#' of regulatory sequences from co-regulated or co-expressed genes (i.e.
-#' a set of gene promoters). These sequences are the target for background scanning.
+#' @param x A `DNAStringSet` object (see Biostrings package) containing the set of 
+#' regulatory sequences from co-regulated or co-expressed genes (i.e. a set of 
+#' gene promoters). These sequences are the target for background scanning.
 #' 
 #' @param pfms A list of position frequency matrices representing transcription factor motifs,
-#' obtained from the JASPAR database. 
+#' obtained from the JASPAR database. Should be of class `PSMatrixlist`, otherwise gets 
+#' automatically converted. 
 #' 
 #' @param BPPARAM Parallelization parameter passed to `bplapply`. See BiocParallel.
 #' 
 #' @param BPOPTIONS Optional configuration settings passed to `bplapply`. See BiocParallel.
+#'
+#' @details A check on inputs is performed with the helper function `.ps_check`, specifiyng 
+#' `type == 1`, duplicated sequences are removed from `x`, `pfms` is converted into `PSMatrixList` object,
+#' and the scoring of motif in parallel is performed by `bplapply()`.
 #' 
 #' @return A PSMatrixList object, containing each motif matrix from `pfms`, background-scored 
 #' against the sequences in `x`. 
-#'
-#' @details Duplicated sequences are removed from `x`, `pfms` is converted into `PSMatrixList` object,
-#' and the scoring of motif in parallel is performed by `bplapply()`.
 #'
 #' @export
 #'
@@ -45,19 +48,24 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   
   do.call(PSMatrixList, pfms)
 }
-#' ps_build_bg_from_file
+#' Build background matrices from a file 
 #' 
-#' Generates a background probability profile matrix list from an input file.
+#' Generates a background probability profile matrix list by reading an input file.
+#' This function is useful when background information are stored into an external file. 
 #' 
 #' @param file A character string representing the path for input file. 
-#' This file contains background information for regulatory sequences, generated 
+#' This file contains background information for regulatory sequences. Can be generated 
 #' with the `ps_build_bg` function.
 #' 
 #' @param pfms A list of position frequency matrices representing transcription factor motif, 
 #' obtained from the JASPAR database.
+#'
+#' @details Validates the input with the internal function `.ps_checks`, with `type` set to 2. 
+#' Reads the input file into a `data.frame` with the row names taken from the first column. 
+#' Calls `ps_build_bg_from_table` with the created `data.frame` and `pfms` as input.
 #' 
 #' @return A `PSMatrixList` object, containing each motif matrix from `pfms`, background-scored 
-#' using the values provided in `file`.
+#' using the values provided in `file`. See `ps_build_bg_from_table`.
 #' 
 #' @export
 #' 
@@ -81,14 +89,21 @@ ps_build_bg_from_file <- function(file, pfms)
   
   pfms <- ps_build_bg_from_table(short.matrix, pfms)
 }
-#' ps_build_bg_from_table
+#' Build background matrices from table
 #' 
 #' Generates a background probability profile matrix list from a background parameter table.
 #' 
 #' @param x A `data.frame` containing background parameters for each motif.
 #' 
 #' @param pfms A list of position frequency matrices (PFMs) representing transcription factor 
-#' motifs, typically from the JASPAR database.
+#' motifs, typically from the JASPAR database. Each element should be coercible to the 
+#' `PSMatrix` class. The number of elements in `pfms` should match the number of row
+#' of `x`
+#' 
+#' @details Calls the internal function `.ps_checks()` to validate inputs, converts each
+#' elements of pfms into `PSMatrix` class, and applies the internal function `.ps_bg_from_table`
+#' to each element of `pfms` with the data in `x`. 
+#' A warning is issued if the number of elements in `pfms` doesn't match the number of row of `x`.
 #' 
 #' @return A `PSMatrixList` object containing each motif matrix from `pfms`, scored with background 
 #' parameters derived from `x`.
