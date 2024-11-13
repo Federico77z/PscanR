@@ -61,7 +61,7 @@ source("../R/PSMatrix_class.R")
 
 J2020_PSBG <- ps_build_bg(prom_seq, J2020, BPPARAM = MulticoreParam(24)) #Build Pscan Background
 
-#ps_write_bg_to_file(J2020_PSBG, "J2020_hg38_500u_0d_UCSC.psbg.txt")
+#ps_write_bg_to_file(J2020_PSBG, "J2020_hg38_500u_0d_UCSC.psbg.txt") #to save it 
 
 #rm(list = c("J2020", "opts", "prom_seq", "prom_rng"))
 ```
