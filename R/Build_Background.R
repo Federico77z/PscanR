@@ -125,14 +125,23 @@ ps_build_bg_from_table <- function(x, pfms)
   
   do.call(PSMatrixList, pfms)
 }
-#' ps_get_bg_table
+#' Compute background statistics for position frequency matrices
 #' 
-#' Generates a background table from a list of position frequency matrices.
+#' Generates a background statistic table (size, mean, and standard deviation)
+#' from a list of position frequency matrices.
 #'
 #' @param pfms A list of position frequency matrices representing the transcription factor motifs.
 #'
+#' @details Calls the helper functions `ps_bg_size`, `ps_bg_avg`, and `ps_bg_std_dev` to compute
+#' the statistics. 
+#' In addiction, it also validates the input with `.ps_chechs()` function.
+#'
 #' @return A dataframe with one row for each PFM in `pfms`. 
-#' Columns: `BG_SIZE`, `BG_MEAN`, and `BG_STDEV`.
+#' Columns: 
+#' `BG_SIZE`: an integer vector representing the background size for each PFMs. 
+#' `BG_MEAN`: a numeric vector representing the mean of the background frequencies for each PFMs.
+#' `BG_STDEV`: a numeric vector representing the standard deviation of the background frequencies
+#' for each PFMs. 
 #' 
 #' @export
 #'
@@ -147,7 +156,26 @@ ps_get_bg_table <- function(pfms)
   
   data.frame(BG_SIZE, BG_MEAN, BG_STDEV, row.names = names(pfms))
 }
-
+#' Write background statistics to a file
+#'
+#' This function computes background statistics for each element of a list of position frequency
+#' matrices, and write the result in a specified file. 
+#'
+#' @param pfms A list of position frequency matrices representing transcription factor motif, 
+#' obtained from the JASPAR database.
+#'
+#' @param file A character string specifing the path where the result should be saved.
+#'
+#' @details It validates the input by calling the heper function `ps.checks2()`.
+#' By calling ps_get_bg_table, it computes the background statistics. 
+#' A header is added to the file (`[SHORT TFBS MATRIX`]). 
+#'
+#' @return None. It saves the given background statistics in a file.
+#'
+#' @export
+#'
+#' @examples
+#' 
 ps_write_bg_to_file <- function(pfms, file)
 {
   .ps_checks2(pfms, file)
