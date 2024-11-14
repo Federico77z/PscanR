@@ -26,8 +26,6 @@
 #' 
 #' @return None. The function is used for input validation and will stop with a warning/error 
 #' message if the checks are not met.
-#' 
-#' @export
 #'
 #' @examples
 .ps_checks <- function(x, pfms, type)
@@ -86,7 +84,6 @@
 #' @param ... Character string representing a file path. When provided, the function checks if it writable.
 #' 
 #' @return None, it gives errors if the checks are not met.
-#' @export
 #'
 #' @examples
 .ps_checks2 <- function(pfms, ...)
