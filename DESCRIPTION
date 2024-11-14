@@ -20,4 +20,4 @@ Description: R implementation of the Pscan software for sequence motif enrichmen
   be common regulators of the genes studied, together with the location of their 
   candidate binding sites in the sequences.
 License: GPL-3
-RoxygenNote: 7.2.2
+RoxygenNote: 7.3.2
