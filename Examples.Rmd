@@ -48,7 +48,7 @@ opts <- list()
 opts[["collection"]] <- "CORE"
 opts[["tax_group"]] <- "vertebrates"
 
-J2022 <- getMatrixSet(JASPAR2022, opts) #core Jaspar 2022 profiles for vertebrates
+J2020 <- getMatrixSet(JASPAR2020, opts) #core Jaspar 2020 profiles for vertebrates
 #J2024 <- getMatrixSet(JASPAR2024, opts) #core Jaspar 2024 profiles for vertebrates
 ```
   
@@ -75,9 +75,9 @@ prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
 target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
 prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) #promoter sequences
 
-#2020_PSBG <- ps_build_bg_from_file("--/BG_scripts/J2020_hg38_200u_50d_UCSC.psbg.txt", J2020) #if you need it from a file
+#J2020_PSBG <- ps_build_bg_from_file("--/BG_scripts/J2020_hg38_200u_50d_UCSC.psbg.txt", J2020) #if you need it from a file
 
-results <- pscan(prom_seq, 2020_PSBG)
+results <- pscan(prom_seq, J2020_PSBG)
 
 table <- ps_results_table(results)
 
