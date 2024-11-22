@@ -2,18 +2,21 @@
 % Please edit documentation in R/Helper_functions.R
 \name{.ps_checks2}
 \alias{.ps_checks2}
-\title{.ps_checks2()}
+\title{Check input format}
 \usage{
 .ps_checks2(pfms, ...)
 }
 \arguments{
 \item{pfms}{`PSMatrixList` object. If it is not, an error is rised.}
 
-\item{...}{Character string representing a file path. When provided, the function checks if it writable.}
+\item{...}{Can be a character string representing a file path. 
+When provided, the function checks if it writable.}
 }
 \value{
-None, it gives errors if the checks are not met.
+NULL, it gives errors if the checks fail.
 }
 \description{
-Provides additional checks on `pfms` parameter and file accessibility for writing.
+Provides additional checks on `pfms` parameter and 
+file accessibility for writing.
 }
+\keyword{internal}

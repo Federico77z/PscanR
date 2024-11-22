@@ -91,6 +91,8 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #'   using the information from the input file. 
 #'
 #' @details 
+#' This function:
+#' 
 #' - Validates the input with the internal function `.ps_checks`, 
 #'   with `type` set to 2. 
 #' - Reads the input file into a `data.frame`, with row names taken 
@@ -113,6 +115,8 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #'
 #' # Generate the background-scored motif matrices from file
 #' bg_matrices <- ps_build_bg_from_file(file_path, J2020)
+#' 
+#' @seealso [ps_build_bg_from_table()]
 #' 
 #' @export
 ps_build_bg_from_file <- function(file, pfms)
@@ -139,6 +143,8 @@ ps_build_bg_from_file <- function(file, pfms)
 #'   The number of elements in `pfms` should match the number of row of `x`
 #' 
 #' @details 
+#' This function: 
+#' 
 #' - Calls the internal function `.ps_checks()` to validate inputs, with 
 #'   `type == 3`.
 #' - Converts each elements of pfms into `PSMatrix` class. 
@@ -151,8 +157,6 @@ ps_build_bg_from_file <- function(file, pfms)
 #' @return 
 #' A `PSMatrixList` object containing each motif matrix from `pfms`, 
 #' scored with background parameters provided from `x`.
-#' 
-#' @export
 #'
 #' @examples
 #' # create the `data.frame`
@@ -170,6 +174,7 @@ ps_build_bg_from_file <- function(file, pfms)
 #' # Generate background-scored motif matrices
 #' bg_matrices <- ps_build_bg_from_table(background_data, J2020_subset)
 #' 
+#' @export
 ps_build_bg_from_table <- function(x, pfms)
 {
   .ps_checks(x, pfms, type = 3)
@@ -203,8 +208,10 @@ ps_build_bg_from_table <- function(x, pfms)
 #' to compute the statistics. 
 #'
 #' @return 
-#' A dataframe with one row for each PFM in `pfms`. 
+#' A dataframe with one row for each PFM in `pfms`.
+#' 
 #' Columns: 
+#' 
 #' - `BG_SIZE`: An integer vector representing the background size for each PFMs. 
 #' - `BG_MEAN`: A numeric vector representing the mean of the background 
 #'   frequencies for each PFMs.
@@ -217,6 +224,8 @@ ps_build_bg_from_table <- function(x, pfms)
 #' J2020 <- getMatrixSet(JASPAR2020, opts)
 #' 
 #' bg_table <- ps_get_bg_table(J2020)
+#' 
+#' @seealso [ps_bg_size()], [ps_bg_avg()], [ps_bg_std_dev()]
 #' 
 #' @export
 ps_get_bg_table <- function(pfms)
@@ -250,8 +259,6 @@ ps_get_bg_table <- function(pfms)
 #' @return None. It saves the given background statistics to the specified file
 #' in a tab-delimited format.
 #'
-#' @export
-#'
 #' @examples
 #' opts <- list(collection = "CORE", tax_group = "vertebrates")
 #' J2020 <- getMatrixSet(JASPAR2020, opts)
@@ -259,6 +266,10 @@ ps_get_bg_table <- function(pfms)
 #' file_path <- "J2020_hg38_bg_stats.txt"
 #' 
 #' ps_write_bg_to_file(J2020, file_path)
+#' 
+#' @seealso [ps_get_bg_table()]
+#' 
+#' @export
 ps_write_bg_to_file <- function(pfms, file)
 {
   .ps_checks2(pfms, file)

@@ -7,34 +7,47 @@
 ps_build_bg(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions())
 }
 \arguments{
-\item{x}{A `DNAStringSet` object (see Biostrings package) containing the set of 
-regulatory sequences from co-regulated or co-expressed genes (i.e. a set of 
-gene promoters). These sequences are the target for background scanning.}
+\item{x}{A `DNAStringSet` object (see Biostrings package) containing the set 
+of regulatory sequences from co-regulated or co-expressed genes (i.e. a set 
+of gene promoters). These sequences are the target for background scanning.}
 
-\item{pfms}{A list of position frequency matrices representing transcription factor motifs,
-obtained from the JASPAR database. Should be of class `PSMatrixlist`, otherwise gets 
-automatically converted.}
+\item{pfms}{A list of position frequency matrices representing transcription 
+factor motifs, obtained from the JASPAR database. Should be of class 
+`PSMatrixlist`, otherwise gets automatically converted.}
 
-\item{BPPARAM}{Parallelization parameter passed to `bplapply`. See BiocParallel.}
+\item{BPPARAM}{Parallelization parameter passed to `bplapply` function from. 
+the `BiocParallel` package. This parameter controls how the parallel
+processing is executed.
+see `BiocParallel` package for more details.}
 
-\item{BPOPTIONS}{Optional configuration settings passed to `bplapply`. See BiocParallel.}
+\item{BPOPTIONS}{Optional configuration settings passed to `bplapply` 
+function from the `BiocParallel` package. This can include additional
+options to control the behavior of parallel execution.
+See `BiocParallel` documentation for more details.}
 }
 \value{
-A PSMatrixList object, containing each motif matrix from `pfms`, background-scored 
-against the sequences in `x`.
+A PSMatrixList object, containing each motif matrix from `pfms`, 
+background-scored against the sequences in `x`.
 }
 \description{
 Generates a background probability profile matrix list using the BiocParallel
-framework for parallel execution.
+framework for parallel execution. It computes background scores for each 
+motif matrix from the JASPAR database against a set of regulatory sequences 
+(e.g., gene promoters) using the `ps_scan` function.
 }
 \details{
-A check on inputs is performed with the helper function `.ps_check`, specifiyng 
-`type == 1`, duplicated sequences are removed from `x`, `pfms` is converted into `PSMatrixList` object,
-and the scoring of motif in parallel is performed by `bplapply()`.
+A check on inputs is performed with the helper function `.ps_check`, 
+specifiyng `type == 1`. Duplicated sequences are removed from `x` to avoid 
+redundant computations. The motif matrices in `pfms` are converted into 
+a `PSMatrixList` class object, 
+The motif are background scored by the `ps_scan` function in parallel.
 }
 \examples{
 # Get promoter sequences
-prom_seq <- getSeq(BSgenome.Hsapiens.UCSC.hg38, promoters(txdb, upstream = 200, downstream = 50))
+prom_seq <- getSeq(
+    BSgenome.Hsapiens.UCSC.hg38,
+    promoters(txdb, upstream = 200, downstream = 50)
+)
 
 # Load JASPAR motif matrices for vertebrates
 opts <- list(collection = "CORE", tax_group = "vertebrates")
@@ -42,4 +55,5 @@ J2020 <- getMatrixSet(JASPAR2020, opts)
 
 # Generate the background-scored motif matrices
 bg_matrices <- ps_build_bg(prom_seq, J2020, BPPARAM = MulticoreParam(24))
+
 }

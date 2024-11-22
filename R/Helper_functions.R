@@ -1,33 +1,56 @@
-#' .ps_checks
+#' Check input format 
 #' 
 #' Validates input for motif and background sequence analysis.
 #'
-#' @param x Can be a `DNAStringSet` object, a character string that indicates the file path, or 
-#' a `data.frame`.
-#' @param pfms A list of position frequency matrices representing transcription factors motif,
-#' obtained from the JASPAR database. It is expected to be a `PSMatrixList` object or a `PFMatriList` one.
-#' @param type. Integer value from 1 to 4, indicating the type of check to be performed. 
-#' If `type == 4`, `pfms` is expected to be a `PSMatrixList` object.
-#' If `type == 3`, `x` is expected to be a `data.frame`.
-#' If `type == 2`, `x` is expected to be a character string indicating a file path. 
-#' If `type == 1` or `type == 4`, `x` is expected to be a `DNAStringSet` object. 
+#' @param x Can be a `DNAStringSet` object, a character string that indicates 
+#'    the file path, or a `data.frame`.
+#' 
+#' @param pfms A list of position frequency matrices representing transcription 
+#'   factors motif, obtained from the JASPAR database. Expected to be a 
+#'   `PSMatrixList` or `PFMatrixList` object.
+#' 
+#' @param type Integer value from 1 to 4, indicating the type of check to be 
+#'   performed: 
+#' 
+#'   - `type == 4`: `pfms` is expected to be a `PSMatrixList` object.
+#' 
+#'   - `type == 3`:`x` is expected to be a `data.frame`.
+#' 
+#'   - `type == 2`: `x` is expected to be a character string 
+#'     indicating a file path. 
+#'   
+#'   - `type == 1` or `type == 4`: `x` is expected to be a 
+#'     `DNAStringSet` object. 
 #' 
 #' @details
-#' The function calls `.ps_required_packages()` to ensure that the required packages are loaded. 
-#' Specific checks are performed based on `type` value: 
-#' * `Type == 4`: verifies that `pfms` is a `PSMatrixList` object. Computes the average 
-#' and standard deviation for the background of each motif in pfms. 
-#' If any values are missing (NA), it gives a warning message with the name and ID of the affected motif.
-#' * `Type == 2`: if `x` is a file path (character string), checks if the file is accessible
-#' and search for the `[SHORT TFBS MATRIX]` header in the first line.
+#' The function calls `.ps_required_packages()` to ensure that the required 
+#' packages are loaded. 
+#' Specific checks are performed based on `type` value:
+#'  
+#' * `Type == 4`: Verifies that `pfms` is a `PSMatrixList` object. 
+#'   Computes the average and standard deviation for the background 
+#'   of each motif in `pfms`. If any values are missing (NA), 
+#'   a warning is issued with the name and ID of the affected motif.
+#'   
+#' * `Type == 2`: If `x` is a file path (character string), checks if the file 
+#'   is accessible and search for the `[SHORT TFBS MATRIX]` header in the first 
+#'   line.
+#'   
 #' * `Type == 1` or `Type == 4`: checks if `x` is a `DNAStringSet` object.
-#' * `Type == 3`: checks if `x` is a `data.frame` containing the BG_SIZE, BG_MEANS, and BG_STDEV
-#' columns. It also checks if all the values in the columns are numeric.
 #' 
-#' @return None. The function is used for input validation and will stop with a warning/error 
-#' message if the checks are not met.
+#' * `Type == 3`: Verifies that `x` is a `data.frame` containing the `BG_SIZE`, 
+#'   `BG_MEANS`, and `BG_STDEV` columns. It also checks if all the values in 
+#'   the columns are numeric.
+#' 
+#' @return NULL. The function is used for input validation and will stop with 
+#' a warning/error message if any check fail.
+#' 
+#' @seealso [.ps_required_packages()]
 #'
-#' @examples
+#' @keywords internal
+#' 
+#' 
+#' 
 .ps_checks <- function(x, pfms, type)
 {
  # .ps_required_packages()
@@ -46,7 +69,9 @@
     nabg <- nabg | nabg2
     
     if(any(nabg))
-      warning(paste("\nNo Pscan background for", name(pfms)[nabg], ID(pfms)[nabg]))
+      warning(paste("\nNo Pscan background for", 
+                    name(pfms)[nabg], 
+                    ID(pfms)[nabg]))
   }
   
   if(!is(pfms, "PFMatrixList") && !is(pfms, "PSMatrixList"))
@@ -70,22 +95,28 @@
     req_cols <- c("BG_SIZE", "BG_MEAN", "BG_STDEV")
     
     if(!all(req_cols %in% colnames(x)))
-      stop("x does not contain required columns \"BG_SIZE\", \"BG_MEAN\", \"BG_STDEV\"")
+      stop("x does not contain required columns",
+           "\"BG_SIZE\", \"BG_MEAN\", \"BG_STDEV\"")
     
-    if(!all(is.numeric(x$BG_SIZE), is.numeric(x$BG_MEAN), is.numeric(x$BG_STDEV)))
+    if(!all(is.numeric(x$BG_SIZE), 
+            is.numeric(x$BG_MEAN), 
+            is.numeric(x$BG_STDEV)))
       stop("Required columns of x must be of numeric type")
   }
 }
-#' .ps_checks2()
+#' Check input format
 #' 
-#' Provides additional checks on `pfms` parameter and file accessibility for writing. 
+#' Provides additional checks on `pfms` parameter and 
+#' file accessibility for writing. 
 #'
 #' @param pfms `PSMatrixList` object. If it is not, an error is rised.
-#' @param ... Character string representing a file path. When provided, the function checks if it writable.
+#' @param ... Can be a character string representing a file path. 
+#'    When provided, the function checks if it writable.
 #' 
-#' @return None, it gives errors if the checks are not met.
+#' @return NULL, it gives errors if the checks fail.
 #'
-#' @examples
+#' @keywords internal
+#' 
 .ps_checks2 <- function(pfms, ...)
 {
   .ps_required_packages()

@@ -7,22 +7,41 @@
 ps_get_bg_table(pfms)
 }
 \arguments{
-\item{pfms}{A list of position frequency matrices representing the transcription factor motifs.}
+\item{pfms}{A list of position frequency matrices representing the 
+transcription factor motifs. Each element should be a `PSMatrix` object 
+(or should be coercible to `PSMatrix`).}
 }
 \value{
-A dataframe with one row for each PFM in `pfms`. 
+A dataframe with one row for each PFM in `pfms`.
+
 Columns: 
-`BG_SIZE`: an integer vector representing the background size for each PFMs. 
-`BG_MEAN`: a numeric vector representing the mean of the background frequencies for each PFMs.
-`BG_STDEV`: a numeric vector representing the standard deviation of the background frequencies
-for each PFMs.
+
+- `BG_SIZE`: An integer vector representing the background size for each PFMs. 
+- `BG_MEAN`: A numeric vector representing the mean of the background 
+  frequencies for each PFMs.
+- `BG_STDEV`: a numeric vector representing the standard deviation of the 
+  background frequencies for each PFMs.
 }
 \description{
 Generates a background statistic table (size, mean, and standard deviation)
-from a list of position frequency matrices.
+from a list of position frequency matrices (PFMs) representing transcription
+factor motifs.
 }
 \details{
-Calls the helper functions `ps_bg_size`, `ps_bg_avg`, and `ps_bg_std_dev` to compute
-the statistics. 
-In addiction, it also validates the input with `.ps_chechs()` function.
+This function computes background statistics for each motif matrix in `pfms`.
+Before computing the statistics, it validates the input with `.ps_chechs()` 
+function.
+It calls the helper functions `ps_bg_size`, `ps_bg_avg`, and `ps_bg_std_dev` 
+to compute the statistics.
+}
+\examples{
+# Retrieve motif matrices for vertebrates from JASPAR2020
+opts <- list(collection = "CORE", tax_group = "vertebrates")
+J2020 <- getMatrixSet(JASPAR2020, opts)
+
+bg_table <- ps_get_bg_table(J2020)
+
+}
+\seealso{
+[ps_bg_size()], [ps_bg_avg()], [ps_bg_std_dev()]
 }

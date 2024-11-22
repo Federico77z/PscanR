@@ -7,20 +7,36 @@
 ps_write_bg_to_file(pfms, file)
 }
 \arguments{
-\item{pfms}{A list of position frequency matrices representing transcription factor motif, 
-obtained from the JASPAR database.}
+\item{pfms}{A list of position frequency matrices representing transcription 
+factor motif, obtained from the JASPAR database. Each element should be
+of `PSMatrix` class or coercible to `PSMatrix`.}
 
-\item{file}{A character string specifing the path where the result should be saved.}
+\item{file}{A character string specifying the path to the output file where 
+the background statistics should be saved.}
 }
 \value{
-None. It saves the given background statistics in a file.
+None. It saves the given background statistics to the specified file
+in a tab-delimited format.
 }
 \description{
-This function computes background statistics for each element of a list of position frequency
-matrices, and write the result in a specified file.
+Computes background statistics for each element of a list of position 
+frequency matrices, and write the result to a specified file.
 }
 \details{
 It validates the input by calling the heper function `ps.checks2()`.
-By calling ps_get_bg_table, it computes the background statistics. 
+It computes the background statistics (size, mean, and standard deviation)
+using `ps_get_bg_table()`, then writes the result to a specified file. 
 A header is added to the file (`[SHORT TFBS MATRIX`]).
+}
+\examples{
+opts <- list(collection = "CORE", tax_group = "vertebrates")
+J2020 <- getMatrixSet(JASPAR2020, opts)
+# File path to save the result
+file_path <- "J2020_hg38_bg_stats.txt"
+
+ps_write_bg_to_file(J2020, file_path)
+
+}
+\seealso{
+[ps_get_bg_table()]
 }

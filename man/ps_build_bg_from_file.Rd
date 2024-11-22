@@ -8,28 +8,42 @@ ps_build_bg_from_file(file, pfms)
 }
 \arguments{
 \item{file}{A character string representing the path for input file. 
-This file contains background information for regulatory sequences. Can be generated 
-with the `ps_build_bg` function.}
+This file contains background information for regulatory sequences, 
+such as size, mean, and standard deviation for background distributions.
+The file should be in tabular format, where the first column contains 
+the sequence identifiers (row names) and subsequent columns contain the 
+background statistics (e.g., `BG_SIZE`, `BG_MEAN`, `BG_STDEV`).
+This file can be generated with the `ps_build_bg` function.}
 
-\item{pfms}{A list of position frequency matrices representing transcription factor motif, 
-obtained from the JASPAR database.}
+\item{pfms}{A list of position frequency matrices representing transcription 
+factor motif, obtained from the JASPAR database. These matrices are 
+used to search motif in regulatory sequences, and will be background-scored
+using the information from the input file.}
 }
 \value{
-A `PSMatrixList` object, containing each motif matrix from `pfms`, background-scored 
-using the values provided in `file`. See `ps_build_bg_from_table`.
+A `PSMatrixList` object, containing each motif matrix from `pfms`, 
+background-scored using the values provided in `file`. 
+See `ps_build_bg_from_table` for more details.
 }
 \description{
-Generates a background probability profile matrix list by reading an input file.
-This function is useful when background information are stored into an external file.
+Generates a background probability profile matrix list by reading 
+an input file containing background information for regulatory sequences.
+This function is useful when background information are stored into an 
+external file.
 }
 \details{
-Validates the input with the internal function `.ps_checks`, with `type` set to 2. 
-Reads the input file into a `data.frame` with the row names taken from the first column. 
-Calls `ps_build_bg_from_table` with the created `data.frame` and `pfms` as input.
+This function:
+
+- Validates the input with the internal function `.ps_checks`, 
+  with `type` set to 2. 
+- Reads the input file into a `data.frame`, with row names taken 
+  from the first column. 
+- Calls `ps_build_bg_from_table` with the created `data.frame` 
+  and `pfms` as input.
 }
 \examples{
 # Load a background information file
-file_path <- "../background.txt"
+file_path <- "../BG_SCRIPTS/J2020_hg38_500u_0d:UCSC.psbg.txt"
 
 # Load JASPAR motif matrices for vertebrates
 opts <- list(collection = "CORE", tax_group = "vertebrates")
@@ -37,4 +51,8 @@ J2020 <- getMatrixSet(JASPAR2020, opts)
 
 # Generate the background-scored motif matrices from file
 bg_matrices <- ps_build_bg_from_file(file_path, J2020)
+
+}
+\seealso{
+[ps_build_bg_from_table()]
 }

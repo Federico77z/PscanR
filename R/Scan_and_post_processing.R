@@ -1,19 +1,53 @@
-#' Executes the Pscan algorithm on a set of sequences.
-#' @param x 
-#' The set of regulatory sequences from co-regulated or co-expressed genes (i.e.
-#' a set of gene promoters). This must be a DNAStringSet object (see Biostrings package)
-#' @param pfms 
-#' An object of PSMatrixList class containing PWMs and background values. See 
-#' ps_build_bg, ps_build_bg_from_file, ps_build_bg_from_table for how to create
-#' PSMatrixList objects.
-#' @param BPPARAM 
-#' The BPPARAM used by bplapply. See BiocParallel.
-#' @param BPOPTIONS 
-#' The BPOPTIONS used by bplapply. See BiocParallel.
+#' Executes the Pscan algorithm on a set of regulatory sequences.
+#' 
+#' This function computes the foreground values of a set of gene promoters (`X`)
+#' using the PScan algorithm. Foreground values are computed by applying the 
+#' PWM values stored in `pfms`. 
+#' 
+#' @param x A `DNASetString` object containing the set of regulatory sequences 
+#'    from co-regulated or co-expressed genes (i.e. a set of gene promoters). 
+#'    (see Biostrings package).
+#'    
+#' @param pfms An object of PSMatrixList class containing PWMs and background 
+#'    values. See ps_build_bg, ps_build_bg_from_file, ps_build_bg_from_table for 
+#'    how to create PSMatrixList objects.
+#' 
+#' @param BPPARAM The BPPARAM used by bplapply. See BiocParallel.
+#'    This argument is passed to `BiocParallel::bplapply`
+#'    The default is `bpparam()`.
+#'    
+#' @param BPOPTIONS The BPOPTIONS used by bplapply. See BiocParallel.
+#'    This argument is passed to `BiocParallel::bplapply`. 
+#'    The default is `bpoptions()`.
+#'    
 #' @return
-#' Returns pfms with foreground values computed on x.
+#' A `PSMatrixList` object in which the foreground value have been computed 
+#' for each sequence in `X` based on the position weight matrices in `pfms`.
+#' 
 #' @export
+#' 
 #' @examples
+#' # Get the regulatory sequences 
+#' url_target <- "http://159.149.160.88/pscan/sampledata/nfkb100.txt"
+#' target <- read.csv(url_target) 
+#' txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
+#' seqlevels(txdb) <- seqlevels(txdb)[1:24] # Use only canonical chromosomes
+#' prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
+#' prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
+#' target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
+#' prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
+#' 
+#' opts <- list(collection = "CORE", tax_group = "vertebrates")
+#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' 
+#' J2020_PSBG <- ps_build_bg_from_file(
+#'   "../BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", 
+#'   J2020
+#' )
+#' 
+#' # Execute the PScan algorithm
+#' results <- pscan(prom_seq, J2020_PSBG)
+#' 
 #' 
 pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
@@ -21,11 +55,70 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   
   x <- BiocGenerics::unique(x)
   
-  pfms <- BiocParallel::bplapply(pfms, FUN = ps_scan, x, BG = FALSE, BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
+  pfms <- BiocParallel::bplapply(
+    pfms, 
+    FUN = ps_scan, 
+    x, 
+    BG = FALSE, 
+    BPPARAM=BPPARAM, 
+    BPOPTIONS = BPOPTIONS)
   
   BiocGenerics::do.call(PSMatrixList, pfms)
 }
 
+#' View result in table format  
+#' 
+#' This function generates a table of results from a `PSMatrixList` object, 
+#' ordered by decreasing P.VALUE and ZSCORE. For each PWMs, it computes 
+#' background and #' foreground statistics and returns a table summarizing 
+#' these values. 
+#'
+#' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
+#'    metadata (foreground and background statistics). Typically is the output 
+#'    of `pscan()` function. 
+#'
+#' @return
+#' A data.frame with matrices ordered by decreasing P.VALUE and ZSCORE, 
+#' containig the following columns: 
+#' \itemize{
+#'   \item "NAME": The names of the matrices.
+#'   \item "BG_AVG": The average background score for each PWM.
+#'   \item "BG_STDEV": The standard deviation of the background scores for each 
+#'   PWM.
+#'   \item "FG_AVG": The average foreground score for each PWM.
+#'   \item "ZSCORE": The Z-score for each PWM.
+#'   \item "P.VALUE": The p-value for each PWM.
+#' }
+#'
+#' @examples
+#' 
+#' # Get the regulatory sequences 
+#' url_target <- "http://159.149.160.88/pscan/sampledata/nfkb100.txt"
+#' target <- read.csv(url_target) 
+#' txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
+#' seqlevels(txdb) <- seqlevels(txdb)[1:24] # Use only canonical chromosomes
+#' prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
+#' prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
+#' target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
+#' prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
+#' 
+#' opts <- list(collection = "CORE", tax_group = "vertebrates")
+#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' 
+#' J2020_PSBG <- ps_build_bg_from_file(
+#'   "../BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", 
+#'   J2020
+#' )
+#' 
+#' # Execute the PScan algorithm and view the result table
+#' results <- pscan(prom_seq, J2020_PSBG)
+#' table <- ps_result_table(result)
+#' View(table)
+#' 
+#' @seealso [ps_bg_avg()], [ps_bg_std_dev()], [ps_fg_avg()], [ps_zscore()],
+#'    and [ps_pvalue()]
+#' 
+#' @export
 ps_results_table <- function(pfms)
 {
   
@@ -44,6 +137,21 @@ ps_results_table <- function(pfms)
   tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE,TRUE))),]
 }
 
+#' Generates Z-score table
+#' 
+#' This function calculates the z-score for each motif in a `PSMatrixList` 
+#' object and organizes the result into a matrix. 
+#'
+#' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
+#'    metadata (foreground and background statistics). Typically is the output 
+#'    of `pscan()` function. 
+#'
+#' @return
+#' A matrix in which each column corresponds to a motif in the `PSMatrixList`
+#' object, and each row 
+#' @export
+#'
+#' @examples
 ps_z_table <- function(pfms)
 {
   .ps_checks2(pfms)

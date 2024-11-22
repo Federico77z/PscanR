@@ -14,54 +14,61 @@ knitr::opts_chunk$set(echo = TRUE)
   **1.1. Getting Annotations**
 
 ```{r}
-library("GenomicFeatures")
-library("GenomicRanges")
-library("BSgenome")
-library("BSgenome.Hsapiens.UCSC.hg38")
-library("BSgenome.Mmusculus.UCSC.mm10")
-library("txdbmaker")
-library("BSDA")
-library("BiocParallel")
+# Upload all the needed packages
+source("BG_scripts/load_packages.R")
 
-#a <- sapply(list.files(path = "./R", full.names = TRUE), source, echo = FALSE) #PROVVISORIO
+#a <- sapply(list.files(path = "./R", full.names = TRUE), source, echo = FALSE) 
 #rm(a) #PROVVISORIO
 #load_all() #PROVVISORIO
 
-txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated") #import gtf annotation from UCSC
-#txdb <- makeTxDbFromUCSC(genome="hg38", tablename="refGene") #import gtf annotation from UCSC
-seqlevels(txdb) <- seqlevels(txdb)[1:24] #use only annotations on canonical chromosomes
+# Import GTF annotation from UCSC
+txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated") 
 
+# Alternatively use tablename="refGene"
+
+# Use only annotations on canical chromosomes 
+seqlevels(txdb) <- seqlevels(txdb)[1:24] 
+
+# Get the promoter regions
 prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
 
-prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, prom_rng) #promoter sequences
+# Get the promoter sequences
+prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, prom_rng) 
 ```
 
   **1.2. Getting Jaspar Profiles**
   
 ```{r}
-library("TFBSTools")
-library("JASPAR2022")
-library("JASPAR2024") #doesn't work?
-library("RSQLite") #needed for Jaspar2024
+#library("JASPAR2024") #doesn't work?
+#library("RSQLite") #needed for Jaspar2024
 
+# Set configuration options for getMatrixSet() function
 opts <- list()
 opts[["collection"]] <- "CORE"
 opts[["tax_group"]] <- "vertebrates"
 
-J2020 <- getMatrixSet(JASPAR2020, opts) #core Jaspar 2020 profiles for vertebrates
-#J2024 <- getMatrixSet(JASPAR2024, opts) #core Jaspar 2024 profiles for vertebrates
+# Core Jaspar 2020 profiles for vertebrates 
+J2020 <- getMatrixSet(JASPAR2020, opts) 
+
+# Core Jaspar 2022 profiles for vertebrates
+#J2020 <- getMatrixSet(JASPAR2022, opts) 
+
+# Core Jaspar 2024 profiles for vertebrates
+#J2024 <- getMatrixSet(JASPAR2024, opts) 
 ```
   
   **1.3. Building Pscan Background**
 ```{r}
-source("../R/Build_Background.R")
-source("../R/Helper_functions.R")
-source("../R/Scan_and_post_processing.R")
-source("../R/PSMatrix_class.R")
+source("R/Build_Background.R")
+source("R/Helper_functions.R")
+source("R/Scan_and_post_processing.R")
+source("R/PSMatrix_class.R")
 
-J2020_PSBG <- ps_build_bg(prom_seq, J2020, BPPARAM = MulticoreParam(24)) #Build Pscan Background
+# Build PSCAN background 
+J2020_PSBG <- ps_build_bg(prom_seq, J2020, BPPARAM = MulticoreParam(24)) 
 
-#ps_write_bg_to_file(J2020_PSBG, "J2020_hg38_500u_0d_UCSC.psbg.txt") #to save it 
+# Save the result into a file
+#ps_write_bg_to_file(J2020_PSBG, "BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt")  
 
 #rm(list = c("J2020", "opts", "prom_seq", "prom_rng"))
 ```
@@ -69,24 +76,34 @@ J2020_PSBG <- ps_build_bg(prom_seq, J2020, BPPARAM = MulticoreParam(24)) #Build 
 **2. pscan analysis**
 
 ```{r}
-library("Biostrings")
+# Get the sequence identifiers from the pscan dataset
+url_target <- "http://159.149.160.88/pscan/sampledata/nfkb100.txt"
+target  <- read.csv(url_target, header = F) 
 
+# Get the target promoter regions
 prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
 target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
-prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) #promoter sequences
 
-#J2020_PSBG <- ps_build_bg_from_file("--/BG_scripts/J2020_hg38_200u_50d_UCSC.psbg.txt", J2020) #if you need it from a file
+# Get the target promoter sequences 
+prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
 
-results <- pscan(prom_seq, J2020_PSBG)
+# Build the background from a file
+#J2020_PSBG <- ps_build_bg_from_file(
+#  "BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", 
+#  J2020
+#) 
 
+# Launch the PSCAN algorithm 
+results <- pscan(prom_seq, J2020_PSBG, BPPARAM = MulticoreParam(1)) 
+# Use SnowParam() insted of MulticoreParam() on windows
+
+# Generate the result table 
 table <- ps_results_table(results)
 
 saveRDS(table, "results.rds")
 
+# Obtain the z-score matrix
 z_table <- ps_z_table(results)
 
-#rm(prom_seq)
-#rm(results)
-#rm(table)
 ```
-  ---
+
