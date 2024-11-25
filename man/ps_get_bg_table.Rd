@@ -43,5 +43,6 @@ bg_table <- ps_get_bg_table(J2020)
 
 }
 \seealso{
-[ps_bg_size()], [ps_bg_avg()], [ps_bg_std_dev()]
+\code{\link{ps_bg_size}}, \code{\link{ps_bg_avg}},
+   \code{\link{ps_bg_std_dev}}
 }

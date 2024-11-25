@@ -38,5 +38,5 @@ ps_write_bg_to_file(J2020, file_path)
 
 }
 \seealso{
-[ps_get_bg_table()]
+\code{\link{ps_get_bg_table}}
 }

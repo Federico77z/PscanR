@@ -54,5 +54,5 @@ bg_matrices <- ps_build_bg_from_file(file_path, J2020)
 
 }
 \seealso{
-[ps_build_bg_from_table()]
+\code{\link{ps_build_bg_from_table}}
 }

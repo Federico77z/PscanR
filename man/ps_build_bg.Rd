@@ -46,7 +46,7 @@ The motif are background scored by the `ps_scan` function in parallel.
 # Get promoter sequences
 prom_seq <- getSeq(
     BSgenome.Hsapiens.UCSC.hg38,
-    promoters(txdb, upstream = 200, downstream = 50)
+    promoters(txdb, upstream = 200, downstream = 50)c
 )
 
 # Load JASPAR motif matrices for vertebrates

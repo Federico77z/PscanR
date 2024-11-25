@@ -38,7 +38,7 @@
 #' # Get promoter sequences
 #' prom_seq <- getSeq(
 #'     BSgenome.Hsapiens.UCSC.hg38,
-#'     promoters(txdb, upstream = 200, downstream = 50)
+#'     promoters(txdb, upstream = 200, downstream = 50)c
 #')
 #'
 #' # Load JASPAR motif matrices for vertebrates
@@ -116,7 +116,7 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' # Generate the background-scored motif matrices from file
 #' bg_matrices <- ps_build_bg_from_file(file_path, J2020)
 #' 
-#' @seealso [ps_build_bg_from_table()]
+#' @seealso \code{\link{ps_build_bg_from_table}}
 #' 
 #' @export
 ps_build_bg_from_file <- function(file, pfms)
@@ -225,7 +225,8 @@ ps_build_bg_from_table <- function(x, pfms)
 #' 
 #' bg_table <- ps_get_bg_table(J2020)
 #' 
-#' @seealso [ps_bg_size()], [ps_bg_avg()], [ps_bg_std_dev()]
+#' @seealso \code{\link{ps_bg_size}}, \code{\link{ps_bg_avg}},
+#'    \code{\link{ps_bg_std_dev}}
 #' 
 #' @export
 ps_get_bg_table <- function(pfms)
@@ -267,7 +268,7 @@ ps_get_bg_table <- function(pfms)
 #' 
 #' ps_write_bg_to_file(J2020, file_path)
 #' 
-#' @seealso [ps_get_bg_table()]
+#' @seealso \code{\link{ps_get_bg_table}}
 #' 
 #' @export
 ps_write_bg_to_file <- function(pfms, file)

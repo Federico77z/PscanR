@@ -94,7 +94,7 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' 
 #' # Get the regulatory sequences 
 #' url_target <- "http://159.149.160.88/pscan/sampledata/nfkb100.txt"
-#' target <- read.csv(url_target) 
+#' target <- read.csv(url_target, header = F) 
 #' txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
 #' seqlevels(txdb) <- seqlevels(txdb)[1:24] # Use only canonical chromosomes
 #' prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
@@ -111,12 +111,13 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' )
 #' 
 #' # Execute the PScan algorithm and view the result table
-#' results <- pscan(prom_seq, J2020_PSBG)
+#' results <- pscan(prom_seq, J2020_PSBG, BPPARAM = MultiCoreParam(24))
+#' # Use `SnowParam` on windows 
 #' table <- ps_result_table(result)
 #' View(table)
 #' 
-#' @seealso [ps_bg_avg()], [ps_bg_std_dev()], [ps_fg_avg()], [ps_zscore()],
-#'    and [ps_pvalue()]
+#' @seealso \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}},
+#'    \code{\link{ps_fg_avg}}, \code{\link{ps_zscore}}, \code{\link{ps_pvalue}}
 #' 
 #' @export
 ps_results_table <- function(pfms)
@@ -148,10 +149,35 @@ ps_results_table <- function(pfms)
 #'
 #' @return
 #' A matrix in which each column corresponds to a motif in the `PSMatrixList`
-#' object, and each row 
-#' @export
+#' object, and each row to the sequence identifiers. 
+
 #'
 #' @examples
+#' # Get the regulatory sequences 
+#' url_target <- "http://159.149.160.88/pscan/sampledata/nfkb100.txt"
+#' target <- read.csv(url_target, header = F) 
+#' txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
+#' seqlevels(txdb) <- seqlevels(txdb)[1:24] # Use only canonical chromosomes
+#' prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
+#' prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
+#' target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
+#' prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
+#' 
+#' opts <- list(collection = "CORE", tax_group = "vertebrates")
+#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' 
+#' J2020_PSBG <- ps_build_bg_from_file(
+#'   "../BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", 
+#'   J2020
+#' )
+#' 
+#' # Execute the PScan algorithm and view the result table
+#' results <- pscan(prom_seq, J2020_PSBG, BPPARAM = MultiCoreParam(24))
+#' # Use `SnowParam` on windows
+#' z_score <- ps_z_table(result)
+#' View(z_score)
+#' 
+#' @export
 ps_z_table <- function(pfms)
 {
   .ps_checks2(pfms)
