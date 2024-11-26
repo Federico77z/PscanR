@@ -2,25 +2,57 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{pscan}
 \alias{pscan}
-\title{Executes the Pscan algorithm on a set of sequences.}
+\title{Executes the Pscan algorithm on a set of regulatory sequences.}
 \usage{
 pscan(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions())
 }
 \arguments{
-\item{x}{The set of regulatory sequences from co-regulated or co-expressed genes (i.e.
-a set of gene promoters). This must be a DNAStringSet object (see Biostrings package)}
+\item{x}{A `DNASetString` object containing the set of regulatory sequences 
+from co-regulated or co-expressed genes (i.e. a set of gene promoters). 
+(see Biostrings package).}
 
-\item{pfms}{An object of PSMatrixList class containing PWMs and background values. See 
-ps_build_bg, ps_build_bg_from_file, ps_build_bg_from_table for how to create
-PSMatrixList objects.}
+\item{pfms}{An object of PSMatrixList class containing PWMs and background 
+values. See ps_build_bg, ps_build_bg_from_file, ps_build_bg_from_table for 
+how to create PSMatrixList objects.}
 
-\item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel.}
+\item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel.
+This argument is passed to `BiocParallel::bplapply`
+The default is `bpparam()`.}
 
-\item{BPOPTIONS}{The BPOPTIONS used by bplapply. See BiocParallel.}
+\item{BPOPTIONS}{The BPOPTIONS used by bplapply. See BiocParallel.
+This argument is passed to `BiocParallel::bplapply`. 
+The default is `bpoptions()`.}
 }
 \value{
-Returns pfms with foreground values computed on x.
+A `PSMatrixList` object in which the foreground value have been computed 
+for each sequence in `X` based on the position weight matrices in `pfms`.
 }
 \description{
-Executes the Pscan algorithm on a set of sequences.
+This function computes the foreground values of a set of gene promoters (`X`)
+using the PScan algorithm. Foreground values are computed by applying the 
+PWM values stored in `pfms`.
+}
+\examples{
+# Get the regulatory sequences 
+url_target <- "http://159.149.160.88/pscan/sampledata/nfkb100.txt"
+target <- read.csv(url_target) 
+txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
+seqlevels(txdb) <- seqlevels(txdb)[1:24] # Use only canonical chromosomes
+prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
+prom_rng$tx_name_clean <- sub("\\\\..*$", "", prom_rng$tx_name)
+target_prom_rng <- prom_rng[prom_rng$tx_name_clean \%in\% target[,1]]
+prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
+
+opts <- list(collection = "CORE", tax_group = "vertebrates")
+J2020 <- getMatrixSet(JASPAR2020, opts)
+
+J2020_PSBG <- ps_build_bg_from_file(
+  "../BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", 
+  J2020
+)
+
+# Execute the PScan algorithm
+results <- pscan(prom_seq, J2020_PSBG)
+
+
 }
