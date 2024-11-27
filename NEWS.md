@@ -1,3 +1,3 @@
-# Pscan-R 1.0
+# PscanR 1.0
 
-- First release of Pscan-R
+- First release of PscanR
