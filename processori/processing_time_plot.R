@@ -11,6 +11,10 @@ power_model <- lm(log(means) ~ log(N))
 smooth_N <- seq(min(N), max(N), length.out = 500)  # 500 punti tra 1 e 24
 smooth_pred <- exp(predict(power_model, newdata = data.frame(N = smooth_N)))  # Previsioni
 
+ss_total <- sum((means - mean(means))^2)
+ss_residual <- sum((means - exp(predict(power_model)))^2)
+r_squared <- 1 - (ss_residual / ss_total) 
+
 png("processori/boxplot_regression.png", width = 800, height = 600)
 
 boxplot(data,
@@ -22,7 +26,7 @@ boxplot(data,
 
 lines(smooth_N, smooth_pred, col = "blue", lwd = 2)
 
-legend("topright", legend = "Power regression",
+legend("topright", legend = bquote("Power regression, " ~ R^2 == .(round(r_squared, 3))),
        col = "blue", lwd = 2)
 
 dev.off()
