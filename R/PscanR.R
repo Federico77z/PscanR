@@ -1,7 +1,7 @@
-#' Pscan-R: An R Interface for the `PScan` Tool
+#' PscanR: An R Interface for the `PScan` Tool
 #' 
 #' @description
-#' `Pscan-R` provides an R implementation of the `Pscan` web platform for 
+#' `PscanR` provides an R implementation of the `Pscan` web platform for 
 #' transcription factor binding site motif analysis. 
 #' It includes function to build the background for statistical analyses, 
 #' to scan the promoter sequences, and data visualization.  
@@ -17,7 +17,7 @@
 #' }
 #' 
 #' @docType package
-#' @name Pscan-R
+#' @name PscanR
 #' 
 #' @references 
 #' `Pscan` platform: \url{http://159.149.160.88/pscan/}

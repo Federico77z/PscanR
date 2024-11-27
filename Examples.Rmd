@@ -1,5 +1,5 @@
 ---
-title: "Pscan-R Examples"
+title: "PscanR Examples"
 output: html_document
 date: "2022-09-30"
 author: "Federico Zambelli"
