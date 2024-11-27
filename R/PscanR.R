@@ -1,7 +1,7 @@
-#' PscanR: An R Interface for the `PScan` Tool
+#' PscanR: An R Implementation for the `PScan` Algorithm
 #' 
 #' @description
-#' `PscanR` provides an R implementation of the `Pscan` web platform for 
+#' `PscanR` provides an R implementation of the `Pscan` algorithm for 
 #' transcription factor binding site motif analysis. 
 #' It includes function to build the background for statistical analyses, 
 #' to scan the promoter sequences, and data visualization.  
