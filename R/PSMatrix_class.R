@@ -1,8 +1,9 @@
 #require("TFBSTools")
-
+#'
 #' @export
-#' @import methods
-#' @importClassesFrom TFBSTools TFBSTools
+#' @import TFBSTools 
+#' @importFrom TFBSTools PFMatrix
+#' @exportClass PFMatrix
 
 
 .PSMatrix <- setClass("PSMatrix", slots = representation(ps_bg_avg="numeric",
@@ -496,7 +497,7 @@ setReplaceMethod("ps_bg_size", "PSMatrix", function(x,value){
   x
 })
 
-#' @exportMethods coerce
+#' @export
 
 setAs("PFMatrix", "PSMatrix", function(from){
   
@@ -510,7 +511,7 @@ setAs("PFMatrix", "PSMatrix", function(from){
 #PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
 #                     ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01, ...)
 
-#' @exportMethods coerce
+#' @export
 
 setAs("PFMatrixList", "PSMatrixList", function(from){
   

@@ -77,8 +77,7 @@ J2020_PSBG <- ps_build_bg(prom_seq, J2020, BPPARAM = MulticoreParam(24))
 
 ```{r}
 # Get the sequence identifiers from the pscan dataset
-url_target <- "http://159.149.160.88/pscan/sampledata/nfkb100.txt"
-target  <- read.csv(url_target, header = F) 
+target <- read.csv("exemple_file_nfkb100.txt", header = FALSE) 
 
 # Get the target promoter regions
 prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)

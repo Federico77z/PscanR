@@ -16,7 +16,7 @@
 #'    \item \code{\link{ps_result_table}}: Data visualization. 
 #' }
 #' 
-#' @docType package
+#' @docType _PACKAGE
 #' @name PscanR
 #' 
 #' @references 
