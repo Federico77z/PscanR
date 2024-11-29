@@ -125,7 +125,7 @@ ps_build_bg_from_file <- function(file, pfms)
   
   short.matrix <- read.table(file, header = FALSE, row.names = 1, skip = 1)
   
-  colnames(short.matrix)[1:3] <- c("BG_SIZE", "BG_MEAN", "BG_STDEV")
+  colnames(short.matrix)[seq_len(3)] <- c("BG_SIZE", "BG_MEAN", "BG_STDEV")
   
   pfms <- ps_build_bg_from_table(short.matrix, pfms)
 }

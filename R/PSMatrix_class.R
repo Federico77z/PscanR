@@ -30,14 +30,14 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA)
             ps_fg_size = as.integer(NA), ps_zscore = as.numeric(NA), ps_pvalue = as.numeric(NA), ps_seq_names = character(),
             .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, ps_hits_pos = integer(), 
             ps_hits_strand = character(), ps_hits_score = numeric(), ps_hits_oligo = character(), 
-            .PS_ALPHABET = setNames(1:4, c("A","C","G","T"))))
+            .PS_ALPHABET = setNames(seq_len(4), c("A","C","G","T"))))
 }
 
 .PSMatrixList <-setClass("PSMatrixList", contains ="PFMatrixList")
 
 PSMatrixList <- function(..., use.names = TRUE)
 {
-  listData = list(...)
+  listData <- list(...)
   XMatrixList(listData, use.names = use.names, type = "PSMatrixList", matrixClass = "PSMatrix")
 }
 
@@ -356,7 +356,7 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
                ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), AB = .PS_ALPHABET(x)) 
   
   if(BG == FALSE)
-    x@ps_seq_names = names(seqs)
+    x@ps_seq_names <- names(seqs)
   
   seqs <- as.character(seqs)
   
@@ -375,7 +375,7 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
 
 setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB){
   
-  subS <- strsplit(substring(Seq, 1:(nchar(Seq) - length(x) + 1), length(x):nchar(Seq)),"",
+  subS <- strsplit(substring(Seq, seq_len((nchar(Seq) - length(x) + 1)), length(x):nchar(Seq)),"",
                                       fixed = TRUE)
   prot <- numeric(1)
   
@@ -443,7 +443,6 @@ validPSMatrix <- function(object)
 setValidity("PSMatrix", validPSMatrix)
 
 #' @export
-#' @importMethodsFrom PFMatrix show
 
 setMethod("show", "PSMatrix", function(object) {
   

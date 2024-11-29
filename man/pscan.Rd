@@ -34,8 +34,7 @@ PWM values stored in `pfms`.
 }
 \examples{
 # Get the regulatory sequences 
-url_target <- "http://159.149.160.88/pscan/sampledata/nfkb100.txt"
-target <- read.csv(url_target) 
+target <- read.csv("../PscanR/example_file_nfkb100.txt", header = FALSE) 
 txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
 seqlevels(txdb) <- seqlevels(txdb)[1:24] # Use only canonical chromosomes
 prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
