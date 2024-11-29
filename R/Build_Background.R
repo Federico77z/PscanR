@@ -38,8 +38,8 @@
 #' # Get promoter sequences
 #' prom_seq <- getSeq(
 #'     BSgenome.Hsapiens.UCSC.hg38,
-#'     promoters(txdb, upstream = 200, downstream = 50)c
-#')
+#'     promoters(txdb, upstream = 200, downstream = 50), use.names = TRUE
+#' )
 #'
 #' # Load JASPAR motif matrices for vertebrates
 #' opts <- list(collection = "CORE", tax_group = "vertebrates")
