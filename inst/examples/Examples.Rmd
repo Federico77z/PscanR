@@ -26,7 +26,7 @@ txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
 
 # Alternatively use tablename="refGene"
 
-# Use only annotations on canical chromosomes 
+# Use only annotations on canonical chromosomes 
 seqlevels(txdb) <- seqlevels(txdb)[1:24] 
 
 # Get the promoter regions
