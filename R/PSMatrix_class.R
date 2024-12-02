@@ -1,88 +1,245 @@
-#require("TFBSTools")
-#'
-#' @export
+#' An S4 class to represent a `PFMatrix` object with computed foreground and
+#' background statistics 
+#' 
+#' The `PSMatrix` class extends the `PFMatrix` class from the `TFBSTools`
+#' package, adding slots for foreground and background statistics, Z-score, 
+#' P-value, and more.
+#' 
+#' @slot ps_bg_avg Numeric. The background average value.
+#' @slot ps_fg_avg Numeric. The foreground average value.
+#' @slot ps_bg_std_dev Numeric. The standard deviation of the background.
+#' @slot ps_bg_size Integer. The size of the background dataset. 
+#' @slot ps_fg_size Integer. The size of the foreground dataset.
+#' @slot ps_hits_pos Integer. Positions of hits. 
+#' @slot ps_hits_strand Character. Strand information for hits. 
+#' @slot ps_hits_scroe Numeric. Score information of hits. 
+#' @slot ps_hits_oligo Character. Oligonucleotide sequence of hits.
+#' @slot ps_zscore Numeric. The Z-score value.
+#' @slot ps_pvalue Numeric. The P-Value.
+#' @slot ps_seq_names Character. The sequence name.  
+#' @slot .PS_PSEUDOCOUNT Numeric. The pseudocount value used in calculations. 
+#' @slot .PS_ALPHABET Integer. DNA alphabet (e. g. 'A', 'G', 'T', 'C')
+#' 
+#' @exportClass PSMatrix
 #' @import TFBSTools 
 #' @importFrom TFBSTools PFMatrix
-#' @exportClass PFMatrix
-
-
-.PSMatrix <- setClass("PSMatrix", slots = representation(ps_bg_avg="numeric",
-                                                         ps_fg_avg="numeric",
-                                                         ps_bg_std_dev="numeric", 
-                                                         ps_bg_size="integer",
-                                                         ps_fg_size="integer",
-                                                         ps_hits_pos="integer", 
-                                                         ps_hits_strand="character", 
-                                                         ps_hits_score="numeric",
-                                                         ps_hits_oligo="character",
-                                                         ps_zscore="numeric",
-                                                         ps_pvalue="numeric",
-                                                         ps_seq_names="character",
-                                                         .PS_PSEUDOCOUNT="numeric",
-                                                         .PS_ALPHABET="integer"), 
+.PSMatrix <- setClass("PSMatrix", 
+                      slots = representation(ps_bg_avg="numeric",
+                                             ps_fg_avg="numeric",
+                                             ps_bg_std_dev="numeric", 
+                                             ps_bg_size="integer",
+                                             ps_fg_size="integer",
+                                             ps_hits_pos="integer", 
+                                             ps_hits_strand="character", 
+                                             ps_hits_score="numeric",
+                                             ps_hits_oligo="character",
+                                             ps_zscore="numeric",
+                                             ps_pvalue="numeric",
+                                             ps_seq_names="character",
+                                             .PS_PSEUDOCOUNT="numeric",
+                                             .PS_ALPHABET="integer"), 
                       contains="PFMatrix")
 
-PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
+#' Create a PSMatrix object
+#' 
+#' This function creates an instance of the `PSMatrix` class by initializing its
+#' slots with default values. 
+#'
+#' @param pfm An object of class `PFMatrix` from the `TFBSTools` package 
+#'    representing a position frequency matrix.  
+#' @param ps_bg_avg Numeric. The background average value, default = `NA`.
+#' @param ps_fg_avg Numeric. The foreground average value, default = `NA`.
+#' @param ps_bg_std_dev Numeric. The standard deviation of the background, 
+#'    default = `NA`.
+#' @param ps_bg_size Integer. The size of the background dataset, 
+#'    default = `NA`.
+#' @param .PS_PSEUDOCOUNT Numeric. The pseudocount to add to avoid division
+#'    by zero. Default = `0.01`
+#' @param ... Addictional arguments to pass to downstream function.
+#'
+#' @return An object of `PSMatrix` class.
+#' @export
+#'
+#' @examples
+PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), 
+                     ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
                      ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01, ...)
 {
 #  .ps_required_packages()
-  .ps_norm_matrix(.PSMatrix(pfm, ps_bg_avg = ps_bg_avg, ps_fg_avg = ps_fg_avg, ps_bg_std_dev = ps_bg_std_dev, ps_bg_size = ps_bg_size, 
-            ps_fg_size = as.integer(NA), ps_zscore = as.numeric(NA), ps_pvalue = as.numeric(NA), ps_seq_names = character(),
-            .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, ps_hits_pos = integer(), 
-            ps_hits_strand = character(), ps_hits_score = numeric(), ps_hits_oligo = character(), 
-            .PS_ALPHABET = setNames(seq_len(4), c("A","C","G","T"))))
+  .ps_norm_matrix(.PSMatrix(pfm, ps_bg_avg = ps_bg_avg, 
+                            ps_fg_avg = ps_fg_avg, 
+                            ps_bg_std_dev = ps_bg_std_dev, 
+                            ps_bg_size = ps_bg_size, 
+                            ps_fg_size = as.integer(NA), 
+                            ps_zscore = as.numeric(NA), 
+                            ps_pvalue = as.numeric(NA), 
+                            ps_seq_names = character(),
+                            .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, 
+                            ps_hits_pos = integer(), 
+                            ps_hits_strand = character(), 
+                            ps_hits_score = numeric(), 
+                            ps_hits_oligo = character(), 
+                            .PS_ALPHABET = setNames(seq_len(4), 
+                                                    c("A","C","G","T"))))
 }
 
+#' An S4 class to represent a `PSMatrixList` object 
+#' 
+#' The `PSMatrixList` class extend the `PFMatrixList` class and represent a
+#' collection of `PSMatrix` object. It allow to aggregate and iterate on 
+#' multiple `PSMatrix` as a cohesive group.
+#' 
+#' @details
+#' This class extends the `PFMatrixList` class without adding new slots. 
+#' See `PFMatrixList` class documentation.
+#'
+#' @exportClass PFMatrixList
 .PSMatrixList <-setClass("PSMatrixList", contains ="PFMatrixList")
 
+#' Create a `PFMatrixList` object
+#' 
+#' This function creates a `PSMatrixList` object, which is a container for 
+#' managing multiple `PSMatrix` object.
+#'
+#' @param ... Objects of class `PSMatrix` to include in teh list.
+#' @param use.names Logical. Assert whether to use names from the input objects.
+#'    Default = `TRUE`
+#'
+#' @return An object of class `PSMatrixList`.
+#'
+#' @examples
+#' 
+#' @export
 PSMatrixList <- function(..., use.names = TRUE)
 {
   listData <- list(...)
-  XMatrixList(listData, use.names = use.names, type = "PSMatrixList", matrixClass = "PSMatrix")
+  XMatrixList(listData, 
+              use.names = use.names, 
+              type = "PSMatrixList", 
+              matrixClass = "PSMatrix")
 }
 
+#' Retrieve or Manipulate Properties of PSMatrix Class
+#'
+#' These generics provide a standardized interface for accessing or manipulating 
+#' various properties of `PSMatrix` objects.
+#'
+#' @param x An object of class `PSMatrix`.
+#' @param ... Additional arguments passed to specific methods.
+#' 
+#' @name ps_generics
+NULL
+
+
+#' @describeIn ps_generics 
+#' Retrieve the Z-score of a `PSMatrix` Object
+#'
+#' @return For `ps_zscore`: a numeric value representing the Z-score.
 #' @export
 setGeneric("ps_zscore", function(x, ...) standardGeneric("ps_zscore"))
 
+#' @describeIn ps_generics 
+#' Retrieve the P-Value of a `PSMatrix` Object
+#'
+#' @return For `ps_pvalue`: a numeric value representing the P-Value.
 #' @export
 setGeneric("ps_pvalue", function(x, ...) standardGeneric("ps_pvalue"))
 
+#' @describeIn ps_generics 
+#' Retrieve the average background value
+#'
+#' @return For `ps_bg_avg`: a numeric value representing the average background.
 #' @export
 setGeneric("ps_bg_avg", function(x, ...) standardGeneric("ps_bg_avg"))
 
+#' @describeIn ps_generics 
+#' Retrieve the average foreground value
+#'
+#' @return For `ps_fg_avg`: a numeric value representing average foreground.
 #' @export
 setGeneric("ps_fg_avg", function(x, ...) standardGeneric("ps_fg_avg"))
 
+#' @describeIn ps_generics 
+#' Retrieve the background standard deviation 
+#'
+#' @return For `ps_bg_std_dev`: a numeric value representing the background 
+#'    standard deviation.
 #' @export
 setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 
+#' @describeIn ps_generics 
+#' Retrieve the background size
+#'
+#' @return For `ps_bg_size`: an integer value representing the size of the 
+#'    background dataset.
 #' @export
 setGeneric("ps_bg_size", function(x, ...) standardGeneric("ps_bg_size"))
 
+#' @describeIn ps_generics 
+#' Retrieve the foreground size
+#'
+#' @return For `ps_fg_size`: an integer value representing the size pf 
+#'    the foreground dataset.
 #' @export
 setGeneric("ps_fg_size", function(x, ...) standardGeneric("ps_fg_size"))
 
+#' @describeIn ps_generics 
+#' Retrieve the hits size
+#'
+#' @return For `ps_hits_size`: an integer value representing the hits size.
 #' @export
 setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
 
+#' @describeIn ps_generics 
+#' Retrieve the hits score
+#'
+#' @return For `ps_hits_score`: a numeric vector representing the score for 
+#'    each hit.
 #' @export
 setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 
+#' @describeIn ps_generics 
+#'
+#' @return For `ps_hits_z`: a numeric vector.
 #' @export
 setGeneric("ps_hits_z", function(x, ...) standardGeneric("ps_hits_z"))
 
+#' @describeIn ps_generics 
+#' Retrieve the strand of hits
+#'
+#' @return For `ps_hits_strand`: a character vector representing the strand 
+#'    of each hit.
 #' @export
 setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 
+#' @describeIn ps_generics 
+#' Retrieve the position of hits
+#'
+#' @return For `ps_hits_pos`: an integer vector representing the position of
+#'    each hit.
 #' @export
 setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 
+#' @describeIn ps_generics 
+#' Retrieve oligonucleotide sequence of hits 
+#'
+#' @return For `ps_hits_oligo`: a character vector representing the 
+#'    oligonucleotide sequence of each hit. 
 #' @export
 setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 
+#' @describeIn ps_generics 
+#' Retrieve the hits table 
+#'
+#' @return For `ps_hits_table`: a `data.frame` of hits.
 #' @export
 setGeneric("ps_hits_table", function(x, ...) standardGeneric("ps_hits_table"))
+# not sure
 
+#' @describeIn ps_generics 
+#' Retrieve the sequence name from the `PSMatrix` Object 
+#'
+#' @return For `ps_seq_names`: a character vector of sequence names.
 #' @export
 setGeneric("ps_seq_names", function(x, ...) standardGeneric("ps_seq_names"))
 
@@ -92,15 +249,29 @@ setGeneric(".PS_PSEUDOCOUNT", function(x, ...) standardGeneric(".PS_PSEUDOCOUNT"
 #' @export
 setGeneric(".PS_ALPHABET", function(x, ...) standardGeneric(".PS_ALPHABET"))
 
+#' Normalize a `PSMatrix` Object 
+#' 
+#' @param x `PSMatrix` Object 
+#' @param ... Additional parameters
+#' 
 #' @export
 setGeneric(".ps_norm_matrix", function(x, ...) standardGeneric(".ps_norm_matrix"))
 
 #' @export
 setGeneric(".ps_seq_names", function(x, out) standardGeneric(".ps_seq_names"))
 
+#' @describeIn ps_generics 
+#' Perform a scan operation on a `PSMatrix` Object 
+#'
+#' @return A `data.frame` of hits. 
 #' @export
 setGeneric("ps_scan", function(x, ...) standardGeneric("ps_scan"))
 
+#' Retrieve the background values from a table
+#' 
+#' @param x A `data.frame`
+#' @param ... Additional parameters
+#' 
 #' @export
 setGeneric(".ps_bg_from_table", function(x, ...) standardGeneric(".ps_bg_from_table"))
 
@@ -217,7 +388,8 @@ setMethod("ps_hits_strand", "PSMatrix", function(x, withDimnames = TRUE) {
 })
 
 #' @export
-setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L, withDimnames = TRUE) {
+setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L, 
+                                              withDimnames = TRUE) {
   out <- x@ps_hits_pos + pos_shift
   
   out <- .ps_seq_names(x, out)
@@ -250,10 +422,14 @@ setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
 
 #' @export
 
-setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L, withDimnames = TRUE) {
+setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L, 
+                                                withDimnames = TRUE) {
   
-  out <- data.frame("SCORE" = x@ps_hits_score, "POS" = ps_hits_pos(x, pos_shift = pos_shift), "STRAND" = x@ps_hits_strand,
-                    "OLIGO" = DNAStringSet(x@ps_hits_oligo), row.names = x@ps_seq_names)
+  out <- data.frame("SCORE" = x@ps_hits_score, 
+                    "POS" = ps_hits_pos(x, pos_shift = pos_shift), 
+                    "STRAND" = x@ps_hits_strand,
+                    "OLIGO" = DNAStringSet(x@ps_hits_oligo), 
+                    row.names = x@ps_seq_names)
   
   out <- out[with(out, order(SCORE, POS, decreasing = c(TRUE,FALSE))),]
   
@@ -261,7 +437,9 @@ setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L, withDimnames 
 })
 
 #' @export
-setMethod(".ps_add_hits", "PSMatrix", function(x, Pos, Strand, Score, Oligo, BG = FALSE, withDimnames = TRUE) {
+setMethod(".ps_add_hits", "PSMatrix", 
+          function(x, Pos, Strand, Score, Oligo, BG = FALSE, 
+                   withDimnames = TRUE) {
   
   x@ps_hits_pos <- Pos
   x@ps_hits_strand <- Strand
@@ -282,7 +460,10 @@ setMethod(".ps_add_hits", "PSMatrix", function(x, Pos, Strand, Score, Oligo, BG 
   {
     if(!is.na(x@ps_bg_avg) && !is.na(x@ps_bg_std_dev))
     {
-      ztest <- z.test(x@ps_hits_score, mu = x@ps_bg_avg, sigma.x = x@ps_bg_std_dev, alternative = "greater")
+      ztest <- z.test(x@ps_hits_score, 
+                      mu = x@ps_bg_avg, 
+                      sigma.x = x@ps_bg_std_dev, 
+                      alternative = "greater")
       
       x@ps_zscore <- ztest$statistic["z"]
       x@ps_pvalue <- as.numeric(ztest$p.value)
@@ -352,8 +533,10 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
   
   rc_x <- reverseComplement(x)
   
-  Margs <- list(numx = as.numeric(Matrix(x)), numx_rc = as.numeric(Matrix(rc_x)),
-               ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), AB = .PS_ALPHABET(x)) 
+  Margs <- list(numx = as.numeric(Matrix(x)), 
+                numx_rc = as.numeric(Matrix(rc_x)),
+                ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), 
+                AB = .PS_ALPHABET(x)) 
   
   if(BG == FALSE)
     x@ps_seq_names <- names(seqs)
@@ -364,7 +547,8 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
   
   x <- .ps_add_hits(x, Score = as.numeric(res["score",]), 
                  Strand = as.character(res["strand",]), 
-                 Pos = as.integer(res["pos",]), Oligo = as.character(res["oligo",]), BG = BG)
+                 Pos = as.integer(res["pos",]), 
+                 Oligo = as.character(res["oligo",]), BG = BG)
   
   return(x)
   
@@ -375,17 +559,21 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
 
 setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB){
   
-  subS <- strsplit(substring(Seq, seq_len((nchar(Seq) - length(x) + 1)), length(x):nchar(Seq)),"",
-                                      fixed = TRUE)
+  subS <- strsplit(substring(Seq, seq_len((nchar(Seq) - length(x) + 1)), 
+                             length(x):nchar(Seq)),"",
+                   fixed = TRUE)
   prot <- numeric(1)
   
-  scores <- vapply(subS, FUN = .ps_assign_score, FUN.VALUE = prot, x = numx, AB = AB, ncolx = ncolx)
-  scores_rc <- vapply(subS, FUN = .ps_assign_score, FUN.VALUE = prot, x = numx_rc, AB = AB, ncolx = ncolx)
+  scores <- vapply(subS, FUN = .ps_assign_score, FUN.VALUE = prot, 
+                   x = numx, AB = AB, ncolx = ncolx)
+  scores_rc <- vapply(subS, FUN = .ps_assign_score, FUN.VALUE = prot, 
+                      x = numx_rc, AB = AB, ncolx = ncolx)
   
   mscore_pos <- which.max(scores)
   mscore_rc_pos <- which.max(scores_rc)
   
-  res <- list(score = numeric(), strand = character(), pos = integer(), oligo = character())
+  res <- list(score = numeric(), strand = character(), pos = integer(), 
+              oligo = character())
   
   if(scores[mscore_pos] >= scores_rc[mscore_rc_pos])
   {

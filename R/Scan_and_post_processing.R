@@ -114,8 +114,7 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' table <- ps_result_table(result)
 #' View(table)
 #' 
-#' @seealso \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}},
-#'    \code{\link{ps_fg_avg}}, \code{\link{ps_zscore}}, \code{\link{ps_pvalue}}
+#' @seealso \code{\link{ps_generics}}
 #' 
 #' @export
 ps_results_table <- function(pfms)
