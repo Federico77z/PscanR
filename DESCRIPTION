@@ -4,8 +4,11 @@ Title: Pscan-R regulatory sequences Motif Enrichment Analysis
 Version: 0.99.0
 Encoding: UTF-8
 Depends: R (>= 4.0), BSDA (>= 1.2), Biostrings (>= 2.64), BiocParallel (>= 1.30)
-Suggests: JASPAR2016 (>= 1.24), JASPAR2018 (>= 1.1.1), JASPAR2020 (>= 0.99), JASPAR2022 (>= 0.99), GenomicFeatures (>= 1.48), GenomicRanges (>= 1.48), BSgenome (>= 1.64), BSgenome.Hsapiens.UCSC.hg38 (>= 1.4), BSgenome.Mmusculus.UCSC.mm10 (>= 1.4)
-Imports: TFBSTools (>= 1.34), methods
+Suggests: JASPAR2016 (>= 1.24), JASPAR2018 (>= 1.1.1), JASPAR2020 (>= 0.99), 
+   JASPAR2022 (>= 0.99), GenomicRanges (>= 1.48), 
+   BSgenome (>= 1.64), BSgenome.Hsapiens.UCSC.hg38 (>= 1.4), 
+   BSgenome.Mmusculus.UCSC.mm10 (>= 1.4), BiocGenerics, txdbmaker, RMariaDB
+Imports: TFBSTools (>= 1.34), GenomicFeatures (>= 1.48)
 biocViews: SequenceMatching, MotifDiscovery, Visualization, Transcription
 Date: 2022-12-05
 Authors@R: c(
