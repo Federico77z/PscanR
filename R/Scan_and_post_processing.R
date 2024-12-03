@@ -216,3 +216,27 @@ ps_correlation_map <- function(pfms, FDR = 0.01, ...)
   do.call(pheatmap, c(list(z_table_reduced), final_args))
   
 }
+
+#' @export
+ps_density_plot <- function(pfm, pos_shift = 0, st = ps_bg_avg(pfm))
+{
+  scores <- ps_hits_score(pfm)
+  g_scores <- scores >= st
+  sum_g <- sum(g_scores)
+  
+  density_hits <- density(ps_hits_pos(pfm, pos_shift = pos_shift)[g_scores])
+  
+  plot(density_hits, 
+       main = paste(name(pfm), "hits density on", sum_g, "promoters"),
+       xlab = "Position along promoters",
+       ylab = "Density",
+       col = "blue",
+       lwd = 2)
+  
+  polygon(density_hits, col = rgb(0, 0, 1, 0.1), border = NA)
+  
+  peak <- density_hits$x[which.max(density_hits$y)]
+  abline(v = peak, col = "gray", lty = 2, lwd = 2)
+  text(peak, max(density_hits$y), labels = paste("\tMode:", round(peak)), pos = 4)
+  
+}
