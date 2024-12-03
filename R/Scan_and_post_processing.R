@@ -181,6 +181,8 @@ ps_z_table <- function(pfms)
   
   tbl <- lapply(pfms, ps_hits_z)
   
-  as.matrix(as.data.frame(tbl, col.names = name(pfms)))
+ # as.matrix(as.data.frame(tbl, col.names = name(pfms)))
+  
+  as.matrix(as.data.frame(tbl, col.names = ID(pfms)))
 
 }
