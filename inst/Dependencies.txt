@@ -20,3 +20,4 @@ JASPAR2016
 
 #Others
 BiocParallel (Bioconductor)
+pheatmap
