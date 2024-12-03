@@ -229,7 +229,10 @@ ps_density_plot <- function(pfm, pos_shift = 0, st = ps_bg_avg(pfm))
   plot(density_hits, 
        main = paste(name(pfm), "hits density on", sum_g, "promoters"),
        xlab = "Position along promoters",
+<<<<<<< HEAD
        ylab = "Density",
+=======
+>>>>>>> af1801e1c5b55663db47436eadcafc436604bb66
        col = "blue",
        lwd = 2)
   
