@@ -127,10 +127,11 @@ ps_results_table <- function(pfms)
   fg_v <- vapply(pfms, ps_fg_avg, numeric(length = 1L))
   zs_v <- vapply(pfms, ps_zscore, numeric(length = 1L))
   pv_v <- vapply(pfms, ps_pvalue, numeric(length = 1L))
+  fdr_v <- p.adjust(pv_v, method = "BH")
 
   tbl <- data.frame("NAME" = name(pfms), "BG_AVG" = bg_v, "BG_STDEV" = std_v, 
              "FG_AVG" = fg_v, "ZSCORE" = zs_v, 
-             "P.VALUE" = pv_v, row.names = ID(pfms))
+             "P.VALUE" = pv_v, "FDR" = fdr_v, row.names = ID(pfms))
   
   tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE,TRUE))),]
 }
@@ -180,6 +181,38 @@ ps_z_table <- function(pfms)
   
   tbl <- lapply(pfms, ps_hits_z)
   
-  as.matrix(as.data.frame(tbl, col.names = name(pfms)))
+ # as.matrix(as.data.frame(tbl, col.names = name(pfms)))
+  
+  as.matrix(as.data.frame(tbl, col.names = ID(pfms)))
 
+}
+
+#' @export
+#' @import pheatmap 
+ps_correlation_map <- function(pfms, FDR = 0.01, ...)
+{
+  defaults <- list(cluster_rows = TRUE, 
+  cluster_cols = TRUE,
+  color = colorRampPalette(c("blue", "white", "red"))(50),
+  main = "Pscan Correlation Heatmap", scale = "row", show_rownames = FALSE, 
+  labels_col = res_table$NAME[topn], 
+  clustering_distance_rows = "correlation",
+  clustering_distance_cols = "correlation",
+  clustering_method = "complete")
+  
+  user_args <- list(...)
+  
+  final_args <- modifyList(defaults, user_args)
+  
+  res_table <- ps_results_table(pfms)
+  z_table <- ps_z_table(pfms)
+  
+  topn <- which(res_table$FDR <= FDR)
+
+  tf_to_plot <- rownames(res_table)[topn]
+  
+  z_table_reduced <- z_table[,tf_to_plot]
+  
+  do.call(pheatmap, c(list(z_table_reduced), final_args))
+  
 }
