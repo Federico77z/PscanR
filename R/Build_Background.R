@@ -34,13 +34,19 @@
 #' A PSMatrixList object, containing each motif matrix from `pfms`, 
 #' background-scored against the sequences in `x`. 
 #'
+#' @importFrom GenomicFeatures makeTxDbFromUCSC
+#' 
 #' @examples
+#' # Import GTF annotation from UCSC
+#' txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
+#' # Use only canonical chromosomes
+#' seqlevels(txdb) <- seqlevels(txdb)[1:24] 
 #' # Get promoter sequences
 #' prom_seq <- getSeq(
 #'     BSgenome.Hsapiens.UCSC.hg38,
-#'     promoters(txdb, upstream = 200, downstream = 50)c
-#')
-#'
+#'     promoters(txdb, upstream = 200, downstream = 50)
+#' )
+#' names(prom_seq) <- names(promoters(txdb, upstream = 200, downstream = 50))
 #' # Load JASPAR motif matrices for vertebrates
 #' opts <- list(collection = "CORE", tax_group = "vertebrates")
 #' J2020 <- getMatrixSet(JASPAR2020, opts)
@@ -125,7 +131,7 @@ ps_build_bg_from_file <- function(file, pfms)
   
   short.matrix <- read.table(file, header = FALSE, row.names = 1, skip = 1)
   
-  colnames(short.matrix)[1:3] <- c("BG_SIZE", "BG_MEAN", "BG_STDEV")
+  colnames(short.matrix)[seq_len(3)] <- c("BG_SIZE", "BG_MEAN", "BG_STDEV")
   
   pfms <- ps_build_bg_from_table(short.matrix, pfms)
 }
@@ -225,8 +231,7 @@ ps_build_bg_from_table <- function(x, pfms)
 #' 
 #' bg_table <- ps_get_bg_table(J2020)
 #' 
-#' @seealso \code{\link{ps_bg_size}}, \code{\link{ps_bg_avg}},
-#'    \code{\link{ps_bg_std_dev}}
+#' @seealso \code{\link{ps_generics}}
 #' 
 #' @export
 ps_get_bg_table <- function(pfms)

@@ -2,11 +2,11 @@
 
 #Start from the background 
 
-source("load_packages.R")
-source("Build_Background.R")
-source("Helper_functions.R")
-source("Scan_and_post_processing.R")
-source("PSMatrix_class.R")
+source("../BG_scripts/load_packages.R")
+source("../R/Build_Background.R")
+source("../R/Helper_functions.R")
+source("../R/Scan_and_post_processing.R")
+source("../R/PSMatrix_class.R")
 
 txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated") #import gtf annotation from UCSC
 seqlevels(txdb) <- seqlevels(txdb)[1:24]
