@@ -13,10 +13,10 @@
 #'    from a file. 
 #'    \item \code{\link{pscan}}: Pscan algorithm utilization on a set 
 #'    of gen promoters.
-#'    \item \code{\link{ps_result_table}}: Data visualization. 
+#'    \item \code{\link{ps_results_table}}: Data visualization. 
 #' }
 #' 
-#' @docType _PACKAGE
+#' @docType package
 #' @name PscanR
 #' 
 #' @references 

@@ -119,7 +119,7 @@
 #' 
 .ps_checks2 <- function(pfms, ...)
 {
-  .ps_required_packages()
+  #.ps_required_packages()
 
   if(!is(pfms, "PSMatrixList"))
     stop("pfms is not an object of PSMatrixList class")  
@@ -130,10 +130,10 @@
    
 }
 
-.ps_required_packages <- function()
-{
-  require("Biostrings")
-  require("TFBSTools")
-  require("BiocParallel")
-  require("BSDA")
-}
+#.ps_required_packages <- function()
+#{
+#  require("Biostrings")
+#  require("TFBSTools")
+#  require("BiocParallel")
+#  require("BSDA")
+#}
