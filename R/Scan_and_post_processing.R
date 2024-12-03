@@ -218,13 +218,30 @@ ps_correlation_map <- function(pfms, FDR = 0.01, ...)
 }
 
 #' @export
-ps_density_plot <- function(pfm, pos_shift = 0, st = ps_bg_avg(pfm))
+ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 {
+  # st = score threshold. It can be passed as a numeric value
+  # or as one of three characters "all", "loose", "strict".
+  
+  if(is.character(st))
+  {
+    if(st == "all")
+      st <- 0
+    else if (st == "loose")
+      st <- ps_bg_avg(pfm)
+    else if (st == "strict")
+      st <- ps_bg_avg(pfm) + ps_bg_std_dev(pfm)
+    else {
+      warning("Invalid value for st, reverting to loose")
+      st <- ps_bg_avg(pfm)
+    }
+  }
+  
   scores <- ps_hits_score(pfm)
   g_scores <- scores >= st
   sum_g <- sum(g_scores)
   
-  density_hits <- density(ps_hits_pos(pfm, pos_shift = pos_shift)[g_scores])
+  density_hits <- density(ps_hits_pos(pfm, pos_shift = shift)[g_scores])
   
   plot(density_hits, 
        main = paste(name(pfm), "hits density on", sum_g, "promoters"),
