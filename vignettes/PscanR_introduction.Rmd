@@ -67,8 +67,8 @@ prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng)
 J2020_PSBG <- ps_build_bg_from_file("../BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", J2020)
 
 # Run PscanR
-results <- pscan(prom_seq, J2020_PSBG, BPPARAM = SnowParam(1)) 
-# Use SnowParam only on Windows. Otherwise, use MultiCoreParam()
+results <- pscan(prom_seq, J2020_PSBG, BPPARAM = MulticoreParam(1)) 
+# Use SnowParam on Windows. 
 
 # Create the table of results
 table <- ps_results_table(results) 
