@@ -37,7 +37,9 @@ to compute the statistics.
 \examples{
 # Retrieve motif matrices for vertebrates from JASPAR2020
 opts <- list(collection = "CORE", tax_group = "vertebrates")
-J2020 <- getMatrixSet(JASPAR2020, opts)
+if(requireNamespace("TFBSTools", quietly = TRUE)) {
+ J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
+}
 
 bg_table <- ps_get_bg_table(J2020)
 

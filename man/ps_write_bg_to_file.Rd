@@ -30,7 +30,9 @@ A header is added to the file (`[SHORT TFBS MATRIX`]).
 }
 \examples{
 opts <- list(collection = "CORE", tax_group = "vertebrates")
-J2020 <- getMatrixSet(JASPAR2020, opts)
+if(requireNamespace("TFBSTools", quietly = TRUE)) {
+ J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
+}
 # File path to save the result
 file_path <- "J2020_hg38_bg_stats.txt"
 

@@ -44,7 +44,9 @@ BG_STDEV = c(0.05, 0.07, 0.06)
 
 # Retrieve motif matrices for vertebrates from JASPAR2020
 opts <- list(collection = "CORE", tax_group = "vertebrates")
-J2020 <- getMatrixSet(JASPAR2020, opts)
+if(requireNamespace("TFBSTools", quietly = TRUE)) {
+ J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
+}
 J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 
 # Generate background-scored motif matrices

@@ -47,7 +47,9 @@ file_path <- "../BG_SCRIPTS/J2020_hg38_500u_0d:UCSC.psbg.txt"
 
 # Load JASPAR motif matrices for vertebrates
 opts <- list(collection = "CORE", tax_group = "vertebrates")
-J2020 <- getMatrixSet(JASPAR2020, opts)
+if(requireNamespace("TFBSTools", quietly = TRUE)) {
+ J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
+}
 
 # Generate the background-scored motif matrices from file
 bg_matrices <- ps_build_bg_from_file(file_path, J2020)

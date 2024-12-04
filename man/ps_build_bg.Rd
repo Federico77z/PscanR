@@ -44,18 +44,23 @@ The motif are background scored by the `ps_scan` function in parallel.
 }
 \examples{
 # Import GTF annotation from UCSC
-txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
+if (requireNamespace("GenomicFeatures", quietly = TRUE) &&
+    requireNamespace("Biostrings", quietly = TRUE) &&
+    requireNamespace("txdbmaker", quietly = TRUE) &&
+    requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE)){
+ txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
 # Use only canonical chromosomes
 seqlevels(txdb) <- seqlevels(txdb)[1:24] 
 # Get promoter sequences
-prom_seq <- getSeq(
-    BSgenome.Hsapiens.UCSC.hg38,
-    promoters(txdb, upstream = 200, downstream = 50)
-)
+ prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38, 
+                                GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50))
+}
 names(prom_seq) <- names(promoters(txdb, upstream = 200, downstream = 50))
 # Load JASPAR motif matrices for vertebrates
 opts <- list(collection = "CORE", tax_group = "vertebrates")
-J2020 <- getMatrixSet(JASPAR2020, opts)
+if(requireNamespace("TFBSTools", quietly = TRUE)) {
+ J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
+}
 
 # Generate the background-scored motif matrices
 bg_matrices <- ps_build_bg(prom_seq, J2020, BPPARAM = MulticoreParam(24))

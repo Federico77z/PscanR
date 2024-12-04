@@ -34,22 +34,30 @@
 #' A PSMatrixList object, containing each motif matrix from `pfms`, 
 #' background-scored against the sequences in `x`. 
 #'
-#' @importFrom GenomicFeatures makeTxDbFromUCSC
+#' @importFrom txdbmaker makeTxDbFromUCSC 
+#' @importFrom GenomicFeatures promoters
+#' @importFrom Biostrings getSeq
+#' @importFrom TFBSTools getMatrixSet
 #' 
 #' @examples
 #' # Import GTF annotation from UCSC
-#' txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
+#' if (requireNamespace("GenomicFeatures", quietly = TRUE) &&
+#'     requireNamespace("Biostrings", quietly = TRUE) &&
+#'     requireNamespace("txdbmaker", quietly = TRUE) &&
+#'     requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE)){
+#'  txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
 #' # Use only canonical chromosomes
 #' seqlevels(txdb) <- seqlevels(txdb)[1:24] 
 #' # Get promoter sequences
-#' prom_seq <- getSeq(
-#'     BSgenome.Hsapiens.UCSC.hg38,
-#'     promoters(txdb, upstream = 200, downstream = 50)
-#' )
+#'  prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38, 
+#'                                 GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50))
+#' }
 #' names(prom_seq) <- names(promoters(txdb, upstream = 200, downstream = 50))
 #' # Load JASPAR motif matrices for vertebrates
 #' opts <- list(collection = "CORE", tax_group = "vertebrates")
-#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' if(requireNamespace("TFBSTools", quietly = TRUE)) {
+#'  J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
+#' }
 #'
 #' # Generate the background-scored motif matrices
 #' bg_matrices <- ps_build_bg(prom_seq, J2020, BPPARAM = MulticoreParam(24))
@@ -111,13 +119,17 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' background-scored using the values provided in `file`. 
 #' See `ps_build_bg_from_table` for more details.
 #' 
+#' @importFrom TFBSTools getMatrixSet
+#' 
 #' @examples
 #' # Load a background information file
 #' file_path <- "../BG_SCRIPTS/J2020_hg38_500u_0d:UCSC.psbg.txt"
 #'
 #' # Load JASPAR motif matrices for vertebrates
 #' opts <- list(collection = "CORE", tax_group = "vertebrates")
-#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' if(requireNamespace("TFBSTools", quietly = TRUE)) {
+#'  J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
+#' }
 #'
 #' # Generate the background-scored motif matrices from file
 #' bg_matrices <- ps_build_bg_from_file(file_path, J2020)
@@ -163,6 +175,8 @@ ps_build_bg_from_file <- function(file, pfms)
 #' @return 
 #' A `PSMatrixList` object containing each motif matrix from `pfms`, 
 #' scored with background parameters provided from `x`.
+#' 
+#' @importFrom TFBSTools getMatrixSet
 #'
 #' @examples
 #' # create the `data.frame`
@@ -174,7 +188,9 @@ ps_build_bg_from_file <- function(file, pfms)
 #' 
 #' # Retrieve motif matrices for vertebrates from JASPAR2020
 #' opts <- list(collection = "CORE", tax_group = "vertebrates")
-#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' if(requireNamespace("TFBSTools", quietly = TRUE)) {
+#'  J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
+#' }
 #' J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 #' 
 #' # Generate background-scored motif matrices
@@ -224,10 +240,14 @@ ps_build_bg_from_table <- function(x, pfms)
 #' - `BG_STDEV`: a numeric vector representing the standard deviation of the 
 #'   background frequencies for each PFMs. 
 #'
+#' @importFrom TFBSTools getMatrixSet
+#' 
 #' @examples
 #' # Retrieve motif matrices for vertebrates from JASPAR2020
 #' opts <- list(collection = "CORE", tax_group = "vertebrates")
-#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' if(requireNamespace("TFBSTools", quietly = TRUE)) {
+#'  J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
+#' }
 #' 
 #' bg_table <- ps_get_bg_table(J2020)
 #' 
@@ -264,10 +284,14 @@ ps_get_bg_table <- function(pfms)
 #'
 #' @return None. It saves the given background statistics to the specified file
 #' in a tab-delimited format.
+#' 
+#' @importFrom TFBSTools getMatrixSet
 #'
 #' @examples
 #' opts <- list(collection = "CORE", tax_group = "vertebrates")
-#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' if(requireNamespace("TFBSTools", quietly = TRUE)) {
+#'  J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
+#' }
 #' # File path to save the result
 #' file_path <- "J2020_hg38_bg_stats.txt"
 #' 
