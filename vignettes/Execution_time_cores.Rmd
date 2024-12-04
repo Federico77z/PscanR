@@ -1,0 +1,68 @@
+---
+title: "Comparing execution time with varying processors"
+author: "Diana Betelli"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparing execution time with varying processors}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+**Introduction**
+
+In this vignette we will analyse how the number of cores used affect the execution
+time of the Pscan algorithm. We will run the algorithm with 1, 2, 4, 6, 8, 12, 18, and 24
+cores.
+
+In this experiment we will use the biggest dataset aviable, the liver one, with promoter 
+sequences length equal to 1000 bp. 
+Notice that the observed speedup will depend on the dimension of the data.
+
+```{r}
+data<- readRDS("../processori/df_processori.rds")
+
+data <- t(data)
+
+N <- as.numeric(colnames(data))
+means <- colMeans(data, na.rm = TRUE)
+
+# Power regression
+power_model <- lm(log(means) ~ log(N))  
+
+smooth_N <- seq(min(N), max(N), length.out = 500)  # 500 punti tra 1 e 24
+smooth_pred <- exp(predict(power_model, newdata = data.frame(N = smooth_N)))  # Previsioni
+
+ss_total <- sum((means - mean(means))^2)
+ss_residual <- sum((means - exp(predict(power_model)))^2)
+r_squared <- 1 - (ss_residual / ss_total) 
+
+```
+
+```{r boxplot-example, fig.width=6, fig.height=4}
+boxplot(data,
+        main = "PscanR Execution Time",
+        xlab = "Cores (N)\nLiver dataset (950d−50u), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
+        cex.lab = 0.8,
+        ylab = "Time (s)",
+        col = "lightblue",
+        las = 1, names = N, outline = FALSE)
+
+lines(smooth_N, smooth_pred, col = "blue", lwd = 2)
+
+legend("topright", legend = bquote("Power regression, " ~ R^2 == .(round(r_squared, 3))),
+       col = "blue", lwd = 2)
+```
+
+***Conclusions***:
+
+As shown in the boxplot, the execution time decreases significantly as the number 
+of processors increases, but beyond 8 cores, the performance gains plateaus. 
+This suggests that using more than 8 cores offers little additional benefits.
