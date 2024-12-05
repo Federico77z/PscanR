@@ -61,6 +61,19 @@
 #' @export
 #'
 #' @examples
+#'
+#'# Load JASPAR motif matrices for vertebrates
+#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+#' load(J2020_path)
+#' 
+#' result <- PSMatrix(
+#'   pfm = J2020[[1]],
+#'   ps_bg_avg = 0.25,        
+#'   ps_fg_avg = 0.5,         
+#'   ps_bg_std_dev = 0.05,    
+#'   ps_bg_size = 250L        
+#'   )
+#' print(result)
 PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), 
                      ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
                      ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01, ...)
@@ -96,7 +109,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' @exportClass PFMatrixList
 .PSMatrixList <-setClass("PSMatrixList", contains ="PFMatrixList")
 
-#' Create a `PFMatrixList` object
+#' Create a `PSMatrixList` object
 #' 
 #' This function creates a `PSMatrixList` object, which is a container for 
 #' managing multiple `PSMatrix` object.
@@ -108,7 +121,26 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' @return An object of class `PSMatrixList`.
 #'
 #' @examples
+#' # Load JASPAR motif matrices for vertebrates
+#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+#' load(J2020_path)
 #' 
+#' PSM1 <- PSMatrix(
+#'   pfm = J2020[[1]],
+#'   ps_bg_avg = 0.25,        
+#'   ps_fg_avg = 0.5,         
+#'   ps_bg_std_dev = 0.05,    
+#'   ps_bg_size = 250L        
+#'   )
+#' PSM2 <- PSMatrix(
+#'   pfm = J2020[[2]],
+#'   ps_bg_avg = 0.25,        
+#'   ps_fg_avg = 0.5,         
+#'   ps_bg_std_dev = 0.05,    
+#'   ps_bg_size = 250L        
+#'   )
+#' result <- PSMatrixList(PSM1, PSM2)
+#' result
 #' @export
 PSMatrixList <- function(..., use.names = TRUE)
 {

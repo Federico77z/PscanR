@@ -27,7 +27,8 @@ sequences length equal to 1000 bp.
 Notice that the observed speedup will depend on the dimension of the data.
 
 ```{r}
-data<- readRDS("../processori/df_processori.rds")
+file_path <- system.file("extdata", "df_processori.rds", package = "PscanR")
+data<- readRDS(file_path)
 
 data <- t(data)
 

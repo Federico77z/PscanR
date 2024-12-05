@@ -1,4 +1,4 @@
-#' PscanR: An R Implementation for the `PScan` Algorithm
+#' PscanR: An R Implementation for the `Pscan` Algorithm
 #' 
 #' @description
 #' `PscanR` provides an R implementation of the `Pscan` algorithm for 

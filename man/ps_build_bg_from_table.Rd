@@ -43,13 +43,13 @@ BG_STDEV = c(0.05, 0.07, 0.06)
 )
 
 # Retrieve motif matrices for vertebrates from JASPAR2020
-opts <- list(collection = "CORE", tax_group = "vertebrates")
-if(requireNamespace("TFBSTools", quietly = TRUE)) {
- J2020 <- TFBSTools::getMatrixSet(JASPAR2020, opts)
-}
+J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+load(J2020_path)
 J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
+
+rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")
 
 # Generate background-scored motif matrices
 bg_matrices <- ps_build_bg_from_table(background_data, J2020_subset)
-
+bg_matrices
 }
