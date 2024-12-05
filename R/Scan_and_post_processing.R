@@ -170,12 +170,17 @@ ps_z_table <- function(pfms)
 
 #' @export
 #' @import pheatmap 
-ps_correlation_map <- function(pfms, FDR = 0.01, ...)
+
+ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 {
+  res_table <- ps_results_table(pfms)
+  z_table <- ps_z_table(pfms)
+  topn <- which(res_table$FDR <= FDR)
+  
   defaults <- list(cluster_rows = TRUE, 
   cluster_cols = TRUE,
   color = colorRampPalette(c("blue", "white", "red"))(50),
-  main = "Pscan Correlation Heatmap", scale = "row", show_rownames = FALSE, 
+  main = "Pscan Score Correlation Heatmap", scale = "row", show_rownames = FALSE, 
   labels_col = res_table$NAME[topn], 
   clustering_distance_rows = "correlation",
   clustering_distance_cols = "correlation",
@@ -184,11 +189,6 @@ ps_correlation_map <- function(pfms, FDR = 0.01, ...)
   user_args <- list(...)
   
   final_args <- modifyList(defaults, user_args)
-  
-  res_table <- ps_results_table(pfms)
-  z_table <- ps_z_table(pfms)
-  
-  topn <- which(res_table$FDR <= FDR)
 
   tf_to_plot <- rownames(res_table)[topn]
   
@@ -196,6 +196,39 @@ ps_correlation_map <- function(pfms, FDR = 0.01, ...)
   
   do.call(pheatmap, c(list(z_table_reduced), final_args))
   
+}
+
+#' @export
+#' @import pheatmap 
+ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
+{
+  res_table <- ps_results_table(pfms)
+  
+  topn <- which(res_table$FDR <= FDR)
+  
+  defaults <- list(cluster_rows = TRUE,  
+                   cluster_cols = TRUE,  
+                   color = colorRampPalette(c("white", "yellow", "red"))(100),  
+                   main = "Pscan Hits Position Heatmap",
+                   fontsize = 10, show_rownames = FALSE, scale = "none",
+                   clustering_distance_rows = "manhattan",
+                   clustering_distance_cols = "manhattan", 
+                   clustering_method = "average"
+  )
+  
+  user_args <- list(...)
+  
+  final_args <- modifyList(defaults, user_args)
+  
+  pos_mat <- matrix(data = NA, nrow = ps_fg_size(results[[1]]), ncol = length(topn))
+  
+  for(v in topn)
+    pos_mat[,v] <- ps_hits_pos(results[[row.names(res_table)[v]]], pos_shift = shift)
+  
+  colnames(pos_mat) <- res_table$NAME[topn]
+  rownames(pos_mat) <- ps_seq_names(pfms[[1]])
+  
+  do.call(pheatmap, c(list(pos_mat), final_args))
 }
 
 #' @export
