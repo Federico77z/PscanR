@@ -33,25 +33,20 @@ using the PScan algorithm. Foreground values are computed by applying the
 PWM values stored in `pfms`.
 }
 \examples{
-# Get the regulatory sequences 
-target <- read.csv("../PscanR/example_file_nfkb100.txt", header = FALSE) 
-txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
-seqlevels(txdb) <- seqlevels(txdb)[1:24] # Use only canonical chromosomes
-prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
-prom_rng$tx_name_clean <- sub("\\\\..*$", "", prom_rng$tx_name)
-target_prom_rng <- prom_rng[prom_rng$tx_name_clean \%in\% target[,1]]
-prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
 
-opts <- list(collection = "CORE", tax_group = "vertebrates")
-J2020 <- getMatrixSet(JASPAR2020, opts)
+file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+prom_seq <- readRDS(file_path)
+prom_seq <- prom_seq[1:10]
 
-J2020_PSBG <- ps_build_bg_from_file(
-  "../BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", 
-  J2020
-)
+# Load JASPAR motif matrices for vertebrates
+J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+load(J2020_path)
+
+bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", package = "PscanR")
+J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
 
 # Execute the PScan algorithm
-results <- pscan(prom_seq, J2020_PSBG)
-
+results <- pscan(prom_seq, J2020_PSBG, BPPARAM = BiocParallel::MulticoreParam(1))
+results
 
 }

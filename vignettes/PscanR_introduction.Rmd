@@ -1,0 +1,86 @@
+---
+title: "Introduction to PscanR"
+author: "Diana Betelli"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to PscanR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+**Package overview:**
+
+PscanR is an R implementation of the algorithm developed by Zambelli et all. (2009).
+It is designed to analyze sequence motif enrichment, helping users to identify 
+transcription factors (TFs) that are likely regulators of a set of co-regulated 
+or co-expressed genes. By scanning sequences (e.g., promoters) against known 
+TFs binding motif, PscanR assesses which motif are significantly over- or under-
+represented and highlights candidate binding sites. 
+
+
+**Workflow overview:**
+
+***Input***: A set of sequences (e.g., promoters) and a library of known transcription
+factors binding motif (e.g., PWMs from JASPAR database).
+
+***Analyses***: Identification of enriched motif and calculation of statistical 
+significance (Z-scores and P-Values).
+
+***Output***: A ranked list of enriched motif with associated P-Values and Z-scores.  
+
+```{r}
+# Load required libraries 
+library(PscanR)
+library(JASPAR2020)
+library(BSgenome.Hsapiens.UCSC.hg38)
+library(BiocParallel)
+library(TFBSTools)
+library(txdbmaker)
+```
+
+```{r}
+opts <- list()
+opts[["collection"]] <- "CORE" # Core motif collection
+opts[["tax_group"]] <- "vertebrates" # Vertebrate motifs
+J2020 <- getMatrixSet(JASPAR2020, opts) # Download motif
+
+file_path <- system.file("extdata", "example_file_nfkb100.txt", package = "PscanR")
+BG_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", package = "PscanR")
+# Get the target regions
+target <- read.csv(file_path, header = FALSE)
+txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
+seqlevels(txdb) <- seqlevels(txdb)[1:24] 
+prom_rng <- promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE)
+prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
+target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
+
+# Get the target sequences 
+prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
+
+# Build the background
+J2020_PSBG <- ps_build_bg_from_file(BG_path, J2020)
+
+# Run PscanR
+results <- pscan(prom_seq, J2020_PSBG, BPPARAM = MulticoreParam(1)) 
+# Use SnowParam on Windows. 
+
+# Create the table of results
+table <- ps_results_table(results) 
+head(table)
+```
+
+**Interpretation of results:**
+
+***Z-score***: Indicates the degree of motif enrichment. A higher score suggests 
+stronger enrichment.
+
+***P-Value***: Provides the statistical significance of the results. Smaller values
+indicates more significant results. 

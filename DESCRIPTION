@@ -3,12 +3,14 @@ Type: Package
 Title: Pscan-R regulatory sequences Motif Enrichment Analysis 
 Version: 0.99.0
 Encoding: UTF-8
-Depends: R (>= 4.0), BSDA (>= 1.2), Biostrings (>= 2.64), BiocParallel (>= 1.30)
-Suggests: JASPAR2016 (>= 1.24), JASPAR2018 (>= 1.1.1), JASPAR2020 (>= 0.99), 
+Depends: R (>= 4.0), Biostrings (>= 2.64)
+Suggests: JASPAR2016 (>= 1.24), JASPAR2018 (>= 1.1.1), 
    JASPAR2022 (>= 0.99), GenomicRanges (>= 1.48), 
-   BSgenome (>= 1.64), BSgenome.Hsapiens.UCSC.hg38 (>= 1.4), 
-   BSgenome.Mmusculus.UCSC.mm10 (>= 1.4), BiocGenerics, txdbmaker, RMariaDB
-Imports: TFBSTools (>= 1.34), GenomicFeatures (>= 1.48)
+   BSgenome (>= 1.64), BSgenome.Mmusculus.UCSC.mm10 (>= 1.4), BiocGenerics (>= 0.40.0), 
+   RMariaDB, knitr, rmarkdown
+Imports: TFBSTools (>= 1.34), GenomicFeatures (>= 1.48), BSDA (>= 1.2),
+   BiocParallel (>= 1.30), methods, txdbmaker (>= 1.1.2), BSgenome.Hsapiens.UCSC.hg38 (>= 1.4),
+   pheatmap, JASPAR2020 (>= 0.99)
 biocViews: SequenceMatching, MotifDiscovery, Visualization, Transcription
 Date: 2022-12-05
 Authors@R: c(
@@ -25,5 +27,6 @@ Description: R implementation of the Pscan algorithm for sequence motif enrichme
   under-represented, providing thus hints on which transcription factors could 
   be common regulators of the genes studied, together with the location of their 
   candidate binding sites in the sequences.
-License: GPL-3
+License: GPL-3 + file LICENSE
+VignetteBuilder: knitr
 RoxygenNote: 7.3.2

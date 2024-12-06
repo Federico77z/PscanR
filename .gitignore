@@ -11,3 +11,5 @@ Examples.html
 BG_scripts/*out
 R/.Rhistory
 PscanR.Rproj
+/doc/
+/Meta/
