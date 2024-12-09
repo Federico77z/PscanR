@@ -2,7 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{.ps_norm_matrix}
 \alias{.ps_norm_matrix}
-\title{Normalize a `PSMatrix` Object}
+\title{Normalize an Object}
 \usage{
 .ps_norm_matrix(x, ...)
 }
@@ -12,5 +12,5 @@
 \item{...}{Additional parameters}
 }
 \description{
-Normalize a `PSMatrix` Object
+Normalize an Object
 }

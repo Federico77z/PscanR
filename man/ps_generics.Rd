@@ -103,36 +103,36 @@ various properties of `PSMatrix` objects.
 }
 \section{Functions}{
 \itemize{
-\item \code{ps_zscore()}: Retrieve the Z-score of a `PSMatrix` Object
+\item \code{ps_zscore()}: Retrieve the Z-score from an object
 
-\item \code{ps_pvalue()}: Retrieve the P-Value of a `PSMatrix` Object
+\item \code{ps_pvalue()}: Retrieve the P-Value from an object
 
-\item \code{ps_bg_avg()}: Retrieve the average background value
+\item \code{ps_bg_avg()}: Retrieve the average background value from an object
 
-\item \code{ps_fg_avg()}: Retrieve the average foreground value
+\item \code{ps_fg_avg()}: Retrieve the average foreground value from an object
 
-\item \code{ps_bg_std_dev()}: Retrieve the background standard deviation
+\item \code{ps_bg_std_dev()}: Retrieve the background standard deviation from an object
 
-\item \code{ps_bg_size()}: Retrieve the background size
+\item \code{ps_bg_size()}: Retrieve the background size from an object
 
-\item \code{ps_fg_size()}: Retrieve the foreground size
+\item \code{ps_fg_size()}: Retrieve the foreground size from an object
 
-\item \code{ps_hits_size()}: Retrieve the hits size
+\item \code{ps_hits_size()}: Retrieve the hits size from an object
 
-\item \code{ps_hits_score()}: Retrieve the hits score
+\item \code{ps_hits_score()}: Retrieve the hits score from an object
 
 \item \code{ps_hits_z()}: 
 
-\item \code{ps_hits_strand()}: Retrieve the strand of hits
+\item \code{ps_hits_strand()}: Retrieve the strand of hits from an object
 
-\item \code{ps_hits_pos()}: Retrieve the position of hits
+\item \code{ps_hits_pos()}: Retrieve the position of hits from an object
 
-\item \code{ps_hits_oligo()}: Retrieve oligonucleotide sequence of hits
+\item \code{ps_hits_oligo()}: Retrieve oligonucleotide sequence of hits from an object
 
-\item \code{ps_hits_table()}: Retrieve the hits table
+\item \code{ps_hits_table()}: Retrieve the hits table from an object
 
-\item \code{ps_seq_names()}: Retrieve the sequence name from the `PSMatrix` Object
+\item \code{ps_seq_names()}: Retrieve the sequence name from an object
 
-\item \code{ps_scan()}: Perform a scan operation on a `PSMatrix` Object
+\item \code{ps_scan()}: Perform a scan operation on an Object
 
 }}

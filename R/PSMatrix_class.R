@@ -18,7 +18,7 @@
 #' @slot ps_pvalue Numeric. The P-Value.
 #' @slot ps_seq_names Character. The sequence name.  
 #' @slot .PS_PSEUDOCOUNT Numeric. The pseudocount value used in calculations. 
-#' @slot .PS_ALPHABET Integer. DNA alphabet (e. g. 'A', 'G', 'T', 'C')
+#' @slot .PS_ALPHABET Integer. From `1` to `4` to represent the DNA alphabet. 
 #' 
 #' @exportClass PSMatrix
 #' @import TFBSTools 
@@ -55,7 +55,7 @@
 #'    default = `NA`.
 #' @param .PS_PSEUDOCOUNT Numeric. The pseudocount to add to avoid division
 #'    by zero. Default = `0.01`
-#' @param ... Addictional arguments to pass to downstream function.
+#' @param ... Additional arguments to pass to downstream function.
 #'
 #' @return An object of `PSMatrix` class.
 #' @export
@@ -98,8 +98,8 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 
 #' An S4 class to represent a `PSMatrixList` object 
 #' 
-#' The `PSMatrixList` class extend the `PFMatrixList` class and represent a
-#' collection of `PSMatrix` object. It allow to aggregate and iterate on 
+#' The `PSMatrixList` class extend the `PFMatrixList` class and represents a
+#' collection of `PSMatrix` object. It allows to aggregate and iterate on 
 #' multiple `PSMatrix` as a cohesive group.
 #' 
 #' @details
@@ -114,7 +114,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' This function creates a `PSMatrixList` object, which is a container for 
 #' managing multiple `PSMatrix` object.
 #'
-#' @param ... Objects of class `PSMatrix` to include in teh list.
+#' @param ... Objects of class `PSMatrix` to include in the list.
 #' @param use.names Logical. Assert whether to use names from the input objects.
 #'    Default = `TRUE`
 #'
@@ -164,35 +164,35 @@ NULL
 
 
 #' @describeIn ps_generics 
-#' Retrieve the Z-score of a `PSMatrix` Object
+#' Retrieve the Z-score from an object
 #'
 #' @return For `ps_zscore`: a numeric value representing the Z-score.
 #' @export
 setGeneric("ps_zscore", function(x, ...) standardGeneric("ps_zscore"))
 
 #' @describeIn ps_generics 
-#' Retrieve the P-Value of a `PSMatrix` Object
+#' Retrieve the P-Value from an object
 #'
 #' @return For `ps_pvalue`: a numeric value representing the P-Value.
 #' @export
 setGeneric("ps_pvalue", function(x, ...) standardGeneric("ps_pvalue"))
 
 #' @describeIn ps_generics 
-#' Retrieve the average background value
+#' Retrieve the average background value from an object 
 #'
 #' @return For `ps_bg_avg`: a numeric value representing the average background.
 #' @export
 setGeneric("ps_bg_avg", function(x, ...) standardGeneric("ps_bg_avg"))
 
 #' @describeIn ps_generics 
-#' Retrieve the average foreground value
+#' Retrieve the average foreground value from an object
 #'
 #' @return For `ps_fg_avg`: a numeric value representing average foreground.
 #' @export
 setGeneric("ps_fg_avg", function(x, ...) standardGeneric("ps_fg_avg"))
 
 #' @describeIn ps_generics 
-#' Retrieve the background standard deviation 
+#' Retrieve the background standard deviation from an object
 #'
 #' @return For `ps_bg_std_dev`: a numeric value representing the background 
 #'    standard deviation.
@@ -200,7 +200,7 @@ setGeneric("ps_fg_avg", function(x, ...) standardGeneric("ps_fg_avg"))
 setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 
 #' @describeIn ps_generics 
-#' Retrieve the background size
+#' Retrieve the background size from an object
 #'
 #' @return For `ps_bg_size`: an integer value representing the size of the 
 #'    background dataset.
@@ -208,7 +208,7 @@ setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 setGeneric("ps_bg_size", function(x, ...) standardGeneric("ps_bg_size"))
 
 #' @describeIn ps_generics 
-#' Retrieve the foreground size
+#' Retrieve the foreground size from an object
 #'
 #' @return For `ps_fg_size`: an integer value representing the size pf 
 #'    the foreground dataset.
@@ -216,14 +216,14 @@ setGeneric("ps_bg_size", function(x, ...) standardGeneric("ps_bg_size"))
 setGeneric("ps_fg_size", function(x, ...) standardGeneric("ps_fg_size"))
 
 #' @describeIn ps_generics 
-#' Retrieve the hits size
+#' Retrieve the hits size from an object
 #'
 #' @return For `ps_hits_size`: an integer value representing the hits size.
 #' @export
 setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
 
 #' @describeIn ps_generics 
-#' Retrieve the hits score
+#' Retrieve the hits score from an object
 #'
 #' @return For `ps_hits_score`: a numeric vector representing the score for 
 #'    each hit.
@@ -237,7 +237,7 @@ setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 setGeneric("ps_hits_z", function(x, ...) standardGeneric("ps_hits_z"))
 
 #' @describeIn ps_generics 
-#' Retrieve the strand of hits
+#' Retrieve the strand of hits from an object
 #'
 #' @return For `ps_hits_strand`: a character vector representing the strand 
 #'    of each hit.
@@ -245,7 +245,7 @@ setGeneric("ps_hits_z", function(x, ...) standardGeneric("ps_hits_z"))
 setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 
 #' @describeIn ps_generics 
-#' Retrieve the position of hits
+#' Retrieve the position of hits from an object
 #'
 #' @return For `ps_hits_pos`: an integer vector representing the position of
 #'    each hit.
@@ -253,7 +253,7 @@ setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 
 #' @describeIn ps_generics 
-#' Retrieve oligonucleotide sequence of hits 
+#' Retrieve oligonucleotide sequence of hits from an object
 #'
 #' @return For `ps_hits_oligo`: a character vector representing the 
 #'    oligonucleotide sequence of each hit. 
@@ -261,7 +261,7 @@ setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 
 #' @describeIn ps_generics 
-#' Retrieve the hits table 
+#' Retrieve the hits table from an object
 #'
 #' @return For `ps_hits_table`: a `data.frame` of hits.
 #' @export
@@ -269,19 +269,27 @@ setGeneric("ps_hits_table", function(x, ...) standardGeneric("ps_hits_table"))
 # not sure
 
 #' @describeIn ps_generics 
-#' Retrieve the sequence name from the `PSMatrix` Object 
+#' Retrieve the sequence name from an object
 #'
 #' @return For `ps_seq_names`: a character vector of sequence names.
 #' @export
 setGeneric("ps_seq_names", function(x, ...) standardGeneric("ps_seq_names"))
 
+#' @describeIn ps_generics
+#' Retrieve the pseudocount value
+#' 
+#' @return For `.PS_PSEUDOCOUNT`: a numeric value representing the pseudocount.
 #' @export
 setGeneric(".PS_PSEUDOCOUNT", function(x, ...) standardGeneric(".PS_PSEUDOCOUNT"))
 
+#' @describeIn ps_generics
+#' Retrieve the numbers representing the DNA alphabet
+#'  
+#' @return For `.PS_ALPHABET`: integer values.
 #' @export
 setGeneric(".PS_ALPHABET", function(x, ...) standardGeneric(".PS_ALPHABET"))
 
-#' Normalize a `PSMatrix` Object 
+#' Normalize an Object 
 #' 
 #' @param x `PSMatrix` Object 
 #' @param ... Additional parameters
@@ -293,7 +301,7 @@ setGeneric(".ps_norm_matrix", function(x, ...) standardGeneric(".ps_norm_matrix"
 setGeneric(".ps_seq_names", function(x, out) standardGeneric(".ps_seq_names"))
 
 #' @describeIn ps_generics 
-#' Perform a scan operation on a `PSMatrix` Object 
+#' Perform a scan operation on an Object 
 #'
 #' @return A `data.frame` of hits. 
 #' @export
@@ -318,6 +326,17 @@ setGeneric(".ps_norm_score", function(x, ...) standardGeneric(".ps_norm_score"))
 #' @export
 setGeneric(".ps_add_hits", function(x, ...) standardGeneric(".ps_add_hits"))
 
+#' Get Background Average Score
+#'
+#' Retrieves the background average score stored in a `PSMatrix` object.
+#'
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the output,
+#'    if they exist in the object.
+#'    Default set to `TRUE`.
+#' 
+#' @return A numeric value representing the background average score. 
+#'
 #' @export
 setMethod("ps_bg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_bg_avg
@@ -325,6 +344,17 @@ setMethod("ps_bg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
   return(out)
 })
 
+#' Get Foreground Average Score
+#'
+#' Retrieves the foreground average score stored in a `PSMatrix` object.
+#'
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the output,
+#'    if they exist in the object.
+#'    Default set to `TRUE`.
+#' 
+#' @return A numeric value representing the foreground average score. 
+#'
 #' @export
 setMethod("ps_fg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_fg_avg
@@ -332,6 +362,17 @@ setMethod("ps_fg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
   return(out)
 })
 
+#' Get Z-Score
+#' 
+#' Retrieves the Z-Score stored in a `PSMatrix` object.
+#' 
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the output,
+#'    if they exist in the object.
+#'    Default set to `TRUE`.
+#' 
+#' @return A numeric value representing the `PSMatrix` Z-score.
+#'
 #' @export
 setMethod("ps_zscore", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_zscore
@@ -339,6 +380,17 @@ setMethod("ps_zscore", "PSMatrix", function(x, withDimnames = TRUE) {
   return(out)
 })
 
+#' Get P-Value
+#' 
+#' Retrieves the P-Value stored in a `PSMatrix` object.
+#' 
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the output,
+#'    if they exist in the object.
+#'    Default set to `TRUE`.
+#' 
+#' @return A numeric value representing the `PSMatrix` P-Value.
+#'
 #' @export
 setMethod("ps_pvalue", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_pvalue
@@ -346,6 +398,17 @@ setMethod("ps_pvalue", "PSMatrix", function(x, withDimnames = TRUE) {
   return(out)
 })
 
+#' Get The Sequences of Hits
+#' 
+#' Retrieves the oligonucleotide sequences of hits.
+#' 
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the output, 
+#'    if they exist in the object.
+#'    Default set to `TRUE`.
+#'    
+#' @return A character containing the sequences of hits of a `PSMatrix` object.
+#'
 #' @export
 setMethod("ps_hits_oligo", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_hits_oligo
@@ -364,6 +427,17 @@ setMethod(".ps_seq_names", "PSMatrix", function(x, out) {
   return(out)
 })
 
+#' Get Background Standard Deviation
+#' 
+#' Retrieves the background standard deviation stored in a `PSMatrix` object.
+#' 
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the output, 
+#'    if they exist in the object.
+#'    Default set to `TRUE`.
+#'    
+#' @return A numeric value representing the `PSMatrix` background standard deviation.
+#'
 #' @export
 setMethod("ps_bg_std_dev", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_bg_std_dev
@@ -371,14 +445,36 @@ setMethod("ps_bg_std_dev", "PSMatrix", function(x, withDimnames = TRUE) {
   return(out)
 })
 
-#' @export
+#' Get Background Size
 #' 
+#' Retrieves the background dimension stored in a `PSMatrix` object.
+#' 
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the output, 
+#'    if they exist in the object.
+#'    Default set to `TRUE`.
+#'    
+#' @return A numeric value representing the `PSMatrix` background size.
+#'
+#' @export
 setMethod("ps_bg_size", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_bg_size
   
   return(out)
 })
 
+#' Get Foreground Size
+#' 
+#' Retrieves the foreground dimension stored in a `PSMatrix` object.
+#' 
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the output, 
+#'    if they exist in the object.
+#'    Default set to `TRUE`.
+#'    
+#' @return A numeric value representing the `PSMatrix` foreground size.
+#'
+#' @export
 setMethod("ps_fg_size", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_fg_size
   
