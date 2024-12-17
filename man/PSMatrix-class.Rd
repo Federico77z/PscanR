@@ -30,7 +30,7 @@ P-value, and more.
 
 \item{\code{ps_hits_scroe}}{Numeric. Score information of hits.}
 
-\item{\code{ps_hits_oligo}}{Character. Oligonucleotide sequence of hits.}
+\item{\code{ps_hits_oligo}}{Character or DNAStringSet. Oligonucleotide sequence of hits.}
 
 \item{\code{ps_zscore}}{Numeric. The Z-score value.}
 
@@ -40,6 +40,6 @@ P-value, and more.
 
 \item{\code{.PS_PSEUDOCOUNT}}{Numeric. The pseudocount value used in calculations.}
 
-\item{\code{.PS_ALPHABET}}{Integer. DNA alphabet (e. g. 'A', 'G', 'T', 'C')}
+\item{\code{.PS_ALPHABET}}{Character. DNA alphabet (e. g. 'A', 'G', 'T', 'C')}
 }}
 

@@ -94,7 +94,7 @@ prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng)
 #) 
 
 # Launch the PSCAN algorithm 
-results <- pscan(prom_seq, J2020_PSBG, BPPARAM = MulticoreParam(1)) 
+results <- pscan(prom_seq, J2020_PSBG, BPPARAM = BiocParallel::MulticoreParam(1)) 
 # Use SnowParam() insted of MulticoreParam() on windows
 
 # Generate the result table 
