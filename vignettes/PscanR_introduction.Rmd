@@ -55,10 +55,9 @@ target <- read.csv(file_path, header = FALSE)
 #txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", 
 #                                    tablename="ncbiRefSeqCurated")
 
-#seqlevels(txdb) <- seqlevels(txdb)[1:24] 
-
-txdb_path <- system.file("extdata", "txdb.rds", package = "PscanR")
-txdb <- readRDS(txdb_path)
+txdb_path <- system.file("extdata", "txdb.db", package = "PscanR")
+txdb <- AnnotationDbi::loadDb(txdb_path)
+seqlevels(txdb) <- seqlevels(txdb)[1:24]
 
 prom_rng <- GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE)
 prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
@@ -70,7 +69,7 @@ prom_seq <- Biostrings::getSeq(
   target_prom_rng) 
 
 # Build the background
-J2020_PSBG <- ps_build_bg_from_file(BG_path, J2020)
+J2020_PSBG <- PscanR::ps_build_bg_from_file(BG_path, J2020)
 
 # Run PscanR
 results <- PscanR::pscan(prom_seq, J2020_PSBG, 
@@ -89,6 +88,3 @@ stronger enrichment.
 
 ***P-Value***: Provides the statistical significance of the results. Smaller values
 indicates more significant results. 
-```{r session-info, echo=FALSE}
-sessioninfo::session_info()
-```
