@@ -51,6 +51,7 @@ J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
 load(J2020_path)
 
 # Generate the background-scored motif matrices
-bg_matrices <- ps_build_bg(prom_seq, J2020, BPPARAM = BiocParallel::MulticoreParam(1))
+bg_matrices <- ps_build_bg(prom_seq, J2020, 
+                           BPPARAM = BiocParallel::MulticoreParam(1))
 bg_matrices
 }

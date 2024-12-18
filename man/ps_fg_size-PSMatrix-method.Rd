@@ -9,13 +9,19 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the output, 
-if they exist in the object.
+\item{withDimnames}{Logical, whether to include dimension names in the 
+output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric value representing the `PSMatrix` foreground size.
+An integer value representing the `PSMatrix` foreground size.
 }
 \description{
 Retrieves the foreground dimension stored in a `PSMatrix` object.
+}
+\examples{
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_fg_size(pfm1)
+
 }

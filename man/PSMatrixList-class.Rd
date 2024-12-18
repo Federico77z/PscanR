@@ -6,8 +6,8 @@
 \alias{.PSMatrixList}
 \title{An S4 class to represent a `PSMatrixList` object}
 \description{
-The `PSMatrixList` class extend the `PFMatrixList` class and represent a
-collection of `PSMatrix` object. It allow to aggregate and iterate on 
+The `PSMatrixList` class extend the `PFMatrixList` class and represents a
+collection of `PSMatrix` object. It allows to aggregate and iterate on 
 multiple `PSMatrix` as a cohesive group.
 }
 \details{

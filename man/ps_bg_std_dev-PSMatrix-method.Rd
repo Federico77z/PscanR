@@ -9,13 +9,20 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the output, 
-if they exist in the object.
+\item{withDimnames}{Logical, whether to include dimension names in the 
+output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric value representing the `PSMatrix` background standard deviation.
+A numeric value representing the `PSMatrix` background standard 
+   deviation.
 }
 \description{
 Retrieves the background standard deviation stored in a `PSMatrix` object.
+}
+\examples{
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_bg_std_dev(pfm1)
+
 }

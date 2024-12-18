@@ -40,11 +40,13 @@ prom_seq <- prom_seq[1:10]
 J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
 load(J2020_path)
 
-bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", package = "PscanR")
+bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+                       package = "PscanR")
 J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
 
 # Execute the PScan algorithm and view the result table
-results <- pscan(prom_seq, J2020_PSBG, BPPARAM = BiocParallel::MulticoreParam(1))
+results <- pscan(prom_seq, J2020_PSBG, 
+                 BPPARAM = BiocParallel::MulticoreParam(1))
 # Use `SnowParam` on windows 
 table <- ps_results_table(results)
 
