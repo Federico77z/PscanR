@@ -455,7 +455,7 @@ ps_score_position_BubbleChart <- function(pfm)
     scale_size_continuous(breaks = sort(unique(data_sum$Count)), 
                           guide = guide_legend(title = "Occurrences")) +
     labs(x = "PS Hits Position", y = "PS Hits Score", 
-         title = paste(name(pfm),"Bubble Chart of Score vs Position Hits")) +
+         title = paste(pfm@name,"Bubble Chart of Score vs Position Hits")) +
     theme_minimal()
   
 }
