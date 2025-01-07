@@ -2,12 +2,12 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{PSMatrixList}
 \alias{PSMatrixList}
-\title{Create a `PFMatrixList` object}
+\title{Create a `PSMatrixList` object}
 \usage{
 PSMatrixList(..., use.names = TRUE)
 }
 \arguments{
-\item{...}{Objects of class `PSMatrix` to include in teh list.}
+\item{...}{Objects of class `PSMatrix` to include in the list.}
 
 \item{use.names}{Logical. Assert whether to use names from the input objects.
 Default = `TRUE`}
@@ -18,4 +18,26 @@ An object of class `PSMatrixList`.
 \description{
 This function creates a `PSMatrixList` object, which is a container for 
 managing multiple `PSMatrix` object.
+}
+\examples{
+# Load JASPAR motif matrices for vertebrates
+J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+load(J2020_path)
+
+PSM1 <- PSMatrix(
+  pfm = J2020[[1]],
+  ps_bg_avg = 0.25,        
+  ps_fg_avg = 0.5,         
+  ps_bg_std_dev = 0.05,    
+  ps_bg_size = 250L        
+  )
+PSM2 <- PSMatrix(
+  pfm = J2020[[2]],
+  ps_bg_avg = 0.25,        
+  ps_fg_avg = 0.5,         
+  ps_bg_std_dev = 0.05,    
+  ps_bg_size = 250L        
+  )
+result <- PSMatrixList(PSM1, PSM2)
+result
 }

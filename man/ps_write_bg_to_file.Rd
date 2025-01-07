@@ -29,12 +29,29 @@ using `ps_get_bg_table()`, then writes the result to a specified file.
 A header is added to the file (`[SHORT TFBS MATRIX`]).
 }
 \examples{
-opts <- list(collection = "CORE", tax_group = "vertebrates")
-J2020 <- getMatrixSet(JASPAR2020, opts)
+J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+load(J2020_path)
 # File path to save the result
 file_path <- "J2020_hg38_bg_stats.txt"
 
-ps_write_bg_to_file(J2020, file_path)
+PSM1 <- PSMatrix(
+  pfm = J2020[[1]],
+  ps_bg_avg = 0.25,        
+  ps_fg_avg = 0.5,         
+  ps_bg_std_dev = 0.05,    
+  ps_bg_size = 250L        
+  )
+PSM2 <- PSMatrix(
+  pfm = J2020[[2]],
+  ps_bg_avg = 0.25,        
+  ps_fg_avg = 0.5,         
+  ps_bg_std_dev = 0.05,    
+  ps_bg_size = 250L        
+  )
+  
+PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
+
+ps_write_bg_to_file(PSMatrixList_J2020, file_path)
 
 }
 \seealso{

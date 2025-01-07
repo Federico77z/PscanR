@@ -4,7 +4,7 @@
 \name{PscanR}
 \alias{PscanR-package}
 \alias{PscanR}
-\title{PscanR: An R Implementation for the `PScan` Algorithm}
+\title{PscanR: An R Implementation for the `Pscan` Algorithm}
 \description{
 `PscanR` provides an R implementation of the `Pscan` algorithm for 
 transcription factor binding site motif analysis. 
@@ -30,6 +30,14 @@ Zambelli F, Pesole G, Pavesi G. Pscan: finding over-represented transcription
 factor binding site motifs in sequences from co-regulated or co-expressed 
 genes. Nucleic Acids Res. 2009 Jul;37(Web Server issue):W247-52. 
 doi: 10.1093/nar/gkp464. Epub 2009 May 31. PMID: 19487240; PMCID: PMC2703934.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/Federico77z/Pscan-R}
+  \item Report bugs at \url{https://github.com/Federico77z/Pscan-R/issues}
+}
+
 }
 \author{
 Federico Zambelli [aut], Giulio Pavesi [cre]

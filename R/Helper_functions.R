@@ -49,7 +49,7 @@
 #'
 #' @keywords internal
 #' 
-#' 
+#' @importFrom TFBSTools PFMatrixList
 #' 
 .ps_checks <- function(x, pfms, type)
 {
@@ -65,12 +65,10 @@
     
     nabg <- is.na(nabg)
     nabg2 <- is.na(nabg2)
-    
     nabg <- nabg | nabg2
     
     if(any(nabg))
-      warning(paste("\nNo Pscan background for", 
-                    name(pfms)[nabg], 
+      warning(paste("\nNo Pscan background for", name(pfms)[nabg], 
                     ID(pfms)[nabg]))
   }
   
@@ -98,8 +96,7 @@
       stop("x does not contain required columns",
            "\"BG_SIZE\", \"BG_MEAN\", \"BG_STDEV\"")
     
-    if(!all(is.numeric(x$BG_SIZE), 
-            is.numeric(x$BG_MEAN), 
+    if(!all(is.numeric(x$BG_SIZE), is.numeric(x$BG_MEAN), 
             is.numeric(x$BG_STDEV)))
       stop("Required columns of x must be of numeric type")
   }
@@ -116,7 +113,7 @@
 #' @return NULL, it gives errors if the checks fail.
 #'
 #' @keywords internal
-#' 
+#' @importFrom utils globalVariables
 .ps_checks2 <- function(pfms, ...)
 {
   #.ps_required_packages()
@@ -124,9 +121,9 @@
   if(!is(pfms, "PSMatrixList"))
     stop("pfms is not an object of PSMatrixList class")  
   
- if(is.character(file))
-   if(file.access(x, mode = 2) != 0)
-     stop(paste("Cannot write to file path:", x))
+  if(is.character(file))
+    if(file.access(x, mode = 2) != 0)
+      stop(paste("Cannot write to file path:", x))
    
 }
 

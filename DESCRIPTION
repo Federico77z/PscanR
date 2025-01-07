@@ -1,22 +1,32 @@
 Package: PscanR
 Type: Package
-Title: Pscan-R regulatory sequences Motif Enrichment Analysis 
+Title: PscanR regulatory sequences Motif Enrichment Analysis 
 Version: 0.99.0
 Encoding: UTF-8
-Depends: R (>= 4.0), BSDA (>= 1.2), Biostrings (>= 2.64), BiocParallel (>= 1.30)
-Suggests: JASPAR2016 (>= 1.24), JASPAR2018 (>= 1.1.1), JASPAR2020 (>= 0.99), 
-   JASPAR2022 (>= 0.99), GenomicRanges (>= 1.48), 
-   BSgenome (>= 1.64), BSgenome.Hsapiens.UCSC.hg38 (>= 1.4), 
-   BSgenome.Mmusculus.UCSC.mm10 (>= 1.4), BiocGenerics, txdbmaker, RMariaDB
-Imports: TFBSTools (>= 1.34), GenomicFeatures (>= 1.48)
-biocViews: SequenceMatching, MotifDiscovery, Visualization, Transcription
+Depends: R (>= 4.4.0), Biostrings (>= 2.64)
+Suggests: 
+    JASPAR2016 (>= 1.24),
+    JASPAR2018 (>= 1.1.1),
+    JASPAR2022 (>= 0.99),
+    GenomicRanges (>= 1.48),
+    BSgenome (>= 1.64),
+    BSgenome.Mmusculus.UCSC.mm10 (>= 1.4),
+    BiocGenerics (>= 0.40.0),
+    RMariaDB,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Imports: TFBSTools (>= 1.34), GenomicFeatures (>= 1.48), BSDA (>= 1.2),
+   BiocParallel (>= 1.30), methods, txdbmaker (>= 1.0.1), BSgenome.Hsapiens.UCSC.hg38 (>= 1.4),
+   pheatmap, JASPAR2020 (>= 0.99), dplyr, ggplot2
+biocViews: SequenceMatching, MotifDiscovery, Visualization, Transcription, Sequencing,
+   Alignment, DataImport
 Date: 2022-12-05
 Authors@R: c(
     person("Federico", "Zambelli", email = "federico.zambelli@unimi.it", role = "cre",
     comment = c(ORCID = "0000-0003-3487-4331")),
     person("Giulio", "Pavesi", email = "giulio.pavesi@unimi.it", role = "aut",
     comment = c(ORCID = "0000-0001-5705-6249")))
-Maintainer: Federico Zambelli <federico.zambelli@unimi.it>
 Description: R implementation of the Pscan algorithm for sequence motif enrichment
   analysis by Zambelli et al. (2009) <doi:10.1093/nar/gkp464>. Pscan is a 
   software tool that scans a set of sequences (e.g. promoters) from co-regulated 
@@ -25,5 +35,9 @@ Description: R implementation of the Pscan algorithm for sequence motif enrichme
   under-represented, providing thus hints on which transcription factors could 
   be common regulators of the genes studied, together with the location of their 
   candidate binding sites in the sequences.
-License: GPL-3
+License: GPL-3 + file LICENSE
+VignetteBuilder: knitr
+URL: https://github.com/Federico77z/Pscan-R
+BugReports: https://github.com/Federico77z/Pscan-R/issues
 RoxygenNote: 7.3.2
+Config/testthat/edition: 3

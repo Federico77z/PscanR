@@ -27,26 +27,23 @@
 #' @export
 #' 
 #' @examples
-#' # Get the regulatory sequences 
-#' target <- read.csv("../PscanR/example_file_nfkb100.txt", header = FALSE) 
-#' txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
-#' seqlevels(txdb) <- seqlevels(txdb)[1:24] # Use only canonical chromosomes
-#' prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
-#' prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
-#' target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
-#' prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
 #' 
-#' opts <- list(collection = "CORE", tax_group = "vertebrates")
-#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+#' prom_seq <- readRDS(file_path)
+#' prom_seq <- prom_seq[1:10]
 #' 
-#' J2020_PSBG <- ps_build_bg_from_file(
-#'   "../BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", 
-#'   J2020
-#' )
+#' # Load JASPAR motif matrices for vertebrates
+#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+#' load(J2020_path)
+#' 
+#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+#'                        package = "PscanR")
+#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
 #' 
 #' # Execute the PScan algorithm
-#' results <- pscan(prom_seq, J2020_PSBG)
-#' 
+#' results <- pscan(prom_seq, J2020_PSBG, 
+#'                  BPPARAM = BiocParallel::MulticoreParam(1))
+#' results
 #' 
 pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
@@ -91,32 +88,28 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #'
 #' @examples
 #' 
-#' # Get the regulatory sequences 
-#' target <- read.csv("../PscanR/example_file_nfkb100.txt", header = FALSE) 
-#' txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
-#' seqlevels(txdb) <- seqlevels(txdb)[1:24] # Use only canonical chromosomes
-#' prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
-#' prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
-#' target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
-#' prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
+#' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+#' prom_seq <- readRDS(file_path)
+#' prom_seq <- prom_seq[1:10]
 #' 
-#' opts <- list(collection = "CORE", tax_group = "vertebrates")
-#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' # Load JASPAR motif matrices for vertebrates
+#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+#' load(J2020_path)
 #' 
-#' J2020_PSBG <- ps_build_bg_from_file(
-#'   "../BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", 
-#'   J2020
-#' )
+#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+#'                        package = "PscanR")
+#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
 #' 
 #' # Execute the PScan algorithm and view the result table
-#' results <- pscan(prom_seq, J2020_PSBG, BPPARAM = MultiCoreParam(24))
+#' results <- pscan(prom_seq, J2020_PSBG, 
+#'                  BPPARAM = BiocParallel::MulticoreParam(1))
 #' # Use `SnowParam` on windows 
-#' table <- ps_result_table(result)
-#' View(table)
+#' table <- ps_results_table(results)
 #' 
 #' @seealso \code{\link{ps_generics}}
 #' 
 #' @export
+#' @importFrom stats p.adjust
 ps_results_table <- function(pfms)
 {
   
@@ -151,28 +144,23 @@ ps_results_table <- function(pfms)
 
 #'
 #' @examples
-#' # Get the regulatory sequences 
-#' target <- read.csv("../PscanR/example_file_nfkb100.txt", header = FALSE) 
-#' txdb <- makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
-#' seqlevels(txdb) <- seqlevels(txdb)[1:24] # Use only canonical chromosomes
-#' prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
-#' prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
-#' target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
-#' prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
+#' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+#' prom_seq <- readRDS(file_path)
+#' prom_seq <- prom_seq[1:10]
 #' 
-#' opts <- list(collection = "CORE", tax_group = "vertebrates")
-#' J2020 <- getMatrixSet(JASPAR2020, opts)
+#' # Load JASPAR motif matrices for vertebrates
+#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+#' load(J2020_path)
 #' 
-#' J2020_PSBG <- ps_build_bg_from_file(
-#'   "../BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", 
-#'   J2020
-#' )
+#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+#'                        package = "PscanR")
+#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
 #' 
-#' # Execute the PScan algorithm and view the result table
-#' results <- pscan(prom_seq, J2020_PSBG, BPPARAM = MultiCoreParam(24))
+#' # Execute the Pscan algorithm and view the result table
+#' results <- pscan(prom_seq, J2020_PSBG, 
+#'                  BPPARAM = BiocParallel::MulticoreParam(1))
 #' # Use `SnowParam` on windows
-#' z_score <- ps_z_table(result)
-#' View(z_score)
+#' z_score <- ps_z_table(results)
 #' 
 #' @export
 ps_z_table <- function(pfms)
@@ -187,9 +175,64 @@ ps_z_table <- function(pfms)
 
 }
 
+#' Pscan Score Correlation Heatmap
+#' 
+#' This function creates a heatmap visualizing the Z-score correlations of 
+#' transcription factors (TFs) based on a specified false discovery 
+#' rate threshold. 
+#' 
+#' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
+#'    metadata (foreground and background statistics). Typically is the output 
+#'    of `pscan()` function. 
+#' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
+#'    to be included in the analysis. The default is set to `0.01`.
+#' @param ... Additional user defined arguments that can be passed to 
+#'    the function (e.g., the color palette) to change the default settings. 
+#'   
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Extracts the result table and the z-score table from the pscan 
+#'      algorithm result.
+#'   \item Filters the result table based on the given FDR threshold.
+#'   \item Uses the filtered result table to create the z-table for the 
+#'      selected TFs.
+#'   \item Generates the heatmap using the `pheatmap` function, 
+#'      with costumizable settings.}
+#' 
+#'  Default settings, that can be changed by the users, are: 
+#'  \itemize{
+#'    \item `cluster_rows` and `cluster_cols` set to `TRUE`.
+#'    \item `color` uses a blue-white-red palette.
+#'    \item The main `Pscan Score Correlation Heatmap`.
+#'    \item TF names are showed as column labels.
+#'    }
+#'
+#' @return A heatmap plot showing Z-score correlations for selected 
+#'    transcription factors. 
+#' 
+#' @examples
+#' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+#' prom_seq <- readRDS(file_path)
+#' prom_seq <- prom_seq[1:50]
+#' 
+#' # Load JASPAR motif matrices for vertebrates
+#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+#' load(J2020_path)
+#' 
+#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+#'                        package = "PscanR")
+#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' 
+#' # Execute the Pscan algorithm and view the result table
+#' results <- pscan(prom_seq, J2020_PSBG, 
+#'                  BPPARAM = BiocParallel::MulticoreParam(1))
+#' # Use `SnowParam` on windows
+#' ps_score_correlation_map(results, FDR = 0.05)
+#' 
 #' @export
 #' @import pheatmap 
-
+#' @importFrom utils modifyList
 ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 {
   res_table <- ps_results_table(pfms)
@@ -199,7 +242,8 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
   defaults <- list(cluster_rows = TRUE, 
   cluster_cols = TRUE,
   color = colorRampPalette(c("blue", "white", "red"))(50),
-  main = "Pscan Score Correlation Heatmap", scale = "row", show_rownames = FALSE, 
+  main = "Pscan Score Correlation Heatmap", scale = "row", 
+  show_rownames = FALSE, 
   labels_col = res_table$NAME[topn], 
   clustering_distance_rows = "correlation",
   clustering_distance_cols = "correlation",
@@ -218,8 +262,63 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
   invisible(z_table_reduced)
 }
 
+#' Pscan Hits Position Heatmap
+#' 
+#' This function creates a heatmap visualizing the positional distribution
+#' of hits based on a specified false discovery rate threshold. 
+#' 
+#' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
+#'    metadata (foreground and background statistics). Typically is the output 
+#'    of `pscan()` function. 
+#' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
+#'    to be included in the analysis. The default is set to `0.01`.
+#' @param shift Numeric. A value to shift the positions of hits. 
+#'    Default is set to `0`.
+#' @param ... Additional user defined arguments that can be passed to 
+#'    the function (e.g., the color palette) to change the default settings.
+#'   
+#' @details
+#' The function performs the following steps: 
+#' \itemize{
+#'   \item Extracts the result table from the pscan algorithm result.
+#'   \item Filters the result table based on the given FDR threshold.
+#'   \item Creates a positional hits matrix.
+#'   \item Generates the heatmap using the `pheatmap` function, 
+#'      with costumizable settings.}
+#' 
+#' Default settings, that can be changed by the users, are:
+#' \itemize{
+#'   \item `cluster_rows` and `cluster_cols` set to `TRUE`.
+#'   \item `color` uses a white-yellow-red palette.
+#'   \item The main `Pscan Hits Position Heatmap`.
+#'   }
+#' 
+#' @return A heatmap plot showing positional hits distribution for selected 
+#'    transcription factors.
+#' 
+#' @examples
+#' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+#' prom_seq <- readRDS(file_path)
+#' prom_seq <- prom_seq[1:50]
+#' 
+#' # Load JASPAR motif matrices for vertebrates
+#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+#' load(J2020_path)
+#' 
+#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+#'                        package = "PscanR")
+#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' 
+#' # Execute the Pscan algorithm and view the result table
+#' results <- pscan(prom_seq, J2020_PSBG, 
+#'                  BPPARAM = BiocParallel::MulticoreParam(1))
+#' # Use `SnowParam` on windows
+#' ps_hitpos_map(results)
+#' 
+#' 
 #' @export
 #' @import pheatmap 
+#' @importFrom grDevices colorRampPalette
 ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 {
   res_table <- ps_results_table(pfms)
@@ -240,10 +339,12 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
   
   final_args <- modifyList(defaults, user_args)
   
-  pos_mat <- matrix(data = NA, nrow = ps_fg_size(results[[1]]), ncol = length(topn))
+  pos_mat <- matrix(data = NA, nrow = ps_fg_size(results[[1]]), 
+                    ncol = length(topn))
   
   for(v in topn)
-    pos_mat[,v] <- ps_hits_pos(results[[row.names(res_table)[v]]], pos_shift = shift)
+    pos_mat[,v] <- ps_hits_pos(results[[row.names(res_table)[v]]], 
+                               pos_shift = shift)
   
   colnames(pos_mat) <- res_table$NAME[topn]
   rownames(pos_mat) <- ps_seq_names(pfms[[1]])
@@ -253,7 +354,53 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
   invisible(pos_mat)
 }
 
+#' Pscan Density Plot of Hits along Promoters 
+#' 
+#' This function creates a density plot representing the distribution of hits 
+#' along the promoter region based on their position and score. 
+#' 
+#' @param pfm A Position Frequency Matrix, result of the Pscan algorithm. 
+#'
+#' @param shift Numeric value specifying the positional shift applied to the hit 
+#'    positions. Default is `0`.
+#' @param st Score threshold used to filter hits. Can be a numeric value to set 
+#'    the threshold directly, or a character:
+#'    \itemize{
+#'      \item `all`: the threshold is set to `0` (so, no threshold. All the hits
+#'      are evaluated).
+#'      \item `loose`: uses the background average as threshold.
+#'      \item `strict`: uses the background average plus the background standard 
+#'      deviation as threshold.}
+#'      
+#' @return A density plot showing the distribution of hits along the promoter 
+#'    region.
+#'      
+#' @examples
+#' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+#' prom_seq <- readRDS(file_path)
+#' prom_seq <- prom_seq[1:50]
+#' 
+#' # Load JASPAR motif matrices for vertebrates
+#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+#' load(J2020_path)
+#' 
+#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+#'                        package = "PscanR")
+#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' 
+#' # Execute the Pscan algorithm and view the result table
+#' results <- pscan(prom_seq, J2020_PSBG, 
+#'                  BPPARAM = BiocParallel::MulticoreParam(1))
+#' # Use `SnowParam` on windows
+#' pfm1 <- results[[1]]
+#' ps_density_plot(pfm1)
+#' 
 #' @export
+#' @importFrom grDevices rgb
+#' @importFrom graphics abline
+#' @importFrom graphics polygon
+#' @importFrom graphics text
+#' @importFrom stats density
 ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 {
   # st = score threshold. It can be passed as a numeric value
@@ -290,7 +437,29 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
   
   peak <- density_hits$x[which.max(density_hits$y)]
   abline(v = peak, col = "gray", lty = 2, lwd = 2)
-  text(peak, max(density_hits$y), labels = paste("\tMode:", round(peak)), pos = 4)
+  text(peak, max(density_hits$y), 
+       labels = paste("\tMode:", round(peak)), pos = 4)
+  
+}
+
+#' @import dplyr 
+#' @import ggplot2
+ps_score_position_BubbleChart <- function(pfm)
+{
+  data <- ps_hits_table(pfm)
+  
+  data_sum <- data %>% 
+    group_by(!!sym(colnames(data)[1]), !!sym(colnames(data)[2])) %>%
+    summarise(Count = n(), .groups = "drop")
+  
+  ggplot(data_sum, aes(x = !!sym(colnames(data_sum)[2]), 
+                       y = !!sym(colnames(data_sum)[1]), size = Count)) +
+    geom_point(alpha=0.5, color = "blue") +
+    scale_size_continuous(breaks = sort(unique(data_sum$Count)), 
+                          guide = guide_legend(title = "Occurrences")) +
+    labs(x = "PS Hits Position", y = "PS Hits Score", 
+         title = paste(pfm@name,"Bubble Chart of Score vs Position Hits")) +
+    theme_minimal()
   
   invisible(ps_hits_pos(pfm, pos_shift = shift)[g_scores])
   

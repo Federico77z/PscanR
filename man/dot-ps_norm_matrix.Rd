@@ -2,7 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{.ps_norm_matrix}
 \alias{.ps_norm_matrix}
-\title{Normalize a `PSMatrix` Object}
+\title{Normalize an Object}
 \usage{
 .ps_norm_matrix(x, ...)
 }
@@ -11,6 +11,16 @@
 
 \item{...}{Additional parameters}
 }
+\value{
+A normalized object. The specific class depends on the implementation
+   of the method.
+}
 \description{
-Normalize a `PSMatrix` Object
+Normalize an Object
+}
+\examples{
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+.ps_norm_matrix(pfm1)
+
 }

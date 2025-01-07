@@ -43,15 +43,16 @@ This function:
 }
 \examples{
 # Load a background information file
-file_path <- "../BG_SCRIPTS/J2020_hg38_500u_0d:UCSC.psbg.txt"
+file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+                         package = "PscanR")
 
 # Load JASPAR motif matrices for vertebrates
-opts <- list(collection = "CORE", tax_group = "vertebrates")
-J2020 <- getMatrixSet(JASPAR2020, opts)
+J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+load(J2020_path)
 
 # Generate the background-scored motif matrices from file
 bg_matrices <- ps_build_bg_from_file(file_path, J2020)
-
+bg_matrices
 }
 \seealso{
 \code{\link{ps_build_bg_from_table}}

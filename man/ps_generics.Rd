@@ -17,6 +17,8 @@
 \alias{ps_hits_oligo}
 \alias{ps_hits_table}
 \alias{ps_seq_names}
+\alias{.PS_PSEUDOCOUNT}
+\alias{.PS_ALPHABET}
 \alias{ps_scan}
 \title{Retrieve or Manipulate Properties of PSMatrix Class}
 \usage{
@@ -50,6 +52,10 @@ ps_hits_table(x, ...)
 
 ps_seq_names(x, ...)
 
+.PS_PSEUDOCOUNT(x, ...)
+
+.PS_ALPHABET(x, ...)
+
 ps_scan(x, ...)
 }
 \arguments{
@@ -80,7 +86,7 @@ For `ps_hits_size`: an integer value representing the hits size.
 For `ps_hits_score`: a numeric vector representing the score for 
    each hit.
 
-For `ps_hits_z`: a numeric vector.
+For `ps_hits_z`: a numeric vector containing the z scores.
 
 For `ps_hits_strand`: a character vector representing the strand 
    of each hit.
@@ -95,6 +101,10 @@ For `ps_hits_table`: a `data.frame` of hits.
 
 For `ps_seq_names`: a character vector of sequence names.
 
+For `.PS_PSEUDOCOUNT`: a numeric value representing the pseudocount.
+
+For `.PS_ALPHABET`: integer values.
+
 A `data.frame` of hits.
 }
 \description{
@@ -103,36 +113,106 @@ various properties of `PSMatrix` objects.
 }
 \section{Functions}{
 \itemize{
-\item \code{ps_zscore()}: Retrieve the Z-score of a `PSMatrix` Object
+\item \code{ps_zscore()}: Retrieve the Z-score from an object
 
-\item \code{ps_pvalue()}: Retrieve the P-Value of a `PSMatrix` Object
+\item \code{ps_pvalue()}: Retrieve the P-Value from an object
 
-\item \code{ps_bg_avg()}: Retrieve the average background value
+\item \code{ps_bg_avg()}: Retrieve the average background value from an object
 
-\item \code{ps_fg_avg()}: Retrieve the average foreground value
+\item \code{ps_fg_avg()}: Retrieve the average foreground value from an object
 
-\item \code{ps_bg_std_dev()}: Retrieve the background standard deviation
+\item \code{ps_bg_std_dev()}: Retrieve the background standard deviation from an object
 
-\item \code{ps_bg_size()}: Retrieve the background size
+\item \code{ps_bg_size()}: Retrieve the background size from an object
 
-\item \code{ps_fg_size()}: Retrieve the foreground size
+\item \code{ps_fg_size()}: Retrieve the foreground size from an object
 
-\item \code{ps_hits_size()}: Retrieve the hits size
+\item \code{ps_hits_size()}: Retrieve the hits size from an object
 
-\item \code{ps_hits_score()}: Retrieve the hits score
+\item \code{ps_hits_score()}: Retrieve the hits score from an object
 
-\item \code{ps_hits_z()}: 
+\item \code{ps_hits_z()}: Retrieve the hits z scores from an object.
 
-\item \code{ps_hits_strand()}: Retrieve the strand of hits
+\item \code{ps_hits_strand()}: Retrieve the strand of hits from an object
 
-\item \code{ps_hits_pos()}: Retrieve the position of hits
+\item \code{ps_hits_pos()}: Retrieve the position of hits from an object
 
-\item \code{ps_hits_oligo()}: Retrieve oligonucleotide sequence of hits
+\item \code{ps_hits_oligo()}: Retrieve oligonucleotide sequence of hits from an object
 
-\item \code{ps_hits_table()}: Retrieve the hits table
+\item \code{ps_hits_table()}: Retrieve the hits table from an object
 
-\item \code{ps_seq_names()}: Retrieve the sequence name from the `PSMatrix` Object
+\item \code{ps_seq_names()}: Retrieve the sequence name from an object
 
-\item \code{ps_scan()}: Perform a scan operation on a `PSMatrix` Object
+\item \code{.PS_PSEUDOCOUNT()}: Retrieve the pseudocount value
+
+\item \code{.PS_ALPHABET()}: Retrieve the numbers representing the DNA alphabet
+
+\item \code{ps_scan()}: Perform a scan operation on an Object
 
 }}
+\examples{
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_zscore(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_pvalue(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_bg_avg(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_fg_avg(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_bg_std_dev(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_bg_size(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_fg_size(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_hits_size(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_hits_score(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_hits_z(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_hits_strand(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_hits_pos(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_hits_table(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_seq_names(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+.PS_PSEUDOCOUNT(pfm1)
+
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+.PS_ALPHABET(pfm1)
+
+}

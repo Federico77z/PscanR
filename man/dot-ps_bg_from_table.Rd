@@ -2,7 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{.ps_bg_from_table}
 \alias{.ps_bg_from_table}
-\title{Retrieve the background values from a table}
+\title{Retrieve values from a table}
 \usage{
 .ps_bg_from_table(x, ...)
 }
@@ -11,6 +11,10 @@
 
 \item{...}{Additional parameters}
 }
+\value{
+A `data.frame` of values depending on the specific implementation 
+   method.
+}
 \description{
-Retrieve the background values from a table
+Retrieve values from a table
 }

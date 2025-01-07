@@ -31,7 +31,7 @@ default = `NA`.}
 \item{.PS_PSEUDOCOUNT}{Numeric. The pseudocount to add to avoid division
 by zero. Default = `0.01`}
 
-\item{...}{Addictional arguments to pass to downstream function.}
+\item{...}{Additional arguments to pass to downstream function.}
 }
 \value{
 An object of `PSMatrix` class.
@@ -39,4 +39,19 @@ An object of `PSMatrix` class.
 \description{
 This function creates an instance of the `PSMatrix` class by initializing its
 slots with default values.
+}
+\examples{
+
+# Load JASPAR motif matrices for vertebrates
+J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
+load(J2020_path)
+
+result <- PSMatrix(
+  pfm = J2020[[1]],
+  ps_bg_avg = 0.25,        
+  ps_fg_avg = 0.5,         
+  ps_bg_std_dev = 0.05,    
+  ps_bg_size = 250L        
+  )
+print(result)
 }
