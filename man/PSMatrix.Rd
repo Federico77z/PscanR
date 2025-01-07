@@ -31,7 +31,7 @@ default = `NA`.}
 \item{.PS_PSEUDOCOUNT}{Numeric. The pseudocount to add to avoid division
 by zero. Default = `0.01`}
 
-\item{...}{Addictional arguments to pass to downstream function.}
+\item{...}{Additional arguments to pass to downstream function.}
 }
 \value{
 An object of `PSMatrix` class.

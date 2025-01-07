@@ -9,8 +9,8 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the output,
-if they exist in the object.
+\item{withDimnames}{Logical, whether to include dimension names in the 
+output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
@@ -18,4 +18,10 @@ A numeric value representing the background average score.
 }
 \description{
 Retrieves the background average score stored in a `PSMatrix` object.
+}
+\examples{
+pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+load(pfm1_path)
+ps_bg_avg(pfm1) 
+
 }

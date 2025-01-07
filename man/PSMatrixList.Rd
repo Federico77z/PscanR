@@ -7,7 +7,7 @@
 PSMatrixList(..., use.names = TRUE)
 }
 \arguments{
-\item{...}{Objects of class `PSMatrix` to include in teh list.}
+\item{...}{Objects of class `PSMatrix` to include in the list.}
 
 \item{use.names}{Logical. Assert whether to use names from the input objects.
 Default = `TRUE`}

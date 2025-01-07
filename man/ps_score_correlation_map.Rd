@@ -11,26 +11,31 @@ ps_score_correlation_map(pfms, FDR = 0.01, ...)
 metadata (foreground and background statistics). Typically is the output 
 of `pscan()` function.}
 
-\item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the transcription 
-factors to be included in the analysis. The default is set to `0.01`.}
+\item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
+to be included in the analysis. The default is set to `0.01`.}
 
-\item{...}{Additional user defined arguments that can be passed to the function 
-(e.g., the color palette) to change the default settings.}
+\item{...}{Additional user defined arguments that can be passed to 
+the function (e.g., the color palette) to change the default settings.}
 }
 \value{
-A heatmap plot showing Z-score correlations for selected transcription factors.
+A heatmap plot showing Z-score correlations for selected 
+   transcription factors.
 }
 \description{
-This function creates a heatmap visualizing the Z-score correlations of transcription 
-factors (TFs) based on a specified false discovery rate threshold.
+This function creates a heatmap visualizing the Z-score correlations of 
+transcription factors (TFs) based on a specified false discovery 
+rate threshold.
 }
 \details{
 The function performs the following steps:
 \itemize{
-  \item Extracts the result table and the z-score table from the pscan algorithm result.
+  \item Extracts the result table and the z-score table from the pscan 
+     algorithm result.
   \item Filters the result table based on the given FDR threshold.
-  \item Uses the filtered result table to create the z-table for the selected TFs.
-  \item Generates the heatmap using the `pheatmap` function, with costumizable settings.}
+  \item Uses the filtered result table to create the z-table for the 
+     selected TFs.
+  \item Generates the heatmap using the `pheatmap` function, 
+     with costumizable settings.}
 
  Default settings, that can be changed by the users, are: 
  \itemize{
@@ -49,11 +54,13 @@ prom_seq <- prom_seq[1:50]
 J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
 load(J2020_path)
 
-bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", package = "PscanR")
+bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+                       package = "PscanR")
 J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
 
 # Execute the Pscan algorithm and view the result table
-results <- pscan(prom_seq, J2020_PSBG, BPPARAM = BiocParallel::MulticoreParam(1))
+results <- pscan(prom_seq, J2020_PSBG, 
+                 BPPARAM = BiocParallel::MulticoreParam(1))
 # Use `SnowParam` on windows
 ps_score_correlation_map(results, FDR = 0.05)
 

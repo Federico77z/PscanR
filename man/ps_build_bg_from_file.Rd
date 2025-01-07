@@ -43,7 +43,8 @@ This function:
 }
 \examples{
 # Load a background information file
-file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", package = "PscanR")
+file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+                         package = "PscanR")
 
 # Load JASPAR motif matrices for vertebrates
 J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
