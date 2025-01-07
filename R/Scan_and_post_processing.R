@@ -215,6 +215,7 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
   
   do.call(pheatmap, c(list(z_table_reduced), final_args))
   
+  invisible(z_table_reduced)
 }
 
 #' @export
@@ -248,6 +249,8 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
   rownames(pos_mat) <- ps_seq_names(pfms[[1]])
   
   do.call(pheatmap, c(list(pos_mat), final_args))
+  
+  invisible(pos_mat)
 }
 
 #' @export
@@ -288,5 +291,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
   peak <- density_hits$x[which.max(density_hits$y)]
   abline(v = peak, col = "gray", lty = 2, lwd = 2)
   text(peak, max(density_hits$y), labels = paste("\tMode:", round(peak)), pos = 4)
+  
+  invisible(ps_hits_pos(pfm, pos_shift = shift)[g_scores])
   
 }
