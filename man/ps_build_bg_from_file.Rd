@@ -13,12 +13,12 @@ such as size, mean, and standard deviation for background distributions.
 The file should be in tabular format, where the first column contains 
 the sequence identifiers (row names) and subsequent columns contain the 
 background statistics (e.g., `BG_SIZE`, `BG_MEAN`, `BG_STDEV`).
-This file can be generated with the `ps_build_bg` function.}
+Backgrounds are generated with the `ps_build_bg` function and can be
+written to a file with `ps_write_bg_to_file`.}
 
-\item{pfms}{A list of position frequency matrices representing transcription 
-factor motif, obtained from the JASPAR database. These matrices are 
-used to search motif in regulatory sequences, and will be background-scored
-using the information from the input file.}
+\item{pfms}{A `PFMatrixList` list of position frequency matrices representing 
+transcription factor binding preferences, obtained for example from the JASPAR database. 
+These matrices are used to search motif in the background set of regulatory sequences.}
 }
 \value{
 A `PSMatrixList` object, containing each motif matrix from `pfms`, 
@@ -26,10 +26,10 @@ background-scored using the values provided in `file`.
 See `ps_build_bg_from_table` for more details.
 }
 \description{
-Generates a background probability profile matrix list by reading 
-an input file containing background information for regulatory sequences.
-This function is useful when background information are stored into an 
-external file.
+Import from a file a background score distribution for the input profiles  
+computed on a background set of regulatory sequences.
+This function reads background information stored into a 
+file by `ps_write_bg_to_file`.
 }
 \details{
 This function:
