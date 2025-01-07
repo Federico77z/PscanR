@@ -1323,7 +1323,7 @@ setGeneric("ps_bg_std_dev<-", function(x, ..., value) standardGeneric("ps_bg_std
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
 #' load(pfm1_path)
-#' `ps_bg_size<-`(pfm1, value = 25629)
+#' `ps_bg_size<-`(pfm1, value = 25629L)
 #' 
 #' 
 #' @export
@@ -1401,7 +1401,7 @@ setReplaceMethod("ps_bg_std_dev", "PSMatrix", function(x,value){
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
 #' load(pfm1_path)
-#' `ps_bg_size<-`(pfm1, value = 25629)
+#' `ps_bg_size<-`(pfm1, value = 25629L)
 #' 
 #' @export
 setReplaceMethod("ps_bg_size", "PSMatrix", function(x,value){

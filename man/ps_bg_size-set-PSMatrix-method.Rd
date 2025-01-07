@@ -21,7 +21,7 @@ of class `PSMatrix`.
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
 load(pfm1_path)
-`ps_bg_size<-`(pfm1, value = 25629)
+`ps_bg_size<-`(pfm1, value = 25629L)
 
 }
 \seealso{
