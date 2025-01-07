@@ -15,7 +15,8 @@ Suggests:
     RMariaDB,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    BiocStyle
 Imports: TFBSTools (>= 1.34), GenomicFeatures (>= 1.48), BSDA (>= 1.2),
    BiocParallel (>= 1.30), methods, txdbmaker (>= 1.0.1), BSgenome.Hsapiens.UCSC.hg38 (>= 1.4),
    pheatmap, JASPAR2020 (>= 0.99), dplyr, ggplot2

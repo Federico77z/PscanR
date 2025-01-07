@@ -2,7 +2,7 @@
 title: "Comparing execution time with varying processors"
 author: "Diana Betelli"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: BiocStyle::html_document
 vignette: >
   %\VignetteIndexEntry{Comparing execution time with varying processors}
   %\VignetteEngine{knitr::rmarkdown}
@@ -60,6 +60,9 @@ lines(smooth_N, smooth_pred, col = "blue", lwd = 2)
 
 legend("topright", legend = bquote("Power regression, " ~ R^2 == .(round(r_squared, 3))),
        col = "blue", lwd = 2)
+
+# Display session information
+sessionInfo()
 ```
 
 ***Conclusions***:
