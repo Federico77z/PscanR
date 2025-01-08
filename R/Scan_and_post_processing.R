@@ -42,7 +42,8 @@
 #' 
 #' # Execute the PScan algorithm
 #' results <- pscan(prom_seq, J2020_PSBG, 
-#'                  BPPARAM = BiocParallel::MulticoreParam(1))
+#'                  BPPARAM = BiocParallel::SnowParam(1))
+#' # Use MulticoreParam() for Unix systems (See BiocParallel package). 
 #' results
 #' 
 pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
@@ -102,8 +103,9 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' 
 #' # Execute the PScan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
-#'                  BPPARAM = BiocParallel::MulticoreParam(1))
-#' # Use `SnowParam` on windows 
+#'                  BPPARAM = BiocParallel::SnowParam(1))
+#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
+#' 
 #' table <- ps_results_table(results)
 #' 
 #' @seealso \code{\link{ps_generics}}
@@ -158,8 +160,9 @@ ps_results_table <- function(pfms)
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
-#'                  BPPARAM = BiocParallel::MulticoreParam(1))
-#' # Use `SnowParam` on windows
+#'                  BPPARAM = BiocParallel::SnowParam(1))
+#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
+#' 
 #' z_score <- ps_z_table(results)
 #' 
 #' @export
@@ -226,8 +229,9 @@ ps_z_table <- function(pfms)
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
-#'                  BPPARAM = BiocParallel::MulticoreParam(1))
-#' # Use `SnowParam` on windows
+#'                  BPPARAM = BiocParallel::SnowParam(1))
+#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
+#' 
 #' ps_score_correlation_map(results, FDR = 0.05)
 #' 
 #' @export
@@ -311,8 +315,9 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
-#'                  BPPARAM = BiocParallel::MulticoreParam(1))
-#' # Use `SnowParam` on windows
+#'                  BPPARAM = BiocParallel::SnowParam(1))
+#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
+#' 
 #' ps_hitpos_map(results)
 #' 
 #' 
@@ -390,8 +395,9 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
-#'                  BPPARAM = BiocParallel::MulticoreParam(1))
-#' # Use `SnowParam` on windows
+#'                  BPPARAM = BiocParallel::SnowParam(1))
+#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
+#' 
 #' pfm1 <- results[[1]]
 #' ps_density_plot(pfm1)
 #' 

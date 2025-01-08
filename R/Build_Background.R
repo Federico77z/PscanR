@@ -51,7 +51,7 @@
 #'
 #' # Generate the background-scored motif matrices
 #' bg_matrices <- ps_build_bg(prom_seq, J2020, 
-#'                            BPPARAM = BiocParallel::MulticoreParam(1))
+#'                            BPPARAM = BiocParallel::SnowParam(1))
 #' bg_matrices
 #' @export
 ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())

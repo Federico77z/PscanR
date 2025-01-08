@@ -48,7 +48,8 @@ J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
 
 # Execute the PScan algorithm
 results <- pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::MulticoreParam(1))
+                 BPPARAM = BiocParallel::SnowParam(1))
+# Use MulticoreParam() for Unix systems (See BiocParallel package). 
 results
 
 }

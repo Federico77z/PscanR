@@ -3,7 +3,7 @@ Type: Package
 Title: PscanR regulatory sequences Motif Enrichment Analysis 
 Version: 0.99.0
 Encoding: UTF-8
-Depends: R (>= 4.4.0), Biostrings (>= 2.64)
+Depends: R (>= 4.4.0), Biostrings (>= 2.64), TFBSTools (>= 1.34), BiocParallel (>= 1.30), BSDA (>= 1.2)
 Suggests: 
     JASPAR2016 (>= 1.24),
     JASPAR2018 (>= 1.1.1),
@@ -15,9 +15,9 @@ Suggests:
     RMariaDB,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
-Imports: TFBSTools (>= 1.34), GenomicFeatures (>= 1.48), BSDA (>= 1.2),
-   BiocParallel (>= 1.30), methods, txdbmaker (>= 1.0.1), BSgenome.Hsapiens.UCSC.hg38 (>= 1.4),
+    testthat (>= 3.0.0),
+    BiocStyle
+Imports: GenomicFeatures (>= 1.48), methods, txdbmaker (>= 1.0.1), BSgenome.Hsapiens.UCSC.hg38 (>= 1.4),
    pheatmap, JASPAR2020 (>= 0.99), dplyr, ggplot2
 biocViews: SequenceMatching, MotifDiscovery, Visualization, Transcription, Sequencing,
    Alignment, DataImport

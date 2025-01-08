@@ -2,7 +2,7 @@
 title: "Introduction to PscanR"
 author: "Diana Betelli"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: BiocStyle::html_document
 vignette: >
   %\VignetteIndexEntry{Introduction to PscanR}
   %\VignetteEngine{knitr::rmarkdown}
@@ -37,6 +37,19 @@ significance (Z-scores and P-Values).
 
 ***Output***: A ranked list of enriched motif with associated P-Values and 
 Z-scores.  
+
+## Installation
+
+To install and load the package from Bioconductor, follow these steps:
+
+# Install Bioconductor (if necessary)
+install.packages("BiocManager")
+
+# Install the package from Bioconductor
+BiocManager::install("PscanR")
+
+# Load the package
+library(PscanR)
 
 
 ```{r}
@@ -73,12 +86,15 @@ J2020_PSBG <- PscanR::ps_build_bg_from_file(BG_path, J2020)
 
 # Run PscanR
 results <- PscanR::pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::MulticoreParam(1)) 
+                 BPPARAM = BiocParallel::SnowParam(1)) 
 # Use SnowParam on Windows. 
 
 # Create the table of results
 table <- PscanR::ps_results_table(results) 
 head(table)
+
+# Display session information
+sessionInfo()
 ```
 
 **Interpretation of results:**
