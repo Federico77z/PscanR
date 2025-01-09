@@ -75,25 +75,26 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   
   do.call(PSMatrixList, pfms)
 }
-#' Build background matrices from a file 
+#' Import background statistics from a file 
 #' 
-#' Generates a background probability profile matrix list by reading 
-#' an input file containing background information for regulatory sequences.
-#' This function is useful when background information are stored into an 
-#' external file. 
+#' Import from a file the score distribution statistics for the input frequency matrices  
+#' computed on a background set of regulatory sequences (e.g. promoters).
+#' This function reads the background statistics stored into a 
+#' file by `ps_write_bg_to_file`. 
 #' 
-#' @param file A character string representing the path for input file. 
-#'   This file contains background information for regulatory sequences, 
-#'   such as size, mean, and standard deviation for background distributions.
+#' @param file A character string with the path to the input file. 
+#'   This file contains the score distribution statistics for the 
+#'   frequency matrices computed on a 
+#'   background set of regulatory sequences.
 #'   The file should be in tabular format, where the first column contains 
-#'   the sequence identifiers (row names) and subsequent columns contain the 
+#'   the frequency matrix identifiers (row names) and subsequent columns contain the 
 #'   background statistics (e.g., `BG_SIZE`, `BG_MEAN`, `BG_STDEV`).
-#'   This file can be generated with the `ps_build_bg` function.
+#'   Backgrounds are generated with the `ps_build_bg` function and can be
+#'   written to a file with `ps_write_bg_to_file`.
 #' 
-#' @param pfms A list of position frequency matrices representing transcription 
-#'   factor motif, obtained from the JASPAR database. These matrices are 
-#'   used to search motif in regulatory sequences, and will be background-scored
-#'   using the information from the input file. 
+#' @param pfms A `PFMatrixList` list of position frequency matrices representing 
+#' transcription factor binding preferences, obtained for example from the JASPAR database. 
+#' This should correspond to the same frequency matrix list used to build the background stored in `file`.
 #'
 #' @details 
 #' This function:

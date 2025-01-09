@@ -8,9 +8,13 @@
 \description{
 `PscanR` provides an R implementation of the `Pscan` algorithm for 
 transcription factor binding site motif analysis. 
-It includes function to build the background for statistical analyses, 
-to scan the promoter sequences, and data visualization.  
-The package is designed to work with Bioconductor data objects.
+The package is designed to work with Bioconductor data objects: 
+it extends PFMatrix and PFMatrixList from 
+the TFBSTools package for transcription factors binding profiles and
+employs Biostring DNAStringSet for promoter sequences. 
+PscanR supports multithreading through the BiocParallel package.
+PscanR includes functions to build the background for a set of promoter sequences,
+to scan a foreground set of promoter sequences, and to visualize and plot the results.
 }
 \section{Main functions}{
 
@@ -24,7 +28,7 @@ The package is designed to work with Bioconductor data objects.
 }
 
 \references{
-`Pscan` platform: \url{http://159.149.160.88/pscan/}
+`Pscan` Web: \url{http://159.149.160.88/pscan/}
 
 Zambelli F, Pesole G, Pavesi G. Pscan: finding over-represented transcription 
 factor binding site motifs in sequences from co-regulated or co-expressed 
@@ -40,7 +44,7 @@ Useful links:
 
 }
 \author{
-Federico Zambelli [aut], Giulio Pavesi [cre]
+Federico Zambelli [cre], Diana Betelli [aut], Giulio Pavesi [cre]
 
 Maintainer: Federico Zambelli <federico.zambelli@unimi.it>
 }

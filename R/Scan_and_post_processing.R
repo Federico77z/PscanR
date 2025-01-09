@@ -265,6 +265,7 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
   
   do.call(pheatmap, c(list(z_table_reduced), final_args))
   
+  invisible(z_table_reduced)
 }
 
 #' Pscan Hits Position Heatmap
@@ -356,6 +357,8 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
   rownames(pos_mat) <- ps_seq_names(pfms[[1]])
   
   do.call(pheatmap, c(list(pos_mat), final_args))
+  
+  invisible(pos_mat)
 }
 
 #' Pscan Density Plot of Hits along Promoters 
@@ -465,5 +468,7 @@ ps_score_position_BubbleChart <- function(pfm)
     labs(x = "PS Hits Position", y = "PS Hits Score", 
          title = paste(pfm@name,"Bubble Chart of Score vs Position Hits")) +
     theme_minimal()
+  
+  invisible(ps_hits_pos(pfm, pos_shift = shift)[g_scores])
   
 }
