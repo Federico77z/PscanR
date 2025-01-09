@@ -44,7 +44,9 @@
 #' results <- pscan(prom_seq, J2020_PSBG, 
 #'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package). 
-#' results
+#' 
+#' ps_results_table(results)
+#' 
 #' 
 pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
