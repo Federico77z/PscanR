@@ -1,9 +1,9 @@
 source("load_packages.R", local = TRUE, echo = FALSE)
 
-source("../R/PSMatrix_class.R", local = TRUE, echo = FALSE)
-source("../R/Build_Background.R", local = TRUE, echo = FALSE)
-source("../R/Helper_functions.R", local = TRUE, echo = FALSE)
-source("../R/Scan_and_post_processing.R", local = TRUE, echo = FALSE)
+source("R/PSMatrix_class.R", local = TRUE, echo = FALSE)
+source("R/Build_Background.R", local = TRUE, echo = FALSE)
+source("R/Helper_functions.R", local = TRUE, echo = FALSE)
+source("R/Scan_and_post_processing.R", local = TRUE, echo = FALSE)
 
 
 #txdb <- makeTxDbFromUCSC(genome="mm10", tablename="ncbiRefSeqCurated") #import gtf annotation from UCSC
@@ -20,7 +20,7 @@ opts[["tax_group"]] <- "vertebrates"
 
 J2022 <- getMatrixSet(JASPAR2022, opts) #core Jaspar 2022 profiles for vertebrates
 
-J2022_PSBG <- ps_build_bg(prom_seq, J2022, BPPARAM = MulticoreParam(36)) #Build Pscan Background
+J2022_PSBG <- ps_build_bg(prom_seq, J2022, BPPARAM = MulticoreParam(12)) #Build Pscan Background
 
 ps_write_bg_to_file(J2022_PSBG, "J2022_mm10_200u_50d_UCSC_refGene.psbg.txt")
 
