@@ -8,17 +8,18 @@ ps_build_bg(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions())
 }
 \arguments{
 \item{x}{A `DNAStringSet` object (see Biostrings package) containing the set 
-of regulatory sequences from co-regulated or co-expressed genes (i.e. a set 
-of gene promoters). These sequences are the target for background scanning.}
+of regulatory sequences of the organism of study (e.g., gene promoters 
+retrieved from a `TxDb` object). These sequences are the target for 
+background scanning.}
 
-\item{pfms}{A list of position frequency matrices representing transcription 
-factor motifs, obtained from the JASPAR database. Should be of class 
-`PSMatrixlist`, otherwise gets automatically converted.}
+\item{pfms}{A `PSMatrixlist` of position frequency matrices representing 
+transcription factor binding preferences, obtained for example from the 
+JASPAR database.}
 
-\item{BPPARAM}{Parallelization parameter passed to `bplapply` function from. 
+\item{BPPARAM}{Parallelization parameter passed to `bplapply` function from 
 the `BiocParallel` package. This parameter controls how the parallel
 processing is executed.
-see `BiocParallel` package for more details.}
+See `BiocParallel` package for more details.}
 
 \item{BPOPTIONS}{Optional configuration settings passed to `bplapply` 
 function from the `BiocParallel` package. This can include additional
@@ -26,7 +27,7 @@ options to control the behavior of parallel execution.
 See `BiocParallel` documentation for more details.}
 }
 \value{
-A PSMatrixList object, containing each motif matrix from `pfms`, 
+A `PSMatrixList` object, containing each motif matrix from `pfms`, 
 background-scored against the sequences in `x`.
 }
 \description{
@@ -37,16 +38,15 @@ motif matrix from the JASPAR database against a set of regulatory sequences
 }
 \details{
 A check on inputs is performed with the helper function `.ps_check`, 
-specifiyng `type == 1`. Duplicated sequences are removed from `x` to avoid 
-redundant computations. The motif matrices in `pfms` are converted into 
-a `PSMatrixList` class object, 
-The motif are background scored by the `ps_scan` function in parallel.
+specifying `type == 1`. Duplicated sequences are removed from `x` to avoid 
+redundant computations. 
+The motif matrices are background scored by the `ps_scan` function in parallel.
 }
 \examples{
-# Import GTF annotation from UCSC
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
+
 J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
 load(J2020_path)
 

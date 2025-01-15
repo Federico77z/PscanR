@@ -43,7 +43,9 @@ Z-scores.
 To install and load the package from Bioconductor, follow these steps:
 
 # Install Bioconductor (if necessary)
-install.packages("BiocManager")
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
+}
 
 # Install the package from Bioconductor
 BiocManager::install("PscanR")
@@ -81,13 +83,13 @@ prom_seq <- Biostrings::getSeq(
   x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
   target_prom_rng) 
 
-# Build the background
+# Retrieve the background
 J2020_PSBG <- PscanR::ps_build_bg_from_file(BG_path, J2020)
 
 # Run PscanR
 results <- PscanR::pscan(prom_seq, J2020_PSBG, 
                  BPPARAM = BiocParallel::SnowParam(1)) 
-# Use SnowParam on Windows. 
+# Use MulticoreParam on Unix systems. 
 
 # Create the table of results
 table <- PscanR::ps_results_table(results) 

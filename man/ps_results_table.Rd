@@ -2,7 +2,7 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_results_table}
 \alias{ps_results_table}
-\title{View result in table format}
+\title{View results in table format}
 \usage{
 ps_results_table(pfms)
 }
@@ -22,13 +22,17 @@ containig the following columns:
   \item "FG_AVG": The average foreground score for each PWM.
   \item "ZSCORE": The Z-score for each PWM.
   \item "P.VALUE": The p-value for each PWM.
+  \item "FDR": The adjusted p-value (False Discovery Rate) calculated using 
+  the Benjamini-Hochberg method.
 }
 }
 \description{
-This function generates a table of results from a `PSMatrixList` object, 
-ordered by decreasing P.VALUE and ZSCORE. For each PWMs, it computes 
-background and #' foreground statistics and returns a table summarizing 
-these values.
+This function generates a table summarizing the results stored in a 
+`PSMatrixList` object. It retrieves pre-computed background and foreground 
+statistics (the alignment scores between regulatory sequences 
+and position weight matrices) for each PWM, calculates adjusted p-values 
+(FDR), and returns a table ordered by decreasing `ZSCORE` and 
+increasing `P.VALUE`.
 }
 \examples{
 
@@ -46,7 +50,7 @@ J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
 
 # Execute the PScan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::SnowParam(1))
+                 BPPARAM = BiocParallel::SnowParam(12))
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
 table <- ps_results_table(results)

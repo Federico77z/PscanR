@@ -1,6 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^BG_scripts$
 ^example_file_nfkb100\.txt$
 ^processori$
 ^doc$

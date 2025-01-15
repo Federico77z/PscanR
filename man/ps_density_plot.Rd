@@ -19,7 +19,8 @@ the threshold directly, or a character:
   are evaluated).
   \item `loose`: uses the background average as threshold.
   \item `strict`: uses the background average plus the background standard 
-  deviation as threshold.}}
+  deviation as threshold.}
+Default is set to loose.}
 }
 \value{
 A density plot showing the distribution of hits along the promoter 

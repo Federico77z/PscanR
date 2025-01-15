@@ -12,14 +12,15 @@ This file contains the score distribution statistics for the
 frequency matrices computed on a 
 background set of regulatory sequences.
 The file should be in tabular format, where the first column contains 
-the frequency matrix identifiers (row names) and subsequent columns contain the 
-background statistics (e.g., `BG_SIZE`, `BG_MEAN`, `BG_STDEV`).
+the frequency matrix identifiers (row names) and subsequent columns contain 
+the background statistics (e.g., `BG_SIZE`, `BG_MEAN`, `BG_STDEV`).
 Backgrounds are generated with the `ps_build_bg` function and can be
 written to a file with `ps_write_bg_to_file`.}
 
 \item{pfms}{A `PFMatrixList` list of position frequency matrices representing 
-transcription factor binding preferences, obtained for example from the JASPAR database. 
-This should correspond to the same frequency matrix list used to build the background stored in file.}
+transcription factor binding preferences, obtained for example from the 
+JASPAR database. This should correspond to the same frequency matrix list 
+used to build the background stored in `file`.}
 }
 \value{
 A `PSMatrixList` object, containing each motif matrix from `pfms`, 
@@ -27,8 +28,8 @@ background-scored using the values provided in `file`.
 See `ps_build_bg_from_table` for more details.
 }
 \description{
-Import from a file the score distribution statistics for the input frequency matrices  
-computed on a background set of regulatory sequences (e.g. promoters).
+Import from a file the score distribution statistics for the input frequency 
+matrices computed on a background set of regulatory sequences (e.g. promoters).
 This function reads the background statistics stored into a 
 file by `ps_write_bg_to_file`.
 }

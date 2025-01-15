@@ -32,9 +32,13 @@ default = `NA`.}
 by zero. Default = `0.01`}
 
 \item{...}{Additional arguments to pass to downstream function.}
+
+\item{from}{A `PFMatrix` object to be converted to a `PSMatrix` one.}
 }
 \value{
 An object of `PSMatrix` class.
+
+A `PSMatrix` object created from the input `PFMatrix` object.
 }
 \description{
 This function creates an instance of the `PSMatrix` class by initializing its

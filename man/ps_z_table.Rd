@@ -16,8 +16,8 @@ A matrix in which each column corresponds to a motif in the `PSMatrixList`
 object, and each row to the sequence identifiers.
 }
 \description{
-This function calculates the z-score for each motif in a `PSMatrixList` 
-object and organizes the result into a matrix.
+This function calculates the Z-score for each motif in a `PSMatrixList` 
+object and organizes the results into a matrix.
 }
 \examples{
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
