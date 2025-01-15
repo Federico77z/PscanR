@@ -25,5 +25,7 @@ J2020 <- getMatrixSet(JASPAR2020, opts)
 #opts[["collection"]] <- "CORE"
 #opts[["tax_group"]] <- "vertebrates"
 
+#library("httr")
+#httr::set_config(config(ssl_verifypeer = 0L))
 #JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), db(JASPAR2024))
 #J2024 <- getMatrixSet(JASPARConnect, opts)
