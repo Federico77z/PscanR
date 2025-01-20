@@ -12,19 +12,19 @@ metadata (foreground and background statistics). Typically is the output
 of `pscan()` function.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
-to be included in the analysis. The default is set to `0.01`.}
+to include in the analysis. The default is `0.01`.}
 
-\item{...}{Additional user defined arguments that can be passed to 
-the function (e.g., the color palette) to change the default settings.}
+\item{...}{Additional user defined arguments to customize the heatmap settings, 
+such as color palettes or clustering object.}
 }
 \value{
 A heatmap plot showing Z-score correlations for selected 
    transcription factors.
 }
 \description{
-This function creates a heatmap visualizing the Z-score correlations of 
-transcription factors (TFs) based on a specified false discovery 
-rate threshold.
+This function generates a heatmap that visualizes the correlation of 
+Z-scores for transcription factors (TFs) based on a specified false discovery 
+rate threshold. It allows customization of the heatmap's appearance.
 }
 \details{
 The function performs the following steps:
