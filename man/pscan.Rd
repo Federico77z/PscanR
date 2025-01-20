@@ -9,28 +9,45 @@ pscan(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions())
 \arguments{
 \item{x}{A `DNASetString` object containing the set of regulatory sequences 
 from co-regulated or co-expressed genes (i.e. a set of gene promoters). 
-(see Biostrings package).}
+See the Biostrings package for details.}
 
-\item{pfms}{An object of PSMatrixList class containing PWMs and background 
-values. See ps_build_bg, ps_build_bg_from_file, ps_build_bg_from_table for 
-how to create PSMatrixList objects.}
+\item{pfms}{An object of `PSMatrixList` class containing PWMs and background 
+values. See \code{\link{ps_build_bg}}, \code{\link{ps_build_bg_from_file}}, 
+\code{\link{ps_build_bg_from_table}} for how to create `PSMatrixList` 
+objects that contain background statistics.}
 
-\item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel.
-This argument is passed to `BiocParallel::bplapply`
-The default is `bpparam()`.}
+\item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel package.
+This argument is passed to `BiocParallel::bplapply`.
+If BPPARAM is not explicitly set, the default value (bpparam()) will be 
+used, which automatically chooses a sensible parallelization method based 
+on the user's system. 
+You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating 
+systems, or BPPARAM = BiocParallel::MulticoreParam(8) on Unix-like
+systems to use, for example, 8 cores.}
 
-\item{BPOPTIONS}{The BPOPTIONS used by bplapply. See BiocParallel.
+\item{BPOPTIONS}{The BPOPTIONS used by bplapply. See BiocParallel package.
 This argument is passed to `BiocParallel::bplapply`. 
-The default is `bpoptions()`.}
+The default is `bpoptions()`.
+Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
+progressbar = TRUE enables a progress bar that can be useful when 
+processing many tasks. log = TRUE enable logging to debug each step of
+teh parallel tasks.}
 }
 \value{
-A `PSMatrixList` object in which the foreground value have been computed 
-for each sequence in `X` based on the position weight matrices in `pfms`.
+A `PSMatrixList` object in which the foreground value (the alignment scores)
+have been computed for each sequence in `x` based on the position weight 
+matrices in `pfms`.
 }
 \description{
-This function computes the foreground values of a set of gene promoters (`X`)
-using the PScan algorithm. Foreground values are computed by applying the 
-PWM values stored in `pfms`.
+This function computes the alignment scores between regulatory sequences 
+(a set of gene promoters (`x` parameter)) and position weight matrices, which 
+quantify potential binding affinities of transcription factors in that region. 
+This is done throughout the Pscan algorithm.
+}
+\details{
+The `pscan` function performs sequence scanning using the `ps_scan` method for 
+individual PWMs, accounting for both the forward and reverse complement strands,
+ensuring no potential binding sites are missed.
 }
 \examples{
 
@@ -50,6 +67,7 @@ J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
 results <- pscan(prom_seq, J2020_PSBG, 
                  BPPARAM = BiocParallel::SnowParam(1))
 # Use MulticoreParam() for Unix systems (See BiocParallel package). 
-results
+
+ps_results_table(results)
 
 }

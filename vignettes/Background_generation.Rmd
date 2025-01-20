@@ -1,0 +1,115 @@
+---
+title: "How to Generate a Background for PscanR algorithm"
+author: "Diana Betelli"
+date: "`r Sys.Date()`"
+output: BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{Introduction to PscanR}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## **Introduction**
+
+In PscanR the background random model is designed to evaluate the
+statistical significance of the observed results. In this framework, the
+input sequences are considered a sample drawn from a universe consisting
+of all promoter sequences available for the species under investigation.
+This approach ensures a comprehensive and unbiased assessment of the
+analysis outcomes.
+
+Many of these background for different species have been prepared and
+optimized to meet common research needs. In the package you will find
+already computed the background for *Homo sapiens* (both hg38 and hs1
+annotations), *Mus musculus* (both mm10 and mm39), *Arabidopsis
+thaliana*, *Drosophila melanogaster*, and *Saccharomyces cerevisiae*.
+The investigated promoter regions, in respect to the transcription start
+site, were:
+
+-   200 bp upstream and 50 bp downstream
+
+-   450 bp upstream and 50 bp downstream
+
+-   500 bp upstream and 0 bp downstream
+
+-   950 bp upstream and 50 bp downstream
+
+-   1000 bp upstream and 0 bp downstream
+
+However, in order to be more flexible and allow users to generate custom
+backgrounds specific for their experimental conditions, this document
+outlines the general pipeline for generating a background using R. All
+functions, packages, and steps necessary for the process are provided.
+
+Below is the detailed step-by-step workflow, including the required
+dependencies and functions.
+
+# Pipeline for Background Generation
+
+## Import annotations from UCSC
+
+There are several sources from which retrieve gene annotations. For
+example, you can use the UCSC genome browser as we have done, or
+packages like AnnotationHub or ensembldb to download annotations from
+Ensemble or other repositories.
+
+It is convenient to use the txdbmaker package to create a transcript
+database (TxDb) object. This serves as the foundation for defining the
+promoter regions.
+
+In this step is important to choose the assembly (to be specified with
+the 'genome' parameter), and the type of annotation (to be specified
+with the 'tablename' parameter).
+
+## Define Promoter Regions
+
+Promoter regions are defined upstream and downstream of transcription
+start site (TSS). These sequences are crucial for the subsequent
+background construction.
+
+```{r}
+# Define promoter regions
+
+prom_rng <- GenomicFeatures::promoters(txdb, upstream = 450, downstream = 50, use.names = TRUE)
+
+# Retrieve promoter sequences
+
+prom_seq <- Biostrings::getSeq(x = BSgenome.Mmusculus.UCSC.mm10::BSgenome.Mmusculus.UCSC.mm10, prom_rng)
+
+# Optionally export the promoter regions to a GTF file
+
+# export(prom_rng, con = "mm10_450_50.gtf", format = "gtf")
+```
+
+## Retrieve Transcription Factors Binding Site Profiles
+
+## Build the Pscan Background
+
+The PscanR package is used to construct the background using the
+promoter sequences previously generated and transcription factor
+profiles.
+
+```{r}
+# Build the Pscan background
+J2020_PSBG <- PscanR::ps_build_bg(prom_seq, J2020, BPPARAM = BiocParallel::MulticoreParam(24))
+```
+
+## Export the Generated background
+
+You can either directly use the generated background or save the
+constructed background to a file for future use.
+
+```{r}
+# Export the background to a file 
+PscanR::ps_write_bg_to_file(J2020_PSBG, "J2020_mm10_450u_50d_UCSC_refGene.psbg.txt")
+```

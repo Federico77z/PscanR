@@ -11,13 +11,20 @@ PSMatrixList(..., use.names = TRUE)
 
 \item{use.names}{Logical. Assert whether to use names from the input objects.
 Default = `TRUE`}
+
+\item{from}{An object of class `PFMatrix`.}
 }
 \value{
+An object of class `PSMatrixList`.
+
 An object of class `PSMatrixList`.
 }
 \description{
 This function creates a `PSMatrixList` object, which is a container for 
 managing multiple `PSMatrix` object.
+
+This method creates a `PSMatrixList` object starting from different 
+`PFMatrix` object.
 }
 \examples{
 # Load JASPAR motif matrices for vertebrates

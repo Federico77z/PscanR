@@ -2,22 +2,26 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_z_table}
 \alias{ps_z_table}
-\title{Generates Z-score table}
+\title{Generate a Z-score Table for Motifs}
 \usage{
 ps_z_table(pfms)
 }
 \arguments{
-\item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
-metadata (foreground and background statistics). Typically is the output 
-of `pscan()` function.}
+\item{pfms}{A `PSMatrixList` object containing multiple Position Weight 
+Matrices and associated metadata (foreground and background statistics). 
+This object is the output of `pscan()` function.}
 }
 \value{
 A matrix in which each column corresponds to a motif in the `PSMatrixList`
-object, and each row to the sequence identifiers.
+object, and each row to the sequence identifiers. The cell values in the 
+matrix are Z-scores, indicating the statistical significance of the alignment 
+between each sequence and the motif.
 }
 \description{
-This function calculates the z-score for each motif in a `PSMatrixList` 
-object and organizes the result into a matrix.
+This function calculates the Z-score for each motif in a `PSMatrixList` 
+object and organizes the results into a matrix. The Z-Score represents
+the statistical significance of the alignment scores for regulatory 
+sequences relative to background expectation.
 }
 \examples{
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -37,6 +41,6 @@ results <- pscan(prom_seq, J2020_PSBG,
                  BPPARAM = BiocParallel::SnowParam(1))
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
-z_score <- ps_z_table(results)
+ps_z_table(results)
 
 }

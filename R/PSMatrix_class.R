@@ -1417,6 +1417,8 @@ setReplaceMethod("ps_bg_size", "PSMatrix", function(x,value){
 #' 
 #' @return A `PSMatrix` object created from the input `PFMatrix` object.
 #' 
+#' @name PSMatrix
+#' 
 #' @export
 #' @importFrom TFBSTools PFMatrix
 setAs("PFMatrix", "PSMatrix", function(from){
@@ -1439,6 +1441,8 @@ setAs("PFMatrix", "PSMatrix", function(from){
 #' @param from An object of class `PFMatrix`.
 #' 
 #' @return An object of class `PSMatrixList`.
+#' 
+#' @name PSMatrixList
 #' 
 #' @export
 #' @importFrom TFBSTools PFMatrixList

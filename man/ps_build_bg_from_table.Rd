@@ -2,17 +2,21 @@
 % Please edit documentation in R/Build_Background.R
 \name{ps_build_bg_from_table}
 \alias{ps_build_bg_from_table}
-\title{Build background matrices from table}
+\title{Apply background parameters to position frequency matrices}
 \usage{
 ps_build_bg_from_table(x, pfms)
 }
 \arguments{
 \item{x}{A `data.frame` containing background parameters for each motif.
-The number of rows in `x` should match the number of motif in `pfms`.}
+The data frame should have the following columns:
+- `BG_SIZE`: Background size.
+- `BG_MEAN`: Mean of the background frequencies.
+- `BG_STDEV`: Standard deviation of the background frequencies.
+The number of rows in `x` must match the number of elements in `pfms`.}
 
-\item{pfms}{A list of position frequency matrices (PFMs) representing 
-transcription factor motifs, typically from the JASPAR database. 
-Each element should be coercible to the `PSMatrix` class. 
+\item{pfms}{A `PFMatrixList` list of position frequency matrices representing 
+transcription factor binding preferences, obtained for example from the 
+JASPAR database.
 The number of elements in `pfms` should match the number of row of `x`}
 }
 \value{
@@ -20,19 +24,21 @@ A `PSMatrixList` object containing each motif matrix from `pfms`,
 scored with background parameters provided from `x`.
 }
 \description{
-Generates a background probability profile matrix list by applying 
-background parameters from a given table to a list of motif matrices.
+Associates background parameters from a data frame with a list of position 
+frequency matrices (PFMs) and returns the list of updated matrices as 
+`PSMatrixList` object.
 }
 \details{
 This function: 
-
-- Calls the internal function `.ps_checks()` to validate inputs, with 
-  `type == 3`.
-- Converts each elements of pfms into `PSMatrix` class. 
-- A warning is issued if the number of elements in `pfms` doesn't match 
-  the number of row of `x`.
-- Applies the internal function `.ps_bg_from_table` to each element of 
-  `pfms` with the correspponding background data from `x`.
+\itemize{
+   \item Calls the internal function `.ps_checks()` to validate inputs, with 
+   `type == 3`.
+   \item Converts each elements of pfms into `PSMatrix` class. 
+   \item A warning is issued if the number of elements in `pfms` doesn't match 
+   the number of row of `x`.
+   \item Applies the internal function `.ps_bg_from_table` to each element of 
+   `pfms` with the correspponding background data from `x`. 
+}
 }
 \examples{
 # create the `data.frame`

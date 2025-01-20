@@ -2,35 +2,36 @@
 % Please edit documentation in R/Build_Background.R
 \name{ps_get_bg_table}
 \alias{ps_get_bg_table}
-\title{Compute background statistics for position frequency matrices}
+\title{Extract background statistics from a `PSMatrixList` object}
 \usage{
 ps_get_bg_table(pfms)
 }
 \arguments{
-\item{pfms}{A list of position frequency matrices representing the 
-transcription factor motifs. Each element should be a `PSMatrix` object 
+\item{pfms}{A `PSMatrixlist` of position frequency matrices representing 
+transcription factor binding preferences. Each element should be a `PSMatrix` object 
 (or should be coercible to `PSMatrix`).}
 }
 \value{
-A dataframe with one row for each PFM in `pfms`.
+A `data.frame` with one row for each PFM in `pfms`.
 
 Columns: 
-
-- `BG_SIZE`: An integer vector representing the background size for each PFMs. 
-- `BG_MEAN`: A numeric vector representing the mean of the background 
+\itemize{
+  \item `BG_SIZE`: An integer vector representing the background size for each PFMs. 
+  \item `BG_MEAN`: A numeric vector representing the mean of the background 
   frequencies for each PFMs.
-- `BG_STDEV`: a numeric vector representing the standard deviation of the 
-  background frequencies for each PFMs.
+  \item `BG_STDEV`: a numeric vector representing the standard deviation of the 
+  background frequencies for each PFMs. 
+}
 }
 \description{
-Generates a background statistic table (size, mean, and standard deviation)
-from a list of position frequency matrices (PFMs) representing transcription
-factor motifs.
+Extracts background statistics (size, mean, and standard deviation) 
+from a `PSMatrixlist` of position frequency matrices representing 
+transcription factor binding preferences and generates a table containing 
+these statistics.
 }
 \details{
-This function computes background statistics for each motif matrix in `pfms`.
-Before computing the statistics, it validates the input with `.ps_chechs()` 
-function.
+This function extracts background statistics for each motif matrix in `pfms`.
+It validates the input with `.ps_chechs2()` function.
 It calls the helper functions `ps_bg_size`, `ps_bg_avg`, and `ps_bg_std_dev` 
 to compute the statistics.
 }

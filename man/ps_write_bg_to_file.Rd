@@ -2,14 +2,15 @@
 % Please edit documentation in R/Build_Background.R
 \name{ps_write_bg_to_file}
 \alias{ps_write_bg_to_file}
-\title{Write background statistics to a file}
+\title{Save background statistics from a `PSMatrixList` object to a file}
 \usage{
 ps_write_bg_to_file(pfms, file)
 }
 \arguments{
-\item{pfms}{A list of position frequency matrices representing transcription 
-factor motif, obtained from the JASPAR database. Each element should be
-of `PSMatrix` class or coercible to `PSMatrix`.}
+\item{pfms}{A `PFMatrixList` object of position frequency matrices 
+representing transcription factor binding preferences, obtained for example 
+from the JASPAR database. Each element should be of `PSMatrix` class or 
+coercible to `PSMatrix`.}
 
 \item{file}{A character string specifying the path to the output file where 
 the background statistics should be saved.}
@@ -19,13 +20,15 @@ None. It saves the given background statistics to the specified file
 in a tab-delimited format.
 }
 \description{
-Computes background statistics for each element of a list of position 
-frequency matrices, and write the result to a specified file.
+Saves background statistics (such as size, mean, and standard deviation) 
+for each position frequency matrix in a `PSMatrixList` object to a specified 
+file.
 }
 \details{
-It validates the input by calling the heper function `ps.checks2()`.
-It computes the background statistics (size, mean, and standard deviation)
-using `ps_get_bg_table()`, then writes the result to a specified file. 
+It validates the input by calling the helper function `ps.checks2()`.
+It retrieves the background statistics (size, mean, and standard deviation)
+using `ps_get_bg_table()` from the input `PSMatrixList` object, then writes 
+the result to a specified file. 
 A header is added to the file (`[SHORT TFBS MATRIX`]).
 }
 \examples{
