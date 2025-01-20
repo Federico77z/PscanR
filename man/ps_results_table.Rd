@@ -2,7 +2,7 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_results_table}
 \alias{ps_results_table}
-\title{View results in table format}
+\title{Create a Summary Table of PscanR Results}
 \usage{
 ps_results_table(pfms)
 }
@@ -12,8 +12,8 @@ metadata (foreground and background statistics). Typically is the output
 of `pscan()` function.}
 }
 \value{
-A data.frame with matrices ordered by decreasing P.VALUE and ZSCORE, 
-containig the following columns: 
+A data.frame with matrices ordered by increasing P.VALUE and decreasing 
+ZSCORE, containig the following columns: 
 \itemize{
   \item "NAME": The names of the matrices.
   \item "BG_AVG": The average background score for each PWM.
