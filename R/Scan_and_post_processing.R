@@ -81,7 +81,7 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   BiocGenerics::do.call(PSMatrixList, pfms)
 }
 
-#' View results in table format  
+#' Create a Summary Table of PscanR Results  
 #' 
 #' This function generates a table summarizing the results stored in a 
 #' `PSMatrixList` object. It retrieves pre-computed background and foreground 
@@ -95,8 +95,8 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #'    of `pscan()` function. 
 #'
 #' @return
-#' A data.frame with matrices ordered by decreasing P.VALUE and ZSCORE, 
-#' containig the following columns: 
+#' A data.frame with matrices ordered by increasing P.VALUE and decreasing 
+#' ZSCORE, containig the following columns: 
 #' \itemize{
 #'   \item "NAME": The names of the matrices.
 #'   \item "BG_AVG": The average background score for each PWM.
@@ -153,18 +153,22 @@ ps_results_table <- function(pfms)
   tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE,TRUE))),]
 }
 
-#' Generates Z-score table
+#' Generate a Z-score Table for Motifs
 #' 
 #' This function calculates the Z-score for each motif in a `PSMatrixList` 
-#' object and organizes the results into a matrix. 
+#' object and organizes the results into a matrix. The Z-Score represents
+#' the statistical significance of the alignment scores for regulatory 
+#' sequences relative to background expectation.
 #'
-#' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
-#'    metadata (foreground and background statistics). Typically is the output 
-#'    of `pscan()` function. 
+#' @param pfms A `PSMatrixList` object containing multiple Position Weight 
+#'    Matrices and associated metadata (foreground and background statistics). 
+#'    This object is the output of `pscan()` function. 
 #'
 #' @return
 #' A matrix in which each column corresponds to a motif in the `PSMatrixList`
-#' object, and each row to the sequence identifiers. 
+#' object, and each row to the sequence identifiers. The cell values in the 
+#' matrix are Z-scores, indicating the statistical significance of the alignment 
+#' between each sequence and the motif.
 #'
 #' @examples
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -184,7 +188,7 @@ ps_results_table <- function(pfms)
 #'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
-#' z_score <- ps_z_table(results)
+#' ps_z_table(results)
 #' 
 #' @export
 ps_z_table <- function(pfms)
@@ -201,17 +205,17 @@ ps_z_table <- function(pfms)
 
 #' Pscan Score Correlation Heatmap
 #' 
-#' This function creates a heatmap visualizing the Z-score correlations of 
-#' transcription factors (TFs) based on a specified false discovery 
-#' rate threshold. 
+#' This function generates a heatmap that visualizes the correlation of 
+#' Z-scores for transcription factors (TFs) based on a specified false discovery 
+#' rate threshold. It allows customization of the heatmap's appearance.  
 #' 
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
 #'    metadata (foreground and background statistics). Typically is the output 
 #'    of `pscan()` function. 
 #' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
-#'    to be included in the analysis. The default is set to `0.01`.
-#' @param ... Additional user defined arguments that can be passed to 
-#'    the function (e.g., the color palette) to change the default settings. 
+#'    to include in the analysis. The default is `0.01`.
+#' @param ... Additional user defined arguments to customize the heatmap settings, 
+#'    such as color palettes or clustering object.
 #'   
 #' @details
 #' The function performs the following steps:
@@ -678,7 +682,9 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_a
 #' @examples
 #' generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50))
 #' 
-generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg){
+generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, assembly){
+  
+  # Rivedi funzione per l'assembly
   
   organism_map <- list(
     "hs" = "hg38",
@@ -709,7 +715,10 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg){
   p_up <- abs(prom_reg[1])
   p_down <- abs(prom_reg[2])
   
+  # Rivedi funzione per gli altri org, il nome dei file sarà diverso!
+  
   file_name <- paste0('J', version, '_', org, '_', p_up, 'u_', p_down, 'd_UCSC.psbg.txt')
+
   
   BG_path <- system.file("extdata/BG_scripts", file_name, package = 'PscanR')
   
@@ -717,7 +726,7 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg){
   opts[["collection"]] <- "CORE" 
   opts[["tax_group"]] <- "vertebrates" 
   
-  # ATTENZIONE: da rivedere per JASPAR2024
+  # ATTENZIONE: non ancora testata per JASPAR2024
   
   if(J_name == 'JASPAR2020'){
     J_matrix <- TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts) 
