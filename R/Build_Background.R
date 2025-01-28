@@ -60,6 +60,8 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   
   x <- BiocGenerics::unique(x)
   
+  x <- .clean_sequence(x)
+  
  # if(is(pfms, "PFMatrixList"))
     pfms <- as(pfms, "PSMatrixList")
     #pfms <- lapply(pfms, FUN = as, "PSMatrix")

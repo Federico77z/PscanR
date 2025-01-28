@@ -69,6 +69,7 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   .ps_checks(x, pfms,type = 4)
   
   x <- BiocGenerics::unique(x)
+  x <- .clean_sequence(x)
   
   pfms <- BiocParallel::bplapply(
     pfms, 
@@ -687,15 +688,15 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
   # Rivedi funzione per l'assembly
   
   organism_map <- list(
-    "hs" = "hg38",
-    "mm" = "mm10",
+    "hs" = assembly,
+    "mm" = assembly,
     "at" = "at10",
     "sc" = "sacCer3",
     "dm" = "dm6"
   )
   
   if(!(org %in% names(organism_map))){
-    stop("Invalid organism. Choose between: 'hs', 'mm', 'at', 'sc', 'dm'.")
+    stop("Invalid organism acronym. Choose between: 'hs', 'mm', 'at', 'sc', 'dm'.")
   }
   
   org <- organism_map[[org]]
