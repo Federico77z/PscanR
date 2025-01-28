@@ -13,7 +13,7 @@ of `pscan()` function.}
 }
 \value{
 A data.frame with matrices ordered by increasing P.VALUE and decreasing 
-ZSCORE, containig the following columns: 
+ZSCORE, containing the following columns: 
 \itemize{
   \item "NAME": The names of the matrices.
   \item "BG_AVG": The average background score for each PWM.
@@ -27,7 +27,7 @@ ZSCORE, containig the following columns:
 }
 }
 \description{
-This function generates a table summarizing the results stored in a 
+This function generates a table summarizing the Pscan results stored in a 
 `PSMatrixList` object. It retrieves pre-computed background and foreground 
 statistics (the alignment scores between regulatory sequences 
 and position weight matrices) for each PWM, calculates adjusted p-values 
@@ -46,7 +46,7 @@ load(J2020_path)
 
 bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
                        package = "PscanR")
-J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 
 # Execute the PScan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

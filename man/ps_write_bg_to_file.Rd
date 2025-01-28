@@ -7,7 +7,7 @@
 ps_write_bg_to_file(pfms, file)
 }
 \arguments{
-\item{pfms}{A `PFMatrixList` object of position frequency matrices 
+\item{pfms}{A `PSMatrixList` object of position frequency matrices 
 representing transcription factor binding preferences, obtained for example 
 from the JASPAR database. Each element should be of `PSMatrix` class or 
 coercible to `PSMatrix`.}
@@ -25,10 +25,9 @@ for each position frequency matrix in a `PSMatrixList` object to a specified
 file.
 }
 \details{
-It validates the input by calling the helper function `ps.checks2()`.
-It retrieves the background statistics (size, mean, and standard deviation)
-using `ps_get_bg_table()` from the input `PSMatrixList` object, then writes 
-the result to a specified file. 
+This function retrieves the background statistics (size, mean, and standard deviation)
+using `ps_get_bg_table()` from the input `PSMatrixList` object, after having
+validated the inputs. Then, it writes the result to a specified file. 
 A header is added to the file (`[SHORT TFBS MATRIX`]).
 }
 \examples{

@@ -13,7 +13,7 @@
 #' 
 #' @section Main functions:
 #' \itemize{
-#'    \item \code{\link{ps_build_bg_from_file}}: Build background matrices 
+#'    \item \code{\link{ps_retrieve_bg_from_file}}: Build background matrices 
 #'    from a file. 
 #'    \item \code{\link{pscan}}: Pscan algorithm utilization on a set 
 #'    of gen promoters.

@@ -92,7 +92,7 @@ target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
 prom_seq <- getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
 
 # Build the background from a file
-#J2020_PSBG <- ps_build_bg_from_file(
+#J2020_PSBG <- ps_retrieve_bg_from_file(
 #  "BG_scripts/J2020_hg38_500u_0d_UCSC.psbg.txt", 
 #  J2020
 #) 

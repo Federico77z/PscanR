@@ -1,5 +1,5 @@
-#' An S4 class to represent a `PFMatrix` object with computed foreground and
-#' background statistics 
+#' An S4 class to represent a `PFMatrix` object with computed foreground 
+#' (alignment scores) and background statistics 
 #' 
 #' The `PSMatrix` class extends the `PFMatrix` class from the `TFBSTools`
 #' package, adding slots for foreground and background statistics, Z-score, 
@@ -106,7 +106,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' This class extends the `PFMatrixList` class without adding new slots. 
 #' See `PFMatrixList` class documentation.
 #'
-#' @exportClass PFMatrixList
+#' @exportClass PSMatrixList
 #' @importFrom TFBSTools PFMatrixList
 .PSMatrixList <-setClass("PSMatrixList", contains ="PFMatrixList")
 

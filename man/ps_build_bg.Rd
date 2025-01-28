@@ -12,9 +12,9 @@ of regulatory sequences of the organism of study (e.g., gene promoters
 retrieved from a `TxDb` object). These sequences are the target for 
 background scanning.}
 
-\item{pfms}{A `PSMatrixlist` of position frequency matrices representing 
-transcription factor binding preferences, obtained for example from the 
-JASPAR database.}
+\item{pfms}{A `PFMatrixlist` object containing position frequency matrices 
+representing transcription factor binding preferences. Those are obtained, 
+for example, from the JASPAR database.}
 
 \item{BPPARAM}{Parallelization parameter passed to `bplapply` function from 
 the `BiocParallel` package. This parameter controls how the parallel
@@ -37,9 +37,10 @@ motif matrix from the JASPAR database against a set of regulatory sequences
 (e.g., gene promoters) using the `ps_scan` function.
 }
 \details{
-A check on inputs is performed with the helper function `.ps_check`, 
-specifying `type == 1`. Duplicated sequences are removed from `x` to avoid 
-redundant computations. 
+This function validates input types and remove duplicated sequences
+from `x` to avoid redundant computations. It also remove all the sequences 
+with an N content above 50% and that have a length different from the one of 
+the first sequence, that is considered as a reference. 
 The motif matrices are background scored by the `ps_scan` function in parallel.
 }
 \examples{
@@ -53,5 +54,6 @@ load(J2020_path)
 # Generate the background-scored motif matrices
 bg_matrices <- ps_build_bg(prom_seq, J2020, 
                            BPPARAM = BiocParallel::SnowParam(1))
+# Use BiocParallel::MulticoreParam() for Unix like systems. 
 bg_matrices
 }

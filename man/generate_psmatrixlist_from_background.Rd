@@ -4,7 +4,7 @@
 \alias{generate_psmatrixlist_from_background}
 \title{Generate PSMatrixList from Background and JASPAR Matrix}
 \usage{
-generate_psmatrixlist_from_background(JASPAR_matrix, org, prom_reg)
+generate_psmatrixlist_from_background(JASPAR_matrix, org, prom_reg, assembly)
 }
 \arguments{
 \item{JASPAR_matrix}{A character string specifying the JASPAR database 

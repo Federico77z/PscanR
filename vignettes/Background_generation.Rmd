@@ -86,9 +86,6 @@ prom_rng <- GenomicFeatures::promoters(txdb, upstream = 450, downstream = 50, us
 
 prom_seq <- Biostrings::getSeq(x = BSgenome.Mmusculus.UCSC.mm10::BSgenome.Mmusculus.UCSC.mm10, prom_rng)
 
-# Optionally export the promoter regions to a GTF file
-
-# export(prom_rng, con = "mm10_450_50.gtf", format = "gtf")
 ```
 
 ## Retrieve Transcription Factors Binding Site Profiles
