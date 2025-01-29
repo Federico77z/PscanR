@@ -84,7 +84,7 @@ prom_seq <- Biostrings::getSeq(
   target_prom_rng) 
 
 # Retrieve the background
-J2020_PSBG <- PscanR::ps_build_bg_from_file(BG_path, J2020)
+J2020_PSBG <- PscanR::ps_retrieve_bg_from_file(BG_path, J2020)
 
 # Run PscanR
 results <- PscanR::pscan(prom_seq, J2020_PSBG, 

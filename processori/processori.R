@@ -24,7 +24,7 @@
 
 #prom_rng <- promoters(txdb, upstream = 950, downstream = 50, use.names = TRUE)
 #prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
-#bg_hg38_2020 <- ps_build_bg_from_file("BG_scripts/hg38_J2020/J2020_hg38_950u_50d_UCSC.psbg.txt", J2020)
+#bg_hg38_2020 <- ps_retrieve_bg_from_file("BG_scripts/hg38_J2020/J2020_hg38_950u_50d_UCSC.psbg.txt", J2020)
 
 #Get the target sequences
 

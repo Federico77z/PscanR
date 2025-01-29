@@ -12,7 +12,7 @@ from co-regulated or co-expressed genes (i.e. a set of gene promoters).
 See the Biostrings package for details.}
 
 \item{pfms}{An object of `PSMatrixList` class containing PWMs and background 
-values. See \code{\link{ps_build_bg}}, \code{\link{ps_build_bg_from_file}}, 
+values. See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
 \code{\link{ps_build_bg_from_table}} for how to create `PSMatrixList` 
 objects that contain background statistics.}
 
@@ -31,7 +31,7 @@ The default is `bpoptions()`.
 Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
 progressbar = TRUE enables a progress bar that can be useful when 
 processing many tasks. log = TRUE enable logging to debug each step of
-teh parallel tasks.}
+the parallel tasks.}
 }
 \value{
 A `PSMatrixList` object in which the foreground value (the alignment scores)
@@ -61,7 +61,7 @@ load(J2020_path)
 
 bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
                        package = "PscanR")
-J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 
 # Execute the PScan algorithm
 results <- pscan(prom_seq, J2020_PSBG, 

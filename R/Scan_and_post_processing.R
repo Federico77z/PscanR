@@ -10,7 +10,7 @@
 #'    See the Biostrings package for details.
 #'    
 #' @param pfms An object of `PSMatrixList` class containing PWMs and background 
-#'    values. See \code{\link{ps_build_bg}}, \code{\link{ps_build_bg_from_file}}, 
+#'    values. See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
 #'    \code{\link{ps_build_bg_from_table}} for how to create `PSMatrixList` 
 #'    objects that contain background statistics.
 #' 
@@ -29,7 +29,7 @@
 #'    Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
 #'    progressbar = TRUE enables a progress bar that can be useful when 
 #'    processing many tasks. log = TRUE enable logging to debug each step of
-#'    teh parallel tasks. 
+#'    the parallel tasks. 
 #'    
 #' @details
 #' The `pscan` function performs sequence scanning using the `ps_scan` method for 
@@ -55,7 +55,7 @@
 #' 
 #' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                        package = "PscanR")
-#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 #' 
 #' # Execute the PScan algorithm
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -69,6 +69,7 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   .ps_checks(x, pfms,type = 4)
   
   x <- BiocGenerics::unique(x)
+  x <- .clean_sequence(x)
   
   pfms <- BiocParallel::bplapply(
     pfms, 
@@ -83,7 +84,7 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
 #' Create a Summary Table of PscanR Results  
 #' 
-#' This function generates a table summarizing the results stored in a 
+#' This function generates a table summarizing the Pscan results stored in a 
 #' `PSMatrixList` object. It retrieves pre-computed background and foreground 
 #' statistics (the alignment scores between regulatory sequences 
 #' and position weight matrices) for each PWM, calculates adjusted p-values 
@@ -96,7 +97,7 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #'
 #' @return
 #' A data.frame with matrices ordered by increasing P.VALUE and decreasing 
-#' ZSCORE, containig the following columns: 
+#' ZSCORE, containing the following columns: 
 #' \itemize{
 #'   \item "NAME": The names of the matrices.
 #'   \item "BG_AVG": The average background score for each PWM.
@@ -121,7 +122,7 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' 
 #' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                        package = "PscanR")
-#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 #' 
 #' # Execute the PScan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -181,7 +182,7 @@ ps_results_table <- function(pfms)
 #' 
 #' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                        package = "PscanR")
-#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -250,7 +251,7 @@ ps_z_table <- function(pfms)
 #' 
 #' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                        package = "PscanR")
-#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -336,7 +337,7 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 #' 
 #' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                        package = "PscanR")
-#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -417,7 +418,7 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' 
 #' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                        package = "PscanR")
-#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -504,7 +505,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' 
 #' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                        package = "PscanR")
-#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -580,7 +581,7 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
 #' 
 #' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                        package = "PscanR")
-#' J2020_PSBG <- ps_build_bg_from_file(bg_path, J2020)
+#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -687,15 +688,15 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
   # Rivedi funzione per l'assembly
   
   organism_map <- list(
-    "hs" = "hg38",
-    "mm" = "mm10",
+    "hs" = assembly,
+    "mm" = assembly,
     "at" = "at10",
     "sc" = "sacCer3",
     "dm" = "dm6"
   )
   
   if(!(org %in% names(organism_map))){
-    stop("Invalid organism. Choose between: 'hs', 'mm', 'at', 'sc', 'dm'.")
+    stop("Invalid organism acronym. Choose between: 'hs', 'mm', 'at', 'sc', 'dm'.")
   }
   
   org <- organism_map[[org]]
@@ -741,6 +742,6 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
     J_matrix <- TFBSTools::getMatrixSet(JASPARConnect, opts)
   }
   
-  J_PSBG <- ps_build_bg_from_file(BG_path, J_matrix)
+  J_PSBG <- ps_retrieve_bg_from_file(BG_path, J_matrix)
   return(J_PSBG)
 }

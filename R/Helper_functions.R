@@ -127,6 +127,31 @@
    
 }
 
+.clean_sequence <- function(x){
+  
+  seq_widths <- Biostrings::width(x)
+  ref_width <- max(Biostrings::width(x))
+  
+  diff_length_seq <- x[seq_widths != ref_width]
+  
+  if(length(diff_length_seq) != 0){
+    warning(paste(length(diff_length_seq), 'sequences found with length different from the reference. Removing the following sequences:', 
+                  paste(names(diff_length_seq), collapse = ", ")))
+  }
+  x <- x[seq_widths == ref_width]
+  
+  freqs <- Biostrings::alphabetFrequency(x, as.prob = FALSE)
+  n_proportions <- freqs[, "N"] / ref_width
+  rem_names <- names(x[n_proportions > 0.5])
+  
+  if(length(rem_names)> 0){
+    warning(paste('Found', length(rem_names), 'sequences with more than 50% of N. Removing the following sequences:', 
+                  paste(rem_names, collapse = ", ")))
+  }
+  x <- x[n_proportions <= 0.5]
+  return(x)
+}
+
 #.ps_required_packages <- function()
 #{
 #  require("Biostrings")

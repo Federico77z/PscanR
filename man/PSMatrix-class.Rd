@@ -4,8 +4,8 @@
 \name{PSMatrix-class}
 \alias{PSMatrix-class}
 \alias{.PSMatrix}
-\title{An S4 class to represent a `PFMatrix` object with computed foreground and
-background statistics}
+\title{An S4 class to represent a `PFMatrix` object with computed foreground 
+(alignment scores) and background statistics}
 \description{
 The `PSMatrix` class extends the `PFMatrix` class from the `TFBSTools`
 package, adding slots for foreground and background statistics, Z-score, 

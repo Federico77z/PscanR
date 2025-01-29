@@ -10,9 +10,9 @@
 #'   retrieved from a `TxDb` object). These sequences are the target for 
 #'   background scanning.
 #' 
-#' @param pfms A `PSMatrixlist` of position frequency matrices representing 
-#'   transcription factor binding preferences, obtained for example from the 
-#'   JASPAR database. 
+#' @param pfms A `PFMatrixlist` object containing position frequency matrices 
+#'   representing transcription factor binding preferences. Those are obtained, 
+#'   for example, from the JASPAR database. 
 #' 
 #' @param BPPARAM Parallelization parameter passed to `bplapply` function from 
 #'   the `BiocParallel` package. This parameter controls how the parallel
@@ -25,9 +25,10 @@
 #'   See `BiocParallel` documentation for more details.
 #'
 #' @details 
-#' A check on inputs is performed with the helper function `.ps_check`, 
-#' specifying `type == 1`. Duplicated sequences are removed from `x` to avoid 
-#' redundant computations. 
+#' This function validates input types and remove duplicated sequences
+#' from `x` to avoid redundant computations. It also remove all the sequences 
+#' with an N content above 50% and that have a length different from the one of 
+#' the first sequence, that is considered as a reference. 
 #' The motif matrices are background scored by the `ps_scan` function in parallel.
 #' 
 #' @return 
@@ -52,6 +53,7 @@
 #' # Generate the background-scored motif matrices
 #' bg_matrices <- ps_build_bg(prom_seq, J2020, 
 #'                            BPPARAM = BiocParallel::SnowParam(1))
+#' # Use BiocParallel::MulticoreParam() for Unix like systems. 
 #' bg_matrices
 #' @export
 ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
@@ -59,6 +61,8 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   .ps_checks(x, pfms, type = 1)
   
   x <- BiocGenerics::unique(x)
+  
+  x <- .clean_sequence(x)
   
  # if(is(pfms, "PFMatrixList"))
     pfms <- as(pfms, "PSMatrixList")
@@ -93,19 +97,19 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #'   written to a file with `ps_write_bg_to_file`.
 #' 
 #' @param pfms A `PFMatrixList` list of position frequency matrices representing 
-#' transcription factor binding preferences, obtained for example from the 
+#' transcription factor binding preferences, obtained, for example, from the 
 #' JASPAR database. This should correspond to the same frequency matrix list 
 #' used to build the background stored in `file`.
 #'
 #' @details 
 #' This function:
-#' 
-#' - Validates the input with the internal function `.ps_checks`, 
-#'   with `type` set to 2. 
-#' - Reads the input file into a `data.frame`, with row names taken 
-#'   from the first column. 
-#' - Calls `ps_build_bg_from_table` with the created `data.frame` 
-#'   and `pfms` as input.
+#' \itemize{
+#'    \item Validates the input type. Must be a character string.  
+#'    \item Reads the input file into a `data.frame`, with row names taken 
+#'    from the first column. 
+#'    \item Calls `ps_build_bg_from_table` with the created `data.frame` 
+#'    and `pfms` as input.
+#' }
 #' 
 #' @return 
 #' A `PSMatrixList` object, containing each motif matrix from `pfms`, 
@@ -124,12 +128,12 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' load(J2020_path)
 #'
 #' # Generate the background-scored motif matrices from file
-#' bg_matrices <- ps_build_bg_from_file(file_path, J2020)
+#' bg_matrices <- ps_retrieve_bg_from_file(file_path, J2020)
 #' bg_matrices
 #' @seealso \code{\link{ps_build_bg_from_table}}
 #' 
 #' @export
-ps_build_bg_from_file <- function(file, pfms)
+ps_retrieve_bg_from_file <- function(file, pfms)
 {
   .ps_checks(file, pfms, type = 2)
   
@@ -147,31 +151,30 @@ ps_build_bg_from_file <- function(file, pfms)
 #' 
 #' @param x A `data.frame` containing background parameters for each motif.
 #'    The data frame should have the following columns:
-#'    - `BG_SIZE`: Background size.
-#'    - `BG_MEAN`: Mean of the background frequencies.
-#'    - `BG_STDEV`: Standard deviation of the background frequencies.
+#'    \itemize{
+#'       \item `BG_SIZE`: Background size.
+#'       \item `BG_MEAN`: Mean of the background frequencies.
+#'       \item `BG_STDEV`: Standard deviation of the background frequencies.
+#'    }
 #'    The number of rows in `x` must match the number of elements in `pfms`.
 #'    
-#' @param pfms A `PFMatrixList` list of position frequency matrices representing 
-#'   transcription factor binding preferences, obtained for example from the 
+#' @param pfms A `PFMatrixList` object of position frequency matrices representing 
+#'   transcription factor binding preferences, obtained, for example, from the 
 #'   JASPAR database.
 #'   The number of elements in `pfms` should match the number of row of `x`
 #' 
 #' @details 
 #' This function: 
 #' \itemize{
-#'    \item Calls the internal function `.ps_checks()` to validate inputs, with 
-#'    `type == 3`.
+#'    \item Validates the input type. `x` must be a `data.frame`.
 #'    \item Converts each elements of pfms into `PSMatrix` class. 
 #'    \item A warning is issued if the number of elements in `pfms` doesn't match 
 #'    the number of row of `x`.
-#'    \item Applies the internal function `.ps_bg_from_table` to each element of 
-#'    `pfms` with the correspponding background data from `x`. 
 #' }
 #' 
 #' @return 
 #' A `PSMatrixList` object containing each motif matrix from `pfms`, 
-#' scored with background parameters provided from `x`.
+#' scored with background parameters provided by `x`.
 #' 
 #' @importFrom TFBSTools getMatrixSet
 #'
@@ -212,12 +215,13 @@ ps_build_bg_from_table <- function(x, pfms)
 #' Extract background statistics from a `PSMatrixList` object
 #' 
 #' Extracts background statistics (size, mean, and standard deviation) 
-#' from a `PSMatrixlist` of position frequency matrices representing 
+#' from a `PSMatrixList` of position frequency matrices representing 
 #' transcription factor binding preferences and generates a table containing 
 #' these statistics.
 #'
-#' @param pfms A `PSMatrixlist` of position frequency matrices representing 
-#'   transcription factor binding preferences. Each element should be a `PSMatrix` object 
+#' @param pfms A `PSMatrixList` of position frequency matrices representing 
+#'   transcription factor binding preferences. 
+#'   Each element should be a `PSMatrix` object 
 #'   (or should be coercible to `PSMatrix`).
 #'   
 #' @details 
@@ -258,7 +262,6 @@ ps_build_bg_from_table <- function(x, pfms)
 #' bg_matrices <- ps_build_bg_from_table(background_data, J2020_subset)
 #' bg_table <- ps_get_bg_table(bg_matrices)
 #' bg_table 
-#' @seealso \code{\link{ps_generics}}
 #' 
 #' @export
 ps_get_bg_table <- function(pfms)
@@ -277,7 +280,7 @@ ps_get_bg_table <- function(pfms)
 #' for each position frequency matrix in a `PSMatrixList` object to a specified 
 #' file. 
 #'
-#' @param pfms A `PFMatrixList` object of position frequency matrices 
+#' @param pfms A `PSMatrixList` object of position frequency matrices 
 #'   representing transcription factor binding preferences, obtained for example 
 #'   from the JASPAR database. Each element should be of `PSMatrix` class or 
 #'   coercible to `PSMatrix`.
@@ -286,10 +289,9 @@ ps_get_bg_table <- function(pfms)
 #'   the background statistics should be saved.
 #'
 #' @details 
-#' It validates the input by calling the helper function `ps.checks2()`.
-#' It retrieves the background statistics (size, mean, and standard deviation)
-#' using `ps_get_bg_table()` from the input `PSMatrixList` object, then writes 
-#' the result to a specified file. 
+#' This function retrieves the background statistics (size, mean, and standard deviation)
+#' using `ps_get_bg_table()` from the input `PSMatrixList` object, after having
+#' validated the inputs. Then, it writes the result to a specified file. 
 #' A header is added to the file (`[SHORT TFBS MATRIX`]). 
 #'
 #' @return None. It saves the given background statistics to the specified file

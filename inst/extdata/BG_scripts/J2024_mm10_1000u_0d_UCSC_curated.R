@@ -6,23 +6,24 @@
 #source("R/Scan_and_post_processing.R", local = TRUE, echo = FALSE)
 
 
-#txdb <- makeTxDbFromUCSC(genome="mm10", tablename="refGene") #import gtf annotation from UCSC
-options(timeout = 60)
 txdb <- txdbmaker::makeTxDbFromUCSC(genome="mm10", tablename="ncbiRefSeqCurated") #import gtf annotation from UCSC
-GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:22] #use only annotations on canonical chromosomes
+#txdb <- txdbmaker::makeTxDbFromUCSC(genome="mm10", tablename="refGene") #import gtf annotation from UCSC
+GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:21] #use only annotations on canonical chromosomes
 
 prom_rng <- GenomicFeatures::promoters(txdb, upstream = 1000, downstream = 0, use.names = TRUE) 
 prom_seq <- Biostrings::getSeq(x = BSgenome.Mmusculus.UCSC.mm10::BSgenome.Mmusculus.UCSC.mm10, 
                                prom_rng) #promoter sequences
-
 opts <- list()
 opts[["collection"]] <- "CORE"
 opts[["tax_group"]] <- "vertebrates"
 
-J2022 <- TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts) #core Jaspar 2022 profiles for vertebrates
 
-J2022_PSBG <- PscanR::ps_build_bg(prom_seq, J2022, BPPARAM = BiocParallel::MulticoreParam(12)) #Build Pscan Background
+httr::set_config(httr::config(ssl_verifypeer = 0L))
+JASPAR2024 <- JASPAR2024::JASPAR2024()
+JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), JASPAR2024::db(JASPAR2024))
+J2024 <- TFBSTools::getMatrixSet(JASPARConnect, opts) #core Jaspar 2024 profiles for vertebrates
 
-PscanR::ps_write_bg_to_file(J2022_PSBG, "J2022_mm10_1000u_0d_UCSC.psbg.txt")
+J2024_PSBG <- PscanR::ps_build_bg(prom_seq, J2024, BPPARAM = BiocParallel::MulticoreParam(12)) #Build Pscan Background
 
-#rm(list = c("J2020", "opts", "prom_seq", "prom_rng"))
+PscanR::ps_write_bg_to_file(J2024_PSBG, "J2024_mm10_1000u_0d_UCSC.psbg.txt")
+

@@ -7,8 +7,9 @@
 ps_get_bg_table(pfms)
 }
 \arguments{
-\item{pfms}{A `PSMatrixlist` of position frequency matrices representing 
-transcription factor binding preferences. Each element should be a `PSMatrix` object 
+\item{pfms}{A `PSMatrixList` of position frequency matrices representing 
+transcription factor binding preferences. 
+Each element should be a `PSMatrix` object 
 (or should be coercible to `PSMatrix`).}
 }
 \value{
@@ -25,7 +26,7 @@ Columns:
 }
 \description{
 Extracts background statistics (size, mean, and standard deviation) 
-from a `PSMatrixlist` of position frequency matrices representing 
+from a `PSMatrixList` of position frequency matrices representing 
 transcription factor binding preferences and generates a table containing 
 these statistics.
 }
@@ -54,7 +55,5 @@ rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")
 bg_matrices <- ps_build_bg_from_table(background_data, J2020_subset)
 bg_table <- ps_get_bg_table(bg_matrices)
 bg_table 
-}
-\seealso{
-\code{\link{ps_generics}}
+
 }

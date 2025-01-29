@@ -9,19 +9,21 @@ ps_build_bg_from_table(x, pfms)
 \arguments{
 \item{x}{A `data.frame` containing background parameters for each motif.
 The data frame should have the following columns:
-- `BG_SIZE`: Background size.
-- `BG_MEAN`: Mean of the background frequencies.
-- `BG_STDEV`: Standard deviation of the background frequencies.
+\itemize{
+   \item `BG_SIZE`: Background size.
+   \item `BG_MEAN`: Mean of the background frequencies.
+   \item `BG_STDEV`: Standard deviation of the background frequencies.
+}
 The number of rows in `x` must match the number of elements in `pfms`.}
 
-\item{pfms}{A `PFMatrixList` list of position frequency matrices representing 
-transcription factor binding preferences, obtained for example from the 
+\item{pfms}{A `PFMatrixList` object of position frequency matrices representing 
+transcription factor binding preferences, obtained, for example, from the 
 JASPAR database.
 The number of elements in `pfms` should match the number of row of `x`}
 }
 \value{
 A `PSMatrixList` object containing each motif matrix from `pfms`, 
-scored with background parameters provided from `x`.
+scored with background parameters provided by `x`.
 }
 \description{
 Associates background parameters from a data frame with a list of position 
@@ -31,13 +33,10 @@ frequency matrices (PFMs) and returns the list of updated matrices as
 \details{
 This function: 
 \itemize{
-   \item Calls the internal function `.ps_checks()` to validate inputs, with 
-   `type == 3`.
+   \item Validates the input type. `x` must be a `data.frame`.
    \item Converts each elements of pfms into `PSMatrix` class. 
    \item A warning is issued if the number of elements in `pfms` doesn't match 
    the number of row of `x`.
-   \item Applies the internal function `.ps_bg_from_table` to each element of 
-   `pfms` with the correspponding background data from `x`. 
 }
 }
 \examples{
