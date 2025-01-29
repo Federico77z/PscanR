@@ -130,7 +130,7 @@
 .clean_sequence <- function(x){
   
   seq_widths <- Biostrings::width(x)
-  ref_width <- Biostrings::width(x[1])
+  ref_width <- max(Biostrings::width(x))
   
   diff_length_seq <- x[seq_widths != ref_width]
   
