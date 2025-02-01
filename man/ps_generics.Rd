@@ -17,8 +17,6 @@
 \alias{ps_hits_oligo}
 \alias{ps_hits_table}
 \alias{ps_seq_names}
-\alias{.PS_PSEUDOCOUNT}
-\alias{.PS_ALPHABET}
 \alias{ps_scan}
 \title{Retrieve or Manipulate Properties of PSMatrix Class}
 \usage{
@@ -51,10 +49,6 @@ ps_hits_oligo(x, ...)
 ps_hits_table(x, ...)
 
 ps_seq_names(x, ...)
-
-.PS_PSEUDOCOUNT(x, ...)
-
-.PS_ALPHABET(x, ...)
 
 ps_scan(x, ...)
 }
@@ -101,10 +95,6 @@ For `ps_hits_table`: a `data.frame` of hits.
 
 For `ps_seq_names`: a character vector of sequence names.
 
-For `.PS_PSEUDOCOUNT`: a numeric value representing the pseudocount.
-
-For `.PS_ALPHABET`: integer values.
-
 A `data.frame` of hits.
 }
 \description{
@@ -142,10 +132,6 @@ various properties of `PSMatrix` objects.
 \item \code{ps_hits_table()}: Retrieve the hits table from an object
 
 \item \code{ps_seq_names()}: Retrieve the sequence name from an object
-
-\item \code{.PS_PSEUDOCOUNT()}: Retrieve the pseudocount value
-
-\item \code{.PS_ALPHABET()}: Retrieve the numbers representing the DNA alphabet
 
 \item \code{ps_scan()}: Perform a scan operation on an Object
 
@@ -206,13 +192,5 @@ ps_hits_table(pfm1)
 pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
 load(pfm1_path)
 ps_seq_names(pfm1)
-
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
-load(pfm1_path)
-.PS_PSEUDOCOUNT(pfm1)
-
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
-load(pfm1_path)
-.PS_ALPHABET(pfm1)
 
 }

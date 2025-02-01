@@ -14,7 +14,9 @@ the output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric value representing the `PSMatrix` Z-score.
+A numeric value representing the `PSMatrix` Z-score. This associates 
+with each profile the probability of obtaining the same score on a random 
+sequence set.
 }
 \description{
 Retrieves the Z-Score stored in a `PSMatrix` object.

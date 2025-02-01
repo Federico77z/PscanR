@@ -11,10 +11,15 @@ pscan(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions())
 from co-regulated or co-expressed genes (i.e. a set of gene promoters). 
 See the Biostrings package for details.}
 
-\item{pfms}{An object of `PSMatrixList` class containing PWMs and background 
-values. See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
+\item{pfms}{A `PSMatrixList` object containing PWMs and background statistics. 
+See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
 \code{\link{ps_build_bg_from_table}} for how to create `PSMatrixList` 
-objects that contain background statistics.}
+objects that contain background statistics. For background statistics we
+refer to the standard deviation and average of scores when the background 
+(all the promoters expressed in a organism) is scanned with the position 
+weight matrices. This is used to assert the statistical enrichment to 
+determine the statistical enrichment of motif occurrences in coexpressed 
+or coregulated promoter sequences compared to the background.}
 
 \item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel package.
 This argument is passed to `BiocParallel::bplapply`.
@@ -34,7 +39,7 @@ processing many tasks. log = TRUE enable logging to debug each step of
 the parallel tasks.}
 }
 \value{
-A `PSMatrixList` object in which the foreground value (the alignment scores)
+A `PSMatrixList` object in which the foreground values (the alignment scores)
 have been computed for each sequence in `x` based on the position weight 
 matrices in `pfms`.
 }

@@ -27,6 +27,8 @@ Z-scores for transcription factors (TFs) based on a specified false discovery
 rate threshold. It allows customization of the heatmap's appearance.
 }
 \details{
+The heatmap represents the correlation of motif Z-scores, helping to identify 
+clusters of motifs that show similar enrichment patterns across sequences. 
 The function performs the following steps:
 \itemize{
   \item Extracts the result table and the z-score table from the pscan 

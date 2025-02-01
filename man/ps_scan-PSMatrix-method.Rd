@@ -7,18 +7,31 @@
 \S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE)
 }
 \arguments{
-\item{x}{An object of `PSMatrix` class.}
+\item{x}{A `PSMatrix` object representing the motif and related statistics 
+to be used for scanning DNA sequences.}
 
 \item{seqs}{`A DNAstringSet` object representing the sequences to be
-scanned.}
+scanned for motif occurrences.}
 
-\item{BG}{A logical value indincating whether the scan is for background
-sequences. Default is set to `FALSE`.}
+\item{BG}{A logical value indicating whether to calculate background statistics.
+Default is set to `FALSE`.}
 }
 \value{
-The updated `PSMatrix` object with the scanning results.
+A `PSMatrix` object, with updated information about the motif hits 
+    in the sequences. This includes the positions, strands, scores, and 
+    oligos (sequence motifs) where the hits occurred.
 }
 \description{
 This method performs a scan of DNA sequences using a `PSMatrix` object 
-to identify potential hits based on the matrix score.
+to identify potential hits based on the matrix score. The scan is 
+performed on both strands (the direct and reverse complement strands) of the 
+sequences to ensure that no potential binding sites are missed.
+}
+\details{
+The function scans each sequence for motif occurrences, computes motif scores, 
+and stores the hit details in the `PSMatrix` object. The scan is performed on 
+both the forward and reverse complement strands of the sequences to ensure 
+all potential binding sites are detected. Optionally, the background statistics 
+(background average and standard deviation) can be computed and used during 
+scanning.
 }

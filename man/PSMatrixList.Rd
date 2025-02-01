@@ -12,19 +12,25 @@ PSMatrixList(..., use.names = TRUE)
 \item{use.names}{Logical. Assert whether to use names from the input objects.
 Default = `TRUE`}
 
-\item{from}{An object of class `PFMatrix`.}
+\item{from}{A `PFMatrixList` object, which is a list of `PFMatrix` objects 
+to be converted into a `PSMatrixList`.}
 }
 \value{
-An object of class `PSMatrixList`.
+A `PSMatrixList` object, which is a list containing `PSMatrix` objects.
+    Each element in the list corresponds to a `PSMatrix` object provided as 
+    input.
 
-An object of class `PSMatrixList`.
+A `PSMatrixList` object, which is a list containing the `PSMatrix` objects 
+    converted from the `PFMatrixList`.
 }
 \description{
 This function creates a `PSMatrixList` object, which is a container for 
 managing multiple `PSMatrix` object.
 
-This method creates a `PSMatrixList` object starting from different 
-`PFMatrix` object.
+This method converts a `PFMatrixList` object into a `PSMatrixList` object by 
+applying the conversion for each `PFMatrix` in the list to a `PSMatrix`. 
+The resulting `PSMatrixList` is created by combining the converted `PSMatrix` 
+objects into a list and returning the new object.
 }
 \examples{
 # Load JASPAR motif matrices for vertebrates

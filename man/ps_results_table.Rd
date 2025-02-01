@@ -13,7 +13,8 @@ of `pscan()` function.}
 }
 \value{
 A data.frame with matrices ordered by increasing P.VALUE and decreasing 
-ZSCORE, containing the following columns: 
+ZSCORE, prioritizing significant and strongly enriched motifs.
+it contains the following columns: 
 \itemize{
   \item "NAME": The names of the matrices.
   \item "BG_AVG": The average background score for each PWM.
@@ -23,16 +24,18 @@ ZSCORE, containing the following columns:
   \item "ZSCORE": The Z-score for each PWM.
   \item "P.VALUE": The p-value for each PWM.
   \item "FDR": The adjusted p-value (False Discovery Rate) calculated using 
-  the Benjamini-Hochberg method.
+  the Benjamini-Hochberg correction.
 }
 }
 \description{
-This function generates a table summarizing the Pscan results stored in a 
-`PSMatrixList` object. It retrieves pre-computed background and foreground 
-statistics (the alignment scores between regulatory sequences 
-and position weight matrices) for each PWM, calculates adjusted p-values 
-(FDR), and returns a table ordered by decreasing `ZSCORE` and 
-increasing `P.VALUE`.
+This function generates a table summarizing the statistical analysis of motif 
+enrichment, stored in a `PSMatrixList` object. It retrieves pre-computed 
+background and foreground statistics (the alignment scores between Pscan input
+regulatory sequences and position weight matrices) for each PWM. 
+Then it compares motif occurrences in the foreground (e.g., 
+coexpressed/coregulated promoter sequences) with the background (e.g., all 
+promoters in an organism) using Z-scores, p-values, and FDR correction.
+Returns a table ordered by decreasing `ZSCORE` and increasing `P.VALUE`.
 }
 \examples{
 
@@ -53,7 +56,7 @@ results <- pscan(prom_seq, J2020_PSBG,
                  BPPARAM = BiocParallel::SnowParam(12))
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
-table <- ps_results_table(results)
+ps_results_table(results)
 
 }
 \seealso{

@@ -10,11 +10,20 @@
 \item{object}{An object of class `PSMatrix`.}
 }
 \value{
-An object of class `PSMatrix` with its details displyed.
+Prints a summary of the `PSMatrix` object, including:
+\itemize{
+  \item Pscan Background Average
+  \item Pscan Foreground (the sample) Average
+  \item Pscan Background Standard Deviation
+  \item Pscan Background Size
+  \item Pscan Foreground (the sample) Size
+  \item Pscan Z-score
+  \item Pscan p-value (Z-test)
+}
 }
 \description{
-This method displays information about a `PSMatrix` object, including 
-background and foreground statistics, satndard deviation, background 
+This method displays a summary of a `PSMatrix` object, including 
+background and foreground statistics, standard deviation, background 
 and foreground size, z-scores and P-Value.
 }
 \examples{

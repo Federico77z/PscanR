@@ -2,7 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{PSMatrix}
 \alias{PSMatrix}
-\title{Create a PSMatrix object}
+\title{Create a `PSMatrix` object}
 \usage{
 PSMatrix(
   pfm,
@@ -15,34 +15,48 @@ PSMatrix(
 )
 }
 \arguments{
-\item{pfm}{An object of class `PFMatrix` from the `TFBSTools` package 
-representing a position frequency matrix.}
+\item{pfm}{An object of class `PFMatrix` from the `TFBSTools` package, 
+typically a position frequency matrix (PWM) representing the motif for 
+which all the organism's promoter regions will be scanned.}
 
-\item{ps_bg_avg}{Numeric. The background average value, default = `NA`.}
+\item{ps_bg_avg}{Numeric. The background average value, default = `NA`.
+It is the average binding score of promoter regions when scanned with a PWM.}
 
-\item{ps_fg_avg}{Numeric. The foreground average value, default = `NA`.}
+\item{ps_fg_avg}{Numeric. The foreground average value, default = `NA`.
+Represents the average binding score of a set of promoter regions of 
+co-expressed or co-regulated genes when scanned with a PWM.}
 
-\item{ps_bg_std_dev}{Numeric. The standard deviation of the background, 
+\item{ps_bg_std_dev}{Numeric. The background standard deviation of PWM scores, 
 default = `NA`.}
 
-\item{ps_bg_size}{Integer. The size of the background dataset, 
+\item{ps_bg_size}{Integer. The size of the background promoter region, 
 default = `NA`.}
 
-\item{.PS_PSEUDOCOUNT}{Numeric. The pseudocount to add to avoid division
+\item{.PS_PSEUDOCOUNT}{Numeric. The Pseudo-Count to add to avoid division
 by zero. Default = `0.01`}
 
-\item{...}{Additional arguments to pass to downstream function.}
+\item{...}{Additional arguments passed to other methods or used in the 
+initialization.}
 
 \item{from}{A `PFMatrix` object to be converted to a `PSMatrix` one.}
 }
 \value{
-An object of `PSMatrix` class.
+A `PSMatrix` object containing the provided statistics, initialized 
+   with default or provided values.
 
 A `PSMatrix` object created from the input `PFMatrix` object.
 }
 \description{
-This function creates an instance of the `PSMatrix` class by initializing its
-slots with default values.
+This function creates a `PSMatrix` object, which contains various statistics 
+and data related to promoter sequence motif hits, such as background and 
+foreground averages, standard deviation, size, z-scores, and other related 
+information.
+}
+\details{
+When a `PSMatrix` object is created or modified, it is automatically validated 
+using an internal function. The validation ensures that the background and 
+foreground statistics are properly formatted, and that motif hit-related 
+vectors have consistent lengths.
 }
 \examples{
 

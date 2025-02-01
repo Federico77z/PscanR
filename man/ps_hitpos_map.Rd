@@ -14,7 +14,7 @@ of `pscan()` function.}
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to be included in the analysis. The default is set to `0.01`.}
 
-\item{shift}{Numeric. A value to shift the positions of hits. 
+\item{shift}{Integer. A value to shift the reported positions of motif hits. 
 Default is set to `0`.}
 
 \item{...}{Additional user defined arguments that can be passed to 
@@ -26,7 +26,8 @@ A heatmap plot showing positional hits distribution for selected
 }
 \description{
 This function creates a heatmap visualizing the positional distribution
-of hits based on a specified false discovery rate threshold.
+of motif hits based on a specified false discovery rate threshold. The heatmap 
+helps visualize where significant motif hits occur within the analyzed sequences.
 }
 \details{
 The function performs the following steps: 
@@ -35,7 +36,7 @@ The function performs the following steps:
   \item Filters the result table based on the given FDR threshold.
   \item Creates a positional hits matrix.
   \item Generates the heatmap using the `pheatmap` function, 
-     with costumizable settings.}
+     with customizable settings.}
 
 Default settings, that can be changed by the users, are:
 \itemize{

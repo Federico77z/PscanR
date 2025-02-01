@@ -14,10 +14,13 @@ output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-An integer value representing the `PSMatrix` foreground size.
+An integer representing the total number of promoter sequences used 
+   as input to Pscan.
 }
 \description{
-Retrieves the foreground dimension stored in a `PSMatrix` object.
+Retrieves the number of promoter sequences given as input to the Pscan 
+algorithm in a `PSMatrix` object. This represents the total number of 
+sequences analyzed for motif enrichment.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")

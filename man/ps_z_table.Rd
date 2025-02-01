@@ -2,7 +2,7 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_z_table}
 \alias{ps_z_table}
-\title{Generate a Z-score Table for Motifs}
+\title{Generate a Z-score Table for Motif Hits}
 \usage{
 ps_z_table(pfms)
 }
@@ -18,10 +18,14 @@ matrix are Z-scores, indicating the statistical significance of the alignment
 between each sequence and the motif.
 }
 \description{
-This function calculates the Z-score for each motif in a `PSMatrixList` 
-object and organizes the results into a matrix. The Z-Score represents
-the statistical significance of the alignment scores for regulatory 
-sequences relative to background expectation.
+This function creates a matrix of Z-scores for motif occurrences across 
+multiple PSMatrix contained in a `PSMatrixList` object. Each row corresponds 
+to a sequence, and each column represents a motif.
+}
+\details{
+The Z-Score represents the statistical significance of the alignment scores 
+for regulatory sequences relative to background expectation. A high Z-score 
+suggests strong motif enrichment in the foreground compared to the background.
 }
 \examples{
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")

@@ -14,10 +14,13 @@ output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-An integer value representing the `PSMatrix` background size.
+An integer value representing the total number of promoter regions
+   used for background scoring.
 }
 \description{
-Retrieves the background dimension stored in a `PSMatrix` object.
+Retrieves the number of promoter regions used to compute the background 
+statistics in a `PSMatrix` object. This represents the total number of 
+promoters expressed in the organism of study.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")

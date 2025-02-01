@@ -2,22 +2,27 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_score_position_BubbleChart}
 \alias{ps_score_position_BubbleChart}
-\title{Bubble chart of Pscan Hits Score vs Position}
+\title{Bubble chart of Pscan Motif Score vs Position}
 \usage{
 ps_score_position_BubbleChart(pfm, bubble_color = "blue")
 }
 \arguments{
-\item{pfm}{An object of class `PSMatrix`. It must be processed by the PscanR 
+\item{pfm}{A `PSMatrix` object. It must be processed by the PscanR 
 algorithm.}
+
+\item{bubble_color}{A character string specifying the color of the bubbles 
+(default: `"blue"`).}
 }
 \value{
-A ggplot object representing a bubble chart. The x-axis corresponds 
-to the hits position, the y-axis corresponds to the hits score, and the 
-size of the bubbles represents the count of occurrences.
+A ggplot2 bubble chart. The x-axis corresponds to the position of 
+motif hits along the promoter, the y-axis corresponds to the score of motif 
+hits, and the size of the bubbles represents the count of occurrences for 
+each score-position combination.
 }
 \description{
-This function visualizes the Bubble Chart to visualize the relationship
-between position and score of the identified sites in a `PSMatrix` object.
+This function creates a Bubble Chart to visualize the relationship
+between position and score of the identified sites along the promoter sequences 
+in a `PSMatrix` object.
 }
 \details{
 The function computes the count of occurrences for each combination of 

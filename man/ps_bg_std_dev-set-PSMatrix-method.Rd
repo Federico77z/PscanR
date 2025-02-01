@@ -2,22 +2,23 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_bg_std_dev<-,PSMatrix-method}
 \alias{ps_bg_std_dev<-,PSMatrix-method}
-\title{Setter Method for Background Standard Deviation in PSMatrix}
+\title{Set Background Standard Deviation}
 \usage{
 \S4method{ps_bg_std_dev}{PSMatrix}(x) <- value
 }
 \arguments{
-\item{x}{An object of class `PSMatrix`.}
+\item{x}{A `PSMatrix` object.}
 
-\item{value}{Numeric. The standard deviation background value to be set.}
+\item{value}{Numeric. The value representing the new background 
+standard deviation.}
 }
 \value{
 The modified `PSMatrix` object with the updated background 
    standard deviation.
 }
 \description{
-This method specifically set the background standard deviation
-for an object of class `PSMatrix`.
+This method updated the background standard deviation stored in a `PSMatrix`
+object.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")

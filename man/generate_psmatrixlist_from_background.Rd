@@ -2,20 +2,21 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{generate_psmatrixlist_from_background}
 \alias{generate_psmatrixlist_from_background}
-\title{Generate PSMatrixList from Background and JASPAR Matrix}
+\title{Generate PSMatrixList from Background data and JASPAR Matrix}
 \usage{
 generate_psmatrixlist_from_background(JASPAR_matrix, org, prom_reg, assembly)
 }
 \arguments{
 \item{JASPAR_matrix}{A character string specifying the JASPAR database 
 version. You can choose between 'JASPAR2020', 'JASPAR2022', or 
-'JASPAR2024'}
+'JASPAR2024' (non case sensitive).}
 
-\item{org}{The accepted values are: `hs` (Homo sapiens), `mm` (Mus musculus), 
-`at` (Arabidopsis thaliana), `sc` (Saccharomyces cerevisiae), `dm`
-(Drosophila melanogaster).}
+\item{org}{A string representing the organism acronym. Accepted values are: 
+`hs` (Homo sapiens), `mm` (Mus musculus), `at` (Arabidopsis thaliana), 
+`sc` (Saccharomyces cerevisiae), `dm` (Drosophila melanogaster).}
 
-\item{prom_reg}{A numeric vector of two integers indicating the range 
+\item{prom_reg}{A numeric vector of two integers as `[upstream, downstream]` à
+from the transcription start site (TSS) indicating the range 
 of the promoter region. You can choose between:
 \itemize{
   \item 200 base pairs upstream and 50 downstream base pair from the TSS 
@@ -25,15 +26,19 @@ of the promoter region. You can choose between:
   \item 950 bp upstream and 50 downstream (c(-950, 50))
   \item 1000 bp upstream and 0 downstream (c(-1000, 0))
   }}
+
+\item{assembly}{A string representing the assembly version for Human or 
+mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
+For `"mm"` you can specify `"mm10"` or `"mm39"`.}
 }
 \value{
 A `PSMatrixList` object created from the specified background 
-file and JASPAR matrix
+file and JASPAR matrix.
 }
 \description{
-This function generates an object of class `PSMatrixList` using a specified 
-JASPAR matrix, an organism identifier, and a promoter region range. 
-It is designed to work with only JASPAR database and UCSC annotations.
+This function retrieves background data for a specified organism and promoter 
+region, and then fetches a corresponding matrix set from a specified JASPAR 
+version. It returns a `PSMatrixList` object.
 }
 \examples{
 generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50))

@@ -2,40 +2,42 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_density_distances_plot}
 \alias{ps_density_distances_plot}
-\title{Density Plot of Distances between Identified Sites in two PSMatrix Object}
+\title{Density Plot of Distances between Identified Motif Hits in two PSMatrix Object}
 \usage{
 ps_density_distances_plot(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
 }
 \arguments{
-\item{M1}{An object of class `PSMatrix`. It must be processed by the PscanR 
+\item{M1}{A `PSMatrix` object. It must be processed by the PscanR 
 algorithm.}
 
-\item{M2}{An object of class `PSMatrix`. It must be processed by the PscanR 
+\item{M2}{A `PSMatrix` object. It must be processed by the PscanR 
 algorithm.}
 
-\item{st1}{Score threshold used to filter hits for the first PSMatrix . 
+\item{st1}{Score threshold used to filter hits for the first `PSMatrix` . 
 Can be a numeric value to set the threshold directly, or a character:
 \itemize{
-  \item `all`: the threshold is set to `0` (so, no threshold. All the hits
-  are evaluated).
+  \item `all`: the threshold is set to `0` (All hits are evaluated).
   \item `loose`: uses the background average as threshold.
   \item `strict`: uses the background average plus the background standard 
   deviation as threshold.}
-Default is set to loose.}
+Default is set to `loose`.}
 
-\item{st2}{Score threshold used to filter hits for the second PSMatrix. 
+\item{st2}{Score threshold used to filter hits for the second `PSMatrix`. 
 Can be a numeric value to set the threshold directly, or a character, as 
 for st1. 
-Default is set to loose.}
+Default is set to `loose`.}
 }
 \value{
-A density plot visualizing the distances between identified sites 
-   in \code{M1} and \code{M2}.
+A density plot showing the distribution of distances between 
+   identified motif hits in \code{M1} and \code{M2}. The x-axis represents 
+   the distances between corresponding hits, and the y-axis represents 
+   the density of those distances.
 }
 \description{
-This function visualizes the density plot of distances between identified 
-sites in two `PSMatrix` object. It allows to filter the identified sites
-based on a specified threshold value.
+This function visualizes the density plot of distances between identified hits 
+sites in two `PSMatrix` object. The distance between hits is calculated 
+for each sequence that is present in both matrices. 
+It allows to filter the identified sites based on a specified threshold value.
 }
 \examples{
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")

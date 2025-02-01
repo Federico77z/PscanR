@@ -2,7 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_hits_table,PSMatrix-method}
 \alias{ps_hits_table,PSMatrix-method}
-\title{Retrieve a PSHits Table with Scores, Positions, Strands, and Oligonucleotides}
+\title{Get Table of Motif Hits}
 \usage{
 \S4method{ps_hits_table}{PSMatrix}(x, pos_shift = 0L, withDimnames = TRUE)
 }
@@ -15,7 +15,8 @@ slots:
   (`-` and `+`).
   \item `ps_hits_oligo`: a character vector of oligo sequences.}}
 
-\item{pos_shift}{Integer. Value for which the position gets shifted.}
+\item{pos_shift}{Integer. Value for which the position gets shifted.
+Default is `0`, meaning no shift.}
 
 \item{withDimnames}{Logical, whether to include dimension names in the output, 
 if they exist in the object.
@@ -25,14 +26,17 @@ Default set to `TRUE`.}
 A `data.frame` ordered by decreasing score value, 
 with the following columns:
 \itemize{
-  \item `SCORE`: the score value of each hit
-  \item `POS`: the position value of each hit
-  \item `STRAND`: the strand information for each hit
+  \item `SCORE`: the motif hit score
+  \item `POS`: the position of the motif hit
+  \item `STRAND`: the strand orientation for each hit
   \item `OLIGO`: the oligo sequence corresponding to each hit} 
 Row names correspond to the sequences name.
 }
 \description{
-Retrieve a PSHits Table with Scores, Positions, Strands, and Oligonucleotides
+Creates a data frame summarizing the motif hits from a `PSMatrix` object, including 
+the motif hit score, position, strand, and corresponding oligo sequence.
+The resulting table is sorted by motif score (descending). When the score is 
+the same between two sequences, they are sorted by ascending position.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")

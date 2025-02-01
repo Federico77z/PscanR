@@ -2,7 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_hits_pos,PSMatrix-method}
 \alias{ps_hits_pos,PSMatrix-method}
-\title{Get Adjusted Positions for Hits in a `PSMatrix` Object}
+\title{Get Motif Hit Positions}
 \usage{
 \S4method{ps_hits_pos}{PSMatrix}(x, pos_shift = 0L, withDimnames = TRUE)
 }
@@ -17,11 +17,13 @@ if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-An integer vector containing the position of hits of a `PSMatrix` object.
+A named integer vector where names correspond to promoter sequence 
+   identifiers, and values represent the adjusted motif hit positions.
 }
 \description{
-Retrieves the positions of hits stored in a `PSMatrix` object, optionally 
-applying a position shift.
+Retrieves the positions of hits stored in a `PSMatrix` object. These positions 
+indicate where the motifs are located in each promoter sequence. The positions 
+can be optionally shifted by a specified value.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
