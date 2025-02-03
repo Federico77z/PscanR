@@ -626,7 +626,7 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
 #' 
 ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
 {
-  if(class(M1) != "PSMatrix" || class(M2) != "PSMatrix") {
+  if (!is(M1, "PSMatrix") || !is(M2, "PSMatrix")) {
     stop("Both object must be of class PSMatrix")
   }
   
