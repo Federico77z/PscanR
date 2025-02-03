@@ -67,14 +67,17 @@ BG_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
 # Get the target regions
 target <- read.csv(file_path, header = FALSE)
 
+# Due to computational time, these lines are not computed in the vignette, 
+# instead a pre-computed prom_rng varible is loaded
 #txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", 
 #                                    tablename="ncbiRefSeqCurated")
+#seqlevels(txdb) <- seqlevels(txdb)[1:24]
+# prom_rng <- GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE)
 
-txdb_path <- system.file("extdata", "txdb.db", package = "PscanR")
-txdb <- AnnotationDbi::loadDb(txdb_path)
-seqlevels(txdb) <- seqlevels(txdb)[1:24]
+promoters_path <- system.file("extdata", "promoters.rds", 
+                         package = "PscanR")
+prom_rng <- readRDS(promoters_path)
 
-prom_rng <- GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE)
 prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
 target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
 
