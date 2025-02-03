@@ -24,7 +24,7 @@ the statistical significance of motif enrichment in the input sequences in
 respect to the background.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_pvalue(pfm1)
 

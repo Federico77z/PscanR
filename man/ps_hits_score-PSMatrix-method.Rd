@@ -23,7 +23,7 @@ These scores represent the binding affinity or enrichment level of promoter
 sequences when scanned with a Position Weight Matrix (PWM).
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_hits_score(pfm1)
 

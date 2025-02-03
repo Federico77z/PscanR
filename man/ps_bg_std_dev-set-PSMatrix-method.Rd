@@ -21,7 +21,7 @@ This method updated the background standard deviation stored in a `PSMatrix`
 object.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 `ps_bg_std_dev<-`(pfm1, value = 0.08568925)
 

@@ -24,7 +24,7 @@ sequences (all the promoters expressed in an organism). Higher Z-scores mean
 stronger motif enrichment, suggesting potential regulatory significance.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_hits_z(pfm1)
 

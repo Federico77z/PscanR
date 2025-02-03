@@ -27,7 +27,7 @@ background and foreground statistics, standard deviation, background
 and foreground size, z-scores and P-Value.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 show(pfm1)
 

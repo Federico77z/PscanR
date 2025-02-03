@@ -26,7 +26,7 @@ The Pscan algorithm scans both the strands of the promoter sequences to
 ensure that no potential binding sites are missed.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_hits_strand(pfm1)
 

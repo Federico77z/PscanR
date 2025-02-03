@@ -23,7 +23,7 @@ Retrieves the number of motif hits detected by the Pscan algorithm in a
 promoter sequence and the Position Weight Matrix (PWM).
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_hits_size(pfm1)
 

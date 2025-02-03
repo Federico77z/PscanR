@@ -5,6 +5,8 @@
 \title{Create a `PSMatrixList` object}
 \usage{
 PSMatrixList(..., use.names = TRUE)
+
+setAs("PFMatrixList", "PSMatrixList", function(from))
 }
 \arguments{
 \item{...}{Objects of class `PSMatrix` to include in the list.}

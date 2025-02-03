@@ -48,6 +48,9 @@ The function performs the following steps:
    }
 }
 \examples{
+
+# The generation of the example might take few minutes
+
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:50]

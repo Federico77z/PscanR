@@ -53,7 +53,7 @@ J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 
 # Execute the PScan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::SnowParam(12))
+                 BPPARAM = BiocParallel::SnowParam(1))
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
 ps_results_table(results)

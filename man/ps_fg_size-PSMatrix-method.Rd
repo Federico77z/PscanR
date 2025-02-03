@@ -23,7 +23,7 @@ algorithm in a `PSMatrix` object. This represents the total number of
 sequences analyzed for motif enrichment.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_fg_size(pfm1)
 

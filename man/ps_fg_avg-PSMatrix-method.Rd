@@ -26,7 +26,7 @@ This score represents the average binding score of a set of promoter regions
 of co-expressed or co-regulated genes when scanned with a PWM.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_fg_avg(pfm1)
 

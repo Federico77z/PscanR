@@ -22,7 +22,7 @@ object. These names correspond to the promoter regions that were scanned by
 the Pscan algorithm.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_seq_names(pfm1)
 

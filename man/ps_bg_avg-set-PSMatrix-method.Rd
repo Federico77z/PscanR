@@ -24,7 +24,7 @@ statistics, such as the average score and standard deviation. This method
 allows user to modify this value.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 `ps_bg_avg<-`(pfm1, value = 0.73473) 
 

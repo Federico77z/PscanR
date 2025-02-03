@@ -30,7 +30,7 @@ It performs the following steps:
   vectors must be equal.}
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 validPSMatrix(pfm1)
 

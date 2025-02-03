@@ -20,7 +20,7 @@ The background size represents the number of promoter regions used in the
 background model.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 `ps_bg_size<-`(pfm1, value = 25629L)
 

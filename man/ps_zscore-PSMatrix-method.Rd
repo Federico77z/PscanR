@@ -22,7 +22,7 @@ sequence set.
 Retrieves the Z-Score stored in a `PSMatrix` object.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_zscore(pfm1)
 

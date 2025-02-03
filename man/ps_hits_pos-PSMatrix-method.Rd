@@ -26,7 +26,7 @@ indicate where the motifs are located in each promoter sequence. The positions
 can be optionally shifted by a specified value.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_hits_pos(pfm1)
 

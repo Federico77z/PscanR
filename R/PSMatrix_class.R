@@ -160,7 +160,7 @@ NULL
 #' @return For `ps_zscore`: a numeric value representing the Z-score.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_zscore(pfm1)
 #' 
@@ -173,7 +173,7 @@ setGeneric("ps_zscore", function(x, ...) standardGeneric("ps_zscore"))
 #' @return For `ps_pvalue`: a numeric value representing the P-Value.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_pvalue(pfm1)
 #' 
@@ -186,7 +186,7 @@ setGeneric("ps_pvalue", function(x, ...) standardGeneric("ps_pvalue"))
 #' @return For `ps_bg_avg`: a numeric value representing the average background.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_bg_avg(pfm1)
 #' 
@@ -198,7 +198,7 @@ setGeneric("ps_bg_avg", function(x, ...) standardGeneric("ps_bg_avg"))
 #'
 #' @return For `ps_fg_avg`: a numeric value representing average foreground.
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_fg_avg(pfm1)
 #' 
@@ -212,7 +212,7 @@ setGeneric("ps_fg_avg", function(x, ...) standardGeneric("ps_fg_avg"))
 #'    standard deviation.
 #'    
 #' @examples 
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_bg_std_dev(pfm1)
 #' 
@@ -225,7 +225,7 @@ setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 #' @return For `ps_bg_size`: an integer value representing the size of the 
 #'    background dataset.
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_bg_size(pfm1)
 #' 
@@ -239,7 +239,7 @@ setGeneric("ps_bg_size", function(x, ...) standardGeneric("ps_bg_size"))
 #'    the foreground dataset.
 #'    
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_fg_size(pfm1)
 #' 
@@ -252,7 +252,7 @@ setGeneric("ps_fg_size", function(x, ...) standardGeneric("ps_fg_size"))
 #' @return For `ps_hits_size`: an integer value representing the hits size.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_size(pfm1)
 #' 
@@ -266,7 +266,7 @@ setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
 #'    each hit.
 #' 
 #' @examples 
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_score(pfm1)
 #' 
@@ -279,7 +279,7 @@ setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 #' @return For `ps_hits_z`: a numeric vector containing the z scores.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_z(pfm1)
 #' 
@@ -293,7 +293,7 @@ setGeneric("ps_hits_z", function(x, ...) standardGeneric("ps_hits_z"))
 #'    of each hit.
 #'    
 #' @examples 
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_strand(pfm1)
 #' 
@@ -307,7 +307,7 @@ setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 #'    each hit.
 #'    
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_pos(pfm1)
 #' 
@@ -329,7 +329,7 @@ setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 #' @return For `ps_hits_table`: a `data.frame` of hits.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_table(pfm1)
 #' 
@@ -342,7 +342,7 @@ setGeneric("ps_hits_table", function(x, ...) standardGeneric("ps_hits_table"))
 #' @return For `ps_seq_names`: a character vector of sequence names.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_seq_names(pfm1)
 #' 
@@ -401,7 +401,7 @@ setGeneric(".ps_add_hits", function(x, ...) standardGeneric(".ps_add_hits"))
 #'    promoter regions in the organism.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_bg_avg(pfm1) 
 #'
@@ -430,7 +430,7 @@ setMethod("ps_bg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    promoter regions of genes of interest.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_fg_avg(pfm1)
 #' 
@@ -455,7 +455,7 @@ setMethod("ps_fg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
 #' sequence set. 
 #'
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_zscore(pfm1)
 #'
@@ -482,7 +482,7 @@ setMethod("ps_zscore", "PSMatrix", function(x, withDimnames = TRUE) {
 #'     foreground set.
 #'     
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_pvalue(pfm1)
 #' 
@@ -541,7 +541,7 @@ setMethod(".ps_seq_names", "PSMatrix", function(x, out) {
 #'    PWM scores.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_bg_std_dev(pfm1)
 #' 
@@ -567,7 +567,7 @@ setMethod("ps_bg_std_dev", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    used for background scoring. 
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_bg_size(pfm1)
 #' 
@@ -593,7 +593,7 @@ setMethod("ps_bg_size", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    as input to Pscan.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_fg_size(pfm1)
 #' 
@@ -619,7 +619,7 @@ setMethod("ps_fg_size", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    the input promoter sequences.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_size(pfm1)
 #' 
@@ -645,7 +645,7 @@ setMethod("ps_hits_size", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    identifiers and values represent their respective motif hit scores.
 #'
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_score(pfm1)
 #' 
@@ -675,7 +675,7 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    identifiers and values represent their respective Z-scores.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_z(pfm1)
 #' 
@@ -706,7 +706,7 @@ setMethod("ps_hits_z", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    motif was detected.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_strand(pfm1)
 #' 
@@ -737,7 +737,7 @@ setMethod("ps_hits_strand", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    identifiers, and values represent the adjusted motif hit positions.
 #'
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_pos(pfm1)
 #' 
@@ -765,7 +765,7 @@ setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L,
 #' @return A character vector of names.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_seq_names(pfm1)
 #' 
@@ -820,7 +820,7 @@ setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
 #' Row names correspond to the sequences name. 
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' ps_hits_table(pfm1)
 #' 
@@ -1059,7 +1059,7 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB){
 #' string describing the reason of failure. 
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' validPSMatrix(pfm1)
 #' 
@@ -1111,7 +1111,7 @@ setValidity("PSMatrix", validPSMatrix)
 #' }
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' show(pfm1)
 #' 
@@ -1143,7 +1143,7 @@ setMethod("show", "PSMatrix", function(object) {
 #'    background average value. 
 #'    
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' `ps_bg_avg<-`(pfm1, value = 0.73473) 
 #' 
@@ -1160,7 +1160,7 @@ setGeneric("ps_bg_avg<-", function(x, ..., value) standardGeneric("ps_bg_avg<-")
 #' @return An object of the same class of the input with the modified 
 #'    background standard deviation value. 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' `ps_bg_std_dev<-`(pfm1, value = 0.08568925)
 #' 
@@ -1177,7 +1177,7 @@ setGeneric("ps_bg_std_dev<-", function(x, ..., value) standardGeneric("ps_bg_std
 #'    background size. 
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' `ps_bg_size<-`(pfm1, value = 25629L)
 #' 
@@ -1206,7 +1206,7 @@ setGeneric("ps_bg_size<-", function(x, ..., value) standardGeneric("ps_bg_size<-
 #' 
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' `ps_bg_avg<-`(pfm1, value = 0.73473) 
 #' 
@@ -1235,7 +1235,7 @@ setReplaceMethod("ps_bg_avg", "PSMatrix", function(x,value){
 #'    are performed on the input `PSMatrix` object.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' `ps_bg_std_dev<-`(pfm1, value = 0.08568925)
 #' 
@@ -1263,7 +1263,7 @@ setReplaceMethod("ps_bg_std_dev", "PSMatrix", function(x,value){
 #'    input `PSMatrix` object.
 #' 
 #' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
 #' `ps_bg_size<-`(pfm1, value = 25629L)
 #' 
@@ -1282,6 +1282,8 @@ setReplaceMethod("ps_bg_size", "PSMatrix", function(x,value){
 #' @return A `PSMatrix` object created from the input `PFMatrix` object.
 #' 
 #' @name PSMatrix
+#' 
+#' @usage setAs("PFMatrix", "PSMatrix", function(from))
 #' 
 #' @export
 #' @importFrom TFBSTools PFMatrix
@@ -1309,6 +1311,8 @@ setAs("PFMatrix", "PSMatrix", function(from){
 #' 
 #' @return A `PSMatrixList` object, which is a list containing the `PSMatrix` objects 
 #'     converted from the `PFMatrixList`.
+#' 
+#' @usage setAs("PFMatrixList", "PSMatrixList", function(from))
 #' 
 #' @name PSMatrixList
 #' 

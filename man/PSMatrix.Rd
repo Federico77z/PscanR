@@ -13,6 +13,8 @@ PSMatrix(
   .PS_PSEUDOCOUNT = 0.01,
   ...
 )
+
+setAs("PFMatrix", "PSMatrix", function(from))
 }
 \arguments{
 \item{pfm}{An object of class `PFMatrix` from the `TFBSTools` package, 

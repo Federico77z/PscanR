@@ -23,7 +23,7 @@ Retrieves the background standard deviation of PWM scores stored in a
 motif binding scores.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_bg_std_dev(pfm1)
 
