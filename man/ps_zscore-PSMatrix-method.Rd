@@ -14,13 +14,15 @@ the output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric value representing the `PSMatrix` Z-score.
+A numeric value representing the `PSMatrix` Z-score. This associates 
+with each profile the probability of obtaining the same score on a random 
+sequence set.
 }
 \description{
 Retrieves the Z-Score stored in a `PSMatrix` object.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_zscore(pfm1)
 

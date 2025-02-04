@@ -7,20 +7,24 @@
 \S4method{ps_pvalue}{PSMatrix}(x, withDimnames = TRUE)
 }
 \arguments{
-\item{x}{A `PSMatrix` object.}
+\item{x}{A `PSMatrix` object, typically the result of the `Pscan` algorithm.}
 
 \item{withDimnames}{Logical, whether to include dimension names in the 
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric value representing the `PSMatrix` P-Value.
+A numeric value representing the statistical significance of motif 
+    enrichment. Lower values suggest stronger motif enrichment in the 
+    foreground set.
 }
 \description{
-Retrieves the P-Value stored in a `PSMatrix` object.
+Retrieves the P-Value stored in a `PSMatrix` object. The P-value quantifies
+the statistical significance of motif enrichment in the input sequences in
+respect to the background.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_pvalue(pfm1)
 

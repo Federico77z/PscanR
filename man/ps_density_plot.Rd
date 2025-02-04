@@ -7,19 +7,19 @@
 ps_density_plot(pfm, shift = 0, st = ps_bg_avg(pfm))
 }
 \arguments{
-\item{pfm}{A Position Frequency Matrix, result of the Pscan algorithm.}
+\item{pfm}{A `PSMatrix` object. It is a selected matrix from the `PSMatrixList`, 
+result of `pscan` function.}
 
-\item{shift}{Numeric value specifying the positional shift applied to the hit 
+\item{shift}{Integer value specifying the positional shift applied to the hit 
 positions. Default is `0`.}
 
 \item{st}{Score threshold used to filter hits. Can be a numeric value to set 
 the threshold directly, or a character:
 \itemize{
-  \item `all`: the threshold is set to `0` (so, no threshold. All the hits
-  are evaluated).
-  \item `loose`: uses the background average as threshold.
-  \item `strict`: uses the background average plus the background standard 
-  deviation as threshold.}
+  \item `all`: the threshold is set to `0` (All the hits are evaluated).
+  \item `loose`: uses the background average score as threshold.
+  \item `strict`: uses the background average score together with the 
+  background standard deviation as threshold.}
 Default is set to loose.}
 }
 \value{
@@ -28,7 +28,13 @@ A density plot showing the distribution of hits along the promoter
 }
 \description{
 This function creates a density plot representing the distribution of hits 
-along the promoter region based on their position and score.
+along the promoter sequences based on their position and score. It helps 
+visualize where motif occurrences are concentrated.
+}
+\details{
+The function filters motif hits based on a specified threshold and generates 
+a density plot to show their distribution. The function includes a vertical 
+dashed line marking the mode (the most frequent position along the promoters).
 }
 \examples{
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")

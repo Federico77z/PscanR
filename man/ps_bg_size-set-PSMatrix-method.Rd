@@ -2,24 +2,25 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_bg_size<-,PSMatrix-method}
 \alias{ps_bg_size<-,PSMatrix-method}
-\title{Setter Method for Background Size in PSMatrix}
+\title{Set Background Size in a PSMatrix}
 \usage{
 \S4method{ps_bg_size}{PSMatrix}(x) <- value
 }
 \arguments{
-\item{x}{An object of class `PSMatrix`.}
+\item{x}{A `PSMatrix` object.}
 
-\item{value}{Numeric. The size background value to be set.}
+\item{value}{An integer representing the new background size.}
 }
 \value{
 The modified `PSMatrix` object with the updated background size.
 }
 \description{
-This method specifically set the background size for an object 
-of class `PSMatrix`.
+This method specifically set the background size for a `PSMatrix` object. 
+The background size represents the number of promoter regions used in the 
+background model.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 `ps_bg_size<-`(pfm1, value = 25629L)
 

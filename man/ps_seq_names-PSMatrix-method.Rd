@@ -2,7 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_seq_names,PSMatrix-method}
 \alias{ps_seq_names,PSMatrix-method}
-\title{Get the sequences name in a PSMatrix Object}
+\title{Get the Sequences Name}
 \usage{
 \S4method{ps_seq_names}{PSMatrix}(x, withDimnames = TRUE)
 }
@@ -17,10 +17,12 @@ Default set to `TRUE`.}
 A character vector of names.
 }
 \description{
-Get the sequences name in a PSMatrix Object
+Retrieves the names or identifiers of the promoter sequences in a `PSMatrix` 
+object. These names correspond to the promoter regions that were scanned by 
+the Pscan algorithm.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_seq_names(pfm1)
 

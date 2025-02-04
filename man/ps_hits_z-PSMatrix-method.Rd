@@ -2,7 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_hits_z,PSMatrix-method}
 \alias{ps_hits_z,PSMatrix-method}
-\title{Compute Z-Scores for Hits in a PSMatrix Object}
+\title{Get Motif Hit Z-score}
 \usage{
 \S4method{ps_hits_z}{PSMatrix}(x, withDimnames = TRUE)
 }
@@ -14,13 +14,17 @@ if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric vector of z-score of hits.
+A named numeric vector where names correspond to promoter sequence 
+   identifiers and values represent their respective Z-scores.
 }
 \description{
-Compute Z-Scores for Hits in a PSMatrix Object
+Computes the Z-Scores for motif hit scores in a `PSMatrix` object. 
+The Z-score measures how unusual a motif score is compared to background 
+sequences (all the promoters expressed in an organism). Higher Z-scores mean 
+stronger motif enrichment, suggesting potential regulatory significance.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_hits_z(pfm1)
 

@@ -2,20 +2,24 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_hits_oligo,PSMatrix-method}
 \alias{ps_hits_oligo,PSMatrix-method}
-\title{Get The Sequences of Hits}
+\title{Get Matched Oligonucleotide Sequences}
 \usage{
 \S4method{ps_hits_oligo}{PSMatrix}(x, withDimnames = TRUE)
 }
 \arguments{
-\item{x}{A `PSMatrix` object.}
+\item{x}{A `PSMatrix` object, typically the result of the `Pscan` algorithm.}
 
 \item{withDimnames}{Logical, whether to include dimension names in the 
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A character containing the sequences of hits of a `PSMatrix` object.
+A named character vector containing the sequences of motif matches 
+    (oligonucleotides) in the foreground set. The names of the vector 
+    correspond to the sequence IDs from which the matches were found.
 }
 \description{
-Retrieves the oligonucleotide sequences of hits.
+Retrieves the oligonucleotide sequences that match the motif in the 
+foreground sequences, returning a named character vector where names 
+correspond to the sequence identifiers.
 }

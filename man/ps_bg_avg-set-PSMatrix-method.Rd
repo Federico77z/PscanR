@@ -2,7 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_bg_avg<-,PSMatrix-method}
 \alias{ps_bg_avg<-,PSMatrix-method}
-\title{Setter Method for Background Average in PSMatrix}
+\title{Set Background Average}
 \usage{
 \S4method{ps_bg_avg}{PSMatrix}(x) <- value
 }
@@ -18,8 +18,13 @@ The modified `PSMatrix` object with the updated background average.
 This method specifically set the background average for an object of 
 class `PSMatrix`.
 }
+\details{
+The background size is the total number of promoters used to compute background
+statistics, such as the average score and standard deviation. This method
+allows user to modify this value.
+}
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 `ps_bg_avg<-`(pfm1, value = 0.73473) 
 

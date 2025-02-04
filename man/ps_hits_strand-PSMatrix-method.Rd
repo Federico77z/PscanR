@@ -2,7 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_hits_strand,PSMatrix-method}
 \alias{ps_hits_strand,PSMatrix-method}
-\title{Get the hits strand in a PSMatrix Object}
+\title{Get Motif Hit Strand Information}
 \usage{
 \S4method{ps_hits_strand}{PSMatrix}(x, withDimnames = TRUE)
 }
@@ -14,13 +14,19 @@ if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A character vector of `-` and `+` indicating the hits strand.
+A named character vector where names correspond to promoter sequence 
+   identifiers, and values represent the strand (`+` or `-`) on which the 
+   motif was detected.
 }
 \description{
-Get the hits strand in a PSMatrix Object
+Retrieves the strand information (`+` or `-`) of motif hits in a 
+`PSMatrix` object. This indicates whether a motif was detected on the forward 
+(`+`) or reverse (`-`) strand of the promoter sequence.
+The Pscan algorithm scans both the strands of the promoter sequences to 
+ensure that no potential binding sites are missed.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_hits_strand(pfm1)
 

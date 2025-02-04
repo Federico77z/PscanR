@@ -14,13 +14,16 @@ if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-An integer value representing the `PSMatrix` hits size.
+An integer representing the total number of motif hits detected in 
+   the input promoter sequences.
 }
 \description{
-Calculates the hits dimension stored in a `PSMatrix` object.
+Retrieves the number of motif hits detected by the Pscan algorithm in a 
+`PSMatrix` object. A motif hit represents a significant match between a 
+promoter sequence and the Position Weight Matrix (PWM).
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_hits_size(pfm1)
 

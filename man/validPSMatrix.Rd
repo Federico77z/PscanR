@@ -2,12 +2,12 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{validPSMatrix}
 \alias{validPSMatrix}
-\title{Validate a `PSMatrix` object}
+\title{Validate a PSMatrix object}
 \usage{
 validPSMatrix(object)
 }
 \arguments{
-\item{object}{An object of class `PSMatrix`.}
+\item{object}{A `PSMatrix` object.}
 }
 \value{
 If all the checks are satisfied, returns `TRUE`. Otherwise, a
@@ -18,8 +18,10 @@ This function checks if the input `PSMatrix` object properties meet the ones
 desired.
 }
 \details{
-The function `validPSMatrix` validates many properties of a `PSMatrix` 
-object, including: 
+The function `validPSMatrix` ensures that the `PSMatrix` object has correctly 
+formatted background and foreground averages, standard deviations, 
+and hit-related values. 
+It performs the following steps:
 \itemize{
   \item `ps_bg_avg`,`ps_fg_avg`, and `ps_bg_std_dev` must be of length 1.
   \item `ps_bg_avg` and `ps_bg_std_dev` value must be between 0 and 1, 
@@ -28,7 +30,7 @@ object, including:
   vectors must be equal.}
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 validPSMatrix(pfm1)
 

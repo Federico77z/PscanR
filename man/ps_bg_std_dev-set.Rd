@@ -22,7 +22,7 @@ An object of the same class of the input with the modified
 Generic Setter Method for Background Standard Deviation Value of an object
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 `ps_bg_std_dev<-`(pfm1, value = 0.08568925)
 

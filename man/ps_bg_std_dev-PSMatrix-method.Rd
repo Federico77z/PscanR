@@ -14,14 +14,16 @@ output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric value representing the `PSMatrix` background standard 
-   deviation.
+A numeric value representing the standard deviation of the background 
+   PWM scores.
 }
 \description{
-Retrieves the background standard deviation stored in a `PSMatrix` object.
+Retrieves the background standard deviation of PWM scores stored in a 
+`PSMatrix` object. This value quantifies the variability in the background 
+motif binding scores.
 }
 \examples{
-pfm1_path <- system.file("extdata", "pfm1.rda", package = "PscanR")
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 load(pfm1_path)
 ps_bg_std_dev(pfm1)
 

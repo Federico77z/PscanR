@@ -9,10 +9,15 @@
 #'    from co-regulated or co-expressed genes (i.e. a set of gene promoters). 
 #'    See the Biostrings package for details.
 #'    
-#' @param pfms An object of `PSMatrixList` class containing PWMs and background 
-#'    values. See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
+#' @param pfms A `PSMatrixList` object containing PWMs and background statistics. 
+#'    See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
 #'    \code{\link{ps_build_bg_from_table}} for how to create `PSMatrixList` 
-#'    objects that contain background statistics.
+#'    objects that contain background statistics. For background statistics we
+#'    refer to the standard deviation and average of scores when the background 
+#'    (all the promoters expressed in a organism) is scanned with the position 
+#'    weight matrices. This is used to assert the statistical enrichment to 
+#'    determine the statistical enrichment of motif occurrences in coexpressed 
+#'    or coregulated promoter sequences compared to the background.
 #' 
 #' @param BPPARAM The BPPARAM used by bplapply. See BiocParallel package.
 #'    This argument is passed to `BiocParallel::bplapply`.
@@ -37,7 +42,7 @@
 #' ensuring no potential binding sites are missed.
 #'    
 #' @return
-#' A `PSMatrixList` object in which the foreground value (the alignment scores)
+#' A `PSMatrixList` object in which the foreground values (the alignment scores)
 #' have been computed for each sequence in `x` based on the position weight 
 #' matrices in `pfms`.
 #' 
@@ -84,12 +89,14 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
 #' Create a Summary Table of PscanR Results  
 #' 
-#' This function generates a table summarizing the Pscan results stored in a 
-#' `PSMatrixList` object. It retrieves pre-computed background and foreground 
-#' statistics (the alignment scores between regulatory sequences 
-#' and position weight matrices) for each PWM, calculates adjusted p-values 
-#' (FDR), and returns a table ordered by decreasing `ZSCORE` and 
-#' increasing `P.VALUE`.  
+#' This function generates a table summarizing the statistical analysis of motif 
+#' enrichment, stored in a `PSMatrixList` object. It retrieves pre-computed 
+#' background and foreground statistics (the alignment scores between Pscan input
+#' regulatory sequences and position weight matrices) for each PWM. 
+#' Then it compares motif occurrences in the foreground (e.g., 
+#' coexpressed/coregulated promoter sequences) with the background (e.g., all 
+#' promoters in an organism) using Z-scores, p-values, and FDR correction.
+#' Returns a table ordered by decreasing `ZSCORE` and increasing `P.VALUE`.  
 #'
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
 #'    metadata (foreground and background statistics). Typically is the output 
@@ -97,7 +104,8 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #'
 #' @return
 #' A data.frame with matrices ordered by increasing P.VALUE and decreasing 
-#' ZSCORE, containing the following columns: 
+#' ZSCORE, prioritizing significant and strongly enriched motifs.
+#' it contains the following columns: 
 #' \itemize{
 #'   \item "NAME": The names of the matrices.
 #'   \item "BG_AVG": The average background score for each PWM.
@@ -107,7 +115,7 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #'   \item "ZSCORE": The Z-score for each PWM.
 #'   \item "P.VALUE": The p-value for each PWM.
 #'   \item "FDR": The adjusted p-value (False Discovery Rate) calculated using 
-#'   the Benjamini-Hochberg method.
+#'   the Benjamini-Hochberg correction.
 #' }
 #'
 #' @examples
@@ -126,10 +134,10 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' 
 #' # Execute the PScan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
-#'                  BPPARAM = BiocParallel::SnowParam(12))
+#'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
-#' table <- ps_results_table(results)
+#' ps_results_table(results)
 #' 
 #' @seealso \code{\link{ps_generics}}
 #' 
@@ -154,12 +162,11 @@ ps_results_table <- function(pfms)
   tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE,TRUE))),]
 }
 
-#' Generate a Z-score Table for Motifs
+#' Generate a Z-score Table for Motif Hits
 #' 
-#' This function calculates the Z-score for each motif in a `PSMatrixList` 
-#' object and organizes the results into a matrix. The Z-Score represents
-#' the statistical significance of the alignment scores for regulatory 
-#' sequences relative to background expectation.
+#' This function creates a matrix of Z-scores for motif occurrences across 
+#' multiple PSMatrix contained in a `PSMatrixList` object. Each row corresponds 
+#' to a sequence, and each column represents a motif. 
 #'
 #' @param pfms A `PSMatrixList` object containing multiple Position Weight 
 #'    Matrices and associated metadata (foreground and background statistics). 
@@ -171,7 +178,15 @@ ps_results_table <- function(pfms)
 #' matrix are Z-scores, indicating the statistical significance of the alignment 
 #' between each sequence and the motif.
 #'
+#' @details
+#' The Z-Score represents the statistical significance of the alignment scores 
+#' for regulatory sequences relative to background expectation. A high Z-score 
+#' suggests strong motif enrichment in the foreground compared to the background.
+#' 
 #' @examples
+#' 
+#' # The generation of the example might take few minutes 
+#' 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:10]
@@ -219,6 +234,9 @@ ps_z_table <- function(pfms)
 #'    such as color palettes or clustering object.
 #'   
 #' @details
+#' 
+#' The heatmap represents the correlation of motif Z-scores, helping to identify 
+#' clusters of motifs that show similar enrichment patterns across sequences. 
 #' The function performs the following steps:
 #' \itemize{
 #'   \item Extracts the result table and the z-score table from the pscan 
@@ -241,6 +259,9 @@ ps_z_table <- function(pfms)
 #'    transcription factors. 
 #' 
 #' @examples
+#' 
+#' # The generation of the example might take few minutes
+#' 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:50]
@@ -295,14 +316,15 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 #' Pscan Hits Position Heatmap
 #' 
 #' This function creates a heatmap visualizing the positional distribution
-#' of hits based on a specified false discovery rate threshold. 
+#' of motif hits based on a specified false discovery rate threshold. The heatmap 
+#' helps visualize where significant motif hits occur within the analyzed sequences.
 #' 
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
 #'    metadata (foreground and background statistics). Typically is the output 
 #'    of `pscan()` function. 
 #' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
 #'    to be included in the analysis. The default is set to `0.01`.
-#' @param shift Numeric. A value to shift the positions of hits. 
+#' @param shift Integer. A value to shift the reported positions of motif hits. 
 #'    Default is set to `0`.
 #' @param ... Additional user defined arguments that can be passed to 
 #'    the function (e.g., the color palette) to change the default settings.
@@ -314,7 +336,7 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 #'   \item Filters the result table based on the given FDR threshold.
 #'   \item Creates a positional hits matrix.
 #'   \item Generates the heatmap using the `pheatmap` function, 
-#'      with costumizable settings.}
+#'      with customizable settings.}
 #' 
 #' Default settings, that can be changed by the users, are:
 #' \itemize{
@@ -370,11 +392,11 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
   
   final_args <- modifyList(defaults, user_args)
   
-  pos_mat <- matrix(data = NA, nrow = ps_fg_size(results[[1]]), 
+  pos_mat <- matrix(data = NA, nrow = ps_fg_size(pfms[[1]]), 
                     ncol = length(topn))
   
   for(v in topn)
-    pos_mat[,v] <- ps_hits_pos(results[[row.names(res_table)[v]]], 
+    pos_mat[,v] <- ps_hits_pos(pfms[[row.names(res_table)[v]]], 
                                pos_shift = shift)
   
   colnames(pos_mat) <- res_table$NAME[topn]
@@ -388,24 +410,30 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' Pscan Density Plot of Hits along Promoters 
 #' 
 #' This function creates a density plot representing the distribution of hits 
-#' along the promoter region based on their position and score. 
+#' along the promoter sequences based on their position and score. It helps 
+#' visualize where motif occurrences are concentrated.
 #' 
-#' @param pfm A Position Frequency Matrix, result of the Pscan algorithm. 
-#'
-#' @param shift Numeric value specifying the positional shift applied to the hit 
+#' @param pfm A `PSMatrix` object. It is a selected matrix from the `PSMatrixList`, 
+#'    result of `pscan` function. 
+#' @param shift Integer value specifying the positional shift applied to the hit 
 #'    positions. Default is `0`.
 #' @param st Score threshold used to filter hits. Can be a numeric value to set 
 #'    the threshold directly, or a character:
 #'    \itemize{
-#'      \item `all`: the threshold is set to `0` (so, no threshold. All the hits
-#'      are evaluated).
-#'      \item `loose`: uses the background average as threshold.
-#'      \item `strict`: uses the background average plus the background standard 
-#'      deviation as threshold.}
+#'      \item `all`: the threshold is set to `0` (All the hits are evaluated).
+#'      \item `loose`: uses the background average score as threshold.
+#'      \item `strict`: uses the background average score together with the 
+#'      background standard deviation as threshold.}
 #'    Default is set to loose.
 #'      
 #' @return A density plot showing the distribution of hits along the promoter 
 #'    region.
+#'    
+#' @details
+#' The function filters motif hits based on a specified threshold and generates 
+#' a density plot to show their distribution. The function includes a vertical 
+#' dashed line marking the mode (the most frequent position along the promoters).
+#' 
 #'      
 #' @examples
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -475,17 +503,21 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
   
 }
 
-#' Bubble chart of Pscan Hits Score vs Position
+#' Bubble chart of Pscan Motif Score vs Position
 #' 
-#' This function visualizes the Bubble Chart to visualize the relationship
-#' between position and score of the identified sites in a `PSMatrix` object. 
+#' This function creates a Bubble Chart to visualize the relationship
+#' between position and score of the identified sites along the promoter sequences 
+#' in a `PSMatrix` object. 
 #' 
-#' @param pfm An object of class `PSMatrix`. It must be processed by the PscanR 
+#' @param pfm A `PSMatrix` object. It must be processed by the PscanR 
 #'    algorithm.
+#' @param bubble_color A character string specifying the color of the bubbles 
+#'    (default: `"blue"`).
 #'    
-#' @return A ggplot object representing a bubble chart. The x-axis corresponds 
-#' to the hits position, the y-axis corresponds to the hits score, and the 
-#' size of the bubbles represents the count of occurrences. 
+#' @return A ggplot2 bubble chart. The x-axis corresponds to the position of 
+#' motif hits along the promoter, the y-axis corresponds to the score of motif 
+#' hits, and the size of the bubbles represents the count of occurrences for 
+#' each score-position combination. 
 #' 
 #' @details
 #' The function computes the count of occurrences for each combination of 
@@ -522,12 +554,10 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
 {
   data <- ps_hits_table(pfm)
   
-  data_sum <- data %>% 
-    group_by(!!sym(colnames(data)[1]), !!sym(colnames(data)[2])) %>%
-    summarise(Count = n(), .groups = "drop")
+  data_sum <- as.data.frame(table(data$POS, data$SCORE))
+  colnames(data_sum) <- c("Position", "Score", "Count")
   
-  ggplot(data_sum, aes(x = !!sym(colnames(data_sum)[2]), 
-                       y = !!sym(colnames(data_sum)[1]), size = Count)) +
+  ggplot(data_sum, aes(x = Position, y = Score, size = Count)) +
     geom_point(alpha=0.5, color = bubble_color) +
     scale_size_continuous(breaks = sort(unique(data_sum$Count)), 
                           guide = guide_legend(title = "Occurrences")) +
@@ -537,33 +567,35 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
   
 }
 
-#' Density Plot of Distances between Identified Sites in two PSMatrix Object
+#' Density Plot of Distances between Identified Motif Hits in two PSMatrix Object
 #' 
-#' This function visualizes the density plot of distances between identified 
-#' sites in two `PSMatrix` object. It allows to filter the identified sites
-#' based on a specified threshold value. 
+#' This function visualizes the density plot of distances between identified hits 
+#' sites in two `PSMatrix` object. The distance between hits is calculated 
+#' for each sequence that is present in both matrices. 
+#' It allows to filter the identified sites based on a specified threshold value. 
 #' 
 #'
-#' @param M1 An object of class `PSMatrix`. It must be processed by the PscanR 
+#' @param M1 A `PSMatrix` object. It must be processed by the PscanR 
 #'    algorithm. 
-#' @param M2 An object of class `PSMatrix`. It must be processed by the PscanR 
+#' @param M2 A `PSMatrix` object. It must be processed by the PscanR 
 #'    algorithm. 
-#' @param st1 Score threshold used to filter hits for the first PSMatrix . 
+#' @param st1 Score threshold used to filter hits for the first `PSMatrix` . 
 #'    Can be a numeric value to set the threshold directly, or a character:
 #'    \itemize{
-#'      \item `all`: the threshold is set to `0` (so, no threshold. All the hits
-#'      are evaluated).
+#'      \item `all`: the threshold is set to `0` (All hits are evaluated).
 #'      \item `loose`: uses the background average as threshold.
 #'      \item `strict`: uses the background average plus the background standard 
 #'      deviation as threshold.}
-#'    Default is set to loose.
-#' @param st2 Score threshold used to filter hits for the second PSMatrix. 
+#'    Default is set to `loose`.
+#' @param st2 Score threshold used to filter hits for the second `PSMatrix`. 
 #'    Can be a numeric value to set the threshold directly, or a character, as 
 #'    for st1. 
-#'    Default is set to loose. 
+#'    Default is set to `loose`. 
 #'
-#' @return A density plot visualizing the distances between identified sites 
-#'    in \code{M1} and \code{M2}.
+#' @return A density plot showing the distribution of distances between 
+#'    identified motif hits in \code{M1} and \code{M2}. The x-axis represents 
+#'    the distances between corresponding hits, and the y-axis represents 
+#'    the density of those distances.
 #' 
 #' @seealso \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}}, 
 #' \code{\link{ps_hits_score}}, \code{\link{ps_hits_pos}}
@@ -594,7 +626,7 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
 #' 
 ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
 {
-  if(class(M1) != "PSMatrix" || class(M2) != "PSMatrix") {
+  if (!is(M1, "PSMatrix") || !is(M2, "PSMatrix")) {
     stop("Both object must be of class PSMatrix")
   }
   
@@ -649,99 +681,4 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_a
   #abline(v = peak, col = "gray", lty = 2, lwd = 2)
   #text(peak, max(density_distances$y), 
   #     labels = paste("\tMode:", round(peak)), pos = 4)
-}
-
-
-#' Generate PSMatrixList from Background and JASPAR Matrix
-#' 
-#' This function generates an object of class `PSMatrixList` using a specified 
-#' JASPAR matrix, an organism identifier, and a promoter region range. 
-#' It is designed to work with only JASPAR database and UCSC annotations. 
-#'
-#' @param JASPAR_matrix A character string specifying the JASPAR database 
-#'    version. You can choose between 'JASPAR2020', 'JASPAR2022', or 
-#'    'JASPAR2024'
-#' @param org The accepted values are: `hs` (Homo sapiens), `mm` (Mus musculus), 
-#'    `at` (Arabidopsis thaliana), `sc` (Saccharomyces cerevisiae), `dm`
-#'    (Drosophila melanogaster). 
-#' @param prom_reg A numeric vector of two integers indicating the range 
-#'    of the promoter region. You can choose between:
-#'    \itemize{
-#'      \item 200 base pairs upstream and 50 downstream base pair from the TSS 
-#'      (c(-200, 50))
-#'      \item 450 bp upstream and 50 downstream (c(-450, 50))
-#'      \item 500 bp upstream and 0 downstream (c(-500, 0))
-#'      \item 950 bp upstream and 50 downstream (c(-950, 50))
-#'      \item 1000 bp upstream and 0 downstream (c(-1000, 0))
-#'      } 
-#'
-#' @return A `PSMatrixList` object created from the specified background 
-#' file and JASPAR matrix
-#' 
-#' @export
-#'
-#' @examples
-#' generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50))
-#' 
-generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, assembly){
-  
-  # Rivedi funzione per l'assembly
-  
-  organism_map <- list(
-    "hs" = assembly,
-    "mm" = assembly,
-    "at" = "at10",
-    "sc" = "sacCer3",
-    "dm" = "dm6"
-  )
-  
-  if(!(org %in% names(organism_map))){
-    stop("Invalid organism acronym. Choose between: 'hs', 'mm', 'at', 'sc', 'dm'.")
-  }
-  
-  org <- organism_map[[org]]
-  
-  J_name <- toupper(JASPAR_matrix)
-  
-  if(!(J_name == 'JASPAR2020' || J_name == 'JASPAR2022' || J_name == 'JASPAR2024')){
-    stop("Invalid database. Choose between: 'JASPAR2020', 'JASPAR2022', 'JASPAR2024'
-         (non case sensitive).")
-  }
-  
-  version <- substr(JASPAR_matrix,7, 10)
-  
-  if(length(prom_reg) != 2 || !is.numeric(prom_reg)) {
-    stop("Promoter region must be a numeric vector with two integer.")
-  }
-  p_up <- abs(prom_reg[1])
-  p_down <- abs(prom_reg[2])
-  
-  # Rivedi funzione per gli altri org, il nome dei file sarà diverso!
-  
-  file_name <- paste0('J', version, '_', org, '_', p_up, 'u_', p_down, 'd_UCSC.psbg.txt')
-
-  
-  BG_path <- system.file("extdata/BG_scripts", file_name, package = 'PscanR')
-  
-  opts <- list()
-  opts[["collection"]] <- "CORE" 
-  opts[["tax_group"]] <- "vertebrates" 
-  
-  # ATTENZIONE: non ancora testata per JASPAR2024
-  
-  if(J_name == 'JASPAR2020'){
-    J_matrix <- TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts) 
-  }
-  if(J_name == 'JASPAR2022'){
-    J_matrix <- TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts)
-  }
-  if(J_name == 'JASPAR2024'){
-    httr::set_config(config(ssl_verifypeer = 0L))
-    JASPAR2024 <- JASPAR2024()
-    JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), db(JASPAR2024))
-    J_matrix <- TFBSTools::getMatrixSet(JASPARConnect, opts)
-  }
-  
-  J_PSBG <- ps_retrieve_bg_from_file(BG_path, J_matrix)
-  return(J_PSBG)
 }

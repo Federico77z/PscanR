@@ -1,4 +1,4 @@
-.Rproj.user
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
@@ -11,8 +11,9 @@ Examples.html
 BG_scripts/*out
 R/.Rhistory
 *.Rproj
-PscanR.Rproj
 /doc/
 /Meta/
 PscanR.Rproj
 Pscan-R.Rproj
+prova_matrix.RData
+prova_matrix.R
