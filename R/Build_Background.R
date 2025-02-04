@@ -215,12 +215,12 @@ ps_build_bg_from_table <- function(x, pfms)
 #' Extract background statistics from a `PSMatrixList` object
 #' 
 #' Extracts background statistics (size, mean, and standard deviation) 
-#' from a `PSMatrixList` of position frequency matrices representing 
+#' from a `PSMatrixList` of Position Weight Matrices representing 
 #' transcription factor binding preferences and generates a table containing 
 #' these statistics.
 #'
-#' @param pfms A `PSMatrixList` of position frequency matrices representing 
-#'   transcription factor binding preferences. 
+#' @param pfms A `PSMatrixList` of Position Weight Matrices representing 
+#'   transcription factor binding preferences . 
 #'   Each element should be a `PSMatrix` object 
 #'   (or should be coercible to `PSMatrix`).
 #'   
@@ -277,12 +277,12 @@ ps_get_bg_table <- function(pfms)
 #' Save background statistics from a `PSMatrixList` object to a file
 #'
 #' Saves background statistics (such as size, mean, and standard deviation) 
-#' for each position frequency matrix in a `PSMatrixList` object to a specified 
+#' for each Position Weight Matrix in a `PSMatrixList` object to a specified 
 #' file. 
 #'
-#' @param pfms A `PSMatrixList` object of position frequency matrices 
+#' @param pfms A `PSMatrixList` object of Position Weight Matrices 
 #'   representing transcription factor binding preferences, obtained for example 
-#'   from the JASPAR database. Each element should be of `PSMatrix` class or 
+#'   from the JASPAR database. Each element should be a `PSMatrix` object or 
 #'   coercible to `PSMatrix`.
 #'
 #' @param file A character string specifying the path to the output file where 
