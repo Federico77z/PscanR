@@ -2,23 +2,31 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_bg_size<-}
 \alias{ps_bg_size<-}
-\title{Generic Setter Method for Background Size Value of an object}
+\title{Set Background Size (Generic Function)}
 \usage{
 ps_bg_size(x, ...) <- value
 }
 \arguments{
-\item{x}{An object for which the background size value is to be set.}
+\item{x}{An object to which the background size will be assigned, 
+typically a `PSMatrix` object.}
 
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments (not used in the generic function but may be 
+used in specific methods).}
 
-\item{value}{The value for the background size.}
+\item{value}{A numeric value representing the background size (e.g., number 
+of background sequences).}
 }
 \value{
-An object of the same class of the input with the modified 
-   background size.
+The updated object with the assigned background size.
 }
 \description{
-Generic Setter Method for Background Size Value of an object
+`ps_bg_size<-` is a **generic function** that assigns the background 
+size for a given object. The background size typically represents 
+the number of background sequences used for motif enrichment analysis.
+}
+\details{
+Methods should be implemented for specific object classes that support 
+background size assignment.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")

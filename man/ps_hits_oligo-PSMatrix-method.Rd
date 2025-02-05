@@ -23,3 +23,10 @@ Retrieves the oligonucleotide sequences that match the motif in the
 foreground sequences, returning a named character vector where names 
 correspond to the sequence identifiers.
 }
+\examples{
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
+load(pfm1_path)
+ps_hits_oligo(pfm1)
+
+
+}
