@@ -54,13 +54,8 @@
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:10]
 #' 
-#' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
-#' 
-#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
-#'                        package = "PscanR")
-#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
+#' # Retrieve Background PWMs
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the PScan algorithm
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -124,13 +119,8 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:10]
 #' 
-#' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
-#' 
-#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
-#'                        package = "PscanR")
-#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
+#' # Retrieve Background PWMs
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the PScan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -138,8 +128,6 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
 #' ps_results_table(results)
-#' 
-#' @seealso \code{\link{ps_generics}}
 #' 
 #' @export
 #' @importFrom stats p.adjust
@@ -191,13 +179,8 @@ ps_results_table <- function(pfms)
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:10]
 #' 
-#' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
-#' 
-#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
-#'                        package = "PscanR")
-#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
+#' # Retrieve Background PWMs
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -264,15 +247,10 @@ ps_z_table <- function(pfms)
 #' 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:50]
-#' 
-#' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
-#' 
-#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
-#'                        package = "PscanR")
-#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
+#' prom_seq <- prom_seq[1:25]
+#'
+#' # Retrieve Background PWMs
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -351,15 +329,10 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 #' @examples
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:50]
+#' prom_seq <- prom_seq[1:25]
 #' 
-#' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
-#' 
-#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
-#'                        package = "PscanR")
-#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
+#' # Retrieve Background PWMs
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -438,15 +411,10 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' @examples
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:50]
+#' prom_seq <- prom_seq[1:25]
 #' 
-#' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
-#' 
-#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
-#'                        package = "PscanR")
-#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
+#' # Retrieve Background PWMs
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -529,15 +497,10 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' @examples
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:50]
+#' prom_seq <- prom_seq[1:25]
 #' 
-#' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
-#' 
-#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
-#'                        package = "PscanR")
-#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
+#' # Retrieve Background PWMs
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -554,10 +517,12 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
 {
   data <- ps_hits_table(pfm)
   
-  data_sum <- as.data.frame(table(data$POS, data$SCORE))
-  colnames(data_sum) <- c("Position", "Score", "Count")
+  data_sum <- data %>% 
+    group_by(!!sym(colnames(data)[1]), !!sym(colnames(data)[2])) %>%
+    summarise(Count = n(), .groups = "drop")
   
-  ggplot(data_sum, aes(x = Position, y = Score, size = Count)) +
+  ggplot(data_sum, aes(x = !!sym(colnames(data_sum)[2]), 
+                       y = !!sym(colnames(data_sum)[1]), size = Count)) +
     geom_point(alpha=0.5, color = bubble_color) +
     scale_size_continuous(breaks = sort(unique(data_sum$Count)), 
                           guide = guide_legend(title = "Occurrences")) +
@@ -605,15 +570,10 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
 #' @examples
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:50]
+#' prom_seq <- prom_seq[25:50]
 #' 
-#' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
-#' 
-#' bg_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
-#'                        package = "PscanR")
-#' J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
+#' # Retrieve Background PWMs
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
