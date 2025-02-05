@@ -57,4 +57,5 @@ rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")
 # Generate background-scored motif matrices
 bg_matrices <- ps_build_bg_from_table(background_data, J2020_subset)
 bg_matrices
+bg_matrices[[1]]
 }

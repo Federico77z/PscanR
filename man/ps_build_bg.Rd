@@ -56,4 +56,5 @@ bg_matrices <- ps_build_bg(prom_seq, J2020,
                            BPPARAM = BiocParallel::SnowParam(1))
 # Use BiocParallel::MulticoreParam() for Unix like systems. 
 bg_matrices
+bg_matrices[[1]]
 }

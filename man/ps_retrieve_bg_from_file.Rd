@@ -55,6 +55,7 @@ load(J2020_path)
 # Generate the background-scored motif matrices from file
 bg_matrices <- ps_retrieve_bg_from_file(file_path, J2020)
 bg_matrices
+bg_matrices[[2]]
 }
 \seealso{
 \code{\link{ps_build_bg_from_table}}

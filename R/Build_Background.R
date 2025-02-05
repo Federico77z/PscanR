@@ -55,6 +55,7 @@
 #'                            BPPARAM = BiocParallel::SnowParam(1))
 #' # Use BiocParallel::MulticoreParam() for Unix like systems. 
 #' bg_matrices
+#' bg_matrices[[1]]
 #' @export
 ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
@@ -130,6 +131,7 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' # Generate the background-scored motif matrices from file
 #' bg_matrices <- ps_retrieve_bg_from_file(file_path, J2020)
 #' bg_matrices
+#' bg_matrices[[2]]
 #' @seealso \code{\link{ps_build_bg_from_table}}
 #' 
 #' @export
@@ -196,6 +198,7 @@ ps_retrieve_bg_from_file <- function(file, pfms)
 #' # Generate background-scored motif matrices
 #' bg_matrices <- ps_build_bg_from_table(background_data, J2020_subset)
 #' bg_matrices
+#' bg_matrices[[1]]
 #' @export
 ps_build_bg_from_table <- function(x, pfms)
 {
@@ -322,7 +325,7 @@ ps_get_bg_table <- function(pfms)
 #'   
 #' PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
 #' 
-#' ps_write_bg_to_file(PSMatrixList_J2020, file_path)
+#' ps_write_bg_to_file(PSMatrixList_J2020, file_path) # You will find the file in your project
 #' 
 #' @seealso \code{\link{ps_get_bg_table}}
 #' 
@@ -379,7 +382,9 @@ ps_write_bg_to_file <- function(pfms, file)
 #' @export
 #'
 #' @examples
-#' generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' bg_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' bg_matrices
+#' bg_matrices[[4]]
 #' 
 generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, assembly){
   
