@@ -7,8 +7,8 @@
 ps_get_bg_table(pfms)
 }
 \arguments{
-\item{pfms}{A `PSMatrixList` of position frequency matrices representing 
-transcription factor binding preferences. 
+\item{pfms}{A `PSMatrixList` of Position Weight Matrices representing 
+transcription factor binding preferences . 
 Each element should be a `PSMatrix` object 
 (or should be coercible to `PSMatrix`).}
 }
@@ -26,7 +26,7 @@ Columns:
 }
 \description{
 Extracts background statistics (size, mean, and standard deviation) 
-from a `PSMatrixList` of position frequency matrices representing 
+from a `PSMatrixList` of Position Weight Matrices representing 
 transcription factor binding preferences and generates a table containing 
 these statistics.
 }

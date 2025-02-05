@@ -41,6 +41,8 @@ region, and then fetches a corresponding matrix set from a specified JASPAR
 version. It returns a `PSMatrixList` object.
 }
 \examples{
-generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+bg_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+bg_matrices
+bg_matrices[[4]]
 
 }

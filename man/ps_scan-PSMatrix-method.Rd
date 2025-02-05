@@ -35,3 +35,13 @@ all potential binding sites are detected. Optionally, the background statistics
 (background average and standard deviation) can be computed and used during 
 scanning.
 }
+\examples{
+BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50),'hg38')
+file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+prom_seq <- readRDS(file_path)
+prom_seq <- prom_seq[1:25]
+
+scanned_result <- ps_scan(BG_matrices[[3]], prom_seq)
+scanned_result
+
+}

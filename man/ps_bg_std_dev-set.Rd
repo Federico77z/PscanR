@@ -2,24 +2,29 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{ps_bg_std_dev<-}
 \alias{ps_bg_std_dev<-}
-\title{Generic Setter Method for Background Standard Deviation Value of an object}
+\title{Set Background Standard Deviation (Generic Function)}
 \usage{
 ps_bg_std_dev(x, ...) <- value
 }
 \arguments{
-\item{x}{An object for which the background standard deviation
-is to be set.}
+\item{x}{An object to which the background standard deviation will be assigned, 
+typically a `PSMatrix` object.}
 
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments (not used in the generic function but may be 
+used in specific methods).}
 
-\item{value}{The value for the background standard deviation.}
+\item{value}{A numeric value representing the background standard deviation.}
 }
 \value{
-An object of the same class of the input with the modified 
-   background standard deviation value.
+The updated object with the assigned background standard deviation.
 }
 \description{
-Generic Setter Method for Background Standard Deviation Value of an object
+`ps_bg_std_dev<-` is a **generic function** that sets the background 
+standard deviation value for a given object.
+}
+\details{
+Methods should be implemented for specific object classes that support 
+background standard deviation assignment.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")

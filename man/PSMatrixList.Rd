@@ -54,5 +54,5 @@ PSM2 <- PSMatrix(
   ps_bg_size = 250L        
   )
 result <- PSMatrixList(PSM1, PSM2)
-result
+ps_results_table(result)
 }

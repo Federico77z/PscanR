@@ -18,7 +18,7 @@ setAs("PFMatrix", "PSMatrix", function(from))
 }
 \arguments{
 \item{pfm}{An object of class `PFMatrix` from the `TFBSTools` package, 
-typically a position frequency matrix (PWM) representing the motif for 
+typically a position frequency matrix (PFM) representing the motif for 
 which all the organism's promoter regions will be scanned.}
 
 \item{ps_bg_avg}{Numeric. The background average value, default = `NA`.
