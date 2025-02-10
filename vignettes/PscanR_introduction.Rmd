@@ -5,8 +5,11 @@ date: "`r Sys.Date()`"
 output: BiocStyle::html_document
 vignette: >
   %\VignetteIndexEntry{Introduction to PscanR}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 80
 ---
 
 ```{r setup, include = FALSE}
@@ -16,96 +19,308 @@ knitr::opts_chunk$set(
 )
 ```
 
-**Package overview:**
+# Introduction
 
-PscanR is an R implementation of the algorithm developed by 
-Zambelli et all. (2009).
-It is designed to analyze sequence motif enrichment, helping users to identify 
-transcription factors (TFs) that are likely regulators of a set of co-regulated 
-or co-expressed genes. By scanning sequences (e.g., promoters) against known 
-TFs binding motif, PscanR assesses which motif are significantly over- or under-
-represented and highlights candidate binding sites. 
+**PscanR** is an R implementation of the algorithm developed by Zambelli et al.
+(2009) for analyzing sequence motif enrichment. It helps identify transcription
+factors (TFs) that are potential regulators of a set of co-regulated or
+co-expressed genes. By scanning input sequences (e.g., promoters) against a
+database of known TF binding motifs, **PscanR** assesses which motifs are
+significantly over- or under- represented and highlights candidate binding
+sites.
 
+## Workflow overview:
 
-**Workflow overview:**
+***Input***: A set of DNA sequences (e.g., promoter regions) and a library of
+known transcription factors binding motif, such as Position Weight Matrices
+(PWMs) from the JASPAR database.
 
-***Input***: A set of sequences (e.g., promoters) and a library of known 
-transcription factors binding motif (e.g., PWMs from JASPAR database).
-
-***Analyses***: Identification of enriched motif and calculation of statistical 
+***Analysis***: Identification of enriched motif and calculation of statistical
 significance (Z-scores and P-Values).
 
-***Output***: A ranked list of enriched motif with associated P-Values and 
-Z-scores.  
+***Output***: A ranked list of enriched motif, along with their associated
+P-Values and Z-scores.
 
-## Installation
+The *PscanR* package is available on [*Bioconductor*](https://bioconductor.org/)
+and can be installed using `BiocManager`:
 
-To install and load the package from Bioconductor, follow these steps:
-
-# Install Bioconductor (if necessary)
-if (!requireNamespace("BiocManager", quietly = TRUE)) {
-    install.packages("BiocManager")
-}
-
-# Install the package from Bioconductor
+```{r eval=FALSE, include=TRUE}
+if (!requireNamespace("BiocManager", quietly = TRUE)) { 
+  install.packages("BiocManager") 
 BiocManager::install("PscanR")
+}
+```
 
-# Load the package
+Once installed, load the package into an R session with:
+
+```{r eval=FALSE, include=TRUE}
 library(PscanR)
+```
 
+# The Input Genes
+
+**PscanR** accepts a list of gene identifiers corresponding to co-regulated or
+co-expressed genes as input. Below is an example dataset containing **human
+NF-κB target genes**, curated from the literature. The number **100** indicates
+that all genes in the list (100%) are known NF-κB targets.
 
 ```{r}
-opts <- list()
-opts[["collection"]] <- "CORE" # Core motif collection
-opts[["tax_group"]] <- "vertebrates" # Vertebrate motifs
-J2020 <- TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts) # Download motif
-
 file_path <- system.file("extdata", "example_file_nfkb100.txt", 
                          package = "PscanR")
-BG_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
-                       package = "PscanR")
-# Get the target regions
 target <- read.csv(file_path, header = FALSE)
+```
 
-# Due to computational time, these lines are not computed in the vignette, 
-# instead a pre-computed prom_rng varible is loaded
-#txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", 
-#                                    tablename="ncbiRefSeqCurated")
-#seqlevels(txdb) <- seqlevels(txdb)[1:24]
-# prom_rng <- GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE)
+# The Input Promoters
 
+## Promoter Regions
+
+Promoter regions are specific DNA sequences located near the transcription start
+site (TSS) of a gene. They serve as binding sites for transcription factors and
+RNA polymerase, playing a crucial role in the regulation of gene expression.
+Typically, promoter regions extend both upstream and slightly downstream of the
+TSS.
+
+In **R**, promoter regions can be extracted using genomic annotation tools, such
+as the **GenomicFeatures** package. The following example demonstrates how to
+retrieve promoter regions from a **transcript database (txdb)**:
+
+```{r eval=FALSE, include=TRUE}
+txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", 
+                                    tablename="ncbiRefSeqCurated")
+seqlevels(txdb) <- seqlevels(txdb)[1:24] # use only canonical chromosomes 
+prom_rng <- GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE)
+```
+
+This code extracts regions **200 bp upstream and 50 bp downstream** of the TSS
+for all annotated genes in the **Homo sapiens (hg38)** assembly.
+
+However, since retrieving promoter regions from UCSC requires an active internet
+connection and may not always succeed immediately, a precomputed dataset is used
+instead for this vignette:
+
+```{r echo=FALSE}
 promoters_path <- system.file("extdata", "promoters.rds", 
                          package = "PscanR")
 prom_rng <- readRDS(promoters_path)
+prom_rng
+```
 
+#### **Processing Promoter Identifiers**
+
+The extracted promoter regions contain transcript identifiers, which need to be
+formatted properly to match target genes. The following code removes version
+numbers from transcript IDs and filters promoter regions corresponding to the
+target gene list:
+
+```{r}
 prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
 target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
+```
 
-# Get the target sequences 
+#### **Retrieving Promoter Sequences**
+
+Once the promoter regions are defined, their corresponding DNA sequences can be
+extracted from the reference genome using **Biostrings** and **BSgenome**:
+
+```{r}
 prom_seq <- Biostrings::getSeq(
   x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
-  target_prom_rng) 
+  target_prom_rng)
+prom_seq
+```
 
-# Retrieve the background
-J2020_PSBG <- PscanR::ps_retrieve_bg_from_file(BG_path, J2020)
+# The Background Model
 
-# Run PscanR
+In order to assess the significance of the obtained result, a background model
+must be computed. In other methods this is performed by shuffling the columns of
+the motif or by building random sequence sets of the same size and length of the
+sequence set investigated.
+
+In Pscan, instead, the input sequences are considered a sample drawn from a
+universe consisting of all promoter sequences available for the species under
+investigation. This *universe* serves as the background model for statistical
+analyses, ensuring a comprehensive and unbiased assessment of the analysis
+outcomes.
+
+## Pre-computed background models
+
+For convenience, several background models have already been computed and
+optimized to meet common research needs. The package includes precomputed
+backgrounds for the following species:
+
+-   *Homo sapiens* (both hg38 and hs1 assembly)
+
+-   *Mus musculus* (both mm10 and mm39)
+
+-   *Arabidopsis thaliana* (TAIR9)
+
+-   *Drosophila melanogaster* (dm6)
+
+-   *Saccharomyces cerevisiae* (sacCer3).
+
+The promoter regions analyzed in relation to the transcription start site (TSS)
+include:
+
+-   200 bp upstream and 50 bp downstream
+
+-   450 bp upstream and 50 bp downstream
+
+-   500 bp upstream and 0 bp downstream
+
+-   950 bp upstream and 50 bp downstream
+
+-   1000 bp upstream and 0 bp downstream
+
+The motif matrices used to generate the background scores were obtained from the
+JASPAR databases for the 2020, 2022, and 2024 releases. Only **core motifs**
+from JASPAR are used in the analysis.
+
+### Loading a Pre-Computed Background
+
+To load a pre-computed background model, PscanR provides a dedicated function.
+It requires specifying the JASPAR release, species acronym, promoter region
+definition, and genome assembly:
+
+```{r}
+J2020_PSBG <- PscanR::generate_psmatrixlist_from_background('Jaspar2020', 'hs',
+                                                            c(-200,50), 'hg38')
+J2020_PSBG[[4]] # An example of Matrix
+```
+
+For more details on function parameters and usage, please refer to the PscanR
+documentation.
+
+## Generating Custom Backgrounds
+
+To ensure flexibility and allow users to create **custom background models**
+tailored to their specific experimental conditions, **PscanR** provides a
+dedicated vignette. This resource guides users through the process of generating
+background models optimized for their research needs.
+
+For detailed instructions, please refer to the **PscanR** documentation and
+vignette.
+
+# The algorithm
+
+**PscanR** performs **motif enrichment analysis** by computing **alignment
+scores** between regulatory sequences (e.g., gene promoters) and **Position
+Weight Matrices** (PWMs). The algorithm evaluates both the forward and reverse
+complement strands, ensuring that no potential transcription factor binding
+sites are missed.
+
+To execute the motif scan, use the following function:
+
+```{r}
 results <- PscanR::pscan(prom_seq, J2020_PSBG, 
                  BPPARAM = BiocParallel::SnowParam(1)) 
-# Use MulticoreParam on Unix systems. 
+```
 
-# Create the table of results
+### Parallel Computation in PscanR
+
+**PscanR** supports **parallel computation** to enhance performance when
+analyzing large datasets. The function `pscan()` utilizes the **BiocParallel**
+package, which enables users to specify different parallelization strategies via
+the `BPPARAM` argument.
+
+#### **SnowParam vs. MulticoreParam**
+
+-   **SnowParam:** distributed memory computing (used in the example above). The
+    SNOW model used by SnowParam() is suitable for all operating systems, in
+    particular for Windows since forking process is not supported.
+
+-   **MulticoreParam:** shared memory computing. Uses **forking**, which is
+    generally more efficient than SNOW but is only supported on **Unix-based
+    systems (Linux/macOS)**.
+
+To use **MulticoreParam** instead of **SnowParam**, modify the function call as
+follows (recommended for Unix-based systems):
+
+```{r eval=FALSE, include=TRUE}
+results <- PscanR::pscan(prom_seq, J2020_PSBG, 
+                 BPPARAM = BiocParallel::MulticoreParam(8)) 
+```
+
+Here, 8 specifies the number of CPU cores to be used. Adjust this number based
+on system capacity for optimal performance. Note that the default BPPARAM value
+in `pscan()` is `bpparam()`, which automatically selects the parallelization
+type and the number of cores based on the system from which the command is
+executed.
+
+There is a dedicated vignette that compares the different computational timing
+using a different number of cores.
+
+# Interpretation of results
+
+To visualize the statistics of the different results, run the chunk of code
+below:
+
+```{r}
 table <- PscanR::ps_results_table(results) 
 head(table)
+```
 
+The `ps_results_table()` function returns a data.frame with matrices ordered by
+increasing P.VALUE and decreasing ZSCORE, prioritizing significant and strongly
+enriched motifs.
+
+It contains the following columns:
+
+-   "NAME": The names of the matrices (in this case retrieved from the JASPAR
+    database, 2020 release).
+
+-   "BG_AVG": The average background score for each PWM.
+
+-   "BG_STDEV": The standard deviation of the background scores for each PWM.
+
+-   "FG_AVG": The average foreground score for each PWM.
+
+-   "**ZSCORE**": The Z-score for each PWM. It indicates the degree of motif
+    enrichment. A higher score suggests stronger enrichment.
+
+-   "**P.VALUE**": The p-value for each PWM. It provides the statistical
+    significance of the results. Smaller values indicates more significant
+    results.
+
+-   "FDR": The adjusted p-value (False Discovery Rate) calculated using the
+    Benjamini-Hochberg correction.
+
+## Score Correlation Map
+
+```{r}
+PscanR::ps_score_correlation_map(results, FDR = 0.01)
+```
+
+The command above plots correlations with a False Discovery Rate (FDR) threshold
+of 0.01, which means only statistically significant correlations are shown. To
+interpret this plot you can follow the color scale:
+
+-   Red: Positive correlation.
+
+-   Blue: Negative correlation.
+
+-   White/gray: Neutral or weak correlation.
+
+Interpretation: genes with similar expression patterns are clustered together.
+Red clusters represent genes that are co-regulated or functionally related,
+whereas blue clusters indicate genes that are negatively correlated (when one is
+up-regulated the other is down-regulated).
+
+## Hits Position Heatmap
+
+```{r}
+PscanR::ps_hitpos_map(results, FDR = 0.01)
+```
+
+## Density plot
+
+Choose a matrix
+
+```{r}
+pfm1 <- results[[1]]
+PscanR::ps_density_plot(pfm1)
+```
+
+```{r}
 # Display session information
 sessionInfo()
 ```
-
-**Interpretation of results:**
-
-***Z-score***: Indicates the degree of motif enrichment. A higher score suggests 
-stronger enrichment.
-
-***P-Value***: Provides the statistical significance of the results. Smaller values
-indicates more significant results. 
