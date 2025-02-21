@@ -87,7 +87,7 @@ retrieve promoter regions from a **transcript database (txdb)**:
 ```{r eval=FALSE, include=TRUE}
 txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", 
                                     tablename="ncbiRefSeqCurated")
-seqlevels(txdb) <- seqlevels(txdb)[1:24] # use only canonical chromosomes 
+GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24] # use only canonical chromosomes 
 prom_rng <- GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE)
 ```
 
