@@ -1109,13 +1109,14 @@ setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L,
 
 
 setMethod(".ps_add_hits", "PSMatrix", 
-          function(x, Pos, Strand, Score, Oligo, BG = FALSE, 
+          function(x, Pos, Strand, Score, Oligo, BG = FALSE, mega_BG = FALSE,
                    withDimnames = TRUE) {
   
   x@ps_hits_pos <- Pos
   x@ps_hits_strand <- Strand
   x@ps_hits_score <- Score
-  x@ps_hits_score <- .ps_norm_score(x)
+  if (mega_BG==FALSE)
+    x@ps_hits_score <- .ps_norm_score(x)
   
   if(BG)
   {
@@ -1266,7 +1267,8 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE, mega_BG = FALSE){
     x <- .ps_add_hits(x, Score = as.numeric(res$score), 
                       Strand = as.character(res$strand), 
                       Pos = as.integer(res$pos), 
-                      Oligo = as.character(res$oligo), BG = BG)
+                      Oligo = as.character(res$oligo), BG = BG, 
+                      mega_BG = mega_BG)
     
   } 
   else{
@@ -1282,7 +1284,8 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE, mega_BG = FALSE){
     x <- .ps_add_hits(x, Score = as.numeric(res["score",]), 
                       Strand = as.character(res["strand",]), 
                       Pos = as.integer(res["pos",]), 
-                      Oligo = as.character(res["oligo",]), BG = BG)
+                      Oligo = as.character(res["oligo",]), BG = BG, 
+                      mega_BG = mega_BG)
     
   }
   
