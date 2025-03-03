@@ -13,11 +13,14 @@
                                              ps_hits_score="numeric",
                                              ps_hits_score_bg = "numeric",
                                              ps_hits_oligo="character",
+                                             ps_hits_oligo_bg="character",
                                              ps_zscore="numeric",
                                              ps_pvalue="numeric",
                                              ps_seq_names="character",
+                                             ps_bg_seq_names="character",
                                              .PS_PSEUDOCOUNT="numeric",
-                                             .PS_ALPHABET="integer"),
+                                             .PS_ALPHABET="integer",
+                                             all_sequences_ID='character'),
                       contains="PFMatrix")
 
 #' Create a `PSMatrix` object
@@ -31,12 +34,13 @@
 #'     typically a position frequency matrix (PFM) representing the motif for 
 #'     which all the organism's promoter regions will be scanned.  
 #' @param ps_bg_avg Numeric. The background average value, default = `NA`.
-#'    It is the average binding score of promoter regions when scanned with a PWM.
+#'    It is the average binding score of promoter regions when scanned with a 
+#'    PWM.
 #' @param ps_fg_avg Numeric. The foreground average value, default = `NA`.
 #'    Represents the average binding score of a set of promoter regions of 
 #'    co-expressed or co-regulated genes when scanned with a PWM.
-#' @param ps_bg_std_dev Numeric. The background standard deviation of PWM scores, 
-#'    default = `NA`.
+#' @param ps_bg_std_dev Numeric. The background standard deviation of PWM 
+#'    scores, default = `NA`.
 #' @param ps_bg_size Integer. The size of the background promoter region, 
 #'    default = `NA`.
 #' @param .PS_PSEUDOCOUNT Numeric. The Pseudo-Count to add to avoid division
@@ -48,10 +52,10 @@
 #'    with default or provided values. 
 #' 
 #' @details
-#' When a `PSMatrix` object is created or modified, it is automatically validated 
-#' using an internal function. The validation ensures that the background and 
-#' foreground statistics are properly formatted, and that motif hit-related 
-#' vectors have consistent lengths.
+#' When a `PSMatrix` object is created or modified, it is automatically 
+#' validated using an internal function. The validation ensures that the 
+#' background and foreground statistics are properly formatted, and that motif 
+#' hit-related vectors have consistent lengths.
 #'    
 #' @export
 #'
@@ -82,6 +86,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
                             ps_zscore = as.numeric(NA), 
                             ps_pvalue = as.numeric(NA), 
                             ps_seq_names = character(),
+                            ps_bg_seq_names = character(),
                             .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, 
                             ps_hits_pos = integer(),
                             ps_hits_pos_bg = integer(),
@@ -89,7 +94,9 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
                             ps_hits_strand_bg = character(),
                             ps_hits_score = numeric(),
                             ps_hits_score_bg = numeric(), 
-                            ps_hits_oligo = character(), 
+                            ps_hits_oligo = character(),
+                            ps_hits_oligo_bg = character(),
+                            all_sequences_ID = character(),
                             .PS_ALPHABET = setNames(seq_len(4), 
                                                     c("A","C","G","T"))))
 }
@@ -107,9 +114,9 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' @param use.names Logical. Assert whether to use names from the input objects.
 #'    Default = `TRUE`
 #'
-#' @return A `PSMatrixList` object, which is a list containing `PSMatrix` objects.
-#'     Each element in the list corresponds to a `PSMatrix` object provided as 
-#'     input.
+#' @return A `PSMatrixList` object, which is a list containing `PSMatrix` 
+#'    objects. Each element in the list corresponds to a `PSMatrix` object 
+#'    provided as input.
 #'
 #' @examples
 #' # Load JASPAR motif matrices for vertebrates
@@ -290,8 +297,8 @@ setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 #' size value for motif enrichment analysis. Methods should be 
 #' implemented for specific object classes that store scan results.
 #'
-#' The background size value represent the dimension of the background (number of
-#' promoter sequences used as background).
+#' The background size value represent the dimension of the background 
+#' (number of promoter sequences used as background).
 #'
 #' @param x An object containing motif scan results.
 #' @param ... Additional arguments passed to specific methods.
@@ -380,9 +387,9 @@ setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
 #'
 #' @return 
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where names 
-#'   correspond to promoter sequence identifiers and values represent their 
-#'   respective motif hit scores.
+#'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where 
+#'   names correspond to promoter sequence identifiers and values represent 
+#'   their respective motif hit scores.
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #' 
@@ -410,9 +417,9 @@ setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 #'
 #' @return 
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where names 
-#'   correspond to promoter sequence identifiers and values represent their 
-#'   respective Z-scores.
+#'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where 
+#'   names correspond to promoter sequence identifiers and values represent 
+#'   their respective Z-scores.
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #' 
@@ -442,9 +449,9 @@ setGeneric("ps_hits_z", function(x, ...) standardGeneric("ps_hits_z"))
 #'
 #' @return 
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **named character vector**, where names 
-#'   correspond to promoter sequence identifiers, and values represent the strand 
-#'   (`+` or `-`) on which the motif was detected.
+#'   \item If `x` is a `PSMatrix` object: a **named character vector**, where 
+#'   names correspond to promoter sequence identifiers, and values represent the 
+#'   strand (`+` or `-`) on which the motif was detected.
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #' 
@@ -470,9 +477,9 @@ setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 #'
 #' @return 
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **named integer vector**, where names 
-#'   correspond to promoter sequence identifiers, and values represent motif hit 
-#'   positions (with an optional shift).
+#'   \item If `x` is a `PSMatrix` object: a **named integer vector**, where 
+#'   names correspond to promoter sequence identifiers, and values represent 
+#'   motif hit positions (with an optional shift).
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'   
@@ -497,9 +504,10 @@ setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 #'
 #' @return
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **named character vector**, where names 
-#'   correspond to sequence identifiers, and values represent the oligonucleotide 
-#'   sequences (subset of the input promoter sequences) matching the motif.
+#'   \item If `x` is a `PSMatrix` object: a **named character vector**, where 
+#'   names correspond to sequence identifiers, and values represent the 
+#'   oligonucleotide sequences (subset of the input promoter sequences) matching 
+#'   the motif.
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #' 
@@ -547,15 +555,16 @@ setGeneric("ps_hits_table", function(x, ...) standardGeneric("ps_hits_table"))
 #' `ps_seq_names` is a **generic function** that extracts the sequence names 
 #' or identifiers from an object containing promoter sequence data.
 #'
-#' Methods should be implemented for specific object classes storing sequence data.
+#' Methods should be implemented for specific object classes storing sequence 
+#' data.
 #'
 #' @param x An object containing sequence information.
 #' @param ... Additional arguments passed to specific methods.
 #'
 #' @return 
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **character vector** of sequence names 
-#'   corresponding to the analyzed promoter regions.
+#'   \item If `x` is a `PSMatrix` object: a **character vector** of sequence 
+#'   names corresponding to the analyzed promoter regions.
 #'   \item If `x` belongs to another supported class, the return format may vary.
 #' }
 #' 
@@ -581,14 +590,16 @@ setGeneric(".ps_seq_names", function(x, out) standardGeneric(".ps_seq_names"))
 
 #' Perform Motif Scanning (Generic Function)
 #'
-#' `ps_scan` is a **generic function** that scans DNA sequences for motif occurrences 
-#' using an object containing motif scoring data. The scan is typically performed 
-#' on both the forward and reverse complement strands to detect all potential 
-#' transcription factor binding sites.
+#' `ps_scan` is a **generic function** that scans DNA sequences for motif 
+#' occurrences using an object containing motif scoring data. The scan is 
+#' typically performed on both the forward and reverse complement strands to 
+#' detect all potential transcription factor binding sites.
 #'
-#' Methods should be implemented for specific object classes that support motif scanning.
+#' Methods should be implemented for specific object classes that support motif 
+#' scanning.
 #'
-#' @param x An object containing motif information, typically a `PSMatrix` object.
+#' @param x An object containing motif information, typically a `PSMatrix` 
+#'    object.
 #' @param ... Additional arguments passed to specific methods.
 #'
 #' @return 
@@ -598,7 +609,8 @@ setGeneric(".ps_seq_names", function(x, out) standardGeneric(".ps_seq_names"))
 #' - If `x` belongs to another supported class, the return format may vary.
 #' 
 #' @examples
-#' BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50),'hg38')
+#' BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
+#'                                                      c(-200,50),'hg38')
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[25:50]
@@ -622,6 +634,8 @@ setGeneric(".ps_norm_score", function(x, ...) standardGeneric(".ps_norm_score"))
 
 
 setGeneric(".ps_add_hits", function(x, ...) standardGeneric(".ps_add_hits"))
+
+setGeneric("all_sequences_ID", function(x, ...) standardGeneric("all_sequences_ID"))
 
 #' Get Background Average Score
 #'
@@ -857,8 +871,8 @@ setMethod("ps_fg_size", "PSMatrix", function(x, withDimnames = TRUE) {
 #' promoter sequence and the Position Weight Matrix (PWM).
 #' 
 #' @param x A `PSMatrix` object.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return An integer representing the total number of motif hits detected in 
@@ -878,7 +892,8 @@ setMethod("ps_hits_size", "PSMatrix", function(x, withDimnames = TRUE) {
 
 #' Get Hits Score
 #' 
-#' Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` object.
+#' Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` 
+#' object.
 #' These scores represent the binding affinity or enrichment level of promoter 
 #' sequences when scanned with a Position Weight Matrix (PWM).
 #' 
@@ -913,8 +928,8 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
 #'
 #' 
 #' @param x A `PSMatrix` object.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return A named numeric vector where names correspond to promoter sequence 
@@ -943,8 +958,8 @@ setMethod("ps_hits_z", "PSMatrix", function(x, withDimnames = TRUE) {
 #' ensure that no potential binding sites are missed.
 #' 
 #' @param x A `PSMatrix` object.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return A named character vector where names correspond to promoter sequence 
@@ -968,15 +983,15 @@ setMethod("ps_hits_strand", "PSMatrix", function(x, withDimnames = TRUE) {
 
 #' Get Motif Hit Positions
 #' 
-#' Retrieves the positions of hits stored in a `PSMatrix` object. These positions 
-#' indicate where the motifs are located in each promoter sequence. The positions 
-#' can be optionally shifted by a specified value.
+#' Retrieves the positions of hits stored in a `PSMatrix` object. These 
+#' positions indicate where the motifs are located in each promoter sequence. 
+#' The positions can be optionally shifted by a specified value.
 #' 
 #' @param x A `PSMatrix` object.
 #' @param pos_shift Integer. Specifies the amount to shift the position. 
 #'    Default is set to `0`.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return A named integer vector where names correspond to promoter sequence 
@@ -1004,8 +1019,8 @@ setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L,
 #' the Pscan algorithm.
 #' 
 #' @param x A `PSMatrix` object.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return A character vector of names.
@@ -1036,10 +1051,17 @@ setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
   return(out)
 })
 
+setMethod("all_sequences_ID", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@all_sequences_ID
+  
+  return(out)
+})
+
 #' Get Table of Motif Hits
 #' 
-#' Creates a data frame summarizing the motif hits from a `PSMatrix` object, including 
-#' the motif hit score, position, strand, and corresponding oligo sequence.
+#' Creates a data frame summarizing the motif hits from a `PSMatrix` object, 
+#' including the motif hit score, position, strand, and corresponding oligo 
+#' sequence.
 #' The resulting table is sorted by motif score (descending). When the score is 
 #' the same between two sequences, they are sorted by ascending position.
 #' 
@@ -1104,6 +1126,8 @@ setMethod(".ps_add_hits", "PSMatrix",
     x@ps_hits_pos_bg <- x@ps_hits_pos
     x@ps_hits_strand_bg <- x@ps_hits_strand
     x@ps_hits_score_bg <- x@ps_hits_score
+    names(x@ps_hits_score_bg) <- x@ps_bg_seq_names
+    x@ps_hits_oligo_bg <- Oligo
     
     x@ps_hits_pos <- integer()
     x@ps_hits_strand <- character()
@@ -1187,23 +1211,26 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #'     to be used for scanning DNA sequences.
 #' @param seqs `A DNAstringSet` object representing the sequences to be
 #'    scanned for motif occurrences.
-#' @param BG A logical value indicating whether to calculate background statistics.
+#' @param BG A logical value indicating whether to calculate background 
+#'    statistics.
 #'    Default is set to `FALSE`.
+#' @param mega_BG Logical. It is a flag for the analysis to be performed.
 #' 
 #' @return A `PSMatrix` object, with updated information about the motif hits 
 #'     in the sequences. This includes the positions, strands, scores, and 
 #'     oligos (sequence motifs) where the hits occurred.
 #' 
 #' @details
-#' The function scans each sequence for motif occurrences, computes motif scores, 
-#' and stores the hit details in the `PSMatrix` object. The scan is performed on 
-#' both the forward and reverse complement strands of the sequences to ensure 
-#' all potential binding sites are detected. Optionally, the background statistics 
-#' (background average and standard deviation) can be computed and used during 
-#' scanning.
+#' The function scans each sequence for motif occurrences, computes motif 
+#' scores, and stores the hit details in the `PSMatrix` object. The scan is 
+#' performed on both the forward and reverse complement strands of the sequences 
+#' to ensure all potential binding sites are detected. Optionally, the 
+#' background statistics (background average and standard deviation) can be 
+#' computed and used during scanning.
 #' 
 #' @examples
-#' BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50),'hg38')
+#' BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
+#'                                                      c(-200,50),'hg38')
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:25]
@@ -1212,29 +1239,52 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' scanned_result
 #' 
 #' @export
-setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
+setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE, mega_BG = FALSE){
   
-  if(!is(seqs, "DNAStringSet"))
+  if(!is(seqs, "DNAStringSet") && !mega_BG)
     stop("seqs is not an object of DNAStringSet class")
   
-  rc_x <- reverseComplement(x)
-  
-  Margs <- list(numx = as.numeric(Matrix(x)), 
-                numx_rc = as.numeric(Matrix(rc_x)),
-                ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), 
-                AB = .PS_ALPHABET(x)) 
-  
-  if(BG == FALSE)
+  if(BG == FALSE && mega_BG == FALSE)
     x@ps_seq_names <- names(seqs)
+  else if(BG == FALSE && mega_BG == TRUE)
+    x@ps_seq_names <- seqs
+  else
+    x@ps_bg_seq_names <- names(seqs)
   
   seqs <- as.character(seqs)
   
-  res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
-  
-  x <- .ps_add_hits(x, Score = as.numeric(res["score",]), 
-                 Strand = as.character(res["strand",]), 
-                 Pos = as.integer(res["pos",]), 
-                 Oligo = as.character(res["oligo",]), BG = BG)
+  if(mega_BG == TRUE){
+    indices <- match(seqs, sub("\\..*$", "", names(x@ps_hits_score_bg)))
+    
+    res <- list(
+      score = x@ps_hits_score_bg[indices],
+      strand = x@ps_hits_strand_bg[indices],
+      pos = x@ps_hits_pos_bg[indices],
+      oligo = x@ps_hits_oligo_bg[indices]
+    )
+    
+    x <- .ps_add_hits(x, Score = as.numeric(res$score), 
+                      Strand = as.character(res$strand), 
+                      Pos = as.integer(res$pos), 
+                      Oligo = as.character(res$oligo), BG = BG)
+    
+  } 
+  else{
+    rc_x <- reverseComplement(x)
+    
+    Margs <- list(numx = as.numeric(Matrix(x)), 
+                numx_rc = as.numeric(Matrix(rc_x)),
+                ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), 
+                AB = .PS_ALPHABET(x)) 
+    
+    res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
+    
+    x <- .ps_add_hits(x, Score = as.numeric(res["score",]), 
+                      Strand = as.character(res["strand",]), 
+                      Pos = as.integer(res["pos",]), 
+                      Oligo = as.character(res["oligo",]), BG = BG)
+    
+  }
   
   return(x)
   
@@ -1412,8 +1462,8 @@ setGeneric("ps_bg_avg<-", function(x, ..., value) standardGeneric("ps_bg_avg<-")
 #' Methods should be implemented for specific object classes that support 
 #' background standard deviation assignment.
 #'
-#' @param x An object to which the background standard deviation will be assigned, 
-#'    typically a `PSMatrix` object.
+#' @param x An object to which the background standard deviation will be 
+#'    assigned, typically a `PSMatrix` object.
 #' @param ... Additional arguments (not used in the generic function but may be 
 #'    used in specific methods).
 #' @param value A numeric value representing the background standard deviation.
@@ -1469,9 +1519,9 @@ setGeneric("ps_bg_size<-", function(x, ..., value) standardGeneric("ps_bg_size<-
 #'    input `PSMatrix` object.
 #' 
 #' @details
-#' The background size is the total number of promoters used to compute background
-#' statistics, such as the average score and standard deviation. This method
-#' allows user to modify this value. 
+#' The background size is the total number of promoters used to compute 
+#' background statistics, such as the average score and standard deviation. 
+#' This method allows user to modify this value. 
 #' 
 #' 
 #' @examples
@@ -1546,13 +1596,10 @@ setReplaceMethod("ps_bg_size", "PSMatrix", function(x,value){
 
 #' Convert PFMatrix to PSMatrix
 #' 
-#' @param from A `PFMatrix` object to be converted to a `PSMatrix` one.
-#' 
 #' @return A `PSMatrix` object created from the input `PFMatrix` object.
 #' 
 #' @name PSMatrix
-#' 
-#' @usage setAs("PFMatrix", "PSMatrix", function(from))
+#' @aliases setAs,PFMatrix,PSMatrix-method
 #' 
 #' @export
 #' @importFrom TFBSTools PFMatrix
@@ -1575,15 +1622,11 @@ setAs("PFMatrix", "PSMatrix", function(from){
 #' The resulting `PSMatrixList` is created by combining the converted `PSMatrix` 
 #' objects into a list and returning the new object.
 #' 
-#' @param from A `PFMatrixList` object, which is a list of `PFMatrix` objects 
-#'     to be converted into a `PSMatrixList`.
-#' 
-#' @return A `PSMatrixList` object, which is a list containing the `PSMatrix` objects 
-#'     converted from the `PFMatrixList`.
-#' 
-#' @usage setAs("PFMatrixList", "PSMatrixList", function(from))
+#' @return A `PSMatrixList` object, which is a list containing the `PSMatrix` 
+#'    objects converted from the `PFMatrixList`.
 #' 
 #' @name PSMatrixList
+#' @aliases setAs,PFMatrixList,PSMatrixList-method
 #' 
 #' @export
 #' @importFrom TFBSTools PFMatrixList
