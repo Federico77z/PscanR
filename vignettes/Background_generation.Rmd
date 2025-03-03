@@ -4,7 +4,7 @@ author: "Diana Betelli"
 date: "`r Sys.Date()`"
 output: BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{How to Generate a Background Model for PscanR algorithm}
+  %\VignetteIndexEntry{2. How to Generate a Background Model for PscanR algorithm}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -48,7 +48,8 @@ already installed, they can be installed using `BiocManager::install()`.
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-BiocManager::install(c("txdbmaker", "GenomicFeatures", "GenomeInfoDb", "Biostrings", "TFBSTools", "PscanR", "BiocParallel"))
+BiocManager::install(c("txdbmaker", "GenomicFeatures", "GenomeInfoDb", 
+                       "Biostrings", "TFBSTools", "PscanR", "BiocParallel"))
 
 ```
 
@@ -124,10 +125,11 @@ interest. It is convenient to use the ***txdbmaker*** package to create a
 transcript database (TxDb) object. This serves as the foundation for defining
 the promoter regions.
 
-An example with mouse is reported below:
+An example with *Homo sapiens* is reported below:
 
 ```{r eval=FALSE, include=TRUE}
-txdb <- txdbmaker::makeTxDbFromUCSC(genome="mm10", tablename="ncbiRefSeqCurated")
+txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", 
+                                    tablename="ncbiRefSeqCurated")
 ```
 
 Alternatively, if the species is not present in UCSC, you can use a **GFF or GTF
@@ -142,9 +144,9 @@ Since we typically want to focus on main chromosomes, we can filter them
 accordingly:
 
 ```{r eval=FALSE, include=TRUE}
-GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:N]
+GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24]
 
-# Adjust N for your species 
+# Adjust [1:N] for your species 
 ```
 
 ## Define Promoter Regions
@@ -159,32 +161,43 @@ In bioinformatics, we can define promoter regions computationally using genomic
 annotation tools. For instance, in R, the `GenomicFeatures` package provides a
 straightforward way to extract promoter regions from a transcript database
 (`txdb`). The following command retrieves promoter sequences by selecting a
-region that extends **450 base pairs upstream** and **50 base pairs downstream**
+region that extends **200 base pairs upstream** and **50 base pairs downstream**
 of the TSS:
 
 ```{r eval=FALSE, include=TRUE}
 # Define promoter regions
 
-prom_rng <- GenomicFeatures::promoters(txdb, upstream = 450, downstream = 50, use.names = TRUE)
+prom_rng <- GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE)
+```
+
+To save time on `TxDb` object creation, we have prepared a file containing the
+promoter regions in advance.
+
+```{r}
+promoters_path <- system.file("extdata", "promoters.rds", 
+                         package = "PscanR")
+prom_rng <- readRDS(promoters_path)
+prom_rng
 ```
 
 Once the promoter regions are defined, the next step is to extract the
 corresponding sequences from a genome reference. The reference genome used for
 retrieving promoter sequences with `Biostrings::getSeq()` must be the same as
 the one used to construct the transcript database (`txdb`) with
-`makeTxDbFromUCSC()`. For example, if `txdb` was created using `"mm10"` as the
+`makeTxDbFromUCSC()`. For example, if `txdb` was created using `"hg38"` as the
 genome version, the corresponding `BSgenome` package
-(`BSgenome.Mmusculus.UCSC.mm10`) should be used to ensure consistency.
+(`BSgenome.Hsapiens.UCSC.hg38`) should be used to ensure consistency.
 
 ```{r eval=FALSE, include=TRUE}
-if (!requireNamespace("BSgenome.Mmusculus.UCSC.mm10", quietly = TRUE))
-    install.packages("BSgenome.Mmusculus.UCSC.mm10")
-library("BSgenome.Mmusculus.UCSC.mm10")
+if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE))
+    install.packages("BSgenome.Hsapiens.UCSC.hg38")
+library("BSgenome.Hsapiens.UCSC.hg38")
+```
 
+```{r}
 # Retrieve promoter sequences
 
-prom_seq <- Biostrings::getSeq(x = BSgenome.Mmusculus.UCSC.mm10::BSgenome.Mmusculus.UCSC.mm10, prom_rng)
-
+prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, prom_rng)
 ```
 
 ## Retrieve Transcription Factors Binding Site Profiles
@@ -203,10 +216,12 @@ Example of retrieving motif matrices from **JASPAR 2022**:
 if (!requireNamespace("JASPAR2022", quietly = TRUE))
     install.packages("JASPAR2022")
 library("JASPAR2022")
+```
 
+```{r}
 opts <- list()
-opts[["collection"]] <- "<COLLECTION>"  # Example: "CORE"
-opts[["tax_group"]] <- "<TAXONOMIC_GROUP>"  # Example: "vertebrates"
+opts[["collection"]] <- "CORE"  # The desired collection
+opts[["tax_group"]] <- "vertebrates"  # The taxonomic group
 JASPAR_matrices <- TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts)
 ```
 
@@ -224,7 +239,9 @@ an example of how to retrieve transcription factor binding matrices from JASPAR
 if (!requireNamespace("JASPAR2024", quietly = TRUE))
     install.packages("JASPAR2024")
 library(JASPAR2024)
+```
 
+```{r}
 # Disable SSL verification if necessary
 httr::set_config(httr::config(ssl_verifypeer = 0L))
 
@@ -255,17 +272,23 @@ significantly reduce computation time, it is strongly recommended to run the
 analysis on a server with multiple available cores and adjust `BPPARAM`
 accordingly.
 
+In the following example, only 10 sequences are selected to reduce the
+computational time.
+
 For Windows:
 
-```{r eval=FALSE, include=TRUE}
-J2022_PSBG <- PscanR::ps_build_bg(prom_seq, JASPAR_matrices, BPPARAM = BiocParallel::SnowParam(12))
+```{r echo=TRUE}
+J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], JASPAR_matrices, BPPARAM = BiocParallel::SnowParam(1))
+
+# Example for the first matrix
+J2022_PSBG[[1]]
 ```
 
 For Unix-like systems:
 
 ```{r eval=FALSE, include=TRUE}
 # Build the Pscan background
-J2022_PSBG <- PscanR::ps_build_bg(prom_seq, JASPAR_matrices, BPPARAM = BiocParallel::MulticoreParam(12))
+J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], JASPAR_matrices, BPPARAM = BiocParallel::MulticoreParam(1))
 ```
 
 ## Exporting the Generated Background
@@ -275,5 +298,10 @@ background to a file for future use.
 
 ```{r eval=FALSE, include=TRUE}
 # Export the background to a file 
-PscanR::ps_write_bg_to_file(J2020_PSBG, "J2020_mm10_450u_50d_UCSC_refGene.psbg.txt")
+PscanR::ps_write_bg_to_file(J2022_PSBG, "J2022_mm10_450u_50d_UCSC_curated.psbg.txt")
+```
+
+```{r}
+# Display session information
+sessionInfo()
 ```

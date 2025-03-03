@@ -4,7 +4,7 @@ author: "Diana Betelli"
 date: "`r Sys.Date()`"
 output: BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{Introduction to PscanR}
+  %\VignetteIndexEntry{1. Introduction to PscanR}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -61,11 +61,11 @@ library(PscanR)
 
 **PscanR** accepts a list of gene identifiers corresponding to co-regulated or
 co-expressed genes as input. Below is an example dataset containing **human
-NF-κB target genes**, curated from the literature. The number **100** indicates
-that all genes in the list (100%) are known NF-κB targets.
+NF-κB target genes**, curated from the literature. The number **50** indicates
+that 50% genes in the list are known NF-κB targets.
 
 ```{r}
-file_path <- system.file("extdata", "example_file_nfkb100.txt", 
+file_path <- system.file("extdata", "nfkb50.txt", 
                          package = "PscanR")
 target <- read.csv(file_path, header = FALSE)
 ```
@@ -311,14 +311,32 @@ up-regulated the other is down-regulated).
 PscanR::ps_hitpos_map(results, FDR = 0.01)
 ```
 
-## Density plot
+This heatmap represent the distribution of hits (binding events) for different
+transcription factors (TFs) across various promoter sequences. On the x axis we
+find the TFs, whereas the y axis represents the promoter sequences retrieved
+from a dataset.
 
-Choose a matrix
+The color gradient reflects the binding affinity: red areas indicate strong TF
+binding affinity at specific promoter sequences, while lighter colors indicate
+weaker binding.
+
+## Density plot
 
 ```{r}
 pfm1 <- results[[1]]
 PscanR::ps_density_plot(pfm1)
 ```
+
+This density plot visualizes the distribution of binding sites for the
+transcription factor **Arnt** across **56 promoter sequences**. In this example,
+the studied length of promoter region is around 250 bp, between 200 bp before
+the TSS and 50 bp after.
+
+The highest density of Arnt binding occurs around **position 77** along the
+promoters (marked by the dashed vertical line). This suggest a preferential
+binding region between the first 100 bp of the promoter region. Another broad
+peak is observed between 100 and 200 bp, indicating a potential secondary
+binding region.
 
 ```{r}
 # Display session information

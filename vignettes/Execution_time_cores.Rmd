@@ -4,7 +4,7 @@ author: "Diana Betelli"
 date: "`r Sys.Date()`"
 output: BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{Comparing execution time with varying processors}
+  %\VignetteIndexEntry{3. Comparing execution time with varying processors}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -76,7 +76,8 @@ prom_rng <- GenomicFeatures::promoters(txdb, upstream = 950, downstream = 50, us
 # Version numbers removal from transcript IDs
 prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name) 
 
-# Retrieve target sequence identifiers. You can download it from the official Pscan platform
+# Retrieve target sequence identifiers. You can download it from the official 
+# Pscan platform
 target <- read.csv("processori/liver.txt", header = F) 
 
 # Filters promoter regions corresponding to the target gene list
@@ -106,7 +107,8 @@ execution_time <- function(prom_seq, bg, ncores, output_file){
     timing <- system.time({
       results <- PscanR::pscan(prom_seq, bg, BPPARAM = BiocParallel::MulticoreParam(ncores))}) 
     if (i == 1){
-      saveRDS(PscanR::ps_results_table(results), output_file) # Analyse all the files to be sure that results don't change when changing the core numbers
+      saveRDS(PscanR::ps_results_table(results), output_file) 
+# Analyse all the files to be sure that results don't change when changing the core numbers
       }
     temp[i] <- timing["elapsed"]
     }
@@ -171,10 +173,6 @@ legend("topright", legend = bquote("Power regression, " ~ R^2 == .(round(r_squar
        col = "blue", lwd = 2)
 ```
 
-```{r}
-
-```
-
 ## Consideration
 
 As shown in the boxplot, the execution time decreases significantly as the
@@ -195,7 +193,8 @@ evaluated time for each core.
 ## Analysis of the timing
 
 ```{r}
-file_path <- system.file("extdata", "df_processori_SnowParam.rds", package = "PscanR")
+file_path <- system.file("extdata", "df_processori_SnowParam.rds", 
+                         package = "PscanR")
 data <- readRDS(file_path)
 
 head(data)
@@ -217,7 +216,8 @@ r_squared <- 1 - (ss_residual / ss_total)
 ```{r}
 boxplot(data,
         main = "PscanR Execution Time with SnowParam",
-        xlab = "Cores (N)\nLiver dataset (950d−50u), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
+        xlab = "Cores (N)\nLiver dataset (950d−50u), JASPAR2020 (746 matrices), 
+        329 promoters (1000bp)",
         cex.lab = 0.8,
         ylab = "Time (s)",
         col = "lightblue",
