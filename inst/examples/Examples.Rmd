@@ -36,7 +36,7 @@ prom_rng <- promoters(txdb, upstream = 500, downstream = 0, use.names = TRUE)
 # Get the promoter sequences
 prom_seq <- Biostrings::getSeq(
   x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
-  target_prom_rng) 
+  prom_rng) 
 ```
 
   **1.2. Getting Jaspar Profiles**
