@@ -29,7 +29,8 @@
 #' from `x` to avoid redundant computations. It also remove all the sequences 
 #' with an N content above 50% and that have a length different from the one of 
 #' the first sequence, that is considered as a reference. 
-#' The motif matrices are background scored by the `ps_scan` function in parallel.
+#' The motif matrices are background scored by the `ps_scan` function in 
+#' parallel.
 #' 
 #' @return 
 #' A `PSMatrixList` object, containing each motif matrix from `pfms`, 
@@ -61,18 +62,19 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
   .ps_checks(x, pfms, type = 1)
   
-  x <- BiocGenerics::unique(x)
-  
-  x <- .clean_sequence(x)
+  x_unique <- BiocGenerics::unique(x)
+  x_unique <- .clean_sequence(x_unique)
   
  # if(is(pfms, "PFMatrixList"))
-    pfms <- as(pfms, "PSMatrixList")
+  pfms <- as(pfms, "PSMatrixList")
     #pfms <- lapply(pfms, FUN = as, "PSMatrix")
   
+  pfms <- .mapping_unique_names(x, pfms)
+
   pfms <- bplapply(
     pfms, 
     FUN = ps_scan, 
-    x, 
+    x_unique, 
     BG = TRUE, 
     BPPARAM=BPPARAM, 
     BPOPTIONS = BPOPTIONS
@@ -80,10 +82,12 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   
   do.call(PSMatrixList, pfms)
 }
+
 #' Import background statistics from a file 
 #' 
 #' Import from a file the score distribution statistics for the input frequency 
-#' matrices computed on a background set of regulatory sequences (e.g. promoters).
+#' matrices computed on a background set of regulatory sequences 
+#' (e.g. promoters).
 #' This function reads the background statistics stored into a 
 #' file by `ps_write_bg_to_file`. 
 #' 
@@ -160,18 +164,18 @@ ps_retrieve_bg_from_file <- function(file, pfms)
 #'    }
 #'    The number of rows in `x` must match the number of elements in `pfms`.
 #'    
-#' @param pfms A `PFMatrixList` object of position frequency matrices representing 
-#'   transcription factor binding preferences, obtained, for example, from the 
-#'   JASPAR database.
-#'   The number of elements in `pfms` should match the number of row of `x`
+#' @param pfms A `PFMatrixList` object of position frequency matrices 
+#'   representing transcription factor binding preferences, obtained, for 
+#'   example, from the JASPAR database.
+#'   The number of elements in `pfms` should match the number of row of `x`.
 #' 
 #' @details 
 #' This function: 
 #' \itemize{
 #'    \item Validates the input type. `x` must be a `data.frame`.
 #'    \item Converts each elements of pfms into `PSMatrix` class. 
-#'    \item A warning is issued if the number of elements in `pfms` doesn't match 
-#'    the number of row of `x`.
+#'    \item A warning is issued if the number of elements in `pfms` doesn't 
+#'    match the number of row of `x`.
 #' }
 #' 
 #' @return 
@@ -238,11 +242,12 @@ ps_build_bg_from_table <- function(x, pfms)
 #' 
 #' Columns: 
 #' \itemize{
-#'   \item `BG_SIZE`: An integer vector representing the background size for each PFMs. 
+#'   \item `BG_SIZE`: An integer vector representing the background size for 
+#'   each PFMs. 
 #'   \item `BG_MEAN`: A numeric vector representing the mean of the background 
 #'   frequencies for each PFMs.
-#'   \item `BG_STDEV`: a numeric vector representing the standard deviation of the 
-#'   background frequencies for each PFMs. 
+#'   \item `BG_STDEV`: a numeric vector representing the standard deviation 
+#'   of the background frequencies for each PFMs. 
 #' }
 #' @importFrom TFBSTools getMatrixSet
 #' 
@@ -292,9 +297,10 @@ ps_get_bg_table <- function(pfms)
 #'   the background statistics should be saved.
 #'
 #' @details 
-#' This function retrieves the background statistics (size, mean, and standard deviation)
-#' using `ps_get_bg_table()` from the input `PSMatrixList` object, after having
-#' validated the inputs. Then, it writes the result to a specified file. 
+#' This function retrieves the background statistics (size, mean, and 
+#' standard deviation) using `ps_get_bg_table()` from the input `PSMatrixList` 
+#' object, after having validated the inputs. Then, it writes the result to a 
+#' specified file. 
 #' A header is added to the file (`[SHORT TFBS MATRIX`]). 
 #'
 #' @return None. It saves the given background statistics to the specified file
@@ -325,7 +331,7 @@ ps_get_bg_table <- function(pfms)
 #'   
 #' PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
 #' 
-#' ps_write_bg_to_file(PSMatrixList_J2020, file_path) # You will find the file in your project
+#' # ps_write_bg_to_file(PSMatrixList_J2020, file_path)
 #' 
 #' @seealso \code{\link{ps_get_bg_table}}
 #' 
@@ -361,8 +367,8 @@ ps_write_bg_to_file <- function(pfms, file)
 #' @param org A string representing the organism acronym. Accepted values are: 
 #'    `hs` (Homo sapiens), `mm` (Mus musculus), `at` (Arabidopsis thaliana), 
 #'    `sc` (Saccharomyces cerevisiae), `dm` (Drosophila melanogaster). 
-#' @param prom_reg A numeric vector of two integers as `[upstream, downstream]` à
-#'    from the transcription start site (TSS) indicating the range 
+#' @param prom_reg A numeric vector of two integers as `[upstream, downstream]`
+#'    bp from the transcription start site (TSS) indicating the range 
 #'    of the promoter region. You can choose between:
 #'    \itemize{
 #'      \item 200 base pairs upstream and 50 downstream base pair from the TSS 
@@ -382,22 +388,19 @@ ps_write_bg_to_file <- function(pfms, file)
 #' @export
 #'
 #' @examples
-#' bg_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' bg_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
+#'                                                      c(-200,50), 'hg38')
 #' bg_matrices
 #' bg_matrices[[4]]
 #' 
 generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, assembly){
   
-  organism_map <- list(
-    "hs" = assembly,
-    "mm" = assembly,
-    "at" = "TAIR9",
-    "sc" = "sacCer3",
-    "dm" = "dm6"
-  )
+  organism_map <- list("hs" = assembly, "mm" = assembly, "at" = "TAIR9", 
+                       "sc" = "sacCer3", "dm" = "dm6")
   
   if(!(org %in% names(organism_map))){
-    stop("Invalid organism acronym. Choose between: 'hs', 'mm', 'at', 'sc', 'dm'.")
+    stop("Invalid organism acronym. Choose between: 'hs', 'mm', 'at', 'sc', 
+         'dm'.")
   }
   
   org_assembly <- organism_map[[org]]
@@ -406,8 +409,8 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
   J_name <- toupper(JASPAR_matrix)
   
   if(!(J_name %in% valid_JASPAR)){
-    stop("Invalid database. Choose between: 'JASPAR2020', 'JASPAR2022', 'JASPAR2024'
-         (non case sensitive).")
+    stop("Invalid database. Choose between: 'JASPAR2020', 'JASPAR2022', 
+    'JASPAR2024' (non case sensitive).")
   }
   
   version <- substr(JASPAR_matrix,7, 10)
@@ -418,20 +421,17 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
   p_up <- abs(prom_reg[1])
   p_down <- abs(prom_reg[2])
   
-  file_suffix <- ifelse(org_assembly == "TAIR9", "TAIR.psbg.txt", "UCSC.psbg.txt")
+  file_suffix <- ifelse(org_assembly == "TAIR9", "TAIR.psbg.txt", 
+                        "UCSC.psbg.txt")
   
-  file_name <- paste0('J', version, '_', org_assembly, '_', p_up, 'u_', p_down, 'd_', file_suffix)
+  file_name <- paste0('J', version, '_', org_assembly, '_', p_up, 'u_', p_down, 
+                      'd_', file_suffix)
   
   
   BG_path <- system.file("extdata/BG_scripts", file_name, package = 'PscanR')
   
-  tax_map <- list(
-    'hs' = 'vertebrates',
-    'mm' = 'vertebrates',
-    'at' = 'plants',
-    'sc' = 'fungi',
-    'dm' = 'insects'
-  )
+  tax_map <- list('hs' = 'vertebrates', 'mm' = 'vertebrates', 'at' = 'plants',
+                  'sc' = 'fungi','dm' = 'insects') 
   
   opts <- list("collection" = "CORE", "tax_group" = tax_map[[org]])
   
@@ -444,7 +444,8 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
   if(J_name == 'JASPAR2024'){
     httr::set_config(httr::config(ssl_verifypeer = 0L))
     JASPAR2024 <- JASPAR2024::JASPAR2024()
-    JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), JASPAR2024::db(JASPAR2024))
+    JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), 
+                                        JASPAR2024::db(JASPAR2024))
     J_matrix <- TFBSTools::getMatrixSet(JASPARConnect, opts)
   }
   
