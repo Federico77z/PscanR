@@ -75,7 +75,9 @@
   diff_length_seq <- x[seq_widths != ref_width]
   
   if(length(diff_length_seq) != 0){
-    warning(paste(length(diff_length_seq), 'sequences found with length different from the reference. Removing the following sequences:', 
+    warning(paste(length(diff_length_seq), 'sequences found with length 
+                  different from the reference. Removing the following 
+                  sequences:', 
                   paste(names(diff_length_seq), collapse = ", ")))
   }
   x <- x[seq_widths == ref_width]
@@ -85,11 +87,51 @@
   rem_names <- names(x[n_proportions > 0.5])
   
   if(length(rem_names)> 0){
-    warning(paste('Found', length(rem_names), 'sequences with more than 50% of N. Removing the following sequences:', 
+    warning(paste('Found', length(rem_names), 'sequences with more than 50% of N. 
+                  Removing the following sequences:', 
                   paste(rem_names, collapse = ", ")))
   }
   x <- x[n_proportions <= 0.5]
   return(x)
+}
+
+.mapping_unique_names <- function(x,pfms){
+
+  original_names <- names(x)
+  
+  # popolazione vettore con tutti i nomi di sequenze presenti nell'org di studio
+  all_sequences_ID <- setNames(character(length(x)), original_names)
+  
+  # eliminazione doppioni 
+  unique_x <- BiocGenerics::unique(x)
+  unique_names <- names(unique_x)  
+  
+  # Trasformazione in vettore di caratteri nominato per fare il confronto tra i 
+  # due vettori con la funzione match
+  x_char <- as.character(x)
+  unique_x_char <- as.character(unique_x)
+  
+  # Confronti: quando 2 seq sono uguali, viene memorizzato un indice numerico che verrà 
+  # usato x estrarre il nome della sequenza che è stata mantenuta da unique(). 
+  # questo nome sarà il VALORE assegnato al vettore con il NOME della sequenza originale. 
+  all_sequences_ID <- setNames(unique_names[match(x_char, unique_x_char)], original_names)
+  
+  # applico la funzione per rimuovere le seq con %N > 50%. nel vettore, in corrispondenza 
+  # del nome della sequenza originale, al posto del nome della sequenza mantenuta 
+  # da unique() ci sarà un NA --> nella funzione principale questo NA serve come 
+  # flag per rimuovere il nome di questa sequenza, nel caso sia stata passata in 
+  # input, ed emettere un warning.
+  x <- .clean_sequence(x)
+  removed_sequences <- setdiff(original_names, names(x))
+  
+  all_sequences_ID[removed_sequences] <- NA
+  
+  # Assegno i valori solo all'array della prima PSM per questioni di spazio 
+  # --> non credo vada bene, sarebbe meglio assegnarlo (una sola volta) a tutta la 
+  # PSMatrixList (campo metadati?)
+  pfms[[1]]@all_sequences_ID <- all_sequences_ID
+  
+  return(pfms)
 }
 
 #.ps_required_packages <- function()
