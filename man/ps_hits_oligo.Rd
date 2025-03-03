@@ -13,9 +13,10 @@ ps_hits_oligo(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **named character vector**, where names 
-  correspond to sequence identifiers, and values represent the oligonucleotide 
-  sequences (subset of the input promoter sequences) matching the motif.
+  \item If `x` is a `PSMatrix` object: a **named character vector**, where 
+  names correspond to sequence identifiers, and values represent the 
+  oligonucleotide sequences (subset of the input promoter sequences) matching 
+  the motif.
   \item If `x` is another supported class, the return format may differ.
 }
 

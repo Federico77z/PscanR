@@ -15,8 +15,8 @@ version. You can choose between 'JASPAR2020', 'JASPAR2022', or
 `hs` (Homo sapiens), `mm` (Mus musculus), `at` (Arabidopsis thaliana), 
 `sc` (Saccharomyces cerevisiae), `dm` (Drosophila melanogaster).}
 
-\item{prom_reg}{A numeric vector of two integers as `[upstream, downstream]` à
-from the transcription start site (TSS) indicating the range 
+\item{prom_reg}{A numeric vector of two integers as `[upstream, downstream]`
+bp from the transcription start site (TSS) indicating the range 
 of the promoter region. You can choose between:
 \itemize{
   \item 200 base pairs upstream and 50 downstream base pair from the TSS 
@@ -41,7 +41,8 @@ region, and then fetches a corresponding matrix set from a specified JASPAR
 version. It returns a `PSMatrixList` object.
 }
 \examples{
-bg_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+bg_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
+                                                     c(-200,50), 'hg38')
 bg_matrices
 bg_matrices[[4]]
 

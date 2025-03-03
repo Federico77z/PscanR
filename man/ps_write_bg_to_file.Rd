@@ -25,9 +25,10 @@ for each Position Weight Matrix in a `PSMatrixList` object to a specified
 file.
 }
 \details{
-This function retrieves the background statistics (size, mean, and standard deviation)
-using `ps_get_bg_table()` from the input `PSMatrixList` object, after having
-validated the inputs. Then, it writes the result to a specified file. 
+This function retrieves the background statistics (size, mean, and 
+standard deviation) using `ps_get_bg_table()` from the input `PSMatrixList` 
+object, after having validated the inputs. Then, it writes the result to a 
+specified file. 
 A header is added to the file (`[SHORT TFBS MATRIX`]).
 }
 \examples{
@@ -53,7 +54,7 @@ PSM2 <- PSMatrix(
   
 PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
 
-ps_write_bg_to_file(PSMatrixList_J2020, file_path) # You will find the file in your project
+# ps_write_bg_to_file(PSMatrixList_J2020, file_path)
 
 }
 \seealso{

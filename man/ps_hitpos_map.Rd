@@ -26,8 +26,9 @@ A heatmap plot showing positional hits distribution for selected
 }
 \description{
 This function creates a heatmap visualizing the positional distribution
-of motif hits based on a specified false discovery rate threshold. The heatmap 
-helps visualize where significant motif hits occur within the analyzed sequences.
+of motif hits based on a specified false discovery rate threshold. 
+The heatmap helps visualize where significant motif hits occur within the
+analyzed sequences.
 }
 \details{
 The function performs the following steps: 
@@ -51,7 +52,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the Pscan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

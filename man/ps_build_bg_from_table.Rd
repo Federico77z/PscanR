@@ -16,10 +16,10 @@ The data frame should have the following columns:
 }
 The number of rows in `x` must match the number of elements in `pfms`.}
 
-\item{pfms}{A `PFMatrixList` object of position frequency matrices representing 
-transcription factor binding preferences, obtained, for example, from the 
-JASPAR database.
-The number of elements in `pfms` should match the number of row of `x`}
+\item{pfms}{A `PFMatrixList` object of position frequency matrices 
+representing transcription factor binding preferences, obtained, for 
+example, from the JASPAR database.
+The number of elements in `pfms` should match the number of row of `x`.}
 }
 \value{
 A `PSMatrixList` object containing each motif matrix from `pfms`, 
@@ -35,8 +35,8 @@ This function:
 \itemize{
    \item Validates the input type. `x` must be a `data.frame`.
    \item Converts each elements of pfms into `PSMatrix` class. 
-   \item A warning is issued if the number of elements in `pfms` doesn't match 
-   the number of row of `x`.
+   \item A warning is issued if the number of elements in `pfms` doesn't 
+   match the number of row of `x`.
 }
 }
 \examples{

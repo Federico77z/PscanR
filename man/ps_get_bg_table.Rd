@@ -17,11 +17,12 @@ A `data.frame` with one row for each PFM in `pfms`.
 
 Columns: 
 \itemize{
-  \item `BG_SIZE`: An integer vector representing the background size for each PFMs. 
+  \item `BG_SIZE`: An integer vector representing the background size for 
+  each PFMs. 
   \item `BG_MEAN`: A numeric vector representing the mean of the background 
   frequencies for each PFMs.
-  \item `BG_STDEV`: a numeric vector representing the standard deviation of the 
-  background frequencies for each PFMs. 
+  \item `BG_STDEV`: a numeric vector representing the standard deviation 
+  of the background frequencies for each PFMs. 
 }
 }
 \description{

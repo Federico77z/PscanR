@@ -29,7 +29,8 @@ See `ps_build_bg_from_table` for more details.
 }
 \description{
 Import from a file the score distribution statistics for the input frequency 
-matrices computed on a background set of regulatory sequences (e.g. promoters).
+matrices computed on a background set of regulatory sequences 
+(e.g. promoters).
 This function reads the background statistics stored into a 
 file by `ps_write_bg_to_file`.
 }

@@ -30,8 +30,8 @@ it contains the following columns:
 \description{
 This function generates a table summarizing the statistical analysis of motif 
 enrichment, stored in a `PSMatrixList` object. It retrieves pre-computed 
-background and foreground statistics (the alignment scores between Pscan input
-regulatory sequences and position weight matrices) for each PWM. 
+background and foreground statistics (the alignment scores between Pscan 
+input regulatory sequences and position weight matrices) for each PWM. 
 Then it compares motif occurrences in the foreground (e.g., 
 coexpressed/coregulated promoter sequences) with the background (e.g., all 
 promoters in an organism) using Z-scores, p-values, and FDR correction.
@@ -44,7 +44,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the PScan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

@@ -13,9 +13,9 @@ ps_hits_z(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **named numeric vector**, where names 
-  correspond to promoter sequence identifiers and values represent their 
-  respective Z-scores.
+  \item If `x` is a `PSMatrix` object: a **named numeric vector**, where 
+  names correspond to promoter sequence identifiers and values represent 
+  their respective Z-scores.
   \item If `x` is another supported class, the return format may differ.
 }
 }

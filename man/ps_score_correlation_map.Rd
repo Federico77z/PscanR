@@ -14,8 +14,8 @@ of `pscan()` function.}
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to include in the analysis. The default is `0.01`.}
 
-\item{...}{Additional user defined arguments to customize the heatmap settings, 
-such as color palettes or clustering object.}
+\item{...}{Additional user defined arguments to customize the heatmap 
+settings, such as color palettes or clustering object.}
 }
 \value{
 A heatmap plot showing Z-score correlations for selected 
@@ -56,7 +56,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the Pscan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

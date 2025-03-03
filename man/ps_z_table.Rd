@@ -25,7 +25,8 @@ to a sequence, and each column represents a motif.
 \details{
 The Z-Score represents the statistical significance of the alignment scores 
 for regulatory sequences relative to background expectation. A high Z-score 
-suggests strong motif enrichment in the foreground compared to the background.
+suggests strong motif enrichment in the foreground compared to 
+the background.
 }
 \examples{
 
@@ -36,7 +37,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the Pscan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

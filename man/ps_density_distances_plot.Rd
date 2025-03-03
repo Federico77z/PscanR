@@ -2,7 +2,8 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_density_distances_plot}
 \alias{ps_density_distances_plot}
-\title{Density Plot of Distances between Identified Motif Hits in two PSMatrix Object}
+\title{Density Plot of Distances between Identified Motif Hits in two PSMatrix 
+Object}
 \usage{
 ps_density_distances_plot(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
 }
@@ -34,8 +35,8 @@ A density plot showing the distribution of distances between
    the density of those distances.
 }
 \description{
-This function visualizes the density plot of distances between identified hits 
-sites in two `PSMatrix` object. The distance between hits is calculated 
+This function visualizes the density plot of distances between identified 
+hits sites in two `PSMatrix` object. The distance between hits is calculated 
 for each sequence that is present in both matrices. 
 It allows to filter the identified sites based on a specified threshold value.
 }
@@ -45,7 +46,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[25:50]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the Pscan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

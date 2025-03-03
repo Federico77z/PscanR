@@ -24,8 +24,8 @@ size value for motif enrichment analysis. Methods should be
 implemented for specific object classes that store scan results.
 }
 \details{
-The background size value represent the dimension of the background (number of
-promoter sequences used as background).
+The background size value represent the dimension of the background 
+(number of promoter sequences used as background).
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")

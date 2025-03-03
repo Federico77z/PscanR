@@ -7,8 +7,8 @@
 ps_density_plot(pfm, shift = 0, st = ps_bg_avg(pfm))
 }
 \arguments{
-\item{pfm}{A `PSMatrix` object. It is a selected matrix from the `PSMatrixList`, 
-result of `pscan` function.}
+\item{pfm}{A `PSMatrix` object. It is a selected matrix from the 
+`PSMatrixList`, result of `pscan` function.}
 
 \item{shift}{Integer value specifying the positional shift applied to the hit 
 positions. Default is `0`.}
@@ -42,7 +42,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the Pscan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

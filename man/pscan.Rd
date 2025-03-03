@@ -50,9 +50,9 @@ quantify potential binding affinities of transcription factors in that region.
 This is done throughout the Pscan algorithm.
 }
 \details{
-The `pscan` function performs sequence scanning using the `ps_scan` method for 
-individual PWMs, accounting for both the forward and reverse complement strands,
-ensuring no potential binding sites are missed.
+The `pscan` function performs sequence scanning using the `ps_scan` method 
+for individual PWMs, accounting for both the forward and reverse complement 
+strands, ensuring no potential binding sites are missed.
 }
 \examples{
 
@@ -61,7 +61,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the PScan algorithm
 results <- pscan(prom_seq, J2020_PSBG, 

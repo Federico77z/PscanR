@@ -13,8 +13,8 @@ ps_seq_names(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **character vector** of sequence names 
-  corresponding to the analyzed promoter regions.
+  \item If `x` is a `PSMatrix` object: a **character vector** of sequence 
+  names corresponding to the analyzed promoter regions.
   \item If `x` belongs to another supported class, the return format may vary.
 }
 }
@@ -23,7 +23,8 @@ ps_seq_names(x, ...)
 or identifiers from an object containing promoter sequence data.
 }
 \details{
-Methods should be implemented for specific object classes storing sequence data.
+Methods should be implemented for specific object classes storing sequence 
+data.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")

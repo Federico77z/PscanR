@@ -41,7 +41,8 @@ This function validates input types and remove duplicated sequences
 from `x` to avoid redundant computations. It also remove all the sequences 
 with an N content above 50% and that have a length different from the one of 
 the first sequence, that is considered as a reference. 
-The motif matrices are background scored by the `ps_scan` function in parallel.
+The motif matrices are background scored by the `ps_scan` function in 
+parallel.
 }
 \examples{
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")

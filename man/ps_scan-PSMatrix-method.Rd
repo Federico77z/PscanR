@@ -4,7 +4,7 @@
 \alias{ps_scan,PSMatrix-method}
 \title{Perform a Scan of DNA Sequences Using a `PSMatrix` Object}
 \usage{
-\S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE)
+\S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE, mega_BG = FALSE)
 }
 \arguments{
 \item{x}{A `PSMatrix` object representing the motif and related statistics 
@@ -13,8 +13,11 @@ to be used for scanning DNA sequences.}
 \item{seqs}{`A DNAstringSet` object representing the sequences to be
 scanned for motif occurrences.}
 
-\item{BG}{A logical value indicating whether to calculate background statistics.
+\item{BG}{A logical value indicating whether to calculate background 
+statistics.
 Default is set to `FALSE`.}
+
+\item{mega_BG}{Logical. It is a flag for the analysis to be performed.}
 }
 \value{
 A `PSMatrix` object, with updated information about the motif hits 
@@ -28,15 +31,16 @@ performed on both strands (the direct and reverse complement strands) of the
 sequences to ensure that no potential binding sites are missed.
 }
 \details{
-The function scans each sequence for motif occurrences, computes motif scores, 
-and stores the hit details in the `PSMatrix` object. The scan is performed on 
-both the forward and reverse complement strands of the sequences to ensure 
-all potential binding sites are detected. Optionally, the background statistics 
-(background average and standard deviation) can be computed and used during 
-scanning.
+The function scans each sequence for motif occurrences, computes motif 
+scores, and stores the hit details in the `PSMatrix` object. The scan is 
+performed on both the forward and reverse complement strands of the sequences 
+to ensure all potential binding sites are detected. Optionally, the 
+background statistics (background average and standard deviation) can be 
+computed and used during scanning.
 }
 \examples{
-BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50),'hg38')
+BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
+                                                     c(-200,50),'hg38')
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]

@@ -9,8 +9,8 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the output, 
-if they exist in the object.
+\item{withDimnames}{Logical, whether to include dimension names in the 
+output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
