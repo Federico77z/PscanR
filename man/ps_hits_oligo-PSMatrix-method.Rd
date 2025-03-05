@@ -14,14 +14,12 @@ output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A named character vector containing the sequences of motif matches 
-    (oligonucleotides) in the foreground set. The names of the vector 
-    correspond to the sequence IDs from which the matches were found.
+A character vector containing the sequences of motif matches 
+    (oligonucleotides) in the foreground set.
 }
 \description{
 Retrieves the oligonucleotide sequences that match the motif in the 
-foreground sequences, returning a named character vector where names 
-correspond to the sequence identifiers.
+foreground sequences, returning a character vector.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")

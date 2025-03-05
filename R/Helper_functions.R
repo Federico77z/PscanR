@@ -112,7 +112,7 @@
   unique_x_char <- as.character(unique_x)
   
   # Confronti: quando 2 seq sono uguali, viene memorizzato un indice numerico che verrà 
-  # usato x estrarre il nome della sequenza che è stata mantenuta da unique(). 
+  # usato per estrarre il nome della sequenza che è stata mantenuta da unique(). 
   # questo nome sarà il VALORE assegnato al vettore con il NOME della sequenza originale. 
   all_sequences_ID <- setNames(unique_names[match(x_char, unique_x_char)], original_names)
   
@@ -129,7 +129,7 @@
   # Assegno i valori solo all'array della prima PSM per questioni di spazio 
   # --> non credo vada bene, sarebbe meglio assegnarlo (una sola volta) a tutta la 
   # PSMatrixList (campo metadati?)
-  pfms[[1]]@all_sequences_ID <- all_sequences_ID
+  pfms@transcriptIDLegend <- all_sequences_ID
   
   return(pfms)
 }

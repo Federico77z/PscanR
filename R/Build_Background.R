@@ -65,11 +65,7 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   x_unique <- BiocGenerics::unique(x)
   x_unique <- .clean_sequence(x_unique)
   
- # if(is(pfms, "PFMatrixList"))
   pfms <- as(pfms, "PSMatrixList")
-    #pfms <- lapply(pfms, FUN = as, "PSMatrix")
-  
-  pfms <- .mapping_unique_names(x, pfms)
 
   pfms <- bplapply(
     pfms, 
@@ -80,7 +76,10 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
     BPOPTIONS = BPOPTIONS
   )
   
-  do.call(PSMatrixList, pfms)
+  pfms <- do.call(PSMatrixList, pfms)
+  
+  pfms <- .mapping_unique_names(x, pfms)
+  
 }
 
 #' Import background statistics from a file 

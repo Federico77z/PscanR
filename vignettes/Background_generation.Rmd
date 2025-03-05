@@ -301,6 +301,48 @@ background to a file for future use.
 PscanR::ps_write_bg_to_file(J2022_PSBG, "J2022_mm10_450u_50d_UCSC_curated.psbg.txt")
 ```
 
+# The mega background
+
+When dealing with multiple analysis on the same background dataset, it can be
+convenient
+to store an enlarged version of the background containing key metrics such as
+the score, position and oligonucleotide seuqence for each hit within the
+background, to reduce computational time.
+
+When you export the PSMatrixList with `ps_write_bg_to_file()` this infromation
+gets discarded to conserve memory. In fact, after the computation of the
+background mean and standard deviation, these data are no more needed since can
+be efficiently recomputed by `pscan()`.
+
+Although `pscan()` supports parallel computation, making the recalculation
+relatively fast, scenarios that involve repeated analyses of the same promoter
+region can benefit significantly from a more efficient approach. By preserving
+the computed background information, the need for redundant calculations is
+eliminated, leading to enhanced computational efficiency, especially when
+working on large datasets or performing numerous iterations of the same
+analysis.
+
+## Mega-background Generation 
+
+To create a mega-background dataset, you need to store the full output of the
+`ps_build_bg()` function without discarding any computed values. This can be
+fullfilled using the `save()` function in R. This will generate an .RData file.
+
+## Application
+
+Once the mega-background has been created, it can be used in subsequent analyses
+to streamline computations. The `pscan_bg()` function requires two inputs:
+
+1.  **A vector of transcript names** -- This vector should contain the
+    identifiers of the transcripts of interest.
+
+2.  **The generated mega-background dataset** -- The `.RData` file created in
+    the previous step.
+
+By using `pscan_bg()` with the saved mega-background, the analysis process
+becomes significantly more efficient, reducing computational overhead while
+maintaining accuracy and reproducibility.
+
 ```{r}
 # Display session information
 sessionInfo()

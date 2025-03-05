@@ -5,7 +5,7 @@
 \alias{setAs,PFMatrixList,PSMatrixList-method}
 \title{Create a `PSMatrixList` object}
 \usage{
-PSMatrixList(..., use.names = TRUE)
+PSMatrixList(..., transcriptIDLegend = character(), use.names = TRUE)
 }
 \arguments{
 \item{...}{Objects of class `PSMatrix` to include in the list.}

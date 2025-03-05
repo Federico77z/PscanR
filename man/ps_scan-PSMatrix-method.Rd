@@ -17,7 +17,11 @@ scanned for motif occurrences.}
 statistics.
 Default is set to `FALSE`.}
 
-\item{mega_BG}{Logical. It is a flag for the analysis to be performed.}
+\item{mega_BG}{A logical value (default is `FALSE`). If `TRUE`, the method 
+assumes that the PSMatrix represent a special "mega-background" set. 
+In this case, the `seqs` parameter should be a vector of sequence names 
+(instead of actual DNA sequences). The function handles this by matching 
+sequence names against precomputed background data in the `PSMatrix`.}
 }
 \value{
 A `PSMatrix` object, with updated information about the motif hits 
@@ -31,12 +35,22 @@ performed on both strands (the direct and reverse complement strands) of the
 sequences to ensure that no potential binding sites are missed.
 }
 \details{
-The function scans each sequence for motif occurrences, computes motif 
-scores, and stores the hit details in the `PSMatrix` object. The scan is 
-performed on both the forward and reverse complement strands of the sequences 
-to ensure all potential binding sites are detected. Optionally, the 
-background statistics (background average and standard deviation) can be 
-computed and used during scanning.
+This method is designed to handle different types of sequence scanning 
+scenarios. It can handle both regular DNA sequences (using a `DNAStringSet`) 
+and specialized background sequence sets (either using a background flag 
+or a mega-background flag). 
+
+If `mega_BG` is set to `TRUE`, the function assumes that `seqs` contains 
+sequence identifiers rather than the sequences themselves. In this case, the 
+method matches the sequence names to those in the `PSMatrix`'s background hit 
+data and retrieves the corresponding binding information (score, strand, 
+position, oligo).
+
+When `mega_BG` is set to `FALSE`, the function scan both the forward and 
+reverse complement strands of the sequences to ensure all potential binding 
+sites are detected. Optionally, the background statistics (background average 
+and standard deviation) can be computed and used during scanning when `BG` is 
+set to `TRUE`.
 }
 \examples{
 BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
