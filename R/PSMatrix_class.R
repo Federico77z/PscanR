@@ -1228,7 +1228,7 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
 #' @examples
 #' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
 #' load(mega_pfm1_path)
-#' ps_hits_score(mega_pfm1)
+#' ps_hits_score_bg(mega_pfm1)
 #' 
 #' @export
 setMethod("ps_hits_score_bg", "PSMatrix", function(x, withDimnames = TRUE) {
@@ -1720,6 +1720,7 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE, mega_BG = FALSE){
                       Pos = res$pos, 
                       Oligo = res$oligo, BG = BG, 
                       mega_BG = mega_BG)
+    x@ps_bg_seq_names <- character()
     
   } 
   else{
