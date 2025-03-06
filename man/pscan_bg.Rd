@@ -15,7 +15,9 @@ ps_build_bg(). To preserve key metrics, ensure the object is saved using
 save().}
 }
 \value{
-A PSMatrixList object
+A `PSMatrixList` object in which the alignment scores and related 
+   metrics have been retrieved from `mega_pfms` for each sequence in `ID`, 
+   based on the background data.
 }
 \description{
 This function is an optimized version of pscan(), designed to significantly
