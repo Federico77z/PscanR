@@ -36,6 +36,9 @@
 #'   ID4 → ID2). This vector is stored in the transcriptIDLegend slot of the 
 #'   PSMatrixList and helps generate a complete background PSMatrixList, 
 #'   improving computational efficiency for the pscan_bg() function.
+#'   In addition, it retrieves for each PSM in the PSMatrixList output all the 
+#'   background metrics relative to hits score, position, strand, and 
+#'   oligonucleotide sequence of the regulatory sequences scanned with the PWM. 
 #'     
 #' @details 
 #' This function validates input types and removes duplicated sequences
@@ -81,6 +84,13 @@
 #' # Use BiocParallel::MulticoreParam() for Unix like systems. 
 #' bg_matrices
 #' bg_matrices[[1]]
+#' 
+#' # Example for mega-background generation
+#' mega_bg_matrices <- ps_build_bg(prom_seq, J2020, 
+#'                            BPPARAM = BiocParallel::SnowParam(1), megaBG = TRUE)
+#'                            
+#' mega_bg_matrices[[1]]
+#' 
 #' @export
 ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(), 
                         megaBG = FALSE)
@@ -96,7 +106,8 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
     pfms, 
     FUN = ps_scan, 
     x_unique, 
-    BG = TRUE, 
+    BG = TRUE,
+    megaBG = megaBG,
     BPPARAM=BPPARAM, 
     BPOPTIONS = BPOPTIONS
   )
@@ -424,29 +435,26 @@ ps_write_bg_to_file <- function(pfms, file)
 generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
                                                   assembly){
   
-  organism_map <- list("hs" = assembly, "mm" = assembly, "at" = "TAIR9", 
+  organism_map <- c("hs" = assembly, "mm" = assembly, "at" = "TAIR9", 
                        "sc" = "sacCer3", "dm" = "dm6")
-  
-  if(!(org %in% names(organism_map))){
-    stop("Invalid organism acronym. Choose between: 'hs', 'mm', 'at', 'sc', 
-         'dm'.")
-  }
+  tax_map <- c('hs' = 'vertebrates', 'mm' = 'vertebrates', 'at' = 'plants',
+                  'sc' = 'fungi','dm' = 'insects') 
   
   org_assembly <- organism_map[[org]]
+  if(is.null(org_assembly))
+    stop("Invalid organism acronym. Choose between: 'hs', 'mm', 'at', 'sc', 
+         'dm'.")
   
   valid_JASPAR <- c("JASPAR2020", "JASPAR2022", "JASPAR2024")
   J_name <- toupper(JASPAR_matrix)
-  
-  if(!(J_name %in% valid_JASPAR)){
+  if(!(J_name %in% valid_JASPAR))
     stop("Invalid database. Choose between: 'JASPAR2020', 'JASPAR2022', 
     'JASPAR2024' (non case sensitive).")
-  }
   
   version <- substr(JASPAR_matrix,7, 10)
   
-  if(length(prom_reg) != 2 || !is.numeric(prom_reg)) {
+  if(length(prom_reg) != 2 || !is.numeric(prom_reg))
     stop("Promoter region must be a numeric vector with two integer.")
-  }
   p_up <- abs(prom_reg[1])
   p_down <- abs(prom_reg[2])
   
@@ -456,28 +464,21 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
   file_name <- paste0('J', version, '_', org_assembly, '_', p_up, 'u_', p_down, 
                       'd_', file_suffix)
   
-  
   BG_path <- system.file("extdata/BG_scripts", file_name, package = 'PscanR')
-  
-  tax_map <- list('hs' = 'vertebrates', 'mm' = 'vertebrates', 'at' = 'plants',
-                  'sc' = 'fungi','dm' = 'insects') 
   
   opts <- list("collection" = "CORE", "tax_group" = tax_map[[org]])
   
-  if(J_name == 'JASPAR2020'){
-    J_matrix <- TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts) 
-  }
-  if(J_name == 'JASPAR2022'){
-    J_matrix <- TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts)
-  }
-  if(J_name == 'JASPAR2024'){
-    httr::set_config(httr::config(ssl_verifypeer = 0L))
-    JASPAR2024 <- JASPAR2024::JASPAR2024()
-    JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), 
-                                        JASPAR2024::db(JASPAR2024))
-    J_matrix <- TFBSTools::getMatrixSet(JASPARConnect, opts)
-  }
+  J_matrix <- switch(J_name,
+    'JASPAR2020' = TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts),
+    'JASPAR2022' = TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts),
+    'JASPAR2024' = {
+      httr::set_config(httr::config(ssl_verifypeer = 0L))
+      JASPAR2024 <- JASPAR2024::JASPAR2024()
+      JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), 
+                                          JASPAR2024::db(JASPAR2024))
+      J_matrix <- TFBSTools::getMatrixSet(JASPARConnect, opts)
+    }
+  )
   
-  J_PSBG <- ps_retrieve_bg_from_file(BG_path, J_matrix)
-  return(J_PSBG)
+  ps_retrieve_bg_from_file(BG_path, J_matrix)
 }

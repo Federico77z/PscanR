@@ -11,8 +11,8 @@ ps_build_bg_from_table(x, pfms)
 The data frame should have the following columns:
 \itemize{
    \item `BG_SIZE`: Background size.
-   \item `BG_MEAN`: Mean of the background frequencies.
-   \item `BG_STDEV`: Standard deviation of the background frequencies.
+   \item `BG_MEAN`: Mean of the background hits score.
+   \item `BG_STDEV`: Standard deviation of the background hits score.
 }
 The number of rows in `x` must match the number of elements in `pfms`.}
 

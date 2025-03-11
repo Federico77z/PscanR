@@ -28,8 +28,8 @@ A density plot showing the distribution of hits along the promoter
 }
 \description{
 This function creates a density plot representing the distribution of hits 
-along the promoter sequences based on their position and score. It helps 
-visualize where motif occurrences are concentrated.
+along the promoter sequences based on their position and score for a specific 
+PWM. It helps visualize where motif occurrences are concentrated.
 }
 \details{
 The function filters motif hits based on a specified threshold and generates 

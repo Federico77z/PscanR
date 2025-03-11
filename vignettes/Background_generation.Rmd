@@ -140,6 +140,10 @@ Example with *A. thaliana:*
 txdb <- txdbmaker::makeTxDbFromGFF('<path_to_your_file>', format = "gff3", dataSource="TAIR9", organism="Arabidopsis thaliana")
 ```
 
+Another example is the most recent human genome assembly, hs1: if you are
+interested in constructing a background for this assembly, please follow the
+guidelines at <https://github.com/Bioconductor/txdbmaker/issues/1>
+
 Since we typically want to focus on main chromosomes, we can filter them
 accordingly:
 
@@ -304,9 +308,8 @@ PscanR::ps_write_bg_to_file(J2022_PSBG, "J2022_mm10_450u_50d_UCSC_curated.psbg.t
 # The mega background
 
 When dealing with multiple analysis on the same background dataset, it can be
-convenient
-to store an enlarged version of the background containing key metrics such as
-the score, position and oligonucleotide seuqence for each hit within the
+convenient to store an enlarged version of the background containing key metrics
+such as the score, position and oligonucleotide seuqence for each hit within the
 background, to reduce computational time.
 
 When you export the PSMatrixList with `ps_write_bg_to_file()` this infromation
@@ -322,11 +325,13 @@ eliminated, leading to enhanced computational efficiency, especially when
 working on large datasets or performing numerous iterations of the same
 analysis.
 
-## Mega-background Generation 
+## Mega-background Generation
 
 To create a mega-background dataset, you need to store the full output of the
 `ps_build_bg()` function without discarding any computed values. This can be
-fullfilled using the `save()` function in R. This will generate an .RData file.
+fullfilled using the `save()` function in R and by setting the megaBG flag on
+TRUE. This will generate an .RData file containing the hits score, position,
+strand, and oligonucleotide sequence, for each sequence scanned with the PWMs.
 
 ## Application
 

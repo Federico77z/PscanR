@@ -41,6 +41,6 @@ them, optimizing efficiency.
 \examples{
 mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
 load(mega_pfm1_path)
-ps_hits_pos_bg(mega_pfm1.RData)
+ps_hits_pos_bg(mega_pfm1)
 
 }

@@ -53,20 +53,20 @@
 }
 
 #' @keywords internal
-#' @importFrom utils globalVariables
-.ps_checks2 <- function(pfms, ...)
+.ps_checks2 <- function(pfms, x = NULL, ...)
 {
   #.ps_required_packages()
 
   if(!is(pfms, "PSMatrixList"))
     stop("pfms is not an object of PSMatrixList class")  
   
-  if(is.character(file))
+  if(!is.null(x) && is.character(x))
     if(file.access(x, mode = 2) != 0)
       stop(paste("Cannot write to file path:", x))
    
 }
 
+#' @keywords internal
 .clean_sequence <- function(x){
   
   seq_widths <- Biostrings::width(x)
@@ -95,6 +95,7 @@
   return(x)
 }
 
+#' @keywords internal
 .mapping_unique_names <- function(x,pfms){
 
   original_names <- names(x)

@@ -4,7 +4,7 @@
 \alias{ps_scan,PSMatrix-method}
 \title{Perform a Scan of DNA Sequences Using a `PSMatrix` Object}
 \usage{
-\S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE, mega_BG = FALSE)
+\S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE, use_mega_BG = FALSE, megaBG = FALSE)
 }
 \arguments{
 \item{x}{A `PSMatrix` object representing the motif and related statistics 
@@ -17,11 +17,17 @@ scanned for motif occurrences.}
 statistics.
 Default is set to `FALSE`.}
 
-\item{mega_BG}{A logical value (default is `FALSE`). If `TRUE`, the method 
+\item{use_mega_BG}{A logical value (default is `FALSE`). If `TRUE`, the method 
 assumes that the PSMatrix represent a special "mega-background" set. 
 In this case, the `seqs` parameter should be a vector of sequence names 
 (instead of actual DNA sequences). The function handles this by matching 
 sequence names against precomputed background data in the `PSMatrix`.}
+
+\item{megaBG}{Logical, default is `FALSE`. If `TRUE` it computes a series 
+of computation for the generation of a "mega-background", a special case
+of background that retains all the background hits score, position, 
+strand, and oligonucleotide sequence for each regulatory sequence scanned 
+with a PWM.}
 }
 \value{
 A `PSMatrix` object, with updated information about the motif hits 
@@ -40,13 +46,13 @@ scenarios. It can handle both regular DNA sequences (using a `DNAStringSet`)
 and specialized background sequence sets (either using a background flag 
 or a mega-background flag). 
 
-If `mega_BG` is set to `TRUE`, the function assumes that `seqs` contains 
+If `use_mega_BG` is set to `TRUE`, the function assumes that `seqs` contains 
 sequence identifiers rather than the sequences themselves. In this case, the 
 method matches the sequence names to those in the `PSMatrix`'s background hit 
 data and retrieves the corresponding binding information (score, strand, 
 position, oligo).
 
-When `mega_BG` is set to `FALSE`, the function scan both the forward and 
+When `use_mega_BG` is set to `FALSE`, the function scan both the forward and 
 reverse complement strands of the sequences to ensure all potential binding 
 sites are detected. Optionally, the background statistics (background average 
 and standard deviation) can be computed and used during scanning when `BG` is 

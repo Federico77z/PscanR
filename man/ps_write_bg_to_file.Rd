@@ -9,8 +9,10 @@ ps_write_bg_to_file(pfms, file)
 \arguments{
 \item{pfms}{A `PSMatrixList` object of Position Weight Matrices 
 representing transcription factor binding preferences, obtained for example 
-from the JASPAR database. Each element should be a `PSMatrix` object or 
-coercible to `PSMatrix`.}
+from the JASPAR database, containing background statistics computed by 
+scanning each `PSMatrix` against the set of promoter regions of all 
+transcripts in the organism of study. The promoter regions analyzed may 
+vary. Each element should be a `PSMatrix` object or coercible to `PSMatrix`.}
 
 \item{file}{A character string specifying the path to the output file where 
 the background statistics should be saved.}

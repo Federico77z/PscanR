@@ -9,7 +9,7 @@ ps_hitpos_map(pfms, FDR = 0.01, shift = 0, ...)
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
 metadata (foreground and background statistics). Typically is the output 
-of `pscan()` function.}
+of `pscan()` or `pscan_bg()` function.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to be included in the analysis. The default is set to `0.01`.}
@@ -41,8 +41,8 @@ The function performs the following steps:
 
 Default settings, that can be changed by the users, are:
 \itemize{
-  \item `cluster_rows` and `cluster_cols` set to `TRUE`.
-  \item `color` uses a white-yellow-red palette.
+  \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
+  \item `color`, which uses a white-yellow-red palette by default.
   \item The main `Pscan Hits Position Heatmap`.
   }
 }

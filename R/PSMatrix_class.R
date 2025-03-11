@@ -112,6 +112,13 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' @param ... Objects of class `PSMatrix` to include in the list.
 #' @param use.names Logical. Assert whether to use names from the input objects.
 #'    Default = `TRUE`
+#' @param transcriptIDLegend Named character vector. The names correspond to the
+#'   IDs of all the transcript expressed in the organism of study, whereas 
+#'   corresponding values are the IDs of transcript retained by the unique() 
+#'   function when multiple identical sequences exist. So, if multiple identical 
+#'   sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique() retains only 
+#'   ID2, the mapping will associate each original name with its unique 
+#'   counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2). 
 #'
 #' @return A `PSMatrixList` object, which is a list containing `PSMatrix` 
 #'    objects. Each element in the list corresponds to a `PSMatrix` object 
@@ -642,7 +649,7 @@ setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 #' @examples
 #' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
 #' load(mega_pfm1_path)
-#' ps_hits_pos_bg(mega_pfm1.RData)
+#' ps_hits_pos_bg(mega_pfm1)
 #' 
 #' @export
 setGeneric('ps_hits_pos_bg', function(x,...) standardGeneric('ps_hits_pos_bg'))
@@ -670,7 +677,7 @@ setGeneric('ps_hits_pos_bg', function(x,...) standardGeneric('ps_hits_pos_bg'))
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
 #' load(pfm1_path)
-#' ps_hits_oligo(pfm1.RData)
+#' ps_hits_oligo(pfm1)
 #' 
 #' @export
 setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
@@ -712,7 +719,7 @@ setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 #' @examples
 #' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
 #' load(mega_pfm1_path)
-#' ps_hits_oligo_bg(mega_pfm1.RData)
+#' ps_hits_oligo_bg(mega_pfm1)
 #' 
 #' @export
 setGeneric('ps_hits_oligo_bg', function(x, ...) standardGeneric('ps_hits_oligo_bg'))
@@ -1539,15 +1546,14 @@ setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L,
 
 
 setMethod(".ps_add_hits", "PSMatrix", 
-          function(x, Pos, Strand, Score, Oligo, BG = FALSE, mega_BG = FALSE,
-                   withDimnames = TRUE) {
+          function(x, Pos, Strand, Score, Oligo, BG = FALSE, use_mega_BG = FALSE,
+                   megaBG = FALSE, withDimnames = TRUE) {
   
   x@ps_hits_pos <- Pos
   x@ps_hits_strand <- Strand
   x@ps_hits_score <- Score
-  if (mega_BG==FALSE)
+  if (!use_mega_BG)
     x@ps_hits_score <- .ps_norm_score(x)
-  
   
   if(BG)
   {
@@ -1555,18 +1561,19 @@ setMethod(".ps_add_hits", "PSMatrix",
     ps_bg_avg(x) <- mean(x@ps_hits_score, na.rm = TRUE)
     ps_bg_std_dev(x) <- sd(x@ps_hits_score, na.rm = TRUE)
     
-    x@ps_hits_pos_bg <- x@ps_hits_pos
-    x@ps_hits_strand_bg <- x@ps_hits_strand
-    x@ps_hits_score_bg <- x@ps_hits_score
-    names(x@ps_hits_score_bg) <- x@ps_bg_seq_names
-    x@ps_hits_oligo_bg <- Oligo
+    if(megaBG){
+      x@ps_hits_pos_bg <- Pos
+      x@ps_hits_strand_bg <- Strand
+      x@ps_hits_score_bg <- Score
+      names(x@ps_hits_score_bg) <- x@ps_bg_seq_names
+      x@ps_hits_oligo_bg <- Oligo
+    }
     
     x@ps_hits_pos <- integer()
     x@ps_hits_strand <- character()
     x@ps_hits_score <- numeric()
   }
-  else
-  {
+  else {
     if(!is.na(x@ps_bg_avg) && !is.na(x@ps_bg_std_dev))
     {
       ztest <- z.test(x@ps_hits_score, 
@@ -1613,7 +1620,6 @@ setMethod(".ps_bg_from_table", "PSMatrix", function(x, short.matrix) {
     warning(paste("No background values found for", ID(x), name(x)))
   }
 
-  
   return(x)
 })
 
@@ -1651,11 +1657,16 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' @param BG A logical value indicating whether to calculate background 
 #'    statistics.
 #'    Default is set to `FALSE`.
-#' @param mega_BG A logical value (default is `FALSE`). If `TRUE`, the method 
+#' @param use_mega_BG A logical value (default is `FALSE`). If `TRUE`, the method 
 #'    assumes that the PSMatrix represent a special "mega-background" set. 
 #'    In this case, the `seqs` parameter should be a vector of sequence names 
 #'    (instead of actual DNA sequences). The function handles this by matching 
 #'    sequence names against precomputed background data in the `PSMatrix`.
+#' @param megaBG Logical, default is `FALSE`. If `TRUE` it computes a series 
+#'    of computation for the generation of a "mega-background", a special case
+#'    of background that retains all the background hits score, position, 
+#'    strand, and oligonucleotide sequence for each regulatory sequence scanned 
+#'    with a PWM.  
 #' 
 #' @return A `PSMatrix` object, with updated information about the motif hits 
 #'     in the sequences. This includes the positions, strands, scores, and 
@@ -1668,13 +1679,13 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' and specialized background sequence sets (either using a background flag 
 #' or a mega-background flag). 
 #' 
-#' If `mega_BG` is set to `TRUE`, the function assumes that `seqs` contains 
+#' If `use_mega_BG` is set to `TRUE`, the function assumes that `seqs` contains 
 #' sequence identifiers rather than the sequences themselves. In this case, the 
 #' method matches the sequence names to those in the `PSMatrix`'s background hit 
 #' data and retrieves the corresponding binding information (score, strand, 
 #' position, oligo).
 #' 
-#' When `mega_BG` is set to `FALSE`, the function scan both the forward and 
+#' When `use_mega_BG` is set to `FALSE`, the function scan both the forward and 
 #' reverse complement strands of the sequences to ensure all potential binding 
 #' sites are detected. Optionally, the background statistics (background average 
 #' and standard deviation) can be computed and used during scanning when `BG` is 
@@ -1691,21 +1702,21 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' scanned_result
 #' 
 #' @export
-setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE, mega_BG = FALSE){
+setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE, 
+                                          use_mega_BG = FALSE, megaBG = FALSE){
   
-  if(!is(seqs, "DNAStringSet") && !mega_BG)
+  if(!is(seqs, "DNAStringSet") && !use_mega_BG)
     stop("seqs is not an object of DNAStringSet class")
   
-  if(BG == FALSE && mega_BG == FALSE)
+  if (BG || use_mega_BG) {
+    x@ps_bg_seq_names <- ifelse(use_mega_BG, seqs, names(seqs))
+  } else {
     x@ps_seq_names <- names(seqs)
-  else if(BG == FALSE && mega_BG == TRUE)
-    x@ps_seq_names <- seqs
-  else
-    x@ps_bg_seq_names <- names(seqs)
+  }
   
   seqs <- as.character(seqs)
   
-  if(mega_BG == TRUE){
+  if(use_mega_BG == TRUE){
     indices <- match(seqs, sub("\\..*$", "", names(x@ps_hits_score_bg)))
     
     res <- list(
@@ -1715,15 +1726,12 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE, mega_BG = FALSE){
       oligo = x@ps_hits_oligo_bg[indices]
     )
     
-    x <- .ps_add_hits(x, Score = res$score, 
-                      Strand = res$strand, 
-                      Pos = res$pos, 
-                      Oligo = res$oligo, BG = BG, 
-                      mega_BG = mega_BG)
+    x <- .ps_add_hits(x, Score = res$score, Strand = res$strand, Pos = res$pos, 
+                      Oligo = res$oligo, BG = BG, use_mega_BG = use_mega_BG)
     x@ps_bg_seq_names <- character()
     
-  } 
-  else{
+  } else {
+    
     rc_x <- reverseComplement(x)
     
     Margs <- list(numx = as.numeric(Matrix(x)), 
@@ -1737,8 +1745,8 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE, mega_BG = FALSE){
                       Strand = as.character(res["strand",]), 
                       Pos = as.integer(res["pos",]), 
                       Oligo = as.character(res["oligo",]), BG = BG, 
-                      mega_BG = mega_BG)
-    
+                      use_mega_BG = use_mega_BG, megaBG = megaBG)
+    x@ps_bg_seq_names <- character()
   }
   
   return(x)

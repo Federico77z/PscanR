@@ -20,22 +20,16 @@ Columns:
   \item `BG_SIZE`: An integer vector representing the background size for 
   each PFMs. 
   \item `BG_MEAN`: A numeric vector representing the mean of the background 
-  frequencies for each PFMs.
-  \item `BG_STDEV`: a numeric vector representing the standard deviation 
-  of the background frequencies for each PFMs. 
+  hits score for each PFMs.
+  \item `BG_STDEV`: A numeric vector representing the standard deviation 
+  of the background hits score for each PFMs. 
 }
 }
 \description{
 Extracts background statistics (size, mean, and standard deviation) 
 from a `PSMatrixList` of Position Weight Matrices representing 
 transcription factor binding preferences and generates a table containing 
-these statistics.
-}
-\details{
-This function extracts background statistics for each motif matrix in `pfms`.
-It validates the input with `.ps_chechs2()` function.
-It calls the helper functions `ps_bg_size`, `ps_bg_avg`, and `ps_bg_std_dev` 
-to compute the statistics.
+these metrics.
 }
 \examples{
 # Retrieve motif matrices for vertebrates from JASPAR2020
