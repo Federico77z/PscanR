@@ -464,7 +464,7 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
   file_name <- paste0('J', version, '_', org_assembly, '_', p_up, 'u_', p_down, 
                       'd_', file_suffix)
   
-  BG_path <- system.file("extdata/BG_scripts", file_name, package = 'PscanR')
+  BG_path <- system.file("extdata/BG_files", file_name, package = 'PscanR')
   
   opts <- list("collection" = "CORE", "tax_group" = tax_map[[org]])
   
