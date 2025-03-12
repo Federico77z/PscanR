@@ -53,17 +53,27 @@
 }
 
 #' @keywords internal
-.ps_checks2 <- function(pfms, x = NULL, ...)
+.ps_checks2 <- function(pfms, file = NULL, ...)
 {
   #.ps_required_packages()
 
   if(!is(pfms, "PSMatrixList"))
     stop("pfms is not an object of PSMatrixList class")  
   
-  if(!is.null(x) && is.character(x))
-    if(file.access(x, mode = 2) != 0)
-      stop(paste("Cannot write to file path:", x))
-   
+  if(!is.null(file) && !is.character(file)){
+    stop('file must be a character string indicating the file path')
+    
+    file_dir <- dirname(file)
+    
+    if (!file.exists(file)) {
+      if (file.access(file_dir, mode = 2) != 0) {
+        stop(paste("Can't write to directory:", file_dir))
+        }
+      } else {
+        if (file.access(file, mode = 2) != 0)
+          stop(paste("Can't write to existing file:", file))
+      }
+  }
 }
 
 #' @keywords internal

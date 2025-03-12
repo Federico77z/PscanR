@@ -275,16 +275,17 @@ ps_build_bg_from_table <- function(x, pfms)
 #'   (or should be coercible to `PSMatrix`).
 #'
 #' @return 
-#' A `data.frame` with one row for each PFM in `pfms`.
+#' A `data.frame` with one row for each matrix (representing a Transcription 
+#' factor) in `pfms`.
 #' 
 #' Columns: 
 #' \itemize{
 #'   \item `BG_SIZE`: An integer vector representing the background size for 
-#'   each PFMs. 
+#'   each PSM. 
 #'   \item `BG_MEAN`: A numeric vector representing the mean of the background 
-#'   hits score for each PFMs.
+#'   hits score for each PSM.
 #'   \item `BG_STDEV`: A numeric vector representing the standard deviation 
-#'   of the background hits score for each PFMs. 
+#'   of the background hits score for each PSM. 
 #' }
 #' @importFrom TFBSTools getMatrixSet
 #' 

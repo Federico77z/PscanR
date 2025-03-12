@@ -22,12 +22,12 @@
                                              .PS_ALPHABET="integer"),
                       contains="PFMatrix")
 
-#' Create a `PSMatrix` object
+#' An S4 Class for a Single Positiont-Specific Matrix
 #'
-#' This function creates a `PSMatrix` object, which contains various statistics 
-#' and data related to promoter sequence motif hits, such as background and 
-#' foreground averages, standard deviation, size, z-scores, and other related 
-#' information.
+#' This function creates a `PSMatrix` object, which contains a single 
+#' Position Frequency Matrix (PFM) and associated metadata related to promoter 
+#' sequence motif hits, such as background and foreground averages, standard 
+#' deviation, size, z-scores, and other related information. 
 #'
 #' @param pfm An object of class `PFMatrix` from the `TFBSTools` package, 
 #'     typically a position frequency matrix (PFM) representing the motif for 
@@ -104,10 +104,11 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 .PSMatrixList <-setClass("PSMatrixList", contains ="PFMatrixList", 
                          slots = list(transcriptIDLegend = 'character'))
 
-#' Create a `PSMatrixList` object
+#' An S4 Class for Storing Position-Specific Matrices
 #' 
 #' This function creates a `PSMatrixList` object, which is a container for 
-#' managing multiple `PSMatrix` object.
+#' managing multiple `PSMatrix` object. It is similar to `PFMatrixList` but 
+#' extends its functionality.
 #'
 #' @param ... Objects of class `PSMatrix` to include in the list.
 #' @param use.names Logical. Assert whether to use names from the input objects.
