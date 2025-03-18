@@ -7,8 +7,8 @@
 ps_bg_std_dev(x, ...) <- value
 }
 \arguments{
-\item{x}{An object to which the background standard deviation will be assigned, 
-typically a `PSMatrix` object.}
+\item{x}{An object to which the background standard deviation will be 
+assigned, typically a `PSMatrix` object.}
 
 \item{...}{Additional arguments (not used in the generic function but may be 
 used in specific methods).}

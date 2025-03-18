@@ -33,8 +33,9 @@ with the following columns:
 Row names correspond to the sequences name.
 }
 \description{
-Creates a data frame summarizing the motif hits from a `PSMatrix` object, including 
-the motif hit score, position, strand, and corresponding oligo sequence.
+Creates a data frame summarizing the motif hits from a `PSMatrix` object, 
+including the motif hit score, position, strand, and corresponding oligo 
+sequence.
 The resulting table is sorted by motif score (descending). When the score is 
 the same between two sequences, they are sorted by ascending position.
 }

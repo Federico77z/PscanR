@@ -2,6 +2,7 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{PSMatrix}
 \alias{PSMatrix}
+\alias{setAs,PFMatrix,PSMatrix-method}
 \title{Create a `PSMatrix` object}
 \usage{
 PSMatrix(
@@ -13,8 +14,6 @@ PSMatrix(
   .PS_PSEUDOCOUNT = 0.01,
   ...
 )
-
-setAs("PFMatrix", "PSMatrix", function(from))
 }
 \arguments{
 \item{pfm}{An object of class `PFMatrix` from the `TFBSTools` package, 
@@ -22,14 +21,15 @@ typically a position frequency matrix (PFM) representing the motif for
 which all the organism's promoter regions will be scanned.}
 
 \item{ps_bg_avg}{Numeric. The background average value, default = `NA`.
-It is the average binding score of promoter regions when scanned with a PWM.}
+It is the average binding score of promoter regions when scanned with a 
+PWM.}
 
 \item{ps_fg_avg}{Numeric. The foreground average value, default = `NA`.
 Represents the average binding score of a set of promoter regions of 
 co-expressed or co-regulated genes when scanned with a PWM.}
 
-\item{ps_bg_std_dev}{Numeric. The background standard deviation of PWM scores, 
-default = `NA`.}
+\item{ps_bg_std_dev}{Numeric. The background standard deviation of PWM 
+scores, default = `NA`.}
 
 \item{ps_bg_size}{Integer. The size of the background promoter region, 
 default = `NA`.}
@@ -39,8 +39,6 @@ by zero. Default = `0.01`}
 
 \item{...}{Additional arguments passed to other methods or used in the 
 initialization.}
-
-\item{from}{A `PFMatrix` object to be converted to a `PSMatrix` one.}
 }
 \value{
 A `PSMatrix` object containing the provided statistics, initialized 
@@ -55,10 +53,10 @@ foreground averages, standard deviation, size, z-scores, and other related
 information.
 }
 \details{
-When a `PSMatrix` object is created or modified, it is automatically validated 
-using an internal function. The validation ensures that the background and 
-foreground statistics are properly formatted, and that motif hit-related 
-vectors have consistent lengths.
+When a `PSMatrix` object is created or modified, it is automatically 
+validated using an internal function. The validation ensures that the 
+background and foreground statistics are properly formatted, and that motif 
+hit-related vectors have consistent lengths.
 }
 \examples{
 

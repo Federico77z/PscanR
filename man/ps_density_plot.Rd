@@ -7,8 +7,8 @@
 ps_density_plot(pfm, shift = 0, st = ps_bg_avg(pfm))
 }
 \arguments{
-\item{pfm}{A `PSMatrix` object. It is a selected matrix from the `PSMatrixList`, 
-result of `pscan` function.}
+\item{pfm}{A `PSMatrix` object. It is a selected matrix from the 
+`PSMatrixList`, result of `pscan` function.}
 
 \item{shift}{Integer value specifying the positional shift applied to the hit 
 positions. Default is `0`.}
@@ -28,8 +28,8 @@ A density plot showing the distribution of hits along the promoter
 }
 \description{
 This function creates a density plot representing the distribution of hits 
-along the promoter sequences based on their position and score. It helps 
-visualize where motif occurrences are concentrated.
+along the promoter sequences based on their position and score for a specific 
+PWM. It helps visualize where motif occurrences are concentrated.
 }
 \details{
 The function filters motif hits based on a specified threshold and generates 
@@ -42,7 +42,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the Pscan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

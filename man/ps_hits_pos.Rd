@@ -13,9 +13,9 @@ ps_hits_pos(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **named integer vector**, where names 
-  correspond to promoter sequence identifiers, and values represent motif hit 
-  positions (with an optional shift).
+  \item If `x` is a `PSMatrix` object: an **integer vector**, where 
+  names correspond to promoter sequence identifiers, and values represent 
+  motif hit positions (with an optional shift).
   \item If `x` is another supported class, the return format may differ.
 }
 }

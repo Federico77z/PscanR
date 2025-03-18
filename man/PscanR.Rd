@@ -13,8 +13,9 @@ it extends PFMatrix and PFMatrixList from
 the TFBSTools package for transcription factors binding profiles and
 employs Biostring DNAStringSet for promoter sequences. 
 PscanR supports multithreading through the BiocParallel package.
-PscanR includes functions to build the background for a set of promoter sequences,
-to scan a foreground set of promoter sequences, and to visualize and plot the results.
+PscanR includes functions to build the background for a set of promoter 
+sequences, to scan a foreground set of promoter sequences, and to visualize 
+and plot the results.
 }
 \section{Main functions}{
 

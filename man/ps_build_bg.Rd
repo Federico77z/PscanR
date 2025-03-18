@@ -4,27 +4,47 @@
 \alias{ps_build_bg}
 \title{Build background matrices in parallel}
 \usage{
-ps_build_bg(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions())
+ps_build_bg(
+  x,
+  pfms,
+  BPPARAM = bpparam(),
+  BPOPTIONS = bpoptions(),
+  megaBG = FALSE
+)
 }
 \arguments{
 \item{x}{A `DNAStringSet` object (see Biostrings package) containing the set 
-of regulatory sequences of the organism of study (e.g., gene promoters 
-retrieved from a `TxDb` object). These sequences are the target for 
-background scanning.}
+of all the regulatory sequences of the organism of study 
+(e.g., gene promoters retrieved from a `TxDb` object). 
+These sequences are the target for background scanning.}
 
 \item{pfms}{A `PFMatrixlist` object containing position frequency matrices 
-representing transcription factor binding preferences. Those are obtained, 
-for example, from the JASPAR database.}
+(PFM) representing transcription factor binding preferences. 
+Those are sourced from databases such as JASPAR.}
 
 \item{BPPARAM}{Parallelization parameter passed to `bplapply` function from 
-the `BiocParallel` package. This parameter controls how the parallel
-processing is executed.
+the `BiocParallel` package. This parameter defines the parallel processing 
+settings, including the number of cores or workers that the function uses 
+for computation. 
 See `BiocParallel` package for more details.}
 
 \item{BPOPTIONS}{Optional configuration settings passed to `bplapply` 
 function from the `BiocParallel` package. This can include additional
 options to control the behavior of parallel execution.
 See `BiocParallel` documentation for more details.}
+
+\item{megaBG}{Logical. Default is FALSE. When set to TRUE, it creates a 
+mapping between all sequence names in the organism of study 
+and the corresponding names retained after applying the unique() function. 
+For example, if multiple identical sequences exist (e.g., ID1, ID2, ID3, 
+and ID4), and unique() retains only ID2, the mapping will associate each 
+original name with its unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, 
+ID4 → ID2). This vector is stored in the transcriptIDLegend slot of the 
+PSMatrixList and helps generate a complete background PSMatrixList, 
+improving computational efficiency for the pscan_bg() function.
+In addition, it retrieves for each PSM in the PSMatrixList output all the 
+background metrics relative to hits score, position, strand, and 
+oligonucleotide sequence of the regulatory sequences scanned with the PWM.}
 }
 \value{
 A `PSMatrixList` object, containing each motif matrix from `pfms`, 
@@ -33,15 +53,27 @@ background-scored against the sequences in `x`.
 \description{
 Generates a background probability profile matrix list using the BiocParallel
 framework for parallel execution. It computes background scores for each 
-motif matrix from the JASPAR database against a set of regulatory sequences 
-(e.g., gene promoters) using the `ps_scan` function.
+motif matrix, collected, for example, from the JASPAR database, by scanning 
+them against a set of regulatory sequences (e.g., gene promoters) using the 
+`ps_scan` function.
+Note that the promoter region analysed may vary.
 }
 \details{
-This function validates input types and remove duplicated sequences
+This function validates input types and removes duplicated sequences
 from `x` to avoid redundant computations. It also remove all the sequences 
-with an N content above 50% and that have a length different from the one of 
-the first sequence, that is considered as a reference. 
-The motif matrices are background scored by the `ps_scan` function in parallel.
+with an N content above 50%.
+The motif matrices are background scored by the `ps_scan` function in 
+parallel.
+The output of this function can be stored in a .txt file by the 
+`ps_write_bg_to_file()` function. In this case, only information about the 
+background mean and standard deviation are stored for each matrix. These 
+metrics will be later used for the computation of z-score by the pscan 
+function. 
+If a full background PSMatrixList is required, that includes all the 
+background scores for each oligonucleotide hits, their position, strand and 
+names, the user should store the output by the save() function and set 
+the megaBG flag as TRUE. Note that this process will generate a very large 
+file, that can reach several gigabytes in size.
 }
 \examples{
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -57,4 +89,14 @@ bg_matrices <- ps_build_bg(prom_seq, J2020,
 # Use BiocParallel::MulticoreParam() for Unix like systems. 
 bg_matrices
 bg_matrices[[1]]
+
+# Example for mega-background generation
+mega_bg_matrices <- ps_build_bg(prom_seq, J2020, 
+                           BPPARAM = BiocParallel::SnowParam(1), megaBG = TRUE)
+                           
+mega_bg_matrices[[1]]
+
+}
+\seealso{
+\code{\link{pscan_bg}}, \code{\link{ps_write_bg_to_file}}
 }

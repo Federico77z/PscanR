@@ -18,7 +18,8 @@ A named numeric vector where names correspond to promoter sequence
    identifiers and values represent their respective motif hit scores.
 }
 \description{
-Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` object.
+Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` 
+object.
 These scores represent the binding affinity or enrichment level of promoter 
 sequences when scanned with a Position Weight Matrix (PWM).
 }

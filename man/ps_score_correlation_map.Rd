@@ -9,13 +9,13 @@ ps_score_correlation_map(pfms, FDR = 0.01, ...)
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
 metadata (foreground and background statistics). Typically is the output 
-of `pscan()` function.}
+of `pscan()` or `pscan_bg()` functions.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to include in the analysis. The default is `0.01`.}
 
-\item{...}{Additional user defined arguments to customize the heatmap settings, 
-such as color palettes or clustering object.}
+\item{...}{Additional user defined arguments to customize the heatmap 
+settings, such as color palettes or clustering object.}
 }
 \value{
 A heatmap plot showing Z-score correlations for selected 
@@ -41,8 +41,8 @@ The function performs the following steps:
 
  Default settings, that can be changed by the users, are: 
  \itemize{
-   \item `cluster_rows` and `cluster_cols` set to `TRUE`.
-   \item `color` uses a blue-white-red palette.
+   \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
+   \item `color`, which uses a blue-white-red palette.
    \item The main `Pscan Score Correlation Heatmap`.
    \item TF names are showed as column labels.
    }
@@ -56,7 +56,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the Pscan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

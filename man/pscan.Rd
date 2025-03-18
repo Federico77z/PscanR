@@ -7,19 +7,19 @@
 pscan(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions())
 }
 \arguments{
-\item{x}{A `DNASetString` object containing the set of regulatory sequences 
+\item{x}{A `DNAStringSet` object containing the set of regulatory sequences 
 from co-regulated or co-expressed genes (i.e. a set of gene promoters). 
 See the Biostrings package for details.}
 
-\item{pfms}{A `PSMatrixList` object containing PWMs and background statistics. 
+\item{pfms}{A `PSMatrixList` object containing PWMs and background statistics.
+For background statistics we refer to the standard deviation and average 
+of hits scores when the background (set of promoters of all the transcript 
+in the organism of study) is scanned with the position weight matrices. 
+This is used to assert the statistical enrichment of motif occurrences 
+in co-expressed or co-regulated genes.
 See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
 \code{\link{ps_build_bg_from_table}} for how to create `PSMatrixList` 
-objects that contain background statistics. For background statistics we
-refer to the standard deviation and average of scores when the background 
-(all the promoters expressed in a organism) is scanned with the position 
-weight matrices. This is used to assert the statistical enrichment to 
-determine the statistical enrichment of motif occurrences in coexpressed 
-or coregulated promoter sequences compared to the background.}
+objects that contain background statistics.}
 
 \item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel package.
 This argument is passed to `BiocParallel::bplapply`.
@@ -46,13 +46,26 @@ matrices in `pfms`.
 \description{
 This function computes the alignment scores between regulatory sequences 
 (a set of gene promoters (`x` parameter)) and position weight matrices, which 
-quantify potential binding affinities of transcription factors in that region. 
-This is done throughout the Pscan algorithm.
+quantify potential binding affinities of transcription factors in that region.
+These matrices can be sourced from public databases such as JASPAR.
+The scanning is performed throughout the Pscan algorithm.
 }
 \details{
-The `pscan` function performs sequence scanning using the `ps_scan` method for 
-individual PWMs, accounting for both the forward and reverse complement strands,
-ensuring no potential binding sites are missed.
+The `pscan` function performs sequence scanning using the `ps_scan` method 
+for individual PWMs, accounting for both the forward and reverse complement 
+strands, ensuring no potential binding sites are missed.
+The method extract all the k-mers substring of the input sequences with the 
+same length of the motif and evaluates a score for both the forward and 
+reverse strand based on how well the k-mer matches the Transcription Factor
+Binding Motif provided by the PWM. For each input sequence scanned with 
+individual PWM, only the k-mer with the highest score is selected. 
+The method will populate the following PSMatrix slots for each input sequence: 
+\itemize{
+   \item ps_hits_score: the highest matching value found for each sequence. 
+   \item ps_hits_pos: position of the best TFBS match
+   \item ps_hits_strand: the DNA strand of the TFBS ('+' for forward and '-'
+   for reverse)
+   \item ps_hits_oligo: the sequence of the binding site}
 }
 \examples{
 
@@ -61,7 +74,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the PScan algorithm
 results <- pscan(prom_seq, J2020_PSBG, 

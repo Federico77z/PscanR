@@ -13,30 +13,33 @@
                                              ps_hits_score="numeric",
                                              ps_hits_score_bg = "numeric",
                                              ps_hits_oligo="character",
+                                             ps_hits_oligo_bg="character",
                                              ps_zscore="numeric",
                                              ps_pvalue="numeric",
                                              ps_seq_names="character",
+                                             ps_bg_seq_names="character",
                                              .PS_PSEUDOCOUNT="numeric",
                                              .PS_ALPHABET="integer"),
                       contains="PFMatrix")
 
-#' Create a `PSMatrix` object
+#' An S4 Class for a Single Positiont-Specific Matrix
 #'
-#' This function creates a `PSMatrix` object, which contains various statistics 
-#' and data related to promoter sequence motif hits, such as background and 
-#' foreground averages, standard deviation, size, z-scores, and other related 
-#' information.
+#' This function creates a `PSMatrix` object, which contains a single 
+#' Position Frequency Matrix (PFM) and associated metadata related to promoter 
+#' sequence motif hits, such as background and foreground averages, standard 
+#' deviation, size, z-scores, and other related information. 
 #'
 #' @param pfm An object of class `PFMatrix` from the `TFBSTools` package, 
 #'     typically a position frequency matrix (PFM) representing the motif for 
 #'     which all the organism's promoter regions will be scanned.  
 #' @param ps_bg_avg Numeric. The background average value, default = `NA`.
-#'    It is the average binding score of promoter regions when scanned with a PWM.
+#'    It is the average binding score of promoter regions when scanned with a 
+#'    PWM.
 #' @param ps_fg_avg Numeric. The foreground average value, default = `NA`.
 #'    Represents the average binding score of a set of promoter regions of 
 #'    co-expressed or co-regulated genes when scanned with a PWM.
-#' @param ps_bg_std_dev Numeric. The background standard deviation of PWM scores, 
-#'    default = `NA`.
+#' @param ps_bg_std_dev Numeric. The background standard deviation of PWM 
+#'    scores, default = `NA`.
 #' @param ps_bg_size Integer. The size of the background promoter region, 
 #'    default = `NA`.
 #' @param .PS_PSEUDOCOUNT Numeric. The Pseudo-Count to add to avoid division
@@ -48,10 +51,10 @@
 #'    with default or provided values. 
 #' 
 #' @details
-#' When a `PSMatrix` object is created or modified, it is automatically validated 
-#' using an internal function. The validation ensures that the background and 
-#' foreground statistics are properly formatted, and that motif hit-related 
-#' vectors have consistent lengths.
+#' When a `PSMatrix` object is created or modified, it is automatically 
+#' validated using an internal function. The validation ensures that the 
+#' background and foreground statistics are properly formatted, and that motif 
+#' hit-related vectors have consistent lengths.
 #'    
 #' @export
 #'
@@ -82,6 +85,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
                             ps_zscore = as.numeric(NA), 
                             ps_pvalue = as.numeric(NA), 
                             ps_seq_names = character(),
+                            ps_bg_seq_names = character(),
                             .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT, 
                             ps_hits_pos = integer(),
                             ps_hits_pos_bg = integer(),
@@ -89,27 +93,37 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
                             ps_hits_strand_bg = character(),
                             ps_hits_score = numeric(),
                             ps_hits_score_bg = numeric(), 
-                            ps_hits_oligo = character(), 
+                            ps_hits_oligo = character(),
+                            ps_hits_oligo_bg = character(),
                             .PS_ALPHABET = setNames(seq_len(4), 
                                                     c("A","C","G","T"))))
 }
 
 
 #' @importFrom TFBSTools PFMatrixList
-.PSMatrixList <-setClass("PSMatrixList", contains ="PFMatrixList")
+.PSMatrixList <-setClass("PSMatrixList", contains ="PFMatrixList", 
+                         slots = list(transcriptIDLegend = 'character'))
 
-#' Create a `PSMatrixList` object
+#' An S4 Class for Storing Position-Specific Matrices
 #' 
 #' This function creates a `PSMatrixList` object, which is a container for 
-#' managing multiple `PSMatrix` object.
+#' managing multiple `PSMatrix` object. It is similar to `PFMatrixList` but 
+#' extends its functionality.
 #'
 #' @param ... Objects of class `PSMatrix` to include in the list.
 #' @param use.names Logical. Assert whether to use names from the input objects.
 #'    Default = `TRUE`
+#' @param transcriptIDLegend Named character vector. The names correspond to the
+#'   IDs of all the transcript expressed in the organism of study, whereas 
+#'   corresponding values are the IDs of transcript retained by the unique() 
+#'   function when multiple identical sequences exist. So, if multiple identical 
+#'   sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique() retains only 
+#'   ID2, the mapping will associate each original name with its unique 
+#'   counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2). 
 #'
-#' @return A `PSMatrixList` object, which is a list containing `PSMatrix` objects.
-#'     Each element in the list corresponds to a `PSMatrix` object provided as 
-#'     input.
+#' @return A `PSMatrixList` object, which is a list containing `PSMatrix` 
+#'    objects. Each element in the list corresponds to a `PSMatrix` object 
+#'    provided as input.
 #'
 #' @examples
 #' # Load JASPAR motif matrices for vertebrates
@@ -133,7 +147,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' result <- PSMatrixList(PSM1, PSM2)
 #' ps_results_table(result)
 #' @export
-PSMatrixList <- function(..., use.names = TRUE)
+PSMatrixList <- function(..., transcriptIDLegend = character(), use.names = TRUE)
 {
   listData <- list(...)
   XMatrixList(listData, 
@@ -141,6 +155,41 @@ PSMatrixList <- function(..., use.names = TRUE)
               type = "PSMatrixList", 
               matrixClass = "PSMatrix")
 }
+
+#' Retrieve Transcript ID Legend from a PSMatrixList Object (Generic Function)
+#'
+#' `transcriptIDLegend` is a **generic function** that retrieves the 
+#' `transcriptIDLegend` slot from a `PSMatrixList` object. This slot contains 
+#' a character vector mapping transcript IDs used in the dataset.
+#'
+#' @param x A `PSMatrixList` object.
+#' @param ... Additional arguments (not used in this method but included for extensibility).
+#'
+#' @return A character vector containing transcript ID mappings.
+#' 
+#' @export
+setGeneric("transcriptIDLegend", function(x, ...) standardGeneric("transcriptIDLegend"))
+
+
+#' Get the Transcript ID Legend from a PSMatrixList object
+#' 
+#' This method retrieves the value stored in the `transcriptIDLegend` slot of
+#' a `PSMatrixList` object.
+#' 
+#' @param x An object of class `PSMatrixList`.
+#' 
+#' @return A named character vector containing transcript ID mappings where 
+#'    values are the sequence identifiers maintained during the generation of 
+#'    the background by the unique() function, while the names are the 
+#'    original sequence identifiers for the organism of study.    
+#' 
+#' @export
+setMethod("transcriptIDLegend", "PSMatrixList", function(x) {
+  out <- x@transcriptIDLegend
+
+  return(out)
+})
+
 
 #' Compute the Z-score for motif enrichment analysis (Generic Function)
 #'
@@ -290,8 +339,8 @@ setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 #' size value for motif enrichment analysis. Methods should be 
 #' implemented for specific object classes that store scan results.
 #'
-#' The background size value represent the dimension of the background (number of
-#' promoter sequences used as background).
+#' The background size value represent the dimension of the background 
+#' (number of promoter sequences used as background).
 #'
 #' @param x An object containing motif scan results.
 #' @param ... Additional arguments passed to specific methods.
@@ -380,9 +429,9 @@ setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
 #'
 #' @return 
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where names 
-#'   correspond to promoter sequence identifiers and values represent their 
-#'   respective motif hit scores.
+#'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where 
+#'   names correspond to promoter sequence identifiers and values represent 
+#'   their respective motif hit scores.
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #' 
@@ -393,6 +442,48 @@ setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
 #' 
 #' @export
 setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
+
+#' Retrieve Motif Hit Scores from a Background Dataset (Generic Function)
+#'
+#' ps_hits_score_bg is a generic function designed to extract motif hit scores 
+#' from a background dataset. These scores quantify the binding affinity or 
+#' enrichment level of promoter sequences when scanned using a Position Weight 
+#' Matrix (PWM). This function is specifically useful for analyzing background 
+#' matrices, which serve as reference datasets in pscan analyses.
+#'
+#' Methods should be implemented for specific object classes that store 
+#' motif scanning results.
+#'
+#' @param x An object containing motif scan results.
+#' @param ... Additional arguments passed to specific methods.
+#' 
+#' @details
+#' The `ps_hits_score_bg` function is particularly relevant for background 
+#' datasets, which include motif scan results computed across all promoter 
+#' sequences. These background scores provide a reference for comparison in 
+#' motif enrichment analyses, helping to assess the significance of observed 
+#' motif occurrences. 
+#' 
+#' In a PSMatrixList object, the `ps_hits_score_bg` slot is populated only for 
+#' background matrices (i.e., matrices derived from all promoters). This ensures 
+#' that the pscan() function can access precomputed scores without recomputing 
+#' them, optimizing efficiency. 
+#' 
+#' @return 
+#' \itemize{
+#'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where 
+#'   names correspond to promoter sequence identifiers and values represent 
+#'   their respective motif hit scores.
+#'   \item If `x` is another supported class, the return format may differ.
+#' }
+#' 
+#' @examples 
+#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
+#' load(mega_pfm1_path)
+#' ps_hits_score_bg(mega_pfm1)
+#' 
+#' @export
+setGeneric('ps_hits_score_bg', function(x, ...) standardGeneric('ps_hits_score_bg'))
 
 #' Compute Motif Hit Z-Scores (Generic Function)
 #'
@@ -410,9 +501,9 @@ setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 #'
 #' @return 
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where names 
-#'   correspond to promoter sequence identifiers and values represent their 
-#'   respective Z-scores.
+#'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where 
+#'   names correspond to promoter sequence identifiers and values represent 
+#'   their respective Z-scores.
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #' 
@@ -442,9 +533,9 @@ setGeneric("ps_hits_z", function(x, ...) standardGeneric("ps_hits_z"))
 #'
 #' @return 
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **named character vector**, where names 
-#'   correspond to promoter sequence identifiers, and values represent the strand 
-#'   (`+` or `-`) on which the motif was detected.
+#'   \item If `x` is a `PSMatrix` object: a **character vector**, where 
+#'   names correspond to promoter sequence identifiers, and values represent the 
+#'   strand (`+` or `-`) on which the motif was detected.
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #' 
@@ -455,6 +546,48 @@ setGeneric("ps_hits_z", function(x, ...) standardGeneric("ps_hits_z"))
 #' 
 #' @export
 setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
+
+#' Retrieve Motif Hit Strand Information for the Background Dataset (Generic Function)
+#'
+#' `ps_hits_strand_bg` is a **generic function** that retrieves the strand 
+#' information (`+` or `-`) of motif hits within an object. This indicates 
+#' whether a motif was detected on the forward (`+`) or reverse (`-`) strand 
+#' of a promoter sequence of the background dataset.
+#'
+#' The Pscan algorithm scans both strands of promoter sequences to ensure that 
+#' no potential transcription factor binding sites are missed.
+#'
+#' Methods should be implemented for specific object classes that store motif 
+#' scanning results.
+#'
+#' @param x An object containing motif scan results.
+#' @param ... Additional arguments passed to specific methods.
+#' 
+#' @details
+#' The `ps_hits_strand_bg` function is particularly relevant for background 
+#' datasets, which include motif scan results computed across all promoter 
+#' sequences.
+#' 
+#' In a PSMatrixList object, the `ps_hits_strand_bg` slot is populated only for 
+#' background matrices (i.e., matrices derived from all promoters). This ensures 
+#' that the pscan() function can access precomputed metrics without recomputing 
+#' them, optimizing efficiency. 
+#' 
+#' @return 
+#' \itemize{
+#'   \item If `x` is a `PSMatrix` object: a **character vector**, where 
+#'   names correspond to promoter sequence identifiers, and values represent the 
+#'   strand (`+` or `-`) on which the motif was detected.
+#'   \item If `x` is another supported class, the return format may differ.
+#' }
+#' 
+#' @examples 
+#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
+#' load(mega_pfm1_path)
+#' ps_hits_strand_bg(mega_pfm1)
+#' 
+#' @export
+setGeneric('ps_hits_strand_bg', function(x, ...) standardGeneric('ps_hits_strand_bg'))
 
 #' Retrieve Motif Hit Positions (Generic Function)
 #'
@@ -470,9 +603,9 @@ setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 #'
 #' @return 
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **named integer vector**, where names 
-#'   correspond to promoter sequence identifiers, and values represent motif hit 
-#'   positions (with an optional shift).
+#'   \item If `x` is a `PSMatrix` object: an **integer vector**, where 
+#'   names correspond to promoter sequence identifiers, and values represent 
+#'   motif hit positions (with an optional shift).
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'   
@@ -483,6 +616,44 @@ setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 #' 
 #' @export
 setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
+
+#' Retrieve Motif Hit Positions on Background Dataset (Generic Function)
+#'
+#' `ps_hits_pos_bg` is a **generic function** that retrieves the positions of 
+#' motif hits in a given object. These positions indicate where motifs are 
+#' located within promoter sequences of a background dataset.
+#'
+#' Methods should be implemented for specific object classes that store motif 
+#' scanning results.
+#'
+#' @param x An object containing motif scan results.
+#' @param ... Additional arguments passed to specific methods.
+#'
+#' @details
+#' The `ps_hits_pos_bg` function is particularly relevant for background 
+#' datasets, which include motif scan results computed across all promoter 
+#' sequences.
+#' 
+#' In a PSMatrixList object, the `ps_hits_pos_bg` slot is populated only for 
+#' background matrices (i.e., matrices derived from all promoters). This ensures 
+#' that the pscan() function can access precomputed metrics without recomputing 
+#' them, optimizing efficiency. 
+#' 
+#' @return 
+#' \itemize{
+#'   \item If `x` is a `PSMatrix` object: an **integer vector**, where 
+#'   names correspond to promoter sequence identifiers, and values represent 
+#'   motif hit positions along the background dataset.
+#'   \item If `x` is another supported class, the return format may differ.
+#' }
+#'   
+#' @examples
+#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
+#' load(mega_pfm1_path)
+#' ps_hits_pos_bg(mega_pfm1)
+#' 
+#' @export
+setGeneric('ps_hits_pos_bg', function(x,...) standardGeneric('ps_hits_pos_bg'))
 
 #' Retrieve Matched Oligonucleotide Sequences (Generic Function)
 #'
@@ -497,17 +668,62 @@ setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 #'
 #' @return
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **named character vector**, where names 
-#'   correspond to sequence identifiers, and values represent the oligonucleotide 
-#'   sequences (subset of the input promoter sequences) matching the motif.
+#'   \item If `x` is a `PSMatrix` object: a **character vector**, where 
+#'   names correspond to sequence identifiers, and values represent the 
+#'   oligonucleotide sequences (subset of the input promoter sequences) matching 
+#'   the motif.
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #' 
-#' @return For `ps_hits_oligo`: a character vector representing the 
-#'    oligonucleotide sequence of each hit. 
+#' @examples
+#' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
+#' load(pfm1_path)
+#' ps_hits_oligo(pfm1)
 #' 
 #' @export
 setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
+
+#' Retrieve Matched Oligonucleotide Sequences from a Background Dataset 
+#' (Generic Function)
+#'
+#' `ps_hits_oligo_bg` is a **generic function** that extracts the 
+#' oligonucleotide sequences corresponding to motif hits among a bacground 
+#' dataset in a given object. 
+#'
+#' Methods should be implemented for specific object classes that store motif 
+#' scanning results.
+#'
+#' @param x An object containing motif scan results.
+#' @param ... Additional arguments passed to specific methods.
+#'
+#' @details
+#' The `ps_hits_oligo_bg` function is particularly relevant for background 
+#' datasets, which include motif scan results computed across all promoter 
+#' sequences.
+#' 
+#' In a PSMatrixList object, the `ps_hits_oligo_bg` slot is populated only for 
+#' background matrices (i.e., matrices derived from all promoters). This ensures 
+#' that the pscan() function can access precomputed metrics without recomputing 
+#' them, optimizing efficiency.
+#' 
+#' 
+#' @return
+#' \itemize{
+#'   \item If `x` is a `PSMatrix` object: a **character vector**, where 
+#'   names correspond to sequence identifiers, and values represent the 
+#'   oligonucleotide sequences (subset of the promoter sequences) matching 
+#'   the motif.
+#'   \item If `x` is another supported class, the return format may differ.
+#' }
+#' 
+#' @examples
+#' @examples
+#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
+#' load(mega_pfm1_path)
+#' ps_hits_oligo_bg(mega_pfm1)
+#' 
+#' @export
+setGeneric('ps_hits_oligo_bg', function(x, ...) standardGeneric('ps_hits_oligo_bg'))
 
 #' Retrieve a Summary Table of Motif Hits (Generic Function)
 #'
@@ -547,15 +763,16 @@ setGeneric("ps_hits_table", function(x, ...) standardGeneric("ps_hits_table"))
 #' `ps_seq_names` is a **generic function** that extracts the sequence names 
 #' or identifiers from an object containing promoter sequence data.
 #'
-#' Methods should be implemented for specific object classes storing sequence data.
+#' Methods should be implemented for specific object classes storing sequence 
+#' data.
 #'
 #' @param x An object containing sequence information.
 #' @param ... Additional arguments passed to specific methods.
 #'
 #' @return 
 #' \itemize{
-#'   \item If `x` is a `PSMatrix` object: a **character vector** of sequence names 
-#'   corresponding to the analyzed promoter regions.
+#'   \item If `x` is a `PSMatrix` object: a **character vector** of sequence 
+#'   names corresponding to the analyzed promoter regions.
 #'   \item If `x` belongs to another supported class, the return format may vary.
 #' }
 #' 
@@ -567,6 +784,42 @@ setGeneric("ps_hits_table", function(x, ...) standardGeneric("ps_hits_table"))
 #' @export
 setGeneric("ps_seq_names", function(x, ...) standardGeneric("ps_seq_names"))
 
+#' Retrieve Sequence Names for the Background Dataset (Generic Function)
+#'
+#' `ps_bg_seq_names` is a **generic function** that extracts the sequence names 
+#' or identifiers from an object containing all the promoter sequence data for 
+#' a specific organism.
+#'
+#' Methods should be implemented for specific object classes storing sequence 
+#' data.
+#'
+#' @param x An object containing sequence information.
+#' @param ... Additional arguments passed to specific methods.
+#'
+#' @return 
+#' \itemize{
+#'   \item If `x` is a `PSMatrix` object: a **character vector** of sequence 
+#'   names corresponding to the analyzed promoter regions.
+#'   \item If `x` belongs to another supported class, the return format may vary.
+#' }
+#' 
+#' @details
+#' The `ps_bg_seq_names` function is particularly relevant for background 
+#' datasets, which include motif scan results computed across all promoter 
+#' sequences.
+#' 
+#' In a PSMatrixList object, the `ps_bg_seq_names` slot is populated only for 
+#' background matrices (i.e., matrices derived from all promoters). This ensures 
+#' that the pscan() function can access precomputed metrics without recomputing 
+#' them, optimizing efficiency. 
+#' 
+#' @examples
+#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
+#' load(mega_pfm1_path)
+#' ps_bg_seq_names(mega_pfm1)
+#' 
+#' @export
+setGeneric("ps_bg_seq_names", function(x, ...) standardGeneric("ps_bg_seq_names"))
 
 setGeneric(".PS_PSEUDOCOUNT", function(x, ...) standardGeneric(".PS_PSEUDOCOUNT"))
 
@@ -576,19 +829,22 @@ setGeneric(".PS_ALPHABET", function(x, ...) standardGeneric(".PS_ALPHABET"))
 
 setGeneric(".ps_norm_matrix", function(x, ...) standardGeneric(".ps_norm_matrix"))
 
+setGeneric(".ps_bg_seq_names", function(x, out) standardGeneric(".ps_bg_seq_names"))
 
 setGeneric(".ps_seq_names", function(x, out) standardGeneric(".ps_seq_names"))
 
 #' Perform Motif Scanning (Generic Function)
 #'
-#' `ps_scan` is a **generic function** that scans DNA sequences for motif occurrences 
-#' using an object containing motif scoring data. The scan is typically performed 
-#' on both the forward and reverse complement strands to detect all potential 
-#' transcription factor binding sites.
+#' `ps_scan` is a **generic function** that scans DNA sequences for motif 
+#' occurrences using an object containing motif scoring data. The scan is 
+#' typically performed on both the forward and reverse complement strands to 
+#' detect all potential transcription factor binding sites.
 #'
-#' Methods should be implemented for specific object classes that support motif scanning.
+#' Methods should be implemented for specific object classes that support motif 
+#' scanning.
 #'
-#' @param x An object containing motif information, typically a `PSMatrix` object.
+#' @param x An object containing motif information, typically a `PSMatrix` 
+#'    object.
 #' @param ... Additional arguments passed to specific methods.
 #'
 #' @return 
@@ -598,7 +854,8 @@ setGeneric(".ps_seq_names", function(x, out) standardGeneric(".ps_seq_names"))
 #' - If `x` belongs to another supported class, the return format may vary.
 #' 
 #' @examples
-#' BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50),'hg38')
+#' BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
+#'                                                      c(-200,50),'hg38')
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[25:50]
@@ -622,6 +879,8 @@ setGeneric(".ps_norm_score", function(x, ...) standardGeneric(".ps_norm_score"))
 
 
 setGeneric(".ps_add_hits", function(x, ...) standardGeneric(".ps_add_hits"))
+
+setGeneric("all_sequences_ID", function(x, ...) standardGeneric("all_sequences_ID"))
 
 #' Get Background Average Score
 #'
@@ -736,17 +995,15 @@ setMethod("ps_pvalue", "PSMatrix", function(x, withDimnames = TRUE) {
 #' Get Matched Oligonucleotide Sequences 
 #' 
 #' Retrieves the oligonucleotide sequences that match the motif in the 
-#' foreground sequences, returning a named character vector where names 
-#' correspond to the sequence identifiers.
+#' foreground sequences, returning a character vector.
 #' 
 #' @param x A `PSMatrix` object, typically the result of the `Pscan` algorithm.
 #' @param withDimnames Logical, whether to include dimension names in the 
 #'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
-#' @return A named character vector containing the sequences of motif matches 
-#'     (oligonucleotides) in the foreground set. The names of the vector 
-#'     correspond to the sequence IDs from which the matches were found.
+#' @return A character vector containing the sequences of motif matches 
+#'     (oligonucleotides) in the foreground set. 
 #'     
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
@@ -763,6 +1020,51 @@ setMethod("ps_hits_oligo", "PSMatrix", function(x, withDimnames = TRUE) {
   return(out)
 })
 
+#' Get Matched Oligonucleotide Sequences of a Background Dataset
+#' 
+#' Retrieves the oligonucleotide sequences that match the motif in the 
+#' background sequences, returning a character vector.
+#' 
+#' @param x A `PSMatrix` object, typically the result of the `Pscan` algorithm.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
+#'    Default set to `TRUE`.
+#'    
+#' @details
+#' This method is specifically designed for background datasets,
+#' where motif hit oligonucleotide sequences are precomputed for all 
+#' promoter sequences. 
+#' The function extracts the character values from the ps_hits_oligo_bg slot 
+#' and, if applicable, assigns sequence names using .ps_bg_seq_names().
+#' 
+#' These background metrics are particularly useful in motif enrichment analyses, 
+#' as they allow pscan() to compare foreground promoter sequences against a 
+#' reference distribution without the need for recomputation.
+#'    
+#' @return A character vector containing the sequences of motif matches 
+#'     (oligonucleotides) in the banckground set. 
+#'     
+#' @examples
+#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
+#' load(mega_pfm1_path)
+#' ps_hits_oligo_bg(mega_pfm1)
+#' 
+#' @export
+setMethod("ps_hits_oligo_bg", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_hits_oligo_bg
+  
+  out <- .ps_bg_seq_names(x, out)
+  
+  return(out)
+})
+
+setMethod(".ps_bg_seq_names", "PSMatrix", function(x, out) {
+  
+  if(!any(is.na(x@ps_bg_seq_names)))
+    names(out) <- x@ps_bg_seq_names
+  
+  return(out)
+})
 
 setMethod(".ps_seq_names", "PSMatrix", function(x, out) {
   
@@ -857,8 +1159,8 @@ setMethod("ps_fg_size", "PSMatrix", function(x, withDimnames = TRUE) {
 #' promoter sequence and the Position Weight Matrix (PWM).
 #' 
 #' @param x A `PSMatrix` object.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return An integer representing the total number of motif hits detected in 
@@ -878,7 +1180,8 @@ setMethod("ps_hits_size", "PSMatrix", function(x, withDimnames = TRUE) {
 
 #' Get Hits Score
 #' 
-#' Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` object.
+#' Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` 
+#' object.
 #' These scores represent the binding affinity or enrichment level of promoter 
 #' sequences when scanned with a Position Weight Matrix (PWM).
 #' 
@@ -904,6 +1207,46 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
   return(out)
 })
 
+#' Get Hits Score for Background Dataset
+#' 
+#' Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` 
+#' object computed on the background dataset (all the promoter in a specific
+#' organism).
+#' These scores represent the binding affinity or enrichment level of promoter 
+#' sequences when scanned with a Position Weight Matrix (PWM).
+#' 
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the output, 
+#'    if they exist in the object.
+#'    Default set to `TRUE`.
+#'    
+#' @details
+#' This method is specifically designed for background datasets,
+#' where motif hit scores are precomputed for all promoter sequences. 
+#' The function extracts the scores from the ps_hits_score_bg slot and, 
+#' if applicable, assigns sequence names using .ps_bg_seq_names().
+#' 
+#' These background scores are particularly useful in motif enrichment analyses, 
+#' as they allow pscan() to compare foreground promoter sequences against a 
+#' reference distribution without the need for recomputation.  
+#'
+#' @return A named numeric vector where names correspond to promoter sequence 
+#'    identifiers and values represent their respective motif hit scores.
+#' 
+#' @examples
+#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
+#' load(mega_pfm1_path)
+#' ps_hits_score_bg(mega_pfm1)
+#' 
+#' @export
+setMethod("ps_hits_score_bg", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_hits_score_bg
+  
+  out <- .ps_bg_seq_names(x, out)
+  
+  return(out)
+})
+
 #' Get Motif Hit Z-score
 #' 
 #' Computes the Z-Scores for motif hit scores in a `PSMatrix` object. 
@@ -913,8 +1256,8 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
 #'
 #' 
 #' @param x A `PSMatrix` object.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return A named numeric vector where names correspond to promoter sequence 
@@ -943,8 +1286,8 @@ setMethod("ps_hits_z", "PSMatrix", function(x, withDimnames = TRUE) {
 #' ensure that no potential binding sites are missed.
 #' 
 #' @param x A `PSMatrix` object.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return A named character vector where names correspond to promoter sequence 
@@ -966,17 +1309,59 @@ setMethod("ps_hits_strand", "PSMatrix", function(x, withDimnames = TRUE) {
 })
 
 
+#' Get Motif Hit Strand Information of a Background Dataset
+#' 
+#' Retrieves the strand information (`+` or `-`) of motif hits in a 
+#' `PSMatrix` object computed on the background dataset (all the promoter in a 
+#' specific organism). This indicates whether a motif was detected on 
+#' the forward (`+`) or reverse (`-`) strand of the promoter sequence.
+#' The Pscan algorithm scans both the strands of the promoter sequences to 
+#' ensure that no potential binding sites are missed.
+#' 
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
+#'    Default set to `TRUE`.
+#' 
+#' @details
+#' This method is specifically designed for background datasets,
+#' where motif hit strands are precomputed for all promoter sequences. 
+#' The function extracts the strand values from the ps_hits_strand_bg slot and, 
+#' if applicable, assigns sequence names using .ps_bg_seq_names().
+#' 
+#' These background metrics are particularly useful in motif enrichment analyses, 
+#' as they allow pscan() to compare foreground promoter sequences against a 
+#' reference distribution without the need for recomputation.
+#'    
+#' @return A named character vector where names correspond to promoter sequence 
+#'    identifiers, and values represent the strand (`+` or `-`) on which the 
+#'    motif was detected.
+#' 
+#' @examples
+#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
+#' load(mega_pfm1_path)
+#' ps_hits_strand_bg(mega_pfm1)
+#' 
+#' @export
+setMethod("ps_hits_strand_bg", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_hits_strand_bg
+  
+  out <- .ps_bg_seq_names(x, out)
+  
+  return(out)
+})
+
 #' Get Motif Hit Positions
 #' 
-#' Retrieves the positions of hits stored in a `PSMatrix` object. These positions 
-#' indicate where the motifs are located in each promoter sequence. The positions 
-#' can be optionally shifted by a specified value.
+#' Retrieves the positions of hits stored in a `PSMatrix` object. These 
+#' positions indicate where the motifs are located in each promoter sequence. 
+#' The positions can be optionally shifted by a specified value.
 #' 
 #' @param x A `PSMatrix` object.
 #' @param pos_shift Integer. Specifies the amount to shift the position. 
 #'    Default is set to `0`.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return A named integer vector where names correspond to promoter sequence 
@@ -997,6 +1382,44 @@ setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L,
   return(out)
 })
 
+#' Get Motif Hit Positions in a Backrgound Dataset
+#' 
+#' Retrieves the positions of hits stored in a `PSMatrix` object computed on 
+#' the background dataset (all the promoter in a specific organism). These 
+#' positions indicate where the motifs are located in each promoter sequence. 
+#' 
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
+#'    Default set to `TRUE`.
+#' 
+#' @details
+#' This method is specifically designed for background datasets,
+#' where motif hit positions are precomputed for all promoter sequences. 
+#' The function extracts the position values from the ps_hits_pos_bg slot and, 
+#' if applicable, assigns sequence names using .ps_bg_seq_names().
+#' 
+#' These background metrics are particularly useful in motif enrichment analyses, 
+#' as they allow pscan() to compare foreground promoter sequences against a 
+#' reference distribution without the need for recomputation.
+#' 
+#' @return A named integer vector where names correspond to promoter sequence 
+#'    identifiers, and values represent the motif hit positions.
+#' 
+#' @examples
+#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
+#' load(mega_pfm1_path)
+#' ps_hits_pos_bg(mega_pfm1)
+#' 
+#' @export
+setMethod("ps_hits_pos_bg", "PSMatrix", function(x,withDimnames = TRUE) {
+  out <- x@ps_hits_pos_bg 
+  
+  out <- .ps_bg_seq_names(x, out)
+  
+  return(out)
+})
+
 #' Get the Sequences Name 
 #' 
 #' Retrieves the names or identifiers of the promoter sequences in a `PSMatrix` 
@@ -1004,8 +1427,8 @@ setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L,
 #' the Pscan algorithm.
 #' 
 #' @param x A `PSMatrix` object.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return A character vector of names.
@@ -1018,6 +1441,36 @@ setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L,
 #' @export
 setMethod("ps_seq_names", "PSMatrix", function(x, withDimnames = TRUE) {
   out <- x@ps_seq_names
+  
+  return(out)
+})
+
+#' Get the Sequences Identifiers of the Background Dataset 
+#' 
+#' Retrieves the names or identifiers of the promoter sequences in a `PSMatrix` 
+#' object computed on the background dataset (all the promoter in a specific
+#' organism).
+#' 
+#' @param x A `PSMatrix` object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
+#'    Default set to `TRUE`.
+#' 
+#' @details
+#' This method is specifically designed for background datasets.
+#' The function extracts the sequence identifiers from the ps_bg_seq_names slot 
+#' and, if applicable, assigns sequence names using .ps_bg_seq_names().
+#' 
+#' @return A character vector of names.
+#' 
+#' @examples
+#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.RData", package = "PscanR")
+#' load(mega_pfm1_path)
+#' ps_bg_seq_names(mega_pfm1)
+#' 
+#' @export
+setMethod("ps_bg_seq_names", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@ps_bg_seq_names
   
   return(out)
 })
@@ -1036,10 +1489,17 @@ setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
   return(out)
 })
 
+setMethod("all_sequences_ID", "PSMatrix", function(x, withDimnames = TRUE) {
+  out <- x@all_sequences_ID
+  
+  return(out)
+})
+
 #' Get Table of Motif Hits
 #' 
-#' Creates a data frame summarizing the motif hits from a `PSMatrix` object, including 
-#' the motif hit score, position, strand, and corresponding oligo sequence.
+#' Creates a data frame summarizing the motif hits from a `PSMatrix` object, 
+#' including the motif hit score, position, strand, and corresponding oligo 
+#' sequence.
 #' The resulting table is sorted by motif score (descending). When the score is 
 #' the same between two sequences, they are sorted by ascending position.
 #' 
@@ -1087,13 +1547,14 @@ setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L,
 
 
 setMethod(".ps_add_hits", "PSMatrix", 
-          function(x, Pos, Strand, Score, Oligo, BG = FALSE, 
-                   withDimnames = TRUE) {
+          function(x, Pos, Strand, Score, Oligo, BG = FALSE, use_mega_BG = FALSE,
+                   megaBG = FALSE, withDimnames = TRUE) {
   
   x@ps_hits_pos <- Pos
   x@ps_hits_strand <- Strand
   x@ps_hits_score <- Score
-  x@ps_hits_score <- .ps_norm_score(x)
+  if (!use_mega_BG)
+    x@ps_hits_score <- .ps_norm_score(x)
   
   if(BG)
   {
@@ -1101,16 +1562,19 @@ setMethod(".ps_add_hits", "PSMatrix",
     ps_bg_avg(x) <- mean(x@ps_hits_score, na.rm = TRUE)
     ps_bg_std_dev(x) <- sd(x@ps_hits_score, na.rm = TRUE)
     
-    x@ps_hits_pos_bg <- x@ps_hits_pos
-    x@ps_hits_strand_bg <- x@ps_hits_strand
-    x@ps_hits_score_bg <- x@ps_hits_score
+    if(megaBG){
+      x@ps_hits_pos_bg <- Pos
+      x@ps_hits_strand_bg <- Strand
+      x@ps_hits_score_bg <- Score
+      names(x@ps_hits_score_bg) <- x@ps_bg_seq_names
+      x@ps_hits_oligo_bg <- Oligo
+    }
     
     x@ps_hits_pos <- integer()
     x@ps_hits_strand <- character()
     x@ps_hits_score <- numeric()
   }
-  else
-  {
+  else {
     if(!is.na(x@ps_bg_avg) && !is.na(x@ps_bg_std_dev))
     {
       ztest <- z.test(x@ps_hits_score, 
@@ -1124,6 +1588,11 @@ setMethod(".ps_add_hits", "PSMatrix",
       x@ps_fg_size <- length(x@ps_hits_pos)
       x@ps_hits_oligo <- Oligo
     }
+    
+    x@ps_hits_pos_bg <- integer()
+    x@ps_hits_strand_bg <- character()
+    x@ps_hits_score_bg <- numeric()
+    x@ps_hits_oligo_bg <- character()
   }
   
   return(x)
@@ -1152,7 +1621,6 @@ setMethod(".ps_bg_from_table", "PSMatrix", function(x, short.matrix) {
     warning(paste("No background values found for", ID(x), name(x)))
   }
 
-  
   return(x)
 })
 
@@ -1187,23 +1655,46 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #'     to be used for scanning DNA sequences.
 #' @param seqs `A DNAstringSet` object representing the sequences to be
 #'    scanned for motif occurrences.
-#' @param BG A logical value indicating whether to calculate background statistics.
+#' @param BG A logical value indicating whether to calculate background 
+#'    statistics.
 #'    Default is set to `FALSE`.
+#' @param use_mega_BG A logical value (default is `FALSE`). If `TRUE`, the method 
+#'    assumes that the PSMatrix represent a special "mega-background" set. 
+#'    In this case, the `seqs` parameter should be a vector of sequence names 
+#'    (instead of actual DNA sequences). The function handles this by matching 
+#'    sequence names against precomputed background data in the `PSMatrix`.
+#' @param megaBG Logical, default is `FALSE`. If `TRUE` it computes a series 
+#'    of computation for the generation of a "mega-background", a special case
+#'    of background that retains all the background hits score, position, 
+#'    strand, and oligonucleotide sequence for each regulatory sequence scanned 
+#'    with a PWM.  
 #' 
 #' @return A `PSMatrix` object, with updated information about the motif hits 
 #'     in the sequences. This includes the positions, strands, scores, and 
 #'     oligos (sequence motifs) where the hits occurred.
 #' 
 #' @details
-#' The function scans each sequence for motif occurrences, computes motif scores, 
-#' and stores the hit details in the `PSMatrix` object. The scan is performed on 
-#' both the forward and reverse complement strands of the sequences to ensure 
-#' all potential binding sites are detected. Optionally, the background statistics 
-#' (background average and standard deviation) can be computed and used during 
-#' scanning.
+#' 
+#' This method is designed to handle different types of sequence scanning 
+#' scenarios. It can handle both regular DNA sequences (using a `DNAStringSet`) 
+#' and specialized background sequence sets (either using a background flag 
+#' or a mega-background flag). 
+#' 
+#' If `use_mega_BG` is set to `TRUE`, the function assumes that `seqs` contains 
+#' sequence identifiers rather than the sequences themselves. In this case, the 
+#' method matches the sequence names to those in the `PSMatrix`'s background hit 
+#' data and retrieves the corresponding binding information (score, strand, 
+#' position, oligo).
+#' 
+#' When `use_mega_BG` is set to `FALSE`, the function scan both the forward and 
+#' reverse complement strands of the sequences to ensure all potential binding 
+#' sites are detected. Optionally, the background statistics (background average 
+#' and standard deviation) can be computed and used during scanning when `BG` is 
+#' set to `TRUE`.
 #' 
 #' @examples
-#' BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50),'hg38')
+#' BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
+#'                                                      c(-200,50),'hg38')
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:25]
@@ -1212,29 +1703,52 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' scanned_result
 #' 
 #' @export
-setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE){
+setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE, 
+                                          use_mega_BG = FALSE, megaBG = FALSE){
   
-  if(!is(seqs, "DNAStringSet"))
+  if(!is(seqs, "DNAStringSet") && !use_mega_BG)
     stop("seqs is not an object of DNAStringSet class")
   
-  rc_x <- reverseComplement(x)
-  
-  Margs <- list(numx = as.numeric(Matrix(x)), 
-                numx_rc = as.numeric(Matrix(rc_x)),
-                ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), 
-                AB = .PS_ALPHABET(x)) 
-  
-  if(BG == FALSE)
+  if (BG || use_mega_BG) {
+    x@ps_bg_seq_names <- ifelse(use_mega_BG, seqs, names(seqs))
+  } else {
     x@ps_seq_names <- names(seqs)
+  }
   
   seqs <- as.character(seqs)
   
-  res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
-  
-  x <- .ps_add_hits(x, Score = as.numeric(res["score",]), 
-                 Strand = as.character(res["strand",]), 
-                 Pos = as.integer(res["pos",]), 
-                 Oligo = as.character(res["oligo",]), BG = BG)
+  if(use_mega_BG == TRUE){
+    indices <- match(seqs, sub("\\..*$", "", names(x@ps_hits_score_bg)))
+    
+    res <- list(
+      score = x@ps_hits_score_bg[indices],
+      strand = x@ps_hits_strand_bg[indices],
+      pos = x@ps_hits_pos_bg[indices],
+      oligo = x@ps_hits_oligo_bg[indices]
+    )
+    
+    x <- .ps_add_hits(x, Score = res$score, Strand = res$strand, Pos = res$pos, 
+                      Oligo = res$oligo, BG = BG, use_mega_BG = use_mega_BG)
+    x@ps_bg_seq_names <- character()
+    
+  } else {
+    
+    rc_x <- reverseComplement(x)
+    
+    Margs <- list(numx = as.numeric(Matrix(x)), 
+                numx_rc = as.numeric(Matrix(rc_x)),
+                ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), 
+                AB = .PS_ALPHABET(x)) 
+    
+    res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
+    
+    x <- .ps_add_hits(x, Score = as.numeric(res["score",]), 
+                      Strand = as.character(res["strand",]), 
+                      Pos = as.integer(res["pos",]), 
+                      Oligo = as.character(res["oligo",]), BG = BG, 
+                      use_mega_BG = use_mega_BG, megaBG = megaBG)
+    x@ps_bg_seq_names <- character()
+  }
   
   return(x)
   
@@ -1412,8 +1926,8 @@ setGeneric("ps_bg_avg<-", function(x, ..., value) standardGeneric("ps_bg_avg<-")
 #' Methods should be implemented for specific object classes that support 
 #' background standard deviation assignment.
 #'
-#' @param x An object to which the background standard deviation will be assigned, 
-#'    typically a `PSMatrix` object.
+#' @param x An object to which the background standard deviation will be 
+#'    assigned, typically a `PSMatrix` object.
 #' @param ... Additional arguments (not used in the generic function but may be 
 #'    used in specific methods).
 #' @param value A numeric value representing the background standard deviation.
@@ -1469,9 +1983,9 @@ setGeneric("ps_bg_size<-", function(x, ..., value) standardGeneric("ps_bg_size<-
 #'    input `PSMatrix` object.
 #' 
 #' @details
-#' The background size is the total number of promoters used to compute background
-#' statistics, such as the average score and standard deviation. This method
-#' allows user to modify this value. 
+#' The background size is the total number of promoters used to compute 
+#' background statistics, such as the average score and standard deviation. 
+#' This method allows user to modify this value. 
 #' 
 #' 
 #' @examples
@@ -1546,13 +2060,10 @@ setReplaceMethod("ps_bg_size", "PSMatrix", function(x,value){
 
 #' Convert PFMatrix to PSMatrix
 #' 
-#' @param from A `PFMatrix` object to be converted to a `PSMatrix` one.
-#' 
 #' @return A `PSMatrix` object created from the input `PFMatrix` object.
 #' 
 #' @name PSMatrix
-#' 
-#' @usage setAs("PFMatrix", "PSMatrix", function(from))
+#' @aliases setAs,PFMatrix,PSMatrix-method
 #' 
 #' @export
 #' @importFrom TFBSTools PFMatrix
@@ -1575,15 +2086,11 @@ setAs("PFMatrix", "PSMatrix", function(from){
 #' The resulting `PSMatrixList` is created by combining the converted `PSMatrix` 
 #' objects into a list and returning the new object.
 #' 
-#' @param from A `PFMatrixList` object, which is a list of `PFMatrix` objects 
-#'     to be converted into a `PSMatrixList`.
-#' 
-#' @return A `PSMatrixList` object, which is a list containing the `PSMatrix` objects 
-#'     converted from the `PFMatrixList`.
-#' 
-#' @usage setAs("PFMatrixList", "PSMatrixList", function(from))
+#' @return A `PSMatrixList` object, which is a list containing the `PSMatrix` 
+#'    objects converted from the `PFMatrixList`.
 #' 
 #' @name PSMatrixList
+#' @aliases setAs,PFMatrixList,PSMatrixList-method
 #' 
 #' @export
 #' @importFrom TFBSTools PFMatrixList

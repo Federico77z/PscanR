@@ -2,22 +2,23 @@
 #' 
 #' This function computes the alignment scores between regulatory sequences 
 #' (a set of gene promoters (`x` parameter)) and position weight matrices, which 
-#' quantify potential binding affinities of transcription factors in that region. 
-#' This is done throughout the Pscan algorithm. 
+#' quantify potential binding affinities of transcription factors in that region.
+#' These matrices can be sourced from public databases such as JASPAR.
+#' The scanning is performed throughout the Pscan algorithm. 
 #' 
-#' @param x A `DNASetString` object containing the set of regulatory sequences 
+#' @param x A `DNAStringSet` object containing the set of regulatory sequences 
 #'    from co-regulated or co-expressed genes (i.e. a set of gene promoters). 
 #'    See the Biostrings package for details.
 #'    
-#' @param pfms A `PSMatrixList` object containing PWMs and background statistics. 
+#' @param pfms A `PSMatrixList` object containing PWMs and background statistics.
+#'    For background statistics we refer to the standard deviation and average 
+#'    of hits scores when the background (set of promoters of all the transcript 
+#'    in the organism of study) is scanned with the position weight matrices. 
+#'    This is used to assert the statistical enrichment of motif occurrences 
+#'    in co-expressed or co-regulated genes.
 #'    See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
 #'    \code{\link{ps_build_bg_from_table}} for how to create `PSMatrixList` 
-#'    objects that contain background statistics. For background statistics we
-#'    refer to the standard deviation and average of scores when the background 
-#'    (all the promoters expressed in a organism) is scanned with the position 
-#'    weight matrices. This is used to assert the statistical enrichment to 
-#'    determine the statistical enrichment of motif occurrences in coexpressed 
-#'    or coregulated promoter sequences compared to the background.
+#'    objects that contain background statistics. 
 #' 
 #' @param BPPARAM The BPPARAM used by bplapply. See BiocParallel package.
 #'    This argument is passed to `BiocParallel::bplapply`.
@@ -37,14 +38,26 @@
 #'    the parallel tasks. 
 #'    
 #' @details
-#' The `pscan` function performs sequence scanning using the `ps_scan` method for 
-#' individual PWMs, accounting for both the forward and reverse complement strands,
-#' ensuring no potential binding sites are missed.
+#' The `pscan` function performs sequence scanning using the `ps_scan` method 
+#' for individual PWMs, accounting for both the forward and reverse complement 
+#' strands, ensuring no potential binding sites are missed.
+#' The method extract all the k-mers substring of the input sequences with the 
+#' same length of the motif and evaluates a score for both the forward and 
+#' reverse strand based on how well the k-mer matches the Transcription Factor
+#' Binding Motif provided by the PWM. For each input sequence scanned with 
+#' individual PWM, only the k-mer with the highest score is selected. 
+#' The method will populate the following PSMatrix slots for each input sequence: 
+#' \itemize{
+#'    \item ps_hits_score: the highest matching value found for each sequence. 
+#'    \item ps_hits_pos: position of the best TFBS match
+#'    \item ps_hits_strand: the DNA strand of the TFBS ('+' for forward and '-'
+#'    for reverse)
+#'    \item ps_hits_oligo: the sequence of the binding site} 
 #'    
 #' @return
 #' A `PSMatrixList` object in which the foreground values (the alignment scores)
 #' have been computed for each sequence in `x` based on the position weight 
-#' matrices in `pfms`.
+#' matrices in `pfms`. 
 #' 
 #' @export
 #' 
@@ -55,7 +68,8 @@
 #' prom_seq <- prom_seq[1:10]
 #' 
 #' # Retrieve Background PWMs
-#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+#'                                                     'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the PScan algorithm
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -82,12 +96,77 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
   BiocGenerics::do.call(PSMatrixList, pfms)
 }
 
+#' Extract Pre-Computed Metrics from a PSMatrixList Object
+#' 
+#' This function is an optimized version of `pscan()`, designed to significantly
+#' reduce computational time by extracting relevant metrics from a pre-computed
+#' background PSMatrixList. 
+#' 
+#' If a fully computed PSMatrixList is available, containing scores, positions, 
+#' oligonucleotide sequences, and strand information for all promoter sequences 
+#' of a given organism (scanned using a Position Weight Matrix), this function 
+#' allows users to efficiently retrieve relevant values for specific sequences 
+#' of interest, without having to recalculate them with the `pscan()` function. 
+#' 
+#' @param ID A character vector containing the sequence identifiers (transcript 
+#'    IDs) of the sequences to be scanned with the PWMs.
+#' @param mega_pfms The complete background PSMatrixList generated by
+#'    ps_build_bg(). To preserve key metrics, ensure the object is saved using 
+#'    save() and the flag megaBG is set to `TRUE`. 
+#'    
+#' @return A `PSMatrixList` object in which the alignment scores and related 
+#'    metrics have been retrieved from `mega_pfms` for each sequence in `ID`, 
+#'    based on the background data.
+#' 
+#' @export
+pscan_bg <- function(ID, mega_pfms)
+{
+   all_seq_ID <- mega_pfms@transcriptIDLegend
+   
+   # Rimozione dell'estensione del trascritto, per qualsiasi nome 
+   names(all_seq_ID) <- sub("\\..*$", "", names(all_seq_ID))
+   all_seq_ID <- sub("\\..*$", "", all_seq_ID)
+   ID <- sub("\\..*$", "", ID)
+   
+   # Uso del vettore di mapping (all_seq_ID) per estrarre i nomi delle sequenze 
+   # mantenute nel mega BG corrispondenti a quelle inserite dall'utente. 
+   # Rimozione di eventuali nomi di seq uguali inserite dall'utente. 
+   x <- all_seq_ID[ID]
+   x <- unique(x) # warning per sequenze uguali rimosse??
+   
+   # Rimozione dei valori NA che per come è stata costruita la funzione
+   # .mapping_unique_names() corrispondono a quelle sequenze che sono state 
+   # rimosse con la funzione .clean_sequence() perchè hanno una % di N sup a 50.
+   # Un warning viene prodotto
+   rem_names <- names(x[is.na(x)])
+   
+   if(length(rem_names)> 0){
+     warning(paste('Found', length(rem_names), 'sequences with more than 50% of 
+                  N content or with a length different from the reference. 
+                  Removing the following sequences:', 
+                   paste(rem_names, collapse = ", ")))
+   }
+   
+   x <- x[!is.na(x)]
+   
+   # Corpo della funzione per estrazione valori --> vedere ps_scan per dettagli
+   
+   pfms <- lapply(
+     mega_pfms, 
+     FUN = ps_scan, 
+     x, 
+     BG = FALSE,
+     use_mega_BG = TRUE) # flag che serve a ps_scan per capire quale analisi fare
+   
+   BiocGenerics::do.call(PSMatrixList, pfms)
+}
+
 #' Create a Summary Table of PscanR Results  
 #' 
 #' This function generates a table summarizing the statistical analysis of motif 
 #' enrichment, stored in a `PSMatrixList` object. It retrieves pre-computed 
-#' background and foreground statistics (the alignment scores between Pscan input
-#' regulatory sequences and position weight matrices) for each PWM. 
+#' background and foreground statistics (the alignment scores between Pscan 
+#' input regulatory sequences and position weight matrices) for each PWM. 
 #' Then it compares motif occurrences in the foreground (e.g., 
 #' coexpressed/coregulated promoter sequences) with the background (e.g., all 
 #' promoters in an organism) using Z-scores, p-values, and FDR correction.
@@ -95,19 +174,22 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #'
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
 #'    metadata (foreground and background statistics). Typically is the output 
-#'    of `pscan()` function. 
+#'    of `pscan()` or `pscan_bg()` functions. 
 #'
 #' @return
 #' A data.frame with matrices ordered by increasing P.VALUE and decreasing 
 #' ZSCORE, prioritizing significant and strongly enriched motifs.
-#' it contains the following columns: 
+#' It contains the following columns: 
 #' \itemize{
-#'   \item "NAME": The names of the matrices.
-#'   \item "BG_AVG": The average background score for each PWM.
-#'   \item "BG_STDEV": The standard deviation of the background scores for each 
-#'   PWM.
-#'   \item "FG_AVG": The average foreground score for each PWM.
-#'   \item "ZSCORE": The Z-score for each PWM.
+#'   \item "NAME": The matrices identifiers.
+#'   \item "BG_AVG": The average background score of TFBSs for each PWM.
+#'   \item "BG_STDEV": The standard deviation of the background scores of TFBSs
+#'   for each PWM.
+#'   \item "FG_AVG": The average foreground score (the TFBS scores found by 
+#'   scanning the chosen subset of regulatory regions) for each PWM.
+#'   \item "ZSCORE": The Z-score for each PWM computed as 
+#'   (FG_AVG-BG_AVG)/BG_STDEV. It represent a statistical measure for motif 
+#'   enrichment of the scanned sequences in respect to the background.
 #'   \item "P.VALUE": The p-value for each PWM.
 #'   \item "FDR": The adjusted p-value (False Discovery Rate) calculated using 
 #'   the Benjamini-Hochberg correction.
@@ -120,7 +202,8 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' prom_seq <- prom_seq[1:10]
 #' 
 #' # Retrieve Background PWMs
-#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+#'                                                     'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the PScan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -169,7 +252,8 @@ ps_results_table <- function(pfms)
 #' @details
 #' The Z-Score represents the statistical significance of the alignment scores 
 #' for regulatory sequences relative to background expectation. A high Z-score 
-#' suggests strong motif enrichment in the foreground compared to the background.
+#' suggests strong motif enrichment in the foreground compared to 
+#' the background.
 #' 
 #' @examples
 #' 
@@ -180,7 +264,8 @@ ps_results_table <- function(pfms)
 #' prom_seq <- prom_seq[1:10]
 #' 
 #' # Retrieve Background PWMs
-#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+#'                                                     'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -210,11 +295,11 @@ ps_z_table <- function(pfms)
 #' 
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
 #'    metadata (foreground and background statistics). Typically is the output 
-#'    of `pscan()` function. 
+#'    of `pscan()` or `pscan_bg()` functions. 
 #' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
 #'    to include in the analysis. The default is `0.01`.
-#' @param ... Additional user defined arguments to customize the heatmap settings, 
-#'    such as color palettes or clustering object.
+#' @param ... Additional user defined arguments to customize the heatmap 
+#'    settings, such as color palettes or clustering object.
 #'   
 #' @details
 #' 
@@ -232,8 +317,8 @@ ps_z_table <- function(pfms)
 #' 
 #'  Default settings, that can be changed by the users, are: 
 #'  \itemize{
-#'    \item `cluster_rows` and `cluster_cols` set to `TRUE`.
-#'    \item `color` uses a blue-white-red palette.
+#'    \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
+#'    \item `color`, which uses a blue-white-red palette.
 #'    \item The main `Pscan Score Correlation Heatmap`.
 #'    \item TF names are showed as column labels.
 #'    }
@@ -250,7 +335,8 @@ ps_z_table <- function(pfms)
 #' prom_seq <- prom_seq[1:25]
 #'
 #' # Retrieve Background PWMs
-#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+#'                                                     'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -294,12 +380,13 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 #' Pscan Hits Position Heatmap
 #' 
 #' This function creates a heatmap visualizing the positional distribution
-#' of motif hits based on a specified false discovery rate threshold. The heatmap 
-#' helps visualize where significant motif hits occur within the analyzed sequences.
+#' of motif hits based on a specified false discovery rate threshold. 
+#' The heatmap helps visualize where significant motif hits occur within the
+#' analyzed sequences.
 #' 
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
 #'    metadata (foreground and background statistics). Typically is the output 
-#'    of `pscan()` function. 
+#'    of `pscan()` or `pscan_bg()` function. 
 #' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
 #'    to be included in the analysis. The default is set to `0.01`.
 #' @param shift Integer. A value to shift the reported positions of motif hits. 
@@ -318,8 +405,8 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 #' 
 #' Default settings, that can be changed by the users, are:
 #' \itemize{
-#'   \item `cluster_rows` and `cluster_cols` set to `TRUE`.
-#'   \item `color` uses a white-yellow-red palette.
+#'   \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
+#'   \item `color`, which uses a white-yellow-red palette by default.
 #'   \item The main `Pscan Hits Position Heatmap`.
 #'   }
 #' 
@@ -332,7 +419,8 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 #' prom_seq <- prom_seq[1:25]
 #' 
 #' # Retrieve Background PWMs
-#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+#'                                                     'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -383,11 +471,11 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' Pscan Density Plot of Hits along Promoters 
 #' 
 #' This function creates a density plot representing the distribution of hits 
-#' along the promoter sequences based on their position and score. It helps 
-#' visualize where motif occurrences are concentrated.
+#' along the promoter sequences based on their position and score for a specific 
+#' PWM. It helps visualize where motif occurrences are concentrated.
 #' 
-#' @param pfm A `PSMatrix` object. It is a selected matrix from the `PSMatrixList`, 
-#'    result of `pscan` function. 
+#' @param pfm A `PSMatrix` object. It is a selected matrix from the 
+#'    `PSMatrixList`, result of `pscan` function. 
 #' @param shift Integer value specifying the positional shift applied to the hit 
 #'    positions. Default is `0`.
 #' @param st Score threshold used to filter hits. Can be a numeric value to set 
@@ -414,7 +502,8 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' prom_seq <- prom_seq[1:25]
 #' 
 #' # Retrieve Background PWMs
-#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+#'                                                     'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -474,8 +563,8 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' Bubble chart of Pscan Motif Score vs Position
 #' 
 #' This function creates a Bubble Chart to visualize the relationship
-#' between position and score of the identified sites along the promoter sequences 
-#' in a `PSMatrix` object. 
+#' between position and score of the identified sites along the promoter 
+#' sequences in a `PSMatrix` object. 
 #' 
 #' @param pfm A `PSMatrix` object. It must be processed by the PscanR 
 #'    algorithm.
@@ -500,7 +589,8 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' prom_seq <- prom_seq[1:25]
 #' 
 #' # Retrieve Background PWMs
-#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+#'                                                     'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -521,8 +611,8 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
     group_by(!!sym(colnames(data)[1]), !!sym(colnames(data)[2])) %>%
     summarise(Count = n(), .groups = "drop")
   
-  ggplot(data_sum, aes(x = !!sym(colnames(data_sum)[2]), 
-                       y = !!sym(colnames(data_sum)[1]), size = Count)) +
+  ggplot(data_sum, aes(x = .data[[colnames(data_sum)[2]]], 
+                       y = .data[[colnames(data_sum)[1]]], size = .data$Count)) +
     geom_point(alpha=0.5, color = bubble_color) +
     scale_size_continuous(breaks = sort(unique(data_sum$Count)), 
                           guide = guide_legend(title = "Occurrences")) +
@@ -532,10 +622,11 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
   
 }
 
-#' Density Plot of Distances between Identified Motif Hits in two PSMatrix Object
+#' Density Plot of Distances between Identified Motif Hits in two PSMatrix 
+#' Object
 #' 
-#' This function visualizes the density plot of distances between identified hits 
-#' sites in two `PSMatrix` object. The distance between hits is calculated 
+#' This function visualizes the density plot of distances between identified 
+#' hits sites in two `PSMatrix` object. The distance between hits is calculated 
 #' for each sequence that is present in both matrices. 
 #' It allows to filter the identified sites based on a specified threshold value. 
 #' 
@@ -573,7 +664,8 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
 #' prom_seq <- prom_seq[25:50]
 #' 
 #' # Retrieve Background PWMs
-#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+#' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+#'                                                     'hs', c(-200,50), 'hg38')
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 
@@ -586,14 +678,11 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
 #' 
 ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
 {
-  if (!is(M1, "PSMatrix") || !is(M2, "PSMatrix")) {
+  if (!is(M1, "PSMatrix") || !is(M2, "PSMatrix"))
     stop("Both object must be of class PSMatrix")
-  }
   
   if (is.character(st1)){
-    st1 <- switch(st1,
-                  "all" = 0,
-                  "loose" = ps_bg_avg(M1),
+    st1 <- switch(st1, "all" = 0, "loose" = ps_bg_avg(M1), 
                   "strict" = ps_bg_avg(M1) + ps_bg_std_dev(M1),
                   {
                     warning("Invalid value for st1, reverting to loose")
@@ -602,9 +691,7 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_a
   }
   
   if (is.character(st2)) {
-    st2 <- switch(st2,
-                  "all" = 0,
-                  "loose" = ps_bg_avg(M2),
+    st2 <- switch(st2, "all" = 0, "loose" = ps_bg_avg(M2),
                   "strict" = ps_bg_avg(M2) + ps_bg_std_dev(M2),
                   {
                     warning("Invalid value for st2, reverting to loose")
@@ -614,11 +701,8 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_a
   
   scores1 <- ps_hits_score(M1)
   g_scores1 <- scores1 >= st1
-  sum_g1 <- sum(g_scores1)
-  
   scores2 <- ps_hits_score(M2)
   g_scores2 <- scores2 >= st2
-  sum_g2 <- sum(g_scores2)
   
   hits1 <- ps_hits_pos(M1, pos_shift = ncol(M1)/2)[g_scores1]
   hits2 <- ps_hits_pos(M2, pos_shift = ncol(M2)/2)[g_scores2]

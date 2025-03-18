@@ -9,8 +9,10 @@ ps_write_bg_to_file(pfms, file)
 \arguments{
 \item{pfms}{A `PSMatrixList` object of Position Weight Matrices 
 representing transcription factor binding preferences, obtained for example 
-from the JASPAR database. Each element should be a `PSMatrix` object or 
-coercible to `PSMatrix`.}
+from the JASPAR database, containing background statistics computed by 
+scanning each `PSMatrix` against the set of promoter regions of all 
+transcripts in the organism of study. The promoter regions analyzed may 
+vary. Each element should be a `PSMatrix` object or coercible to `PSMatrix`.}
 
 \item{file}{A character string specifying the path to the output file where 
 the background statistics should be saved.}
@@ -25,9 +27,10 @@ for each Position Weight Matrix in a `PSMatrixList` object to a specified
 file.
 }
 \details{
-This function retrieves the background statistics (size, mean, and standard deviation)
-using `ps_get_bg_table()` from the input `PSMatrixList` object, after having
-validated the inputs. Then, it writes the result to a specified file. 
+This function retrieves the background statistics (size, mean, and 
+standard deviation) using `ps_get_bg_table()` from the input `PSMatrixList` 
+object, after having validated the inputs. Then, it writes the result to a 
+specified file. 
 A header is added to the file (`[SHORT TFBS MATRIX`]).
 }
 \examples{
@@ -53,7 +56,7 @@ PSM2 <- PSMatrix(
   
 PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
 
-ps_write_bg_to_file(PSMatrixList_J2020, file_path) # You will find the file in your project
+# ps_write_bg_to_file(PSMatrixList_J2020, file_path)
 
 }
 \seealso{

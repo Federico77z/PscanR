@@ -9,7 +9,7 @@ ps_hitpos_map(pfms, FDR = 0.01, shift = 0, ...)
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
 metadata (foreground and background statistics). Typically is the output 
-of `pscan()` function.}
+of `pscan()` or `pscan_bg()` function.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to be included in the analysis. The default is set to `0.01`.}
@@ -26,8 +26,9 @@ A heatmap plot showing positional hits distribution for selected
 }
 \description{
 This function creates a heatmap visualizing the positional distribution
-of motif hits based on a specified false discovery rate threshold. The heatmap 
-helps visualize where significant motif hits occur within the analyzed sequences.
+of motif hits based on a specified false discovery rate threshold. 
+The heatmap helps visualize where significant motif hits occur within the
+analyzed sequences.
 }
 \details{
 The function performs the following steps: 
@@ -40,8 +41,8 @@ The function performs the following steps:
 
 Default settings, that can be changed by the users, are:
 \itemize{
-  \item `cluster_rows` and `cluster_cols` set to `TRUE`.
-  \item `color` uses a white-yellow-red palette.
+  \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
+  \item `color`, which uses a white-yellow-red palette by default.
   \item The main `Pscan Hits Position Heatmap`.
   }
 }
@@ -51,7 +52,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the Pscan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

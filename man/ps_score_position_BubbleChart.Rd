@@ -21,8 +21,8 @@ each score-position combination.
 }
 \description{
 This function creates a Bubble Chart to visualize the relationship
-between position and score of the identified sites along the promoter sequences 
-in a `PSMatrix` object.
+between position and score of the identified sites along the promoter 
+sequences in a `PSMatrix` object.
 }
 \details{
 The function computes the count of occurrences for each combination of 
@@ -36,7 +36,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the Pscan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

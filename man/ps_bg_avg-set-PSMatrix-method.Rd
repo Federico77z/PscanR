@@ -19,9 +19,9 @@ This method specifically set the background average for an object of
 class `PSMatrix`.
 }
 \details{
-The background size is the total number of promoters used to compute background
-statistics, such as the average score and standard deviation. This method
-allows user to modify this value.
+The background size is the total number of promoters used to compute 
+background statistics, such as the average score and standard deviation. 
+This method allows user to modify this value.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")

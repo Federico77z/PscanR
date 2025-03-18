@@ -9,19 +9,22 @@ ps_results_table(pfms)
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
 metadata (foreground and background statistics). Typically is the output 
-of `pscan()` function.}
+of `pscan()` or `pscan_bg()` functions.}
 }
 \value{
 A data.frame with matrices ordered by increasing P.VALUE and decreasing 
 ZSCORE, prioritizing significant and strongly enriched motifs.
-it contains the following columns: 
+It contains the following columns: 
 \itemize{
-  \item "NAME": The names of the matrices.
-  \item "BG_AVG": The average background score for each PWM.
-  \item "BG_STDEV": The standard deviation of the background scores for each 
-  PWM.
-  \item "FG_AVG": The average foreground score for each PWM.
-  \item "ZSCORE": The Z-score for each PWM.
+  \item "NAME": The matrices identifiers.
+  \item "BG_AVG": The average background score of TFBSs for each PWM.
+  \item "BG_STDEV": The standard deviation of the background scores of TFBSs
+  for each PWM.
+  \item "FG_AVG": The average foreground score (the TFBS scores found by 
+  scanning the chosen subset of regulatory regions) for each PWM.
+  \item "ZSCORE": The Z-score for each PWM computed as 
+  (FG_AVG-BG_AVG)/BG_STDEV. It represent a statistical measure for motif 
+  enrichment of the scanned sequences in respect to the background.
   \item "P.VALUE": The p-value for each PWM.
   \item "FDR": The adjusted p-value (False Discovery Rate) calculated using 
   the Benjamini-Hochberg correction.
@@ -30,8 +33,8 @@ it contains the following columns:
 \description{
 This function generates a table summarizing the statistical analysis of motif 
 enrichment, stored in a `PSMatrixList` object. It retrieves pre-computed 
-background and foreground statistics (the alignment scores between Pscan input
-regulatory sequences and position weight matrices) for each PWM. 
+background and foreground statistics (the alignment scores between Pscan 
+input regulatory sequences and position weight matrices) for each PWM. 
 Then it compares motif occurrences in the foreground (e.g., 
 coexpressed/coregulated promoter sequences) with the background (e.g., all 
 promoters in an organism) using Z-scores, p-values, and FDR correction.
@@ -44,7 +47,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
 
 # Retrieve Background PWMs
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
+                                                    'hs', c(-200,50), 'hg38')
 
 # Execute the PScan algorithm and view the result table
 results <- pscan(prom_seq, J2020_PSBG, 

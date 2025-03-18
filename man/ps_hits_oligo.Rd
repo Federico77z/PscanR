@@ -13,14 +13,12 @@ ps_hits_oligo(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **named character vector**, where names 
-  correspond to sequence identifiers, and values represent the oligonucleotide 
-  sequences (subset of the input promoter sequences) matching the motif.
+  \item If `x` is a `PSMatrix` object: a **character vector**, where 
+  names correspond to sequence identifiers, and values represent the 
+  oligonucleotide sequences (subset of the input promoter sequences) matching 
+  the motif.
   \item If `x` is another supported class, the return format may differ.
 }
-
-For `ps_hits_oligo`: a character vector representing the 
-   oligonucleotide sequence of each hit.
 }
 \description{
 `ps_hits_oligo` is a **generic function** that extracts the oligonucleotide 
@@ -29,4 +27,10 @@ sequences corresponding to motif hits in a given object.
 \details{
 Methods should be implemented for specific object classes that store motif 
 scanning results.
+}
+\examples{
+pfm1_path <- system.file("extdata", "pfm1.RData", package = "PscanR")
+load(pfm1_path)
+ps_hits_oligo(pfm1)
+
 }

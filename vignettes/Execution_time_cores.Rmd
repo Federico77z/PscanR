@@ -4,9 +4,12 @@ author: "Diana Betelli"
 date: "`r Sys.Date()`"
 output: BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{Comparing execution time with varying processors}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{3. Comparing execution time with varying processors}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 80
 ---
 
 ```{r setup, include = FALSE}
@@ -16,21 +19,129 @@ knitr::opts_chunk$set(
 )
 ```
 
-**Introduction**
+# Introduction
 
-In this vignette we will analyse how the number of cores used affect the execution
-time of the Pscan algorithm. We will run the algorithm with 1, 2, 4, 6, 8, 12, 18, and 24
-cores.
+PscanR analyzes large datasets, such as promoter regions and Transcription
+Factor Binding Motifs. To improve performance and reduce computation time, the
+tool supports parallel computing.
 
-In this experiment we will use the biggest dataset aviable, the liver one, with promoter 
-sequences length equal to 1000 bp. 
+Two main functions utilize the **BiocParallel** package for parallelization:
+`ps_build_bg()` and `pscan()`. While the first is used for background
+generation, the second is the core function of **PscanR**. This vignette focuses
+on analyzing how varying the number of cores passed to the `bpparam()` function
+(one of `pscan()`'s inputs) affects execution time.
+
+The default `BPPARAM` value in `pscan()` is `bpparam()`, which automatically
+selects the parallelization type and number of cores based on the system.
+
+## Experimental conditions
+
+The experiment uses the largest list of co-regulated or co-expressed genes
+available on the **Pscan** platform. These genes are sampled from **human liver
+tissue**. Promoter regions are defined as those extending **950 bp upstream**
+and **50 bp downstream** from the Transcription Start Site (**TSS**). The number
+of cores tested includes: **1, 2, 4, 6, 8, 12, 18, and 24**.
+
 Notice that the observed speedup will depend on the dimension of the data.
+
+## Parallelization models
+
+The two main computational models used for parallelization are:
+
+-   **SnowParam** (Distributed Memory Computing): The **SNOW model** used by
+    `SnowParam()` is suitable for all operating systems, especially Windows,
+    which does not support process forking.
+
+-   **MulticoreParam** (Shared Memory Computing): Uses forking, which is
+    generally more efficient than SNOW but is only supported on Unix-based
+    systems (Linux/macOS).
+
+Both models are analyzed in this vignette.
+
+# Retrieving promoter sequences
+
+```{r eval=FALSE, include=TRUE}
+# Import gtf annotation from UCSC
+txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
+
+# Select only canonical chromosomes 
+GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24] 
+
+# Background generation. JASPAR core dataset for Vertebrates, 2020 release
+J2020_PSBG <- PscanR::generate_psmatrixlist_from_background( 'Jaspar2020', 'hs', c(-950,50), 'hg38') 
+
+# Retrieve promoter regions 
+prom_rng <- GenomicFeatures::promoters(txdb, upstream = 950, downstream = 50, use.names = TRUE) 
+
+# Version numbers removal from transcript IDs
+prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name) 
+
+# Retrieve target sequence identifiers. You can download it from the official 
+# Pscan platform
+target <- read.csv("processori/liver.txt", header = F) 
+
+# Filters promoter regions corresponding to the target gene list
+prom_range <- prom_rng[prom_rng$tx_name_clean %in% target[,1]] 
+
+# Extract sequences
+prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38, prom_range)
+
+```
+
+# MulticoreParam
+
+## Execution Time Script
+
+The following script will return a data frame with 8 columns, corresponding to
+the different number of cores. Rows represent the number of iteration. Each row
+contains the evaluated time for each core.
+
+```{r eval=FALSE, include=TRUE}
+iterations <- 100 # Number of iterations
+core_numbers <- c(1,2,4,6,8,12,18,24) # Cores used
+
+execution_time <- function(prom_seq, bg, ncores, output_file){
+  temp <- numeric(iterations)
+  
+  for (i in 1:iterations){
+    timing <- system.time({
+      results <- PscanR::pscan(prom_seq, bg, BPPARAM = BiocParallel::MulticoreParam(ncores))}) 
+    if (i == 1){
+      saveRDS(PscanR::ps_results_table(results), output_file) 
+# Analyse all the files to be sure that results don't change when changing the core numbers
+      }
+    temp[i] <- timing["elapsed"]
+    }
+  return(temp)
+  }
+
+all_cores <- function(core_numbers, prom_seq, bg, iterations) {
+  results_list <- list()
+  
+  for (core in core_numbers) {
+    output_file <- paste0("core", core, "_liver_950d_50u.rds")
+    results_list[[as.character(core)]] <- execution_time(prom_seq, bg, core, output_file)
+  }
+  
+  return(as.data.frame(results_list))
+} 
+
+df_processori <- all_cores(core_numbers, prom_seq, bg_hg38_2020, iterations)
+colnames(df_processori) <- core_numbers
+
+saveRDS(df_processori, "df_processori.rds")
+```
+
+## Analysis of the timing
+
+The following chuck of code produce a plot useful to analyse the evaluated
+times.
 
 ```{r}
 file_path <- system.file("extdata", "df_processori.rds", package = "PscanR")
 data<- readRDS(file_path)
 
-data <- t(data)
+head(data)
 
 N <- as.numeric(colnames(data))
 means <- colMeans(data, na.rm = TRUE)
@@ -49,7 +160,7 @@ r_squared <- 1 - (ss_residual / ss_total)
 
 ```{r boxplot-example, fig.width=6, fig.height=4}
 boxplot(data,
-        main = "PscanR Execution Time",
+        main = "PscanR Execution Time with MulticoreParam",
         xlab = "Cores (N)\nLiver dataset (950d−50u), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
         cex.lab = 0.8,
         ylab = "Time (s)",
@@ -60,13 +171,75 @@ lines(smooth_N, smooth_pred, col = "blue", lwd = 2)
 
 legend("topright", legend = bquote("Power regression, " ~ R^2 == .(round(r_squared, 3))),
        col = "blue", lwd = 2)
-
-# Display session information
-sessionInfo()
 ```
 
-***Conclusions***:
+## Consideration
 
-As shown in the boxplot, the execution time decreases significantly as the number 
-of processors increases, but beyond 8 cores, the performance gains plateaus. 
-This suggests that using more than 8 cores offers little additional benefits.
+As shown in the boxplot, the execution time decreases significantly as the
+number of processors increases, but beyond 8 cores, the performance gains
+plateaus. This suggests that using more than 8 cores offers little additional
+benefits.
+
+# SnowParam
+
+## Execution Time Script
+
+See MulticoreParam section for the detailed script. The only thing that changes
+is the BPPARAM parameter. We use BPPARAM = BiocParallel::SnowParam(ncores)). As
+before, we obtain a data frame with 8 columns, corresponding to the different
+number of cores. Rows represent the number of iteration. Each row contains the
+evaluated time for each core.
+
+## Analysis of the timing
+
+```{r}
+file_path <- system.file("extdata", "df_processori_SnowParam.rds", 
+                         package = "PscanR")
+data <- readRDS(file_path)
+
+head(data)
+
+N <- as.numeric(colnames(data))
+means <- colMeans(data, na.rm = TRUE)
+
+# Power regression
+power_model <- lm(log(means) ~ log(N))  
+
+smooth_N <- seq(min(N), max(N), length.out = 500)  # 500 punti tra 1 e 24
+smooth_pred <- exp(predict(power_model, newdata = data.frame(N = smooth_N)))  # Previsioni
+
+ss_total <- sum((means - mean(means))^2)
+ss_residual <- sum((means - exp(predict(power_model)))^2)
+r_squared <- 1 - (ss_residual / ss_total)
+```
+
+```{r}
+boxplot(data,
+        main = "PscanR Execution Time with SnowParam",
+        xlab = "Cores (N)\nLiver dataset (950d−50u), JASPAR2020 (746 matrices), 
+        329 promoters (1000bp)",
+        cex.lab = 0.8,
+        ylab = "Time (s)",
+        col = "lightblue",
+        las = 1, names = N, outline = FALSE)
+
+lines(smooth_N, smooth_pred, col = "blue", lwd = 2)
+
+legend("topright", legend = bquote("Power regression, " ~ R^2 == .(round(r_squared, 3))),
+       col = "blue", lwd = 2)
+
+```
+
+## **Final Remarks**
+
+This vignette demonstrated the impact of parallelization on **PscanR** execution
+time. The results show that **MulticoreParam** is more efficient but limited to
+Unix systems, while **SnowParam** ensures compatibility across all platforms. A
+plateau in performance gain beyond **8 cores** suggests an optimal configuration
+for parallel execution.
+
+```{r}
+# Display session information
+
+sessionInfo()
+```

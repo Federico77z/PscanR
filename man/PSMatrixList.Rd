@@ -2,28 +2,32 @@
 % Please edit documentation in R/PSMatrix_class.R
 \name{PSMatrixList}
 \alias{PSMatrixList}
+\alias{setAs,PFMatrixList,PSMatrixList-method}
 \title{Create a `PSMatrixList` object}
 \usage{
-PSMatrixList(..., use.names = TRUE)
-
-setAs("PFMatrixList", "PSMatrixList", function(from))
+PSMatrixList(..., transcriptIDLegend = character(), use.names = TRUE)
 }
 \arguments{
 \item{...}{Objects of class `PSMatrix` to include in the list.}
 
+\item{transcriptIDLegend}{Named character vector. The names correspond to the
+IDs of all the transcript expressed in the organism of study, whereas 
+corresponding values are the IDs of transcript retained by the unique() 
+function when multiple identical sequences exist. So, if multiple identical 
+sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique() retains only 
+ID2, the mapping will associate each original name with its unique 
+counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2).}
+
 \item{use.names}{Logical. Assert whether to use names from the input objects.
 Default = `TRUE`}
-
-\item{from}{A `PFMatrixList` object, which is a list of `PFMatrix` objects 
-to be converted into a `PSMatrixList`.}
 }
 \value{
-A `PSMatrixList` object, which is a list containing `PSMatrix` objects.
-    Each element in the list corresponds to a `PSMatrix` object provided as 
-    input.
+A `PSMatrixList` object, which is a list containing `PSMatrix` 
+   objects. Each element in the list corresponds to a `PSMatrix` object 
+   provided as input.
 
-A `PSMatrixList` object, which is a list containing the `PSMatrix` objects 
-    converted from the `PFMatrixList`.
+A `PSMatrixList` object, which is a list containing the `PSMatrix` 
+   objects converted from the `PFMatrixList`.
 }
 \description{
 This function creates a `PSMatrixList` object, which is a container for 
