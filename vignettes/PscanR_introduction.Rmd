@@ -2,7 +2,10 @@
 title: "Introduction to PscanR"
 author: "Diana Betelli"
 date: "`r Sys.Date()`"
-output: BiocStyle::html_document
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{1. Introduction to PscanR}
   %\VignetteEncoding{UTF-8}
