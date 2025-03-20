@@ -23,12 +23,11 @@ Suggests:
 Imports: GenomicFeatures (>= 1.48), methods, txdbmaker (>= 1.0.1), 
    BSgenome.Hsapiens.UCSC.hg38 (>= 1.4), pheatmap, JASPAR2020 (>= 0.99), dplyr, 
    ggplot2, JASPAR2024, RSQLite, httr
-biocViews: SequenceMatching, MotifDiscovery, Visualization, Transcription,
+biocViews: SequenceMatching, MotifDiscovery, Transcription,
    Alignment, GeneRegulation, MotifAnnotation
 Date: 2022-12-05
-Authors@R: c(
-    person("Federico", "Zambelli", email = "federico.zambelli@unimi.it", 
-    role = "cre", comment = c(ORCID = "0000-0003-3487-4331")),
+Authors@R: c(person("Federico", "Zambelli", email = "federico.zambelli@unimi.it", 
+    role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3487-4331")),
     person("Giulio", "Pavesi", email = "giulio.pavesi@unimi.it", role = "aut",
     comment = c(ORCID = "0000-0001-5705-6249")))
 Description: R implementation of the 'Pscan' algorithm for motif enrichment 

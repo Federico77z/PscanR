@@ -73,15 +73,23 @@ If a full background PSMatrixList is required, that includes all the
 background scores for each oligonucleotide hits, their position, strand and 
 names, the user should store the output by the save() function and set 
 the megaBG flag as TRUE. Note that this process will generate a very large 
-file, that can reach several gigabytes in size.
+file, that can reach several gigabytes in size. 
+
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
 }
 \examples{
+# Load the example dataset for promoter sequences (hg38 assembly, -200 +50 bp
+# in respect to the TSS).
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
 
-J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-load(J2020_path)
+# Load the example dataset for JASPAR2020 matrices collection for vertebrates.
+J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(J2020_path)
 
 # Generate the background-scored motif matrices
 bg_matrices <- ps_build_bg(prom_seq, J2020, 

@@ -38,6 +38,11 @@ This function:
    \item A warning is issued if the number of elements in `pfms` doesn't 
    match the number of row of `x`.
 }
+
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
 }
 \examples{
 # create the `data.frame`
@@ -48,8 +53,8 @@ BG_STDEV = c(0.05, 0.07, 0.06)
 )
 
 # Retrieve motif matrices for vertebrates from JASPAR2020
-J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-load(J2020_path)
+J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(J2020_path)
 J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 
 rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")

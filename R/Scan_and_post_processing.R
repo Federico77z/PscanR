@@ -54,6 +54,11 @@
 #'    for reverse)
 #'    \item ps_hits_oligo: the sequence of the binding site} 
 #'    
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples. 
+#'    
 #' @return
 #' A `PSMatrixList` object in which the foreground values (the alignment scores)
 #' have been computed for each sequence in `x` based on the position weight 
@@ -62,7 +67,8 @@
 #' @export
 #' 
 #' @examples
-#' 
+#' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+#' # -200 +50 bp in respect to the TSS.
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:10]
@@ -194,9 +200,16 @@ pscan_bg <- function(ID, mega_pfms)
 #'   \item "FDR": The adjusted p-value (False Discovery Rate) calculated using 
 #'   the Benjamini-Hochberg correction.
 #' }
-#'
-#' @examples
 #' 
+#' @details
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
+#' 
+#' @examples
+#' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+#' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:10]
@@ -255,10 +268,16 @@ ps_results_table <- function(pfms)
 #' suggests strong motif enrichment in the foreground compared to 
 #' the background.
 #' 
-#' @examples
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
 #' 
+#' @examples
 #' # The generation of the example might take few minutes 
 #' 
+#' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+#' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:10]
@@ -322,14 +341,19 @@ ps_z_table <- function(pfms)
 #'    \item The main `Pscan Score Correlation Heatmap`.
 #'    \item TF names are showed as column labels.
 #'    }
+#'    
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
 #'
 #' @return A heatmap plot showing Z-score correlations for selected 
 #'    transcription factors. 
 #' 
 #' @examples
-#' 
 #' # The generation of the example might take few minutes
-#' 
+#' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+#' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:25]
@@ -410,10 +434,17 @@ ps_score_correlation_map <- function(pfms, FDR = 0.01, ...)
 #'   \item The main `Pscan Hits Position Heatmap`.
 #'   }
 #' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
+#' 
 #' @return A heatmap plot showing positional hits distribution for selected 
 #'    transcription factors.
 #' 
 #' @examples
+#' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+#' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:25]
@@ -495,8 +526,14 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' a density plot to show their distribution. The function includes a vertical 
 #' dashed line marking the mode (the most frequent position along the promoters).
 #' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
 #'      
 #' @examples
+#' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+#' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:25]
@@ -582,8 +619,14 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' this data using a bubble chart. The user can modify the color of bubbles. 
 #' Default is `blue`.
 #' 
-#'
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
+#' 
 #' @examples
+#' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+#' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:25]
@@ -656,9 +699,15 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
 #' @seealso \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}}, 
 #' \code{\link{ps_hits_score}}, \code{\link{ps_hits_pos}}
 #' 
-#' @export
+#' @details
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
 #'
 #' @examples
+#' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+#' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[25:50]
@@ -675,7 +724,7 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue')
 #' pfm1 <- results[[1]]
 #' pfm2 <- results[[2]]
 #' ps_density_distances_plot(pfm1, pfm2, 'all', 'loose')
-#' 
+#' @export
 ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
 {
   if (!is(M1, "PSMatrix") || !is(M2, "PSMatrix"))

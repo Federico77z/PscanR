@@ -44,15 +44,20 @@ This function:
    \item Calls `ps_build_bg_from_table` with the created `data.frame` 
    and `pfms` as input.
 }
+
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
 }
 \examples{
 # Load a background information file
-file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+file_path <- system.file("extdata/BG_files", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
                          package = "PscanR")
 
-# Load JASPAR motif matrices for vertebrates
-J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-load(J2020_path)
+# Load the example dataset for JASPAR2020 matrices collection for vertebrates.
+J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(J2020_path)
 
 # Generate the background-scored motif matrices from file
 bg_matrices <- ps_retrieve_bg_from_file(file_path, J2020)
