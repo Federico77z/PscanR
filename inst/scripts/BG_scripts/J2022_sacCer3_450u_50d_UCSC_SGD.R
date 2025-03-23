@@ -12,6 +12,6 @@ opts[["tax_group"]] <- "fungi"
 
 J2022 <- TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts) #core Jaspar 2022 profiles for fungi
 
-J2022_PSBG <- PscanR::ps_build_bg(prom_seq, J2022, BPPARAM = BiocParallel::MulticoreParam(12)) #Build Pscan Background
+J2022_PSBG <- PscanR::ps_build_bg(prom_seq, J2022, BPPARAM = BiocParallel::MulticoreParam(24)) #Build Pscan Background
 
 PscanR::ps_write_bg_to_file(J2022_PSBG, "J2022_sacCer3_450u_50d_UCSC.psbg.txt")

@@ -14,5 +14,4 @@ J2020_PSBG <- PscanR::ps_build_bg(prom_seq, J2020, BPPARAM = BiocParallel::Multi
 
 #save(J2020_PSBG, file = "megaBG_completa_2020_hg38_200u_50d.RData")
 
-ps_write_bg_to_file(J2020_PSBG, "J2020_hg38_200u_50d_UCSC.psbg.txt")
-
+PscanR::ps_write_bg_to_file(J2020_PSBG, "J2020_hg38_200u_50d_UCSC.psbg.txt")
