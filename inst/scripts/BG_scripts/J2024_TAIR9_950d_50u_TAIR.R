@@ -16,6 +16,6 @@ JASPAR2024 <- JASPAR2024::JASPAR2024()
 JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), JASPAR2024::db(JASPAR2024))
 J2024 <- TFBSTools::getMatrixSet(JASPARConnect, opts) #core Jaspar 2024 profiles for plants
 
-J2024_PSBG <- PscanR::ps_build_bg(prom_seq, J2024, BPPARAM = BiocParallel::MulticoreParam(12)) #Build Pscan Background
+J2024_PSBG <- PscanR::ps_build_bg(prom_seq, J2024, BPPARAM = BiocParallel::MulticoreParam(24)) #Build Pscan Background
 
 PscanR::ps_write_bg_to_file(J2024_PSBG, "J2024_TAIR9_950u_50d_TAIR.psbg.txt")
