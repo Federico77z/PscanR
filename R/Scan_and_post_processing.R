@@ -127,9 +127,10 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' @export
 pscan_full_bg <- function(ID, full_pfms)
 {  
-   .ps_checks(x, pfms,type = 4)
    if(!is.character(ID))
      stop('ID must be a character vector containing transcript identifiers')
+   if(length(full_pfms@transcriptIDLegend) == 0) 
+     stop('The background PSMatrixList must be a full background')
   
    all_seq_ID <- full_pfms@transcriptIDLegend
    
