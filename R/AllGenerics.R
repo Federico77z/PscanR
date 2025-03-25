@@ -299,9 +299,9 @@ setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 #' }
 #' 
 #' @examples 
-#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-#' mega_pfm1 <- readRDS(mega_pfm1_path)
-#' ps_hits_score_bg(mega_pfm1)
+#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1 <- readRDS(full_pfm1_path)
+#' ps_hits_score_bg(full_pfm1)
 #' 
 #' @export
 setGeneric('ps_hits_score_bg', function(x, ...) standardGeneric('ps_hits_score_bg'))
@@ -403,9 +403,9 @@ setGeneric("ps_hits_strand", function(x, ...) standardGeneric("ps_hits_strand"))
 #' }
 #' 
 #' @examples 
-#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-#' mega_pfm1 <- readRDS(mega_pfm1_path)
-#' ps_hits_strand_bg(mega_pfm1)
+#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1 <- readRDS(full_pfm1_path)
+#' ps_hits_strand_bg(full_pfm1)
 #' 
 #' @export
 setGeneric('ps_hits_strand_bg', function(x, ...) standardGeneric('ps_hits_strand_bg'))
@@ -469,9 +469,9 @@ setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 #' }
 #'   
 #' @examples
-#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-#' mega_pfm1 <- readRDS(mega_pfm1_path)
-#' ps_hits_pos_bg(mega_pfm1)
+#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1 <- readRDS(full_pfm1_path)
+#' ps_hits_pos_bg(full_pfm1)
 #' 
 #' @export
 setGeneric('ps_hits_pos_bg', function(x,...) standardGeneric('ps_hits_pos_bg'))
@@ -539,9 +539,9 @@ setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 #' 
 #' @examples
 #' @examples
-#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-#' mega_pfm1 <- readRDS(mega_pfm1_path)
-#' ps_hits_oligo_bg(mega_pfm1)
+#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1 <- readRDS(full_pfm1_path)
+#' ps_hits_oligo_bg(full_pfm1)
 #' 
 #' @export
 setGeneric('ps_hits_oligo_bg', function(x, ...) standardGeneric('ps_hits_oligo_bg'))
@@ -635,9 +635,9 @@ setGeneric("ps_seq_names", function(x, ...) standardGeneric("ps_seq_names"))
 #' them, optimizing efficiency. 
 #' 
 #' @examples
-#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-#' mega_pfm1 <- readRDS(mega_pfm1_path)
-#' ps_bg_seq_names(mega_pfm1)
+#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1 <- readRDS(full_pfm1_path)
+#' ps_bg_seq_names(full_pfm1)
 #' 
 #' @export
 setGeneric("ps_bg_seq_names", function(x, ...) standardGeneric("ps_bg_seq_names"))

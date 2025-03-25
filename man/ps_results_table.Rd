@@ -9,7 +9,7 @@ ps_results_table(pfms)
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
 metadata (foreground and background statistics). Typically is the output 
-of `pscan()` or `pscan_bg()` functions.}
+of `pscan()` or `pscan_full_bg()` functions.}
 }
 \value{
 A data.frame with matrices ordered by increasing P.VALUE and decreasing 

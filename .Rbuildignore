@@ -2,15 +2,11 @@
 ^\.git$
 ^\.Rproj\.user$
 ^example_file_nfkb100\.txt$
-^processori$
 ^doc$
 ^Meta$
-^prova_matrix\.RData$
-^prova_matrix\.R$
-^prove_megaBG$
-^old_tests$
 ^\.RData$
 ^\.Renviron\.bioc$
 ^\.Rhistory$
 ^\.gitignore$
 ^raw_data$
+^test_and_scripts$

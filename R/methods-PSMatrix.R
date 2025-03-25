@@ -180,9 +180,9 @@ setMethod("ps_hits_oligo", "PSMatrix", function(x, withDimnames = TRUE) {
 #'     (oligonucleotides) in the banckground set. 
 #'     
 #' @examples
-#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-#' mega_pfm1 <- readRDS(mega_pfm1_path)
-#' ps_hits_oligo_bg(mega_pfm1)
+#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1 <- readRDS(full_pfm1_path)
+#' ps_hits_oligo_bg(full_pfm1)
 #' 
 #' @export
 setMethod("ps_hits_oligo_bg", "PSMatrix", function(x, withDimnames = TRUE) {
@@ -369,9 +369,9 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    identifiers and values represent their respective motif hit scores.
 #' 
 #' @examples
-#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-#' mega_pfm1 <- readRDS(mega_pfm1_path)
-#' ps_hits_score_bg(mega_pfm1)
+#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1 <- readRDS(full_pfm1_path)
+#' ps_hits_score_bg(full_pfm1)
 #' 
 #' @export
 setMethod("ps_hits_score_bg", "PSMatrix", function(x, withDimnames = TRUE) {
@@ -473,9 +473,9 @@ setMethod("ps_hits_strand", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    motif was detected.
 #' 
 #' @examples
-#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-#' mega_pfm1 <- readRDS(mega_pfm1_path)
-#' ps_hits_strand_bg(mega_pfm1)
+#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1 <- readRDS(full_pfm1_path)
+#' ps_hits_strand_bg(full_pfm1)
 #' 
 #' @export
 setMethod("ps_hits_strand_bg", "PSMatrix", function(x, withDimnames = TRUE) {
@@ -542,9 +542,9 @@ setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L,
 #'    identifiers, and values represent the motif hit positions.
 #' 
 #' @examples
-#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-#' mega_pfm1 <- readRDS(mega_pfm1_path)
-#' ps_hits_pos_bg(mega_pfm1)
+#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1 <- readRDS(full_pfm1_path)
+#' ps_hits_pos_bg(full_pfm1)
 #' 
 #' @export
 setMethod("ps_hits_pos_bg", "PSMatrix", function(x,withDimnames = TRUE) {
@@ -599,9 +599,9 @@ setMethod("ps_seq_names", "PSMatrix", function(x, withDimnames = TRUE) {
 #' @return A character vector of names.
 #' 
 #' @examples
-#' mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-#' mega_pfm1 <- readRDS(mega_pfm1_path)
-#' ps_bg_seq_names(mega_pfm1)
+#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1 <- readRDS(full_pfm1_path)
+#' ps_bg_seq_names(full_pfm1)
 #' 
 #' @export
 setMethod("ps_bg_seq_names", "PSMatrix", function(x, withDimnames = TRUE) {
@@ -682,13 +682,13 @@ setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L,
 
 
 setMethod(".ps_add_hits", "PSMatrix", 
-          function(x, Pos, Strand, Score, Oligo, BG = FALSE, use_mega_BG = FALSE,
-                   megaBG = FALSE, withDimnames = TRUE) {
+          function(x, Pos, Strand, Score, Oligo, BG = FALSE, use_full_BG = FALSE,
+                   fullBG = FALSE, withDimnames = TRUE) {
   
   x@ps_hits_pos <- Pos
   x@ps_hits_strand <- Strand
   x@ps_hits_score <- Score
-  if (!use_mega_BG)
+  if (!use_full_BG)
     x@ps_hits_score <- .ps_norm_score(x)
   
   if(BG)
@@ -696,8 +696,10 @@ setMethod(".ps_add_hits", "PSMatrix",
     ps_bg_size(x) <- length(x@ps_hits_pos)
     ps_bg_avg(x) <- mean(x@ps_hits_score, na.rm = TRUE)
     ps_bg_std_dev(x) <- sd(x@ps_hits_score, na.rm = TRUE)
+    if(ps_bg_std_dev(x) == 0)
+      ps_bg_std_dev(x) <- 0.00001
     
-    if(megaBG){
+    if(fullBG){
       x@ps_hits_pos_bg <- Pos
       x@ps_hits_strand_bg <- Strand
       x@ps_hits_score_bg <- Score
@@ -793,13 +795,13 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' @param BG A logical value indicating whether to calculate background 
 #'    statistics.
 #'    Default is set to `FALSE`.
-#' @param use_mega_BG A logical value (default is `FALSE`). If `TRUE`, the method 
-#'    assumes that the PSMatrix represent a special "mega-background" set. 
+#' @param use_full_BG A logical value (default is `FALSE`). If `TRUE`, the method 
+#'    assumes that the PSMatrix represent a special "full-background" set. 
 #'    In this case, the `seqs` parameter should be a vector of sequence names 
 #'    (instead of actual DNA sequences). The function handles this by matching 
 #'    sequence names against precomputed background data in the `PSMatrix`.
-#' @param megaBG Logical, default is `FALSE`. If `TRUE` it computes a series 
-#'    of computation for the generation of a "mega-background", a special case
+#' @param fullBG Logical, default is `FALSE`. If `TRUE` it computes a series 
+#'    of computation for the generation of a "full-background", a special case
 #'    of background that retains all the background hits score, position, 
 #'    strand, and oligonucleotide sequence for each regulatory sequence scanned 
 #'    with a PWM.  
@@ -813,15 +815,15 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' This method is designed to handle different types of sequence scanning 
 #' scenarios. It can handle both regular DNA sequences (using a `DNAStringSet`) 
 #' and specialized background sequence sets (either using a background flag 
-#' or a mega-background flag). 
+#' or a full-background flag). 
 #' 
-#' If `use_mega_BG` is set to `TRUE`, the function assumes that `seqs` contains 
+#' If `use_full_BG` is set to `TRUE`, the function assumes that `seqs` contains 
 #' sequence identifiers rather than the sequences themselves. In this case, the 
 #' method matches the sequence names to those in the `PSMatrix`'s background hit 
 #' data and retrieves the corresponding binding information (score, strand, 
 #' position, oligo).
 #' 
-#' When `use_mega_BG` is set to `FALSE`, the function scan both the forward and 
+#' When `use_full_BG` is set to `FALSE`, the function scan both the forward and 
 #' reverse complement strands of the sequences to ensure all potential binding 
 #' sites are detected. Optionally, the background statistics (background average 
 #' and standard deviation) can be computed and used during scanning when `BG` is 
@@ -839,20 +841,20 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' 
 #' @export
 setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE, 
-                                          use_mega_BG = FALSE, megaBG = FALSE){
+                                          use_full_BG = FALSE, fullBG = FALSE){
   
-  if(!is(seqs, "DNAStringSet") && !use_mega_BG)
+  if(!is(seqs, "DNAStringSet") && !use_full_BG)
     stop("seqs is not an object of DNAStringSet class")
   
-  if (BG || use_mega_BG) {
-    x@ps_bg_seq_names <- ifelse(use_mega_BG, seqs, names(seqs))
+  if (BG || use_full_BG) {
+    x@ps_bg_seq_names <- ifelse(use_full_BG, seqs, names(seqs))
   } else {
     x@ps_seq_names <- names(seqs)
   }
   
   seqs <- as.character(seqs)
   
-  if(use_mega_BG == TRUE){
+  if(use_full_BG == TRUE){
     indices <- match(seqs, sub("\\..*$", "", names(x@ps_hits_score_bg)))
     
     res <- list(
@@ -863,7 +865,7 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE,
     )
     
     x <- .ps_add_hits(x, Score = res$score, Strand = res$strand, Pos = res$pos, 
-                      Oligo = res$oligo, BG = BG, use_mega_BG = use_mega_BG)
+                      Oligo = res$oligo, BG = BG, use_full_BG = use_full_BG)
     x@ps_bg_seq_names <- character()
     
   } else {
@@ -881,7 +883,7 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE,
                       Strand = as.character(res["strand",]), 
                       Pos = as.integer(res["pos",]), 
                       Oligo = as.character(res["oligo",]), BG = BG, 
-                      use_mega_BG = use_mega_BG, megaBG = megaBG)
+                      use_full_BG = use_full_BG, fullBG = fullBG)
     x@ps_bg_seq_names <- character()
   }
   
@@ -977,7 +979,7 @@ validPSMatrix <- function(object)
     return("Background stdev must be of length 1")
   if((object@ps_bg_avg < 0 || object@ps_bg_avg > 1) && !is.na(object@ps_bg_avg)) 
     return(paste("Invalid value for Background average: ", object@ps_bg_avg))
-  if((object@ps_bg_std_dev <= 0 || object@ps_bg_std_dev > 1) && !is.na(object@ps_bg_std_dev))
+  if((object@ps_bg_std_dev < 0 || object@ps_bg_std_dev > 1) && !is.na(object@ps_bg_std_dev))
     return(paste("Invalid value for Background stddev: ", object@ps_bg_std_dev))
  # if(object@ps_bg_size < 1000 && !is.na(object@ps_bg_size))
   #  return(paste("Invalid value for Background size: ", object@ps_bg_size, " Background must be of at least 1000 sequences"))
@@ -988,7 +990,7 @@ validPSMatrix <- function(object)
 }
 
 
-#setValidity("PSMatrix", validPSMatrix)
+setValidity("PSMatrix", validPSMatrix)
 
 #' Display Details of a `PSMatrix` object
 #' 

@@ -39,8 +39,8 @@ that the pscan() function can access precomputed metrics without recomputing
 them, optimizing efficiency.
 }
 \examples{
-mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-mega_pfm1 <- readRDS(mega_pfm1_path)
-ps_hits_pos_bg(mega_pfm1)
+full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+full_pfm1 <- readRDS(full_pfm1_path)
+ps_hits_pos_bg(full_pfm1)
 
 }

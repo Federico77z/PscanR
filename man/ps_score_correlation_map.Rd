@@ -9,7 +9,7 @@ ps_score_correlation_map(pfms, FDR = 0.01, ...)
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
 metadata (foreground and background statistics). Typically is the output 
-of `pscan()` or `pscan_bg()` functions.}
+of `pscan()` or `pscan_full_bg()` functions.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to include in the analysis. The default is `0.01`.}

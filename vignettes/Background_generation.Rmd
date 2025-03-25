@@ -311,7 +311,7 @@ background to a file for future use.
 PscanR::ps_write_bg_to_file(J2022_PSBG, "J2022_mm10_450u_50d_UCSC_curated.psbg.txt")
 ```
 
-# The mega background
+# The full background
 
 When dealing with multiple analysis on the same background dataset, it can be
 convenient to store an enlarged version of the background containing key metrics
@@ -333,27 +333,27 @@ eliminated, leading to enhanced computational efficiency, especially when
 working on large datasets or performing numerous iterations of the same
 analysis.
 
-## Mega-background Generation
+## full-background Generation
 
-To create a mega-background dataset, you need to store the full output of the
+To create a full-background dataset, you need to store the full output of the
 `ps_build_bg()` function without discarding any computed values. This can be
-fulfilled using the `save()` function in R and by setting the megaBG flag on
+fulfilled using the `save()` function in R and by setting the fullBG flag on
 TRUE for `ps_build_bg()`. This will generate an .RData file containing the hits
 score, position, strand, and oligonucleotide sequence, for each sequence scanned
 with the PWMs.
 
 ## Application
 
-Once the mega-background has been created, it can be used in subsequent analyses
-to streamline computations. The `pscan_bg()` function requires two inputs:
+Once the full-background has been created, it can be used in subsequent analyses
+to streamline computations. The `pscan_full_bg()` function requires two inputs:
 
 1.  **A vector of transcript names** -- This vector should contain the
     identifiers of the transcripts of interest.
 
-2.  **The generated mega-background dataset** -- The `.RData` file created in
+2.  **The generated full-background dataset** -- The `.RData` file created in
     the previous step.
 
-By using `pscan_bg()` with the saved mega-background, the analysis process
+By using `pscan_full_bg()` with the saved full-background, the analysis process
 becomes significantly more efficient, reducing computational overhead while
 maintaining accuracy and reproducibility.
 

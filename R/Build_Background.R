@@ -27,7 +27,7 @@
 #'   options to control the behavior of parallel execution.
 #'   See `BiocParallel` documentation for more details.
 #'  
-#' @param megaBG Logical. Default is FALSE. When set to TRUE, it creates a 
+#' @param fullBG Logical. Default is FALSE. When set to TRUE, it creates a 
 #'   mapping between all sequence names in the organism of study 
 #'   and the corresponding names retained after applying the unique() function. 
 #'   For example, if multiple identical sequences exist (e.g., ID1, ID2, ID3, 
@@ -54,7 +54,7 @@
 #' If a full background PSMatrixList is required, that includes all the 
 #' background scores for each oligonucleotide hits, their position, strand and 
 #' names, the user should store the output by the save() function and set 
-#' the megaBG flag as TRUE. Note that this process will generate a very large 
+#' the fullBG flag as TRUE. Note that this process will generate a very large 
 #' file, that can reach several gigabytes in size. 
 #' 
 #' This function uses example datasets located in the `extdata/` directory for 
@@ -93,15 +93,15 @@
 #' bg_matrices
 #' bg_matrices[[1]]
 #' 
-#' # Example for mega-background generation
-#' mega_bg_matrices <- ps_build_bg(prom_seq, J2020, 
-#'                            BPPARAM = BiocParallel::SnowParam(1), megaBG = TRUE)
+#' # Example for full-background generation
+#' full_bg_matrices <- ps_build_bg(prom_seq, J2020, 
+#'                            BPPARAM = BiocParallel::SnowParam(1), fullBG = TRUE)
 #'                            
-#' mega_bg_matrices[[1]]
+#' full_bg_matrices[[1]]
 #' 
 #' @export
 ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(), 
-                        megaBG = FALSE)
+                        fullBG = FALSE)
 {
   .ps_checks(x, pfms, type = 1)
   
@@ -115,14 +115,14 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
     FUN = ps_scan, 
     x_unique, 
     BG = TRUE,
-    megaBG = megaBG,
+    fullBG = fullBG,
     BPPARAM=BPPARAM, 
     BPOPTIONS = BPOPTIONS
   )
   
   pfms <- do.call(PSMatrixList, pfms)
   
-  if(megaBG == TRUE)
+  if(fullBG == TRUE)
     pfms <- .mapping_unique_names(x, pfms)
   
   return(pfms)
@@ -450,7 +450,7 @@ ps_write_bg_to_file <- function(pfms, file)
 #'      } 
 #' @param assembly A string representing the assembly version for Human or 
 #'   mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
-#'   For `"mm"` you can specify `"mm10"` or `"mm39"`.
+#'   For `"mm"` you can specify `"mm10"` or `"mm39"`. Default is character().
 #'
 #' @return A `PSMatrixList` object created from the specified background 
 #' file and JASPAR matrix.
@@ -464,7 +464,7 @@ ps_write_bg_to_file <- function(pfms, file)
 #' bg_matrices[[4]]
 #' 
 generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
-                                                  assembly){
+                                                  assembly = character()){
   
   organism_map <- c("hs" = assembly, "mm" = assembly, "at" = "TAIR9", 
                        "sc" = "sacCer3", "dm" = "dm6")

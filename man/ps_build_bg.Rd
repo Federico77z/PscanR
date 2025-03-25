@@ -9,7 +9,7 @@ ps_build_bg(
   pfms,
   BPPARAM = bpparam(),
   BPOPTIONS = bpoptions(),
-  megaBG = FALSE
+  fullBG = FALSE
 )
 }
 \arguments{
@@ -33,7 +33,7 @@ function from the `BiocParallel` package. This can include additional
 options to control the behavior of parallel execution.
 See `BiocParallel` documentation for more details.}
 
-\item{megaBG}{Logical. Default is FALSE. When set to TRUE, it creates a 
+\item{fullBG}{Logical. Default is FALSE. When set to TRUE, it creates a 
 mapping between all sequence names in the organism of study 
 and the corresponding names retained after applying the unique() function. 
 For example, if multiple identical sequences exist (e.g., ID1, ID2, ID3, 
@@ -72,7 +72,7 @@ function.
 If a full background PSMatrixList is required, that includes all the 
 background scores for each oligonucleotide hits, their position, strand and 
 names, the user should store the output by the save() function and set 
-the megaBG flag as TRUE. Note that this process will generate a very large 
+the fullBG flag as TRUE. Note that this process will generate a very large 
 file, that can reach several gigabytes in size. 
 
 This function uses example datasets located in the `extdata/` directory for 
@@ -98,11 +98,11 @@ bg_matrices <- ps_build_bg(prom_seq, J2020,
 bg_matrices
 bg_matrices[[1]]
 
-# Example for mega-background generation
-mega_bg_matrices <- ps_build_bg(prom_seq, J2020, 
-                           BPPARAM = BiocParallel::SnowParam(1), megaBG = TRUE)
+# Example for full-background generation
+full_bg_matrices <- ps_build_bg(prom_seq, J2020, 
+                           BPPARAM = BiocParallel::SnowParam(1), fullBG = TRUE)
                            
-mega_bg_matrices[[1]]
+full_bg_matrices[[1]]
 
 }
 \seealso{

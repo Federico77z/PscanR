@@ -37,8 +37,8 @@ as they allow pscan() to compare foreground promoter sequences against a
 reference distribution without the need for recomputation.
 }
 \examples{
-mega_pfm1_path <- system.file("extdata", "mega_pfm1.rds", package = "PscanR")
-mega_pfm1 <- readRDS(mega_pfm1_path)
-ps_hits_strand_bg(mega_pfm1)
+full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+full_pfm1 <- readRDS(full_pfm1_path)
+ps_hits_strand_bg(full_pfm1)
 
 }
