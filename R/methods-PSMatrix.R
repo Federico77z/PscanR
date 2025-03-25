@@ -847,7 +847,10 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE,
     stop("seqs is not an object of DNAStringSet class")
   
   if (BG || use_full_BG) {
-    x@ps_bg_seq_names <- ifelse(use_full_BG, seqs, names(seqs))
+    if(use_full_BG)
+      x@ps_bg_seq_names <- seqs
+    else 
+      x@ps_bg_seq_names <- names(seqs)
   } else {
     x@ps_seq_names <- names(seqs)
   }
@@ -884,7 +887,8 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE,
                       Pos = as.integer(res["pos",]), 
                       Oligo = as.character(res["oligo",]), BG = BG, 
                       use_full_BG = use_full_BG, fullBG = fullBG)
-    x@ps_bg_seq_names <- character()
+    if(!fullBG)
+      x@ps_bg_seq_names <- character()
   }
   
   return(x)
