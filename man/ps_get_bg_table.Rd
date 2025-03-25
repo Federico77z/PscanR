@@ -13,16 +13,17 @@ Each element should be a `PSMatrix` object
 (or should be coercible to `PSMatrix`).}
 }
 \value{
-A `data.frame` with one row for each PFM in `pfms`.
+A `data.frame` with one row for each matrix (representing a Transcription 
+factor) in `pfms`.
 
 Columns: 
 \itemize{
   \item `BG_SIZE`: An integer vector representing the background size for 
-  each PFMs. 
+  each PSM. 
   \item `BG_MEAN`: A numeric vector representing the mean of the background 
-  hits score for each PFMs.
+  hits score for each PSM.
   \item `BG_STDEV`: A numeric vector representing the standard deviation 
-  of the background hits score for each PFMs. 
+  of the background hits score for each PSM. 
 }
 }
 \description{
@@ -31,10 +32,16 @@ from a `PSMatrixList` of Position Weight Matrices representing
 transcription factor binding preferences and generates a table containing 
 these metrics.
 }
+\details{
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
+}
 \examples{
 # Retrieve motif matrices for vertebrates from JASPAR2020
-J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-load(J2020_path)
+J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(J2020_path)
 J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 
 # create the `data.frame`

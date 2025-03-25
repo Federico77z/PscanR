@@ -1,0 +1,17 @@
+txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated") #import gtf annotation from UCSC
+GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24] #use only annotations on canonical chromosomes
+
+prom_rng <- GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE) 
+prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, prom_rng) #promoter sequences
+
+opts <- list()
+opts[["collection"]] <- "CORE"
+opts[["tax_group"]] <- "vertebrates"
+
+J2020 <- TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts) #core Jaspar 2020 profiles for vertebrates
+
+J2020_PSBG <- PscanR::ps_build_bg(prom_seq, J2020, BPPARAM = BiocParallel::MulticoreParam(24)) #Build Pscan Background
+
+#save(J2020_PSBG, file = "megaBG_completa_2020_hg38_200u_50d.RData")
+
+PscanR::ps_write_bg_to_file(J2020_PSBG, "J2020_hg38_200u_50d_UCSC.psbg.txt")

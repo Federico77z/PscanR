@@ -32,10 +32,16 @@ standard deviation) using `ps_get_bg_table()` from the input `PSMatrixList`
 object, after having validated the inputs. Then, it writes the result to a 
 specified file. 
 A header is added to the file (`[SHORT TFBS MATRIX`]).
+
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
 }
 \examples{
-J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-load(J2020_path)
+# Load the example dataset for JASPAR2020 matrices collection for vertebrates.
+J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(J2020_path)
 # File path to save the result
 file_path <- "J2020_hg38_bg_stats.txt"
 

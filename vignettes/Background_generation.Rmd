@@ -2,7 +2,10 @@
 title: "How to Generate a Background Model for PscanR algorithm"
 author: "Diana Betelli"
 date: "`r Sys.Date()`"
-output: BiocStyle::html_document
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{2. How to Generate a Background Model for PscanR algorithm}
   %\VignetteEncoding{UTF-8}
@@ -279,7 +282,7 @@ accordingly.
 In the following example, only 10 sequences are selected to reduce the
 computational time.
 
-For Windows:
+For all the systems:
 
 ```{r echo=TRUE}
 J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], JASPAR_matrices, BPPARAM = BiocParallel::SnowParam(1))
@@ -295,6 +298,9 @@ For Unix-like systems:
 J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], JASPAR_matrices, BPPARAM = BiocParallel::MulticoreParam(1))
 ```
 
+Refer to the 'Comparing execution time with varying processors' vignette to go
+into details of multithreading.
+
 ## Exporting the Generated Background
 
 You can either directly use the generated background or save the constructed
@@ -305,17 +311,19 @@ background to a file for future use.
 PscanR::ps_write_bg_to_file(J2022_PSBG, "J2022_mm10_450u_50d_UCSC_curated.psbg.txt")
 ```
 
-# The mega background
+# The full background
 
 When dealing with multiple analysis on the same background dataset, it can be
 convenient to store an enlarged version of the background containing key metrics
-such as the score, position and oligonucleotide seuqence for each hit within the
-background, to reduce computational time.
+such as the score, position and oligonucleotide sequence for each hit within the
+background, to reduce computational time of the pscan algorithm on the set of
+promoter sequences of interest.
 
-When you export the PSMatrixList with `ps_write_bg_to_file()` this infromation
-gets discarded to conserve memory. In fact, after the computation of the
-background mean and standard deviation, these data are no more needed since can
-be efficiently recomputed by `pscan()`.
+When you export the background PSMatrixList with `ps_write_bg_to_file(),` this
+information gets discarded to conserve memory. In fact, after the computation of
+the background mean and standard deviation, the other background data are no
+more needed since can be recomputed by `pscan()` (just for the subset of
+promoter region of interest).
 
 Although `pscan()` supports parallel computation, making the recalculation
 relatively fast, scenarios that involve repeated analyses of the same promoter
@@ -325,26 +333,27 @@ eliminated, leading to enhanced computational efficiency, especially when
 working on large datasets or performing numerous iterations of the same
 analysis.
 
-## Mega-background Generation
+## full-background Generation
 
-To create a mega-background dataset, you need to store the full output of the
+To create a full-background dataset, you need to store the full output of the
 `ps_build_bg()` function without discarding any computed values. This can be
-fullfilled using the `save()` function in R and by setting the megaBG flag on
-TRUE. This will generate an .RData file containing the hits score, position,
-strand, and oligonucleotide sequence, for each sequence scanned with the PWMs.
+fulfilled using the `save()` function in R and by setting the fullBG flag on
+TRUE for `ps_build_bg()`. This will generate an .RData file containing the hits
+score, position, strand, and oligonucleotide sequence, for each sequence scanned
+with the PWMs.
 
 ## Application
 
-Once the mega-background has been created, it can be used in subsequent analyses
-to streamline computations. The `pscan_bg()` function requires two inputs:
+Once the full-background has been created, it can be used in subsequent analyses
+to streamline computations. The `pscan_full_bg()` function requires two inputs:
 
 1.  **A vector of transcript names** -- This vector should contain the
     identifiers of the transcripts of interest.
 
-2.  **The generated mega-background dataset** -- The `.RData` file created in
+2.  **The generated full-background dataset** -- The `.RData` file created in
     the previous step.
 
-By using `pscan_bg()` with the saved mega-background, the analysis process
+By using `pscan_full_bg()` with the saved full-background, the analysis process
 becomes significantly more efficient, reducing computational overhead while
 maintaining accuracy and reproducibility.
 

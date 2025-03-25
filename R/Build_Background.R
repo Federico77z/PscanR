@@ -27,7 +27,7 @@
 #'   options to control the behavior of parallel execution.
 #'   See `BiocParallel` documentation for more details.
 #'  
-#' @param megaBG Logical. Default is FALSE. When set to TRUE, it creates a 
+#' @param fullBG Logical. Default is FALSE. When set to TRUE, it creates a 
 #'   mapping between all sequence names in the organism of study 
 #'   and the corresponding names retained after applying the unique() function. 
 #'   For example, if multiple identical sequences exist (e.g., ID1, ID2, ID3, 
@@ -54,8 +54,13 @@
 #' If a full background PSMatrixList is required, that includes all the 
 #' background scores for each oligonucleotide hits, their position, strand and 
 #' names, the user should store the output by the save() function and set 
-#' the megaBG flag as TRUE. Note that this process will generate a very large 
+#' the fullBG flag as TRUE. Note that this process will generate a very large 
 #' file, that can reach several gigabytes in size. 
+#' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
 #' 
 #' @return 
 #' A `PSMatrixList` object, containing each motif matrix from `pfms`, 
@@ -71,12 +76,15 @@
 #' @import JASPAR2020
 #' 
 #' @examples
+#' # Load the example dataset for promoter sequences (hg38 assembly, -200 +50 bp
+#' # in respect to the TSS).
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:10]
 #' 
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
+#' # Load the example dataset for JASPAR2020 matrices collection for vertebrates.
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
 #'
 #' # Generate the background-scored motif matrices
 #' bg_matrices <- ps_build_bg(prom_seq, J2020, 
@@ -85,15 +93,15 @@
 #' bg_matrices
 #' bg_matrices[[1]]
 #' 
-#' # Example for mega-background generation
-#' mega_bg_matrices <- ps_build_bg(prom_seq, J2020, 
-#'                            BPPARAM = BiocParallel::SnowParam(1), megaBG = TRUE)
+#' # Example for full-background generation
+#' full_bg_matrices <- ps_build_bg(prom_seq, J2020, 
+#'                            BPPARAM = BiocParallel::SnowParam(1), fullBG = TRUE)
 #'                            
-#' mega_bg_matrices[[1]]
+#' full_bg_matrices[[1]]
 #' 
 #' @export
 ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(), 
-                        megaBG = FALSE)
+                        fullBG = FALSE)
 {
   .ps_checks(x, pfms, type = 1)
   
@@ -107,14 +115,14 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
     FUN = ps_scan, 
     x_unique, 
     BG = TRUE,
-    megaBG = megaBG,
+    fullBG = fullBG,
     BPPARAM=BPPARAM, 
     BPOPTIONS = BPOPTIONS
   )
   
   pfms <- do.call(PSMatrixList, pfms)
   
-  if(megaBG == TRUE)
+  if(fullBG == TRUE)
     pfms <- .mapping_unique_names(x, pfms)
   
   return(pfms)
@@ -155,6 +163,11 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
 #'    and `pfms` as input.
 #' }
 #' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
+#' 
 #' @seealso \code{\link{ps_build_bg}}, \code{\link{ps_write_bg_to_file}}, 
 #' \code{\link{ps_build_bg_from_table}}
 #' 
@@ -167,12 +180,12 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
 #' 
 #' @examples
 #' # Load a background information file
-#' file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+#' file_path <- system.file("extdata/BG_files", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                          package = "PscanR")
 #'
-#' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
+#' # Load the example dataset for JASPAR2020 matrices collection for vertebrates.
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
 #'
 #' # Generate the background-scored motif matrices from file
 #' bg_matrices <- ps_retrieve_bg_from_file(file_path, J2020)
@@ -221,6 +234,11 @@ ps_retrieve_bg_from_file <- function(file, pfms)
 #'    match the number of row of `x`.
 #' }
 #' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
+#' 
 #' @return 
 #' A `PSMatrixList` object containing each motif matrix from `pfms`, 
 #' scored with background parameters provided by `x`.
@@ -236,8 +254,8 @@ ps_retrieve_bg_from_file <- function(file, pfms)
 #' )
 #' 
 #' # Retrieve motif matrices for vertebrates from JASPAR2020
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
 #' J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 #' 
 #' rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")
@@ -289,10 +307,16 @@ ps_build_bg_from_table <- function(x, pfms)
 #' }
 #' @importFrom TFBSTools getMatrixSet
 #' 
+#' @details
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
+#' 
 #' @examples
 #' # Retrieve motif matrices for vertebrates from JASPAR2020
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
 #' J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 #' 
 #' # create the `data.frame`
@@ -341,7 +365,12 @@ ps_get_bg_table <- function(pfms)
 #' standard deviation) using `ps_get_bg_table()` from the input `PSMatrixList` 
 #' object, after having validated the inputs. Then, it writes the result to a 
 #' specified file. 
-#' A header is added to the file (`[SHORT TFBS MATRIX`]). 
+#' A header is added to the file (`[SHORT TFBS MATRIX`]).
+#' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples. 
 #'
 #' @return None. It saves the given background statistics to the specified file
 #' in a tab-delimited format.
@@ -349,8 +378,9 @@ ps_get_bg_table <- function(pfms)
 #' @importFrom TFBSTools getMatrixSet
 #'
 #' @examples
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
+#' # Load the example dataset for JASPAR2020 matrices collection for vertebrates.
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
 #' # File path to save the result
 #' file_path <- "J2020_hg38_bg_stats.txt"
 #' 
@@ -420,7 +450,7 @@ ps_write_bg_to_file <- function(pfms, file)
 #'      } 
 #' @param assembly A string representing the assembly version for Human or 
 #'   mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
-#'   For `"mm"` you can specify `"mm10"` or `"mm39"`.
+#'   For `"mm"` you can specify `"mm10"` or `"mm39"`. Default is character().
 #'
 #' @return A `PSMatrixList` object created from the specified background 
 #' file and JASPAR matrix.
@@ -434,7 +464,7 @@ ps_write_bg_to_file <- function(pfms, file)
 #' bg_matrices[[4]]
 #' 
 generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
-                                                  assembly){
+                                                  assembly = character()){
   
   organism_map <- c("hs" = assembly, "mm" = assembly, "at" = "TAIR9", 
                        "sc" = "sacCer3", "dm" = "dm6")

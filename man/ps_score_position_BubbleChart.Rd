@@ -29,8 +29,15 @@ The function computes the count of occurrences for each combination of
 PS hits score and position from the input `PSMatrix` and visualizes 
 this data using a bubble chart. The user can modify the color of bubbles. 
 Default is `blue`.
+
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
 }
 \examples{
+# Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+# -200 +50 bp in respect to the TSS. 
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]

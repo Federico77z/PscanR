@@ -40,7 +40,15 @@ hits sites in two `PSMatrix` object. The distance between hits is calculated
 for each sequence that is present in both matrices. 
 It allows to filter the identified sites based on a specified threshold value.
 }
+\details{
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
+}
 \examples{
+# Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+# -200 +50 bp in respect to the TSS. 
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[25:50]
@@ -57,7 +65,6 @@ results <- pscan(prom_seq, J2020_PSBG,
 pfm1 <- results[[1]]
 pfm2 <- results[[2]]
 ps_density_distances_plot(pfm1, pfm2, 'all', 'loose')
-
 }
 \seealso{
 \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}}, 

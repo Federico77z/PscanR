@@ -4,7 +4,12 @@
 \alias{generate_psmatrixlist_from_background}
 \title{Generate PSMatrixList from Background data and JASPAR Matrix}
 \usage{
-generate_psmatrixlist_from_background(JASPAR_matrix, org, prom_reg, assembly)
+generate_psmatrixlist_from_background(
+  JASPAR_matrix,
+  org,
+  prom_reg,
+  assembly = character()
+)
 }
 \arguments{
 \item{JASPAR_matrix}{A character string specifying the JASPAR database 
@@ -29,7 +34,7 @@ of the promoter region. You can choose between:
 
 \item{assembly}{A string representing the assembly version for Human or 
 mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
-For `"mm"` you can specify `"mm10"` or `"mm39"`.}
+For `"mm"` you can specify `"mm10"` or `"mm39"`. Default is character().}
 }
 \value{
 A `PSMatrixList` object created from the specified background 

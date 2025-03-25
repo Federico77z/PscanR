@@ -9,7 +9,7 @@ ps_hitpos_map(pfms, FDR = 0.01, shift = 0, ...)
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
 metadata (foreground and background statistics). Typically is the output 
-of `pscan()` or `pscan_bg()` function.}
+of `pscan()` or `pscan_full_bg()` function.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to be included in the analysis. The default is set to `0.01`.}
@@ -45,8 +45,15 @@ Default settings, that can be changed by the users, are:
   \item `color`, which uses a white-yellow-red palette by default.
   \item The main `Pscan Hits Position Heatmap`.
   }
+
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
 }
 \examples{
+# Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+# -200 +50 bp in respect to the TSS. 
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
