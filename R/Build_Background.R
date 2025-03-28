@@ -164,9 +164,14 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
 #' }
 #' 
 #' This function uses example datasets located in the `extdata/` directory for 
-#' demonstration purposes only. These files are not part of the core data used
+#' demonstration purposes only. These file are not part of the core data used
 #' by the function. They can be accessed using `system.file()` as shown in the 
-#' examples.
+#' examples. 
+#' 
+#' Other background datasets are aviable at the public repository
+#' PscanR_background on GitHub: 
+#' https://github.com/dianabetelli/PscanR_backgrounds
+#' See vignettes for further details on the type of background available.
 #' 
 #' @seealso \code{\link{ps_build_bg}}, \code{\link{ps_write_bg_to_file}}, 
 #' \code{\link{ps_build_bg_from_table}}
@@ -180,7 +185,7 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
 #' 
 #' @examples
 #' # Load a background information file
-#' file_path <- system.file("extdata/BG_files", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
+#' file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                          package = "PscanR")
 #'
 #' # Load the example dataset for JASPAR2020 matrices collection for vertebrates.
@@ -451,6 +456,16 @@ ps_write_bg_to_file <- function(pfms, file)
 #' @param assembly A string representing the assembly version for Human or 
 #'   mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
 #'   For `"mm"` you can specify `"mm10"` or `"mm39"`. Default is character().
+#'   
+#' #' @details
+#' The background files are stored in a publicly accessible GitHub repository at 
+#' the following URL: 
+#' https://github.com/dianabetelli/PscanR_backgrounds
+#' From this repository, you can download the raw background files and view the 
+#' corresponding scripts. The implemented function automatically downloads the 
+#' raw files from GitHub 
+#' and computes the background as a PSMatrixList object. 
+#' 
 #'
 #' @return A `PSMatrixList` object created from the specified background 
 #' file and JASPAR matrix.
@@ -495,7 +510,7 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
   file_name <- paste0('J', version, '_', org_assembly, '_', p_up, 'u_', p_down, 
                       'd_', file_suffix)
   
-  BG_path <- system.file("extdata/BG_files", file_name, package = 'PscanR')
+  BG_path <- .download_background(file = file_name)
   
   opts <- list("collection" = "CORE", "tax_group" = tax_map[[org]])
   

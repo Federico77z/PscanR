@@ -145,6 +145,14 @@
   return(pfms)
 }
 
+.download_background <- function(file, destfile = file){
+  
+  URL <- paste0('https://raw.githubusercontent.com/dianabetelli/PscanR_backgrounds/refs/heads/main/BG_files/',file)
+  download.file(URL, destfile, mode = "wb")
+  
+  return(destfile)
+}
+
 #.ps_required_packages <- function()
 #{
 #  require("Biostrings")

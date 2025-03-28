@@ -62,21 +62,20 @@ library(PscanR)
 
 # The Input Genes
 
-**PscanR** accepts as input a DNAStringSet object containing the DNA sequences 
-of co-regulated or co-expressed genes. This object is built from a list of gene 
-identifiers.
-For humans, mice, and Drosophila, the available background models are based on 
-RefSeq identifiers, for Arabidopsis on TAIR, and for yeast on SGD IDs. 
-Other types of gene identifiers can also be used if the corresponding background 
-model is created (see the vignette "How to Generate a Background Model for the 
-PscanR Algorithm" for more details).
+**PscanR** accepts as input a DNAStringSet object containing the DNA sequences
+of co-regulated or co-expressed genes. This object is built from a list of gene
+identifiers. For humans, mice, and Drosophila, the available background models
+are based on RefSeq identifiers, for Arabidopsis on TAIR, and for yeast on SGD
+IDs. Other types of gene identifiers can also be used if the corresponding
+background model is created (see the vignette "How to Generate a Background
+Model for the PscanR Algorithm" for more details).
 
-A function is also available that accepts only gene identifiers as input 
-(see the pscan_full_bg documentation for further information).
+A function is also available that accepts only gene identifiers as input (see
+the pscan_full_bg documentation for further information).
 
-Below is an example dataset containing **human NF-κB target genes**, 
-curated from the literature. The number **50** indicates that 50% genes in the 
-list are known NF-κB targets.
+Below is an example dataset containing **human NF-κB target genes**, curated
+from the literature. The number **50** indicates that 50% genes in the list are
+known NF-κB targets.
 
 ```{r}
 file_path <- system.file("extdata", "nfkb50.txt", 
@@ -159,8 +158,9 @@ outcomes.
 ## Pre-computed background models
 
 For convenience, several background models have already been computed and
-optimized to meet common research needs. The package includes precomputed
-backgrounds for the following species:
+optimized to meet common research needs. Precomputed backgrounds are stored in a
+public repostitory at <https://github.com/dianabetelli/PscanR_backgrounds> for
+the following species:
 
 -   *Homo sapiens* (both hg38 and hs1 assembly)
 
