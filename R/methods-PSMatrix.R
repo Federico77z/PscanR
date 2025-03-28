@@ -702,7 +702,7 @@ setMethod(".ps_add_hits", "PSMatrix",
     if(fullBG){
       x@ps_hits_pos_bg <- Pos
       x@ps_hits_strand_bg <- Strand
-      x@ps_hits_score_bg <- Score
+      x@ps_hits_score_bg <- x@ps_hits_score
       names(x@ps_hits_score_bg) <- x@ps_bg_seq_names
       x@ps_hits_oligo_bg <- Oligo
     }
