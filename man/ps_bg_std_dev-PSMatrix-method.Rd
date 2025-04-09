@@ -14,8 +14,8 @@ output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric value representing the standard deviation of the background 
-   PWM scores.
+A numeric value representing the standard deviation of the 
+   background PWM scores.
 }
 \description{
 Retrieves the background standard deviation of PWM scores stored in a 

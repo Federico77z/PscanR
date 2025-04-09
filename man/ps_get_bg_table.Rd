@@ -9,30 +9,34 @@ ps_get_bg_table(pfms)
 \arguments{
 \item{pfms}{A `PSMatrixList` of Position Weight Matrices representing 
 transcription factor binding preferences . 
-Each element should be a `PSMatrix` object 
-(or should be coercible to `PSMatrix`).}
+Each element must be a `PSMatrix` object or coercible to one.}
 }
 \value{
-A `data.frame` with one row for each matrix (representing a Transcription 
-factor) in `pfms`.
+A `data.frame` with one row per matrix (corresponding to a 
+transcription factor) in `pfms`. 
+The row names will match the matrix identifiers.
 
 Columns: 
 \itemize{
-  \item `BG_SIZE`: An integer vector representing the background size for 
+  \item `BG_SIZE`: An integer vector containing the background set size for 
   each PSM. 
-  \item `BG_MEAN`: A numeric vector representing the mean of the background 
+  \item `BG_MEAN`: A numeric vector containing the mean of the background 
   hits score for each PSM.
-  \item `BG_STDEV`: A numeric vector representing the standard deviation 
+  \item `BG_STDEV`: A numeric vector containing the standard deviation 
   of the background hits score for each PSM. 
 }
 }
 \description{
 Extracts background statistics (size, mean, and standard deviation) 
 from a `PSMatrixList` of Position Weight Matrices representing 
-transcription factor binding preferences and generates a table containing 
-these metrics.
+transcription factor binding preferences, and returns a data frame 
+containing these metrics.
 }
 \details{
+This function is useful for exporting background-scored matrices to a 
+tabular format. The resulting `data.frame` can be saved and later 
+reapplied to PFMs using `ps_build_bg_from_table()`.
+
 This function uses example datasets located in the `extdata/` directory for 
 demonstration purposes only. These files are not part of the core data used
 by the function. They can be accessed using `system.file()` as shown in the 
@@ -58,4 +62,8 @@ bg_matrices <- ps_build_bg_from_table(background_data, J2020_subset)
 bg_table <- ps_get_bg_table(bg_matrices)
 bg_table 
 
+}
+\seealso{
+\code{\link{ps_build_bg_from_table}}, 
+\code{\link{ps_retrieve_bg_from_file}}
 }

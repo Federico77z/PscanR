@@ -19,3 +19,11 @@ A named character vector containing transcript ID mappings where
 This method retrieves the value stored in the `transcriptIDLegend` slot of
 a `PSMatrixList` object.
 }
+\examples{
+full_pfms_path <- system.file('extdata', 
+                              'full_pfms.rds', 
+                              package = 'PscanR')
+full_pfms <- readRDS(full_pfms_path)
+head(transcriptIDLegend(full_pfms))
+
+}

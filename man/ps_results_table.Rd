@@ -9,7 +9,7 @@ ps_results_table(pfms)
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
 metadata (foreground and background statistics). Typically is the output 
-of `pscan()` or `pscan_full_bg()` functions.}
+of `pscan()` or `pscan_fullBG()` functions.}
 }
 \value{
 A data.frame with matrices ordered by increasing P.VALUE and decreasing 
@@ -23,24 +23,30 @@ It contains the following columns:
   \item "FG_AVG": The average foreground score (the TFBS scores found by 
   scanning the chosen subset of regulatory regions) for each PWM.
   \item "ZSCORE": The Z-score for each PWM computed as 
-  (FG_AVG-BG_AVG)/BG_STDEV. It represent a statistical measure for motif 
-  enrichment of the scanned sequences in respect to the background.
+  (FG_AVG-BG_AVG)/BG_STDEV. It represent a statistical measure of motif 
+  enrichment, quantifying how much the averge foreground score deviates from
+  the background one.
   \item "P.VALUE": The p-value for each PWM.
-  \item "FDR": The adjusted p-value (False Discovery Rate) calculated using 
-  the Benjamini-Hochberg correction.
+  \item "FDR": The adjusted p-value, representing the False Discovery Rate, 
+  is calculated using the Benjamini-Hochberg correction.
 }
 }
 \description{
-This function generates a table summarizing the statistical analysis of motif 
-enrichment, stored in a `PSMatrixList` object. It retrieves pre-computed 
-background and foreground statistics (the alignment scores between Pscan 
-input regulatory sequences and position weight matrices) for each PWM. 
+This function generates a table summarizing the statistical analysis of 
+motif enrichment, stored in a `PSMatrixList` object. It retrieves 
+pre-computed background and foreground statistics (the alignment scores 
+between Pscan input regulatory sequences and position weight matrices) 
+for each PWM. 
 Then it compares motif occurrences in the foreground (e.g., 
 coexpressed/coregulated promoter sequences) with the background (e.g., all 
 promoters in an organism) using Z-scores, p-values, and FDR correction.
 Returns a table ordered by decreasing `ZSCORE` and increasing `P.VALUE`.
 }
 \details{
+This summary table is useful for the identification of transcription factors 
+that could be common regulators of a set of co-expressed or co-regulated 
+genes.  
+
 This function uses example datasets located in the `extdata/` directory for 
 demonstration purposes only. These files are not part of the core data used
 by the function. They can be accessed using `system.file()` as shown in the 

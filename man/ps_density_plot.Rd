@@ -2,7 +2,7 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_density_plot}
 \alias{ps_density_plot}
-\title{Pscan Density Plot of Hits along Promoters}
+\title{Density Plot of Motif Hits Along Promoter Regions}
 \usage{
 ps_density_plot(pfm, shift = 0, st = ps_bg_avg(pfm))
 }
@@ -10,8 +10,9 @@ ps_density_plot(pfm, shift = 0, st = ps_bg_avg(pfm))
 \item{pfm}{A `PSMatrix` object. It is a selected matrix from the 
 `PSMatrixList`, result of `pscan` function.}
 
-\item{shift}{Integer value specifying the positional shift applied to the hit 
-positions. Default is `0`.}
+\item{shift}{Integer value specifying the positional shift applied to the 
+hit positions. 
+Default is `0`.}
 
 \item{st}{Score threshold used to filter hits. Can be a numeric value to set 
 the threshold directly, or a character:
@@ -28,13 +29,15 @@ A density plot showing the distribution of hits along the promoter
 }
 \description{
 This function creates a density plot representing the distribution of hits 
-along the promoter sequences based on their position and score for a specific 
-PWM. It helps visualize where motif occurrences are concentrated.
+along the promoter sequences based on their position and score for a 
+specific PWM. 
+It helps visualize where motif occurrences are concentrated.
 }
 \details{
 The function filters motif hits based on a specified threshold and generates 
 a density plot to show their distribution. The function includes a vertical 
-dashed line marking the mode (the most frequent position along the promoters).
+dashed line marking the mode (the most frequent position along the 
+promoters).
 
 This function uses example datasets located in the `extdata/` directory for 
 demonstration purposes only. These files are not part of the core data used

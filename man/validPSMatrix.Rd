@@ -18,14 +18,14 @@ This function checks if the input `PSMatrix` object properties meet the ones
 desired.
 }
 \details{
-The function `validPSMatrix` ensures that the `PSMatrix` object has correctly 
-formatted background and foreground averages, standard deviations, 
+The function `validPSMatrix` ensures that the `PSMatrix` object has 
+correctly formatted background and foreground averages, standard deviations, 
 and hit-related values. 
 It performs the following steps:
 \itemize{
   \item `ps_bg_avg`,`ps_fg_avg`, and `ps_bg_std_dev` must be of length 1.
-  \item `ps_bg_avg` and `ps_bg_std_dev` value must be between 0 and 1, 
-  excluding 0 for `ps_bg_std_dev`.
+  \item The values of \code{ps_bg_avg} and \code{ps_bg_std_dev} 
+  must be between 0 and 1 (excluding 0 for \code{ps_bg_std_dev}).
   \item the length of `ps_hits_pos`, `ps_hits_strand`, and `ps_hits_score` 
   vectors must be equal.}
 }

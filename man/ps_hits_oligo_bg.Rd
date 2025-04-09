@@ -35,13 +35,15 @@ The `ps_hits_oligo_bg` function is particularly relevant for background
 datasets, which include motif scan results computed across all promoter 
 sequences.
 
-In a PSMatrixList object, the `ps_hits_oligo_bg` slot is populated only for 
-background matrices (i.e., matrices derived from all promoters). This ensures 
-that the pscan() function can access precomputed metrics without recomputing 
-them, optimizing efficiency.
+In a PSMatrixList object, the `ps_hits_oligo_bg` slot is populated only 
+for background matrices (i.e., matrices derived from all promoters). 
+This ensures that the pscan() function can access precomputed metrics 
+without recomputing them, optimizing efficiency.
 }
 \examples{
-full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+full_pfm1_path <- system.file("extdata", 
+                              "full_pfm1.rds", 
+                              package = "PscanR")
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_hits_oligo_bg(full_pfm1)
 

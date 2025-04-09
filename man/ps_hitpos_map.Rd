@@ -2,14 +2,14 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_hitpos_map}
 \alias{ps_hitpos_map}
-\title{Pscan Hits Position Heatmap}
+\title{Heatmap of Motif Hit Positions from Pscan Results}
 \usage{
 ps_hitpos_map(pfms, FDR = 0.01, shift = 0, ...)
 }
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
 metadata (foreground and background statistics). Typically is the output 
-of `pscan()` or `pscan_full_bg()` function.}
+of `pscan()` or `pscan_fullBG()` function.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to be included in the analysis. The default is set to `0.01`.}
@@ -21,8 +21,8 @@ Default is set to `0`.}
 the function (e.g., the color palette) to change the default settings.}
 }
 \value{
-A heatmap plot showing positional hits distribution for selected 
-   transcription factors.
+A heatmap plot showing the distribution of motif hit positions for 
+   transcription factors passing the FDR threshold.
 }
 \description{
 This function creates a heatmap visualizing the positional distribution

@@ -15,7 +15,8 @@ ps_bg_seq_names(x, ...)
 \itemize{
   \item If `x` is a `PSMatrix` object: a **character vector** of sequence 
   names corresponding to the analyzed promoter regions.
-  \item If `x` belongs to another supported class, the return format may vary.
+  \item If `x` belongs to another supported class, the return format may 
+  vary.
 }
 }
 \description{
@@ -33,12 +34,14 @@ datasets, which include motif scan results computed across all promoter
 sequences.
 
 In a PSMatrixList object, the `ps_bg_seq_names` slot is populated only for 
-background matrices (i.e., matrices derived from all promoters). This ensures 
-that the pscan() function can access precomputed metrics without recomputing 
-them, optimizing efficiency.
+background matrices (i.e., matrices derived from all promoters). 
+This ensures that the pscan() function can access precomputed metrics 
+without recomputing them, optimizing efficiency.
 }
 \examples{
-full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+full_pfm1_path <- system.file("extdata", 
+                              "full_pfm1.rds", 
+                              package = "PscanR")
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_bg_seq_names(full_pfm1)
 

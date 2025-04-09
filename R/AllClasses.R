@@ -73,9 +73,11 @@
 #'   )
 #' print(result)
 PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), 
-                     ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA), 
-                     ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01, ...)
-{
+                     ps_fg_avg = as.numeric(NA), 
+                     ps_bg_std_dev = as.numeric(NA), 
+                     ps_bg_size = as.integer(NA), 
+                     .PS_PSEUDOCOUNT = 0.01, ...)
+  {
   #  .ps_required_packages()
   .ps_norm_matrix(.PSMatrix(pfm, ps_bg_avg = ps_bg_avg, 
                             ps_fg_avg = ps_fg_avg, 
@@ -112,13 +114,13 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' @param ... Objects of class `PSMatrix` to include in the list.
 #' @param use.names Logical. Assert whether to use names from the input objects.
 #'    Default = `TRUE`
-#' @param transcriptIDLegend Named character vector. The names correspond to the
-#'   IDs of all the transcript expressed in the organism of study, whereas 
+#' @param transcriptIDLegend Named character vector. The names correspond to 
+#'   the IDs of all the transcript expressed in the organism of study, whereas 
 #'   corresponding values are the IDs of transcript retained by the unique() 
-#'   function when multiple identical sequences exist. So, if multiple identical 
-#'   sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique() retains only 
-#'   ID2, the mapping will associate each original name with its unique 
-#'   counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2). 
+#'   function when multiple identical sequences exist. So, if multiple 
+#'   identical sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique() 
+#'   retains only ID2, the mapping will associate each original name with its 
+#'   unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2). 
 #'
 #' @return A `PSMatrixList` object, which is a list containing `PSMatrix` 
 #'    objects. Each element in the list corresponds to a `PSMatrix` object 
@@ -146,11 +148,13 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' result <- PSMatrixList(PSM1, PSM2)
 #' ps_results_table(result)
 #' @export
-PSMatrixList <- function(..., transcriptIDLegend = character(), use.names = TRUE)
-{
+PSMatrixList <- function(..., 
+                         transcriptIDLegend = character(), 
+                         use.names = TRUE)
+  {
   listData <- list(...)
   XMatrixList(listData, 
               use.names = use.names, 
               type = "PSMatrixList", 
               matrixClass = "PSMatrix")
-}
+  }

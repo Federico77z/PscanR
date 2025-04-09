@@ -28,12 +28,14 @@ where motif hit positions are precomputed for all promoter sequences.
 The function extracts the position values from the ps_hits_pos_bg slot and, 
 if applicable, assigns sequence names using .ps_bg_seq_names().
 
-These background metrics are particularly useful in motif enrichment analyses, 
-as they allow pscan() to compare foreground promoter sequences against a 
-reference distribution without the need for recomputation.
+These background metrics are particularly useful in motif enrichment 
+analyses, as they allow pscan() to compare foreground promoter sequences 
+against a reference distribution without the need for recomputation.
 }
 \examples{
-full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+full_pfm1_path <- system.file("extdata", 
+                              "full_pfm1.rds", 
+                              package = "PscanR")
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_hits_pos_bg(full_pfm1)
 

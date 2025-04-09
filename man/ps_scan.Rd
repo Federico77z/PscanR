@@ -13,8 +13,9 @@ object.}
 \item{...}{Additional arguments passed to specific methods.}
 }
 \value{
-- If `x` is a `PSMatrix` object: a **PSMatrix object** with updated motif hit 
-  information, including positions, strands, scores, and matched sequences.
+- If `x` is a `PSMatrix` object: a **PSMatrix object** with updated motif 
+  hit information, including positions, strands, scores, and matched 
+  sequences.
 
 - If `x` belongs to another supported class, the return format may vary.
 }

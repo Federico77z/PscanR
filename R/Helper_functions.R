@@ -18,8 +18,8 @@
     nabg <- nabg | nabg2
     
     if(any(nabg))
-      warning(paste("\nNo Pscan background for", name(pfms)[nabg], 
-                    ID(pfms)[nabg]))
+      warning(sprintf("\nNo Pscan background for %s %s", name(pfms)[nabg], 
+                     ID(pfms)[nabg]))
   }
   
   if(!is(pfms, "PFMatrixList") && !is(pfms, "PSMatrixList"))
@@ -28,12 +28,12 @@
   if(is.character(x) && type == 2)
   {
     if(file.access(x, mode = 4) != 0)
-      stop(paste("Cannot access file path:",x))
+      stop(sprintf("Cannot access file path: %s",x))
     else
     {
       first_line <- readLines(x, n = 1)
         if(first_line != "[SHORT TFBS MATRIX]")
-          stop(paste(x, " does not look like a Pscan .short_matrix file"))
+          stop(sprintf(x, "%s does not look like a Pscan .short_matrix file"))
     }
   }
   else if(!is(x, "DNAStringSet") && (type == 1 || type == 4))
@@ -67,11 +67,11 @@
     
     if (!file.exists(file)) {
       if (file.access(file_dir, mode = 2) != 0) {
-        stop(paste("Can't write to directory:", file_dir))
+        stop(sprintf("Can't write to directory: %s", file_dir))
         }
       } else {
         if (file.access(file, mode = 2) != 0)
-          stop(paste("Can't write to existing file:", file))
+          stop(sprintf("Can't write to existing file: %s", file))
       }
   }
 }
@@ -110,45 +110,43 @@
 
   original_names <- names(x)
   
-  # popolazione vettore con tutti i nomi di sequenze presenti nell'org di studio
   all_sequences_ID <- setNames(character(length(x)), original_names)
   
-  # eliminazione doppioni 
+  # duplicate elimination
   unique_x <- BiocGenerics::unique(x)
   unique_names <- names(unique_x)  
-  
-  # Trasformazione in vettore di caratteri nominato per fare il confronto tra i 
-  # due vettori con la funzione match
+
   x_char <- as.character(x)
   unique_x_char <- as.character(unique_x)
-  
-  # Confronti: quando 2 seq sono uguali, viene memorizzato un indice numerico che verrà 
-  # usato per estrarre il nome della sequenza che è stata mantenuta da unique(). 
-  # questo nome sarà il VALORE assegnato al vettore con il NOME della sequenza originale. 
-  all_sequences_ID <- setNames(unique_names[match(x_char, unique_x_char)], original_names)
-  
-  # applico la funzione per rimuovere le seq con %N > 50%. nel vettore, in corrispondenza 
-  # del nome della sequenza originale, al posto del nome della sequenza mantenuta 
-  # da unique() ci sarà un NA --> nella funzione principale questo NA serve come 
-  # flag per rimuovere il nome di questa sequenza, nel caso sia stata passata in 
-  # input, ed emettere un warning.
+
+  all_sequences_ID <- setNames(unique_names[match(x_char, unique_x_char)], 
+                               original_names)
+
   x <- .clean_sequence(x)
   removed_sequences <- setdiff(original_names, names(x))
   
+  # NA corresponds to sequences eliminated by .clean_sequence()
   all_sequences_ID[removed_sequences] <- NA
-  
-  # Assegno i valori solo all'array della prima PSM per questioni di spazio 
-  # --> non credo vada bene, sarebbe meglio assegnarlo (una sola volta) a tutta la 
-  # PSMatrixList (campo metadati?)
+
   pfms@transcriptIDLegend <- all_sequences_ID
   
   return(pfms)
 }
 
-.download_background <- function(file, destfile = file){
+#' @keywords internal
+#' @importFrom utils download.file
+.download_background <- function(file, destfile = NULL) {
   
-  URL <- paste0('https://raw.githubusercontent.com/dianabetelli/PscanR_backgrounds/refs/heads/main/BG_files/',file)
-  download.file(URL, destfile, mode = "wb")
+  if (is.null(destfile)) {
+    destfile <- file.path(tempdir(), file)
+  }
+  
+  URL <- paste0(
+    "https://raw.githubusercontent.com/dianabetelli/PscanR_backgrounds/refs/heads/main/BG_files/",
+    file
+  )
+  
+  utils::download.file(URL, destfile, mode = "wb")
   
   return(destfile)
 }
