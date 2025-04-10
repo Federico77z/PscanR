@@ -96,6 +96,8 @@ by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
+# Note that the generation of the example may take few minutes
+#
 # Load the example dataset for promoter sequences (hg38 assembly, 
 # -200 +50 bp in respect to the TSS).
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")

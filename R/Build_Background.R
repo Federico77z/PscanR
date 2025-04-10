@@ -91,6 +91,8 @@
 #' @import JASPAR2020
 #' 
 #' @examples
+#' # Note that the generation of the example may take few minutes
+#' #
 #' # Load the example dataset for promoter sequences (hg38 assembly, 
 #' # -200 +50 bp in respect to the TSS).
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -421,6 +423,10 @@ ps_get_bg_table <- function(pfms)
 #' @importFrom TFBSTools getMatrixSet
 #'
 #' @examples
+#' # Since the function create a .txt file in the user working directory, 
+#' # this example will not run automatically.
+#' # User can test it in the console.
+#' \dontrun{
 #' # Load the example dataset for JASPAR2020 matrices collection 
 #' # for vertebrates.
 #' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
@@ -445,7 +451,8 @@ ps_get_bg_table <- function(pfms)
 #'   
 #' PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
 #' 
-#' # ps_write_bg_to_file(PSMatrixList_J2020, file_path)
+#' ps_write_bg_to_file(PSMatrixList_J2020, file_path)
+#' }
 #' 
 #' @seealso \code{\link{ps_get_bg_table}}
 #' 
@@ -512,6 +519,9 @@ ps_write_bg_to_file <- function(pfms, file)
 #' @export
 #'
 #' @examples
+#' # Note: when running this example, you may see a message indicating that 
+#' # a file is being downloaded. This is expected behavior and not an error — 
+#' # it simply informs you that background data is being retrieved.
 #' bg_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
 #'                                                      c(-200,50), 'hg38')
 #' bg_matrices

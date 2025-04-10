@@ -42,6 +42,10 @@ by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
+# Since the function create a .txt file in the user working directory, 
+# this example will not run automatically.
+# User can test it in the console.
+\dontrun{
 # Load the example dataset for JASPAR2020 matrices collection 
 # for vertebrates.
 J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
@@ -66,7 +70,8 @@ PSM2 <- PSMatrix(
   
 PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
 
-# ps_write_bg_to_file(PSMatrixList_J2020, file_path)
+ps_write_bg_to_file(PSMatrixList_J2020, file_path)
+}
 
 }
 \seealso{

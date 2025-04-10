@@ -53,6 +53,8 @@ by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
+# Note that the example generation may take few minutes 
+#
 # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
 # -200 +50 bp in respect to the TSS. 
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -60,6 +62,9 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
 
 # Retrieve Background PWMs
+# Note: when running this example, you may see a message indicating that 
+# a file is being downloaded. This is expected behavior and not an error — 
+# it simply informs you that background data is being retrieved.
 J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
                                                     'hs', c(-200,50), 'hg38')
 

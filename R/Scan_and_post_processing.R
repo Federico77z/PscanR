@@ -72,6 +72,8 @@
 #' @export
 #' 
 #' @examples
+#' # Note that the example generation may take few minutes 
+#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
 #' # -200 +50 bp in respect to the TSS.
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -79,6 +81,9 @@
 #' prom_seq <- prom_seq[1:10]
 #' 
 #' # Retrieve Background PWMs
+#' # Note: when running this example, you may see a message indicating that 
+#' # a file is being downloaded. This is expected behavior and not an error — 
+#' # it simply informs you that background data is being retrieved.
 #' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
 #'                                                     'hs', c(-200,50), 'hg38')
 #' 
@@ -202,6 +207,152 @@ pscan_fullBG <- function(ID, full_pfms)
    BiocGenerics::do.call(PSMatrixList, pfms)
 }
 
+#' Filter and Scan Promoter Regions with Pscan
+#' 
+#' This function filters input promoter sequences based on their affinity 
+#' with a specified JASPAR matrix before applying the Pscan algorithm with the 
+#' background reference.
+#' 
+#' @param prom_seq A DNAStringSet object. The promoter sequences to be filtered.
+#' @param Jmatrix A PSMatrix object. A JASPAR matrix containing background 
+#'    average and standard deviation statistics, used to filter promoter 
+#'    sequences.
+#' @param n A numeric value determining the threshold for filtering. The 
+#'    threshold is computed as n*ps_bg_std_dev(Jmatrix) + ps_bg_avg(Jmatrix). 
+#'    Positive values retain sequences with higher affinity, while 
+#'    negative values retain sequences with lower affinity. Default is 1.
+#' @param background A PSMatrixList object. It contains PWMs and background 
+#'    statistics.
+#'    For background statistics we refer to the standard deviation and average 
+#'    of hits scores when the background (set of promoters of all the 
+#'    transcript in the organism of study) is scanned with the position weight 
+#'    matrices. 
+#'    This is used to assert the statistical enrichment of motif occurrences 
+#'    in co-expressed or co-regulated genes.
+#'    See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
+#'    \code{\link{ps_build_bg_from_table}}, 
+#'    \code{\link{generate_psmatrixlist_from_background}}
+#'    for how to create `PSMatrixList` objects that contain background 
+#'    statistics. 
+#' @param BPPARAM The BPPARAM used by bplapply. See BiocParallel package.
+#'    This argument is passed to `BiocParallel::bplapply`.
+#'    If BPPARAM is not explicitly set, the default value (bpparam()) will be 
+#'    used, which automatically chooses a sensible parallelization method based 
+#'    on the user's system. 
+#'    You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating 
+#'    systems, or BPPARAM = BiocParallel::MulticoreParam(8) on Unix-like
+#'    systems to use, for example, 8 cores. 
+#' @param BPPOPTIONS The BPOPTIONS used by bplapply. See BiocParallel package.
+#'    This argument is passed to `BiocParallel::bplapply`. 
+#'    The default is `bpoptions()`.
+#'    Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
+#'    progressbar = TRUE enables a progress bar that can be useful when 
+#'    processing many tasks. log = TRUE enable logging to debug each step of
+#'    the parallel tasks.  description
+#'    
+#' @details
+#'    This function:
+#'    \itemize{
+#'       \item scans promoter sequences using the `Jmatrix` PWM.
+#'       \item retains only those that meet the threshold criterion. 
+#'       \item scans the filtered sequences across the background PWMs.
+#'    }
+#' 
+#' @seealso \code{\link{pscan}}
+#' 
+#' @return A `PSMatrixList` object in which the foreground values 
+#' (the alignment scores) have been computed for each sequence in `prom_seq`, 
+#' that has passed the threshold, based on the position weight matrices 
+#' in `background`. If no sequences pass the filter, a warning is issued, and  
+#' the function returns `NULL`. 
+#' 
+#' @examples
+#' # Due to computational time issues, this example is not automatically run.
+#' # User can run it in the console and use the ps_results_table() function to 
+#' # visualize the results of pscan() and PscanFiltered(). 
+#' \dontrun{
+#' bg <- generate_psmatrixlist_from_background('jaspar2020', 
+#'                                             'hs', 
+#'                                             c(-450,+50), 
+#'                                             'hg38')
+#' txdb <- txdbmaker::makeTxDbFromUCSC('hg38', 'ncbiRefSeqCurated')
+#' GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24]
+#' prom_rng <- GenomicFeatures::promoters(txdb, 
+#'                                        upstream = 450, 
+#'                                        downstream = 50, 
+#'                                        use.names = TRUE)
+#' prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
+#'                                prom_rng) #promoter sequences
+#' 
+#' JM <- bg$MA0484.2
+#' 
+#' file_path <- system.file('extdata', 'liver.txt', package = 'PscanR')
+#' liver_IDs <- read.csv(file_path, header = F, sep = '\t')
+#' liver_IDs <- liver_IDs[,1]
+#' 
+#' liver_proms_seq <- prom_seq[sub('\\..*$', '', names(prom_seq)) %in% liver_IDs]
+#' 
+#' prova_funzione <- PscanFiltered(liver_proms_seq, 
+#'                                 JM, 
+#'                                 background = bg, 
+#'                                 BPPARAM = BiocParallel::SnowParam(1))
+#' 
+#' ps_pscan_result <- pscan(liver_proms_seq, 
+#'                          bg, 
+#'                          BPPARAM = BiocParallel::SnowParam(1))
+#' }
+#' 
+#' @export
+PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background, 
+                          BPPARAM=bpparam(), BPOPTIONS = bpoptions()){
+  
+  if (!is(prom_seq, "DNAStringSet"))
+    stop("Invalid input: 'prom_seq' must be a DNAStringSet")
+  if (!is(Jmatrix, "PSMatrix"))
+    stop("Invalid input: 'Jmatrix' must be a PSMatrix")
+  if (!is(background, "PSMatrixList"))
+    stop("Invalid input: 'background' must be a PSMatrixList")
+  
+  threshold <- ps_bg_avg(Jmatrix) + n * ps_bg_std_dev(Jmatrix)
+  
+  rc_matrix <- reverseComplement(Jmatrix) 
+  
+  Margs <- list(numx = as.numeric(Matrix(Jmatrix)), 
+                numx_rc = as.numeric(Matrix(rc_matrix)),
+                ncolx = (0:(ncol(Matrix(Jmatrix)) - 1))*length(.PS_ALPHABET(Jmatrix)), 
+                AB = .PS_ALPHABET(Jmatrix))
+  
+  res <- mapply(.ps_scan_s, list(Jmatrix), as.character(prom_seq), 
+                MoreArgs = Margs)
+  
+  JM@ps_hits_score <- as.numeric(res["score",]) 
+  JM@ps_hits_score <- .ps_norm_score(JM)
+  
+  Score <- JM@ps_hits_score
+  
+  filtered_prom_seq <- character()
+  if(n > 0)
+    filtered_prom_seq <- prom_seq[Score >= threshold]
+  if(n < 0)
+    filtered_prom_seq <- prom_seq[Score <= threshold]
+  
+  if (length(filtered_prom_seq) == 0) {
+    warning("No sequence satisfy the filter criterium")
+    return(NULL)
+  }
+  
+  pfms <- BiocParallel::bplapply(
+    background, 
+    FUN = ps_scan, 
+    filtered_prom_seq, 
+    BG = FALSE, 
+    BPPARAM=BPPARAM, 
+    BPOPTIONS = BPOPTIONS)
+  
+  BiocGenerics::do.call(PSMatrixList, pfms)
+  
+}
+
 #' Create a Summary Table of PscanR Results  
 #' 
 #' This function generates a table summarizing the statistical analysis of 
@@ -250,6 +401,8 @@ pscan_fullBG <- function(ID, full_pfms)
 #' examples.
 #' 
 #' @examples
+#' # Note that the example generation may take few minutes 
+#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
 #' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -257,6 +410,9 @@ pscan_fullBG <- function(ID, full_pfms)
 #' prom_seq <- prom_seq[1:10]
 #' 
 #' # Retrieve Background PWMs
+#' # Note: when running this example, you may see a message indicating that 
+#' # a file is being downloaded. This is expected behavior and not an error — 
+#' # it simply informs you that background data is being retrieved.
 #' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
 #'                                                     'hs', c(-200,50), 'hg38')
 #' 
@@ -318,7 +474,7 @@ ps_results_table <- function(pfms)
 #' 
 #' @examples
 #' # The generation of the example may take a few minutes 
-#' 
+#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
 #' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -326,6 +482,9 @@ ps_results_table <- function(pfms)
 #' prom_seq <- prom_seq[1:10]
 #' 
 #' # Retrieve Background PWMs
+#' # Note: when running this example, you may see a message indicating that 
+#' # a file is being downloaded. This is expected behavior and not an error — 
+#' # it simply informs you that background data is being retrieved.
 #' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
 #'                                                     'hs', c(-200,50), 'hg38')
 #' 
@@ -396,6 +555,7 @@ ps_z_table <- function(pfms)
 #' 
 #' @examples
 #' # The generation of the example might take few minutes
+#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
 #' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -403,6 +563,9 @@ ps_z_table <- function(pfms)
 #' prom_seq <- prom_seq[1:25]
 #'
 #' # Retrieve Background PWMs
+#' # Note: when running this example, you may see a message indicating that 
+#' # a file is being downloaded. This is expected behavior and not an error — 
+#' # it simply informs you that background data is being retrieved.
 #' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
 #'                                                     'hs', c(-200,50), 'hg38')
 #' 
@@ -487,6 +650,8 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 #'    transcription factors passing the FDR threshold.
 #' 
 #' @examples
+#' # Note that the generation of the example may take few minutes
+#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
 #' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -494,6 +659,9 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 #' prom_seq <- prom_seq[1:25]
 #' 
 #' # Retrieve Background PWMs
+#' # Note: when running this example, you may see a message indicating that 
+#' # a file is being downloaded. This is expected behavior and not an error — 
+#' # it simply informs you that background data is being retrieved.
 #' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
 #'                                                     'hs', c(-200,50), 'hg38')
 #' 
@@ -579,6 +747,8 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' examples.
 #'      
 #' @examples
+#' # Note that the generation of the example may take few minutes
+#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
 #' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -586,6 +756,9 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' prom_seq <- prom_seq[1:25]
 #' 
 #' # Retrieve Background PWMs
+#' # Note: when running this example, you may see a message indicating that 
+#' # a file is being downloaded. This is expected behavior and not an error — 
+#' # it simply informs you that background data is being retrieved.
 #' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
 #'                                                     'hs', c(-200,50), 'hg38')
 #' 
@@ -683,6 +856,8 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' number of occurrences for each score-position combination.
 #' 
 #' @examples
+#' # Note that the generation of the example may take few minutes
+#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
 #' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -690,6 +865,9 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' prom_seq <- prom_seq[1:25]
 #' 
 #' # Retrieve Background PWMs
+#' # Note: when running this example, you may see a message indicating that 
+#' # a file is being downloaded. This is expected behavior and not an error — 
+#' # it simply informs you that background data is being retrieved.
 #' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
 #'                                                     'hs', c(-200,50), 'hg38')
 #' 
@@ -705,7 +883,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' @import dplyr 
 #' @import ggplot2
 ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue', 
-                                          alpha = 0.5, st = 'loose', 
+                                          alpha = 0.5, st = 'all', 
                                           pos_range = NULL)
 {
   
@@ -724,7 +902,7 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue',
   
   data <- ps_hits_table(pfm)
   colnames(data)[seq_len(2)] <- c("Score", "Position")
-  data <- dplyr::filter(data, data$Score >= st)
+  data <- dplyr::filter(data, data$Score >= st_val)
   if (!is.null(pos_range) && length(pos_range) == 2) {
     data <- dplyr::filter(data, data$Position >= pos_range[1],
                           Position <= pos_range[2])
@@ -785,6 +963,8 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue',
 #' examples.
 #'
 #' @examples
+#' # Note that the generation of the example may take few minutes
+#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
 #' # -200 +50 bp in respect to the TSS. 
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
@@ -792,8 +972,12 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue',
 #' prom_seq <- prom_seq[25:50]
 #' 
 #' # Retrieve Background PWMs
+#' # Note: when running this example, you may see a message indicating that 
+#' # a file is being downloaded. This is expected behavior and not an error — 
+#' # it simply informs you that background data is being retrieved.
 #' J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
 #'                                                     'hs', c(-200,50), 'hg38')
+#'                                        
 #' 
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, J2020_PSBG, 

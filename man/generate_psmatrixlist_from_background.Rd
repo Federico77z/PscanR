@@ -56,6 +56,9 @@ combines it with the specified JASPAR matrix collection to create a
 `PSMatrixList` with background statistics.
 }
 \examples{
+# Note: when running this example, you may see a message indicating that 
+# a file is being downloaded. This is expected behavior and not an error — 
+# it simply informs you that background data is being retrieved.
 bg_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
                                                      c(-200,50), 'hg38')
 bg_matrices
