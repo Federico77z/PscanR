@@ -114,14 +114,14 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
 #' Extract Pre-Computed Metrics from a PSMatrixList Object
 #' 
-#' This function is a faster alternative to \code{\link{pscan}}, designed for 
-#' cases where a full background PSMatrixList object has already been computed. 
-#' Rather than re-scanning sequences, it retrieves pre-computed alignment 
+#' This function is a faster alternative to \code{\link{pscan}}, that works
+#' only if a full background PSMatrixList object has already been computed. 
+#' Instead of re-scanning input sequences, it retrieves pre-computed alignment 
 #' scores, TFBS positions, strands, and binding oligos for a selected subset of 
-#' sequences.
+#' sequences from the complete background.
 #' 
 #' This is particularly useful when analyzing different subsets of sequences on
-#' on the same background, reducing computation time substantially.
+#' on the same background, reducing computation time.
 #' 
 #' @param ID A character vector containing sequence identifiers (transcript 
 #'    IDs) corresponding to the sequences of interest. These should match 
@@ -137,15 +137,14 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' `transcriptIDLegend` slot of the full background PSMatrixList. 
 #' The transcriptIDLegend slot was introduced to handle cases where duplicate 
 #' promoter sequences are removed using unique() during background generation. 
-#' In such cases, only one representative sequence name is retained. 
-#' This mapping vector ensures that if a user provides a transcript ID 
+#' Since in this case only one representative sequence name is retained,  
+#' the mapping vector ensures that if a user provides a transcript ID 
 #' corresponding to a removed duplicate, it can still be correctly associated 
 #' with the retained sequence used in the background.
 #' Transcript versions (e.g., ".1", ".2") are ignored for matching purposes.
 #'
 #' Sequences that were excluded during preprocessing (e.g., due to high 'N' 
-#' content or length mismatch) will be silently dropped, with a warning 
-#' listing the affected IDs.
+#' content or length mismatch) will be excluded with a warning printed.
 #'
 #' @return A `PSMatrixList` object in which the alignment scores and related 
 #'    metrics have been retrieved from `full_pfms` for each sequence in `ID`, 
@@ -242,7 +241,7 @@ pscan_fullBG <- function(ID, full_pfms)
 #'    You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating 
 #'    systems, or BPPARAM = BiocParallel::MulticoreParam(8) on Unix-like
 #'    systems to use, for example, 8 cores. 
-#' @param BPPOPTIONS The BPOPTIONS used by bplapply. See BiocParallel package.
+#' @param BPOPTIONS The BPOPTIONS used by bplapply. See BiocParallel package.
 #'    This argument is passed to `BiocParallel::bplapply`. 
 #'    The default is `bpoptions()`.
 #'    Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 

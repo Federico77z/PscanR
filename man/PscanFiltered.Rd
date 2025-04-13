@@ -48,7 +48,7 @@ You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating
 systems, or BPPARAM = BiocParallel::MulticoreParam(8) on Unix-like
 systems to use, for example, 8 cores.}
 
-\item{BPPOPTIONS}{The BPOPTIONS used by bplapply. See BiocParallel package.
+\item{BPOPTIONS}{The BPOPTIONS used by bplapply. See BiocParallel package.
 This argument is passed to `BiocParallel::bplapply`. 
 The default is `bpoptions()`.
 Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
