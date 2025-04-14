@@ -23,30 +23,29 @@ A `PSMatrixList` object in which the alignment scores and related
    based on the background data.
 }
 \description{
-This function is a faster alternative to \code{\link{pscan}}, designed for 
-cases where a full background PSMatrixList object has already been computed. 
-Rather than re-scanning sequences, it retrieves pre-computed alignment 
+This function is a faster alternative to \code{\link{pscan}}, that works
+only if a full background PSMatrixList object has already been computed. 
+Instead of re-scanning input sequences, it retrieves pre-computed alignment 
 scores, TFBS positions, strands, and binding oligos for a selected subset of 
-sequences.
+sequences from the complete background.
 }
 \details{
 This is particularly useful when analyzing different subsets of sequences on
-on the same background, reducing computation time substantially.
+on the same background, reducing computation time.
 
 
 Internally, the function matches the provided `ID` values against the 
 `transcriptIDLegend` slot of the full background PSMatrixList. 
 The transcriptIDLegend slot was introduced to handle cases where duplicate 
 promoter sequences are removed using unique() during background generation. 
-In such cases, only one representative sequence name is retained. 
-This mapping vector ensures that if a user provides a transcript ID 
+Since in this case only one representative sequence name is retained,  
+the mapping vector ensures that if a user provides a transcript ID 
 corresponding to a removed duplicate, it can still be correctly associated 
 with the retained sequence used in the background.
 Transcript versions (e.g., ".1", ".2") are ignored for matching purposes.
 
 Sequences that were excluded during preprocessing (e.g., due to high 'N' 
-content or length mismatch) will be silently dropped, with a warning 
-listing the affected IDs.
+content or length mismatch) will be excluded with a warning printed.
 }
 \examples{
 # load a full background PSMatrixList 
