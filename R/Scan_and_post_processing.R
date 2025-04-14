@@ -242,7 +242,7 @@ pscan_fullBG <- function(ID, full_pfms)
 #'    You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating 
 #'    systems, or BPPARAM = BiocParallel::MulticoreParam(8) on Unix-like
 #'    systems to use, for example, 8 cores. 
-#' @param BPPOPTIONS The BPOPTIONS used by bplapply. See BiocParallel package.
+#' @param BPOPTIONS The BPOPTIONS used by bplapply. See BiocParallel package.
 #'    This argument is passed to `BiocParallel::bplapply`. 
 #'    The default is `bpoptions()`.
 #'    Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
