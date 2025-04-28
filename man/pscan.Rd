@@ -11,15 +11,18 @@ pscan(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions())
 from co-regulated or co-expressed genes (i.e. a set of gene promoters). 
 See the Biostrings package for details.}
 
-\item{pfms}{A `PSMatrixList` object containing PWMs and background statistics.
+\item{pfms}{A `PSMatrixList` object containing PWMs and background 
+statistics.
 For background statistics we refer to the standard deviation and average 
-of hits scores when the background (set of promoters of all the transcript 
-in the organism of study) is scanned with the position weight matrices. 
+of hits scores when the background (set of promoters of all the 
+transcript in the organism of study) is scanned with the position weight 
+matrices. 
 This is used to assert the statistical enrichment of motif occurrences 
 in co-expressed or co-regulated genes.
 See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
-\code{\link{ps_build_bg_from_table}} for how to create `PSMatrixList` 
-objects that contain background statistics.}
+\code{\link{ps_build_bg_from_table}}, 
+\code{\link{generate_psmatrixlist_from_background}} for how to create 
+`PSMatrixList` objects that contain background statistics.}
 
 \item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel package.
 This argument is passed to `BiocParallel::bplapply`.
@@ -39,14 +42,15 @@ processing many tasks. log = TRUE enable logging to debug each step of
 the parallel tasks.}
 }
 \value{
-A `PSMatrixList` object in which the foreground values (the alignment scores)
-have been computed for each sequence in `x` based on the position weight 
-matrices in `pfms`.
+Enriched PSMatrixList object where each matrix includes 
+\code{ps_hits_score}, \code{ps_hits_pos}, \code{ps_hits_strand}, 
+and \code{ps_hits_oligo} populated for each input sequence.
 }
 \description{
 This function computes the alignment scores between regulatory sequences 
-(a set of gene promoters (`x` parameter)) and position weight matrices, which 
-quantify potential binding affinities of transcription factors in that region.
+(a set of gene promoters (`x` parameter)) and position weight matrices, 
+which quantify potential binding affinities of transcription factors in that 
+region.
 These matrices can be sourced from public databases such as JASPAR.
 The scanning is performed throughout the Pscan algorithm.
 }
@@ -59,21 +63,33 @@ same length of the motif and evaluates a score for both the forward and
 reverse strand based on how well the k-mer matches the Transcription Factor
 Binding Motif provided by the PWM. For each input sequence scanned with 
 individual PWM, only the k-mer with the highest score is selected. 
-The method will populate the following PSMatrix slots for each input sequence: 
+The method will populate the following PSMatrix slots for each input 
+sequence: 
 \itemize{
    \item ps_hits_score: the highest matching value found for each sequence. 
    \item ps_hits_pos: position of the best TFBS match
    \item ps_hits_strand: the DNA strand of the TFBS ('+' for forward and '-'
    for reverse)
-   \item ps_hits_oligo: the sequence of the binding site}
+   \item ps_hits_oligo: the sequence of the binding site} 
+   
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
 }
 \examples{
-
+# Note that the example generation may take few minutes 
+#
+# Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+# -200 +50 bp in respect to the TSS.
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
 
 # Retrieve Background PWMs
+# Note: when running this example, you may see a message indicating that 
+# a file is being downloaded. This is expected behavior and not an error — 
+# it simply informs you that background data is being retrieved.
 J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
                                                     'hs', c(-200,50), 'hg38')
 

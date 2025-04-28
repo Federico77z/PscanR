@@ -8,36 +8,47 @@ ps_build_bg_from_table(x, pfms)
 }
 \arguments{
 \item{x}{A `data.frame` containing background parameters for each motif.
-The data frame should have the following columns:
+The data frame should include the following columns:
 \itemize{
-   \item `BG_SIZE`: Background size.
-   \item `BG_MEAN`: Mean of the background hits score.
-   \item `BG_STDEV`: Standard deviation of the background hits score.
+   \item `BG_SIZE`: Background set size.
+   \item `BG_MEAN`: Mean score of background hits.
+   \item `BG_STDEV`: Standard deviation of background hits score.
 }
-The number of rows in `x` must match the number of elements in `pfms`.}
+The row names of `x` should correspond to the identifiers of the motifs 
+in `pfms`.}
 
-\item{pfms}{A `PFMatrixList` object of position frequency matrices 
+\item{pfms}{A `PFMatrixList` object containing position frequency matrices 
 representing transcription factor binding preferences, obtained, for 
 example, from the JASPAR database.
-The number of elements in `pfms` should match the number of row of `x`.}
+The number of elements in `pfms` should match the number of row of `x`, 
+and their identifiers should correspond.}
 }
 \value{
-A `PSMatrixList` object containing each motif matrix from `pfms`, 
-scored with background parameters provided by `x`.
+A `PSMatrixList` object containing each motif from `pfms`, 
+enriched with background scoring parameters from `x`.
 }
 \description{
-Associates background parameters from a data frame with a list of position 
-frequency matrices (PFMs) and returns the list of updated matrices as 
-`PSMatrixList` object.
+Associates background parameters from a `data.frame` with a list of position 
+frequency matrices (PFMs) and returns the updated matrices as 
+a `PSMatrixList` object.
 }
 \details{
 This function: 
 \itemize{
    \item Validates the input type. `x` must be a `data.frame`.
-   \item Converts each elements of pfms into `PSMatrix` class. 
+   \item Converts each elements of pfms into `PSMatrix` objects. 
    \item A warning is issued if the number of elements in `pfms` doesn't 
    match the number of row of `x`.
 }
+
+Note: This function does not compute new background scores — it assigns 
+existing background parameters to each motif, assuming they were previously 
+computed.
+
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
 }
 \examples{
 # create the `data.frame`
@@ -48,8 +59,8 @@ BG_STDEV = c(0.05, 0.07, 0.06)
 )
 
 # Retrieve motif matrices for vertebrates from JASPAR2020
-J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-load(J2020_path)
+J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(J2020_path)
 J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 
 rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")

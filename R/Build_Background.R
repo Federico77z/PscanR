@@ -1,10 +1,12 @@
 #' Build background matrices in parallel
 #' 
-#' Generates a background probability profile matrix list using the BiocParallel
-#' framework for parallel execution. It computes background scores for each 
-#' motif matrix, collected, for example, from the JASPAR database, by scanning 
-#' them against a set of regulatory sequences (e.g., gene promoters) using the 
-#' `ps_scan` function.
+#' This function generates a background probability profile matrix list, 
+#' used to assess if a transcription factor binding motif is appearing more 
+#' often than by chance in the pscan() input sequences, using the BiocParallel 
+#' framework for parallel execution. 
+#' It computes background scores for each motif matrix, collected, for example, 
+#' from the JASPAR database, by scanning them against a set of regulatory 
+#' sequences (e.g., gene promoters) using the `ps_scan` function.
 #' Note that the promoter region analysed may vary. 
 #' 
 #' @param x A `DNAStringSet` object (see Biostrings package) containing the set 
@@ -27,15 +29,16 @@
 #'   options to control the behavior of parallel execution.
 #'   See `BiocParallel` documentation for more details.
 #'  
-#' @param megaBG Logical. Default is FALSE. When set to TRUE, it creates a 
+#' @param fullBG Logical. Default is FALSE. When set to TRUE, it creates a 
 #'   mapping between all sequence names in the organism of study 
 #'   and the corresponding names retained after applying the unique() function. 
 #'   For example, if multiple identical sequences exist (e.g., ID1, ID2, ID3, 
 #'   and ID4), and unique() retains only ID2, the mapping will associate each 
-#'   original name with its unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, 
-#'   ID4 → ID2). This vector is stored in the transcriptIDLegend slot of the 
-#'   PSMatrixList and helps generate a complete background PSMatrixList, 
-#'   improving computational efficiency for the pscan_bg() function.
+#'   original name with its unique counterpart (ID1 → ID2, ID2 → ID2, 
+#'   ID3 → ID2, ID4 → ID2). This vector is stored in the transcriptIDLegend 
+#'   slot of the PSMatrixList and helps generate a complete background 
+#'   PSMatrixList, improving computational efficiency for the pscan_fullBG() 
+#'   function.
 #'   In addition, it retrieves for each PSM in the PSMatrixList output all the 
 #'   background metrics relative to hits score, position, strand, and 
 #'   oligonucleotide sequence of the regulatory sequences scanned with the PWM. 
@@ -51,17 +54,34 @@
 #' background mean and standard deviation are stored for each matrix. These 
 #' metrics will be later used for the computation of z-score by the pscan 
 #' function. 
+#' 
 #' If a full background PSMatrixList is required, that includes all the 
 #' background scores for each oligonucleotide hits, their position, strand and 
 #' names, the user should store the output by the save() function and set 
-#' the megaBG flag as TRUE. Note that this process will generate a very large 
+#' the fullBG flag as TRUE. Note that this process will generate a very large 
 #' file, that can reach several gigabytes in size. 
+#' 
+#' Note: Currently, it is not possible to use this function with the 
+#' Arabidopsis thaliana organism due to the transcript nomenclature used. 
+#' The function is designed to handle transcript names without version 
+#' extensions (e.g., NM_30287 instead of NM_30287.1). 
+#' However, in Arabidopsis thaliana, the format typically follows a 
+#' gene.transcript pattern (e.g., AT1G01010.1). 
+#' This causes the function to truncate the transcript identifier, effectively 
+#' removing essential transcript-level information. As a result, the function 
+#' may return incorrect results for this organism. This is valid for any 
+#' organism for which this type of format is used.
+#' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
 #' 
 #' @return 
 #' A `PSMatrixList` object, containing each motif matrix from `pfms`, 
 #' background-scored against the sequences in `x`. 
 #' 
-#' @seealso \code{\link{pscan_bg}}, \code{\link{ps_write_bg_to_file}}
+#' @seealso \code{\link{pscan_fullBG}}, \code{\link{ps_write_bg_to_file}}
 #'
 #' @importFrom txdbmaker makeTxDbFromUCSC 
 #' @importFrom GenomicFeatures promoters
@@ -71,12 +91,18 @@
 #' @import JASPAR2020
 #' 
 #' @examples
+#' # Note that the generation of the example may take few minutes
+#' #
+#' # Load the example dataset for promoter sequences (hg38 assembly, 
+#' # -200 +50 bp in respect to the TSS).
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
 #' prom_seq <- prom_seq[1:10]
 #' 
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
+#' # Load the example dataset for JASPAR2020 matrices collection for 
+#' # vertebrates.
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
 #'
 #' # Generate the background-scored motif matrices
 #' bg_matrices <- ps_build_bg(prom_seq, J2020, 
@@ -85,15 +111,16 @@
 #' bg_matrices
 #' bg_matrices[[1]]
 #' 
-#' # Example for mega-background generation
-#' mega_bg_matrices <- ps_build_bg(prom_seq, J2020, 
-#'                            BPPARAM = BiocParallel::SnowParam(1), megaBG = TRUE)
+#' # Example for full-background generation
+#' full_bg_matrices <- ps_build_bg(prom_seq, J2020, 
+#'                            BPPARAM = BiocParallel::SnowParam(1), 
+#'                            fullBG = TRUE)
 #'                            
-#' mega_bg_matrices[[1]]
+#' full_bg_matrices[[1]]
 #' 
 #' @export
 ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(), 
-                        megaBG = FALSE)
+                        fullBG = FALSE)
 {
   .ps_checks(x, pfms, type = 1)
   
@@ -107,42 +134,42 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
     FUN = ps_scan, 
     x_unique, 
     BG = TRUE,
-    megaBG = megaBG,
+    fullBG = fullBG,
     BPPARAM=BPPARAM, 
     BPOPTIONS = BPOPTIONS
   )
   
   pfms <- do.call(PSMatrixList, pfms)
   
-  if(megaBG == TRUE)
+  if(fullBG == TRUE)
     pfms <- .mapping_unique_names(x, pfms)
   
   return(pfms)
   
 }
 
-#' Import background statistics from a file 
+#' Import background-scored matrices from a file 
 #' 
-#' Reads and imports background score distribution statistics from a file, 
-#' corresponding to a PSMatrixList object previously computed on a background 
-#' set of regulatory sequences (e.g., the promoters of all transcripts in the 
-#' organism of study, defined by coordinates relative to the TSS) by the 
-#' `ps_build_bg()` function. `ps_retrieve_bg_from_file()` reads the background 
-#' statistics stored into a file by `ps_write_bg_to_file()`. 
+#' Reconstructs a `PSMatrixList` object containing background-scored motif 
+#' matrices, using a previously computed background dataset stored in a file. 
+#' The input file must have been generated by the `ps_write_bg_to_file()` 
+#' function from a background `PSMatrixList` object.
 #' 
 #' @param file A character string with the path to the input file. 
 #'   This file contains the score distribution statistics for the 
 #'   frequency matrices computed on a 
 #'   background set of regulatory sequences.
 #'   The file should be in tabular format, where the first column contains 
-#'   the frequency matrix identifiers (row names) and subsequent columns contain 
-#'   the background statistics (e.g., `BG_SIZE`, `BG_MEAN`, `BG_STDEV`).
-#'   Background statistics are generated with the `ps_build_bg` function and can 
-#'   be written to a file with `ps_write_bg_to_file`.
+#'   the frequency matrix identifiers (row names) and subsequent columns 
+#'   contain the background statistics 
+#'   (e.g., \code{BG_SIZE}, \code{BG_MEAN}, \code{BG_STDEV}).
+#'   Background statistics are generated with the `ps_build_bg` function and 
+#'   can be written to a file with `ps_write_bg_to_file`.
 #' 
 #' @param pfms A `PFMatrixList` object containing position frequency matrices 
-#' representing transcription factor binding preferences, obtained, for example, 
-#' from the JASPAR database. The provided list must correspond to the same 
+#' representing transcription factor binding preferences, obtained, 
+#' for example, from the JASPAR database. 
+#' The provided list must correspond to the same 
 #' frequency matrix list used to build the background stored in `file`.
 #'
 #' @details 
@@ -154,6 +181,16 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
 #'    \item Calls `ps_build_bg_from_table` with the created `data.frame` 
 #'    and `pfms` as input.
 #' }
+#' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These file are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples. 
+#' 
+#' Other background datasets are aviable at the public repository
+#' PscanR_background on GitHub: 
+#' \url{https://github.com/dianabetelli/PscanR_backgrounds}
+#' See vignettes for further details on the type of background available.
 #' 
 #' @seealso \code{\link{ps_build_bg}}, \code{\link{ps_write_bg_to_file}}, 
 #' \code{\link{ps_build_bg_from_table}}
@@ -170,9 +207,10 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
 #' file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
 #'                          package = "PscanR")
 #'
-#' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
+#' # Load the example dataset for JASPAR2020 matrices collection for 
+#' # vertebrates.
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
 #'
 #' # Generate the background-scored motif matrices from file
 #' bg_matrices <- ps_retrieve_bg_from_file(file_path, J2020)
@@ -194,36 +232,47 @@ ps_retrieve_bg_from_file <- function(file, pfms)
 
 #' Apply background parameters to position frequency matrices
 #' 
-#' Associates background parameters from a data frame with a list of position 
-#' frequency matrices (PFMs) and returns the list of updated matrices as 
-#' `PSMatrixList` object.
+#' Associates background parameters from a `data.frame` with a list of position 
+#' frequency matrices (PFMs) and returns the updated matrices as 
+#' a `PSMatrixList` object.
 #' 
 #' @param x A `data.frame` containing background parameters for each motif.
-#'    The data frame should have the following columns:
+#'    The data frame should include the following columns:
 #'    \itemize{
-#'       \item `BG_SIZE`: Background size.
-#'       \item `BG_MEAN`: Mean of the background hits score.
-#'       \item `BG_STDEV`: Standard deviation of the background hits score.
+#'       \item `BG_SIZE`: Background set size.
+#'       \item `BG_MEAN`: Mean score of background hits.
+#'       \item `BG_STDEV`: Standard deviation of background hits score.
 #'    }
-#'    The number of rows in `x` must match the number of elements in `pfms`.
+#'    The row names of `x` should correspond to the identifiers of the motifs 
+#'    in `pfms`.
 #'    
-#' @param pfms A `PFMatrixList` object of position frequency matrices 
+#' @param pfms A `PFMatrixList` object containing position frequency matrices 
 #'   representing transcription factor binding preferences, obtained, for 
 #'   example, from the JASPAR database.
-#'   The number of elements in `pfms` should match the number of row of `x`.
+#'   The number of elements in `pfms` should match the number of row of `x`, 
+#'   and their identifiers should correspond.
 #' 
 #' @details 
 #' This function: 
 #' \itemize{
 #'    \item Validates the input type. `x` must be a `data.frame`.
-#'    \item Converts each elements of pfms into `PSMatrix` class. 
+#'    \item Converts each elements of pfms into `PSMatrix` objects. 
 #'    \item A warning is issued if the number of elements in `pfms` doesn't 
 #'    match the number of row of `x`.
 #' }
 #' 
+#' Note: This function does not compute new background scores — it assigns 
+#' existing background parameters to each motif, assuming they were previously 
+#' computed.
+#' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
+#' 
 #' @return 
-#' A `PSMatrixList` object containing each motif matrix from `pfms`, 
-#' scored with background parameters provided by `x`.
+#' A `PSMatrixList` object containing each motif from `pfms`, 
+#' enriched with background scoring parameters from `x`.
 #' 
 #' @importFrom TFBSTools getMatrixSet
 #'
@@ -236,8 +285,8 @@ ps_retrieve_bg_from_file <- function(file, pfms)
 #' )
 #' 
 #' # Retrieve motif matrices for vertebrates from JASPAR2020
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
 #' J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 #' 
 #' rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")
@@ -262,37 +311,52 @@ ps_build_bg_from_table <- function(x, pfms)
   
   do.call(PSMatrixList, pfms)
 }
+
 #' Extract background statistics from a `PSMatrixList` object
 #' 
 #' Extracts background statistics (size, mean, and standard deviation) 
 #' from a `PSMatrixList` of Position Weight Matrices representing 
-#' transcription factor binding preferences and generates a table containing 
-#' these metrics.
+#' transcription factor binding preferences, and returns a data frame 
+#' containing these metrics.
 #'
 #' @param pfms A `PSMatrixList` of Position Weight Matrices representing 
 #'   transcription factor binding preferences . 
-#'   Each element should be a `PSMatrix` object 
-#'   (or should be coercible to `PSMatrix`).
+#'   Each element must be a `PSMatrix` object or coercible to one.
 #'
 #' @return 
-#' A `data.frame` with one row for each matrix (representing a Transcription 
-#' factor) in `pfms`.
+#' A `data.frame` with one row per matrix (corresponding to a 
+#' transcription factor) in `pfms`. 
+#' The row names will match the matrix identifiers.
 #' 
 #' Columns: 
 #' \itemize{
-#'   \item `BG_SIZE`: An integer vector representing the background size for 
+#'   \item `BG_SIZE`: An integer vector containing the background set size for 
 #'   each PSM. 
-#'   \item `BG_MEAN`: A numeric vector representing the mean of the background 
+#'   \item `BG_MEAN`: A numeric vector containing the mean of the background 
 #'   hits score for each PSM.
-#'   \item `BG_STDEV`: A numeric vector representing the standard deviation 
+#'   \item `BG_STDEV`: A numeric vector containing the standard deviation 
 #'   of the background hits score for each PSM. 
 #' }
 #' @importFrom TFBSTools getMatrixSet
 #' 
+#' @details
+#' 
+#' This function is useful for exporting background-scored matrices to a 
+#' tabular format. The resulting `data.frame` can be saved and later 
+#' reapplied to PFMs using `ps_build_bg_from_table()`.
+#' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples.
+#' 
+#' @seealso \code{\link{ps_build_bg_from_table}}, 
+#' \code{\link{ps_retrieve_bg_from_file}}
+#' 
 #' @examples
 #' # Retrieve motif matrices for vertebrates from JASPAR2020
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
 #' J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 #' 
 #' # create the `data.frame`
@@ -320,6 +384,7 @@ ps_get_bg_table <- function(pfms)
   
   data.frame(BG_SIZE, BG_MEAN, BG_STDEV, row.names = names(pfms))
 }
+
 #' Save background statistics from a `PSMatrixList` object to a file
 #'
 #' Saves background statistics (such as size, mean, and standard deviation) 
@@ -327,21 +392,30 @@ ps_get_bg_table <- function(pfms)
 #' file. 
 #'
 #' @param pfms A `PSMatrixList` object of Position Weight Matrices 
-#'   representing transcription factor binding preferences, obtained for example 
-#'   from the JASPAR database, containing background statistics computed by 
-#'   scanning each `PSMatrix` against the set of promoter regions of all 
-#'   transcripts in the organism of study. The promoter regions analyzed may 
-#'   vary. Each element should be a `PSMatrix` object or coercible to `PSMatrix`.
+#'   representing transcription factor binding preferences, obtained, for 
+#'   example, from the JASPAR database. 
+#'   Each matrix should already include background statistics 
+#'   (e.g., computed from all promoter regions in the organism of 
+#'   study). Each element must be a `PSMatrix` object or coercible to one.
 #'
 #' @param file A character string specifying the path to the output file where 
 #'   the background statistics should be saved.
 #'
 #' @details 
-#' This function retrieves the background statistics (size, mean, and 
-#' standard deviation) using `ps_get_bg_table()` from the input `PSMatrixList` 
-#' object, after having validated the inputs. Then, it writes the result to a 
-#' specified file. 
-#' A header is added to the file (`[SHORT TFBS MATRIX`]). 
+#' 
+#' This function first extracts background statistics from the input `pfms` 
+#' using `ps_get_bg_table()`. It then writes the result to the specified file 
+#' in a tab-delimited format. The output file begins with a header line:
+#' `[SHORT TFBS MATRIX]`. This header is used internally for compatibility with 
+#' `ps_retrieve_bg_from_file()`, which expects it when reading.
+#' 
+#' The output does not include column names; the first column contains matrix 
+#' identifiers, followed by `BG_SIZE`, `BG_MEAN`, and `BG_STDEV`.
+#' 
+#' This function uses example datasets located in the `extdata/` directory for 
+#' demonstration purposes only. These files are not part of the core data used
+#' by the function. They can be accessed using `system.file()` as shown in the 
+#' examples. 
 #'
 #' @return None. It saves the given background statistics to the specified file
 #' in a tab-delimited format.
@@ -349,8 +423,14 @@ ps_get_bg_table <- function(pfms)
 #' @importFrom TFBSTools getMatrixSet
 #'
 #' @examples
-#' J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-#' load(J2020_path)
+#' # Since the function create a .txt file in the user working directory, 
+#' # this example will not run automatically.
+#' # User can test it in the console.
+#' \dontrun{
+#' # Load the example dataset for JASPAR2020 matrices collection 
+#' # for vertebrates.
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
 #' # File path to save the result
 #' file_path <- "J2020_hg38_bg_stats.txt"
 #' 
@@ -371,7 +451,8 @@ ps_get_bg_table <- function(pfms)
 #'   
 #' PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
 #' 
-#' # ps_write_bg_to_file(PSMatrixList_J2020, file_path)
+#' ps_write_bg_to_file(PSMatrixList_J2020, file_path)
+#' }
 #' 
 #' @seealso \code{\link{ps_get_bg_table}}
 #' 
@@ -397,19 +478,23 @@ ps_write_bg_to_file <- function(pfms, file)
 
 #' Generate PSMatrixList from Background data and JASPAR Matrix
 #' 
-#' This function retrieves background data for a specified organism and promoter 
-#' region, and then fetches a corresponding matrix set from a specified JASPAR 
-#' version. It returns a `PSMatrixList` object.
+#' This function retrieves background data for a specified organism and 
+#' promoter region, and then fetches a corresponding matrix set from a 
+#' specified JASPAR version. 
+#' It returns a `PSMatrixList` object with background statistics.
 #'
 #' @param JASPAR_matrix A character string specifying the JASPAR database 
 #'    version. You can choose between 'JASPAR2020', 'JASPAR2022', or 
 #'    'JASPAR2024' (non case sensitive). 
 #' @param org A string representing the organism acronym. Accepted values are: 
-#'    `hs` (Homo sapiens), `mm` (Mus musculus), `at` (Arabidopsis thaliana), 
-#'    `sc` (Saccharomyces cerevisiae), `dm` (Drosophila melanogaster). 
+#'    `hs` (Homo sapiens),
+#'    `mm` (Mus musculus), 
+#'    `at` (Arabidopsis thaliana),
+#'    `sc` (Saccharomyces cerevisiae),
+#'    `dm` (Drosophila melanogaster).
 #' @param prom_reg A numeric vector of two integers as `[upstream, downstream]`
-#'    bp from the transcription start site (TSS) indicating the range 
-#'    of the promoter region. You can choose between:
+#'    representing the promoter region relative to the TSS. 
+#'    Allowed combinations:
 #'    \itemize{
 #'      \item 200 base pairs upstream and 50 downstream base pair from the TSS 
 #'      (c(-200, 50))
@@ -420,21 +505,31 @@ ps_write_bg_to_file <- function(pfms, file)
 #'      } 
 #' @param assembly A string representing the assembly version for Human or 
 #'   mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
-#'   For `"mm"` you can specify `"mm10"` or `"mm39"`.
+#'   For `"mm"` you can specify `"mm10"` or `"mm39"`. Default is character().
+#'   
+#' @details
+#' The background files are downloaded from the GitHub repository:
+#' \url{https://github.com/dianabetelli/PscanR_backgrounds}
+#' This function automatically fetches the appropriate background file and 
+#' combines it with the specified JASPAR matrix collection to create a 
+#' `PSMatrixList` with background statistics.
 #'
-#' @return A `PSMatrixList` object created from the specified background 
-#' file and JASPAR matrix.
+#' @return A `PSMatrixList` object with background-scored motif matrices.
 #' 
 #' @export
 #'
 #' @examples
+#' # Note: when running this example, you may see a message indicating that 
+#' # a file is being downloaded. This is expected behavior and not an error — 
+#' # it simply informs you that background data is being retrieved.
 #' bg_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
 #'                                                      c(-200,50), 'hg38')
 #' bg_matrices
 #' bg_matrices[[4]]
 #' 
+#' @import httr
 generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
-                                                  assembly){
+                                                  assembly = character()){
   
   organism_map <- c("hs" = assembly, "mm" = assembly, "at" = "TAIR9", 
                        "sc" = "sacCer3", "dm" = "dm6")
@@ -465,7 +560,7 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
   file_name <- paste0('J', version, '_', org_assembly, '_', p_up, 'u_', p_down, 
                       'd_', file_suffix)
   
-  BG_path <- system.file("extdata/BG_files", file_name, package = 'PscanR')
+  BG_path <- .download_background(file = file_name)
   
   opts <- list("collection" = "CORE", "tax_group" = tax_map[[org]])
   

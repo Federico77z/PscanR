@@ -2,7 +2,10 @@
 title: "Comparing execution time with varying processors"
 author: "Diana Betelli"
 date: "`r Sys.Date()`"
-output: BiocStyle::html_document
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{3. Comparing execution time with varying processors}
   %\VignetteEncoding{UTF-8}
@@ -27,9 +30,9 @@ tool supports parallel computing.
 
 Two main functions utilize the **BiocParallel** package for parallelization:
 `ps_build_bg()` and `pscan()`. While the first is used for background
-generation, the second is the core function of **PscanR**. This vignette focuses
-on analyzing how varying the number of cores passed to the `bpparam()` function
-(one of `pscan()`'s inputs) affects execution time.
+generation, the second is the core function of **PscanR**. 
+This vignette focuses on analyzing how varying the number of cores passed to 
+the `bpparam()` function (one of `pscan()`'s inputs) affects execution time.
 
 The default `BPPARAM` value in `pscan()` is `bpparam()`, which automatically
 selects the parallelization type and number of cores based on the system.
@@ -39,10 +42,10 @@ selects the parallelization type and number of cores based on the system.
 The experiment uses the largest list of co-regulated or co-expressed genes
 available on the **Pscan** platform. These genes are sampled from **human liver
 tissue**. Promoter regions are defined as those extending **950 bp upstream**
-and **50 bp downstream** from the Transcription Start Site (**TSS**). The number
-of cores tested includes: **1, 2, 4, 6, 8, 12, 18, and 24**.
+and **50 bp downstream** from the Transcription Start Site (**TSS**). 
+The number of cores tested includes: **1, 2, 4, 6, 8, 12, 18, and 24**.
 
-Notice that the observed speedup will depend on the dimension of the data.
+Note that the observed speedup will depend on the dimension of the data.
 
 ## Parallelization models
 
@@ -62,16 +65,23 @@ Both models are analyzed in this vignette.
 
 ```{r eval=FALSE, include=TRUE}
 # Import gtf annotation from UCSC
-txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated")
+txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", 
+                                    tablename="ncbiRefSeqCurated")
 
 # Select only canonical chromosomes 
 GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24] 
 
 # Background generation. JASPAR core dataset for Vertebrates, 2020 release
-J2020_PSBG <- PscanR::generate_psmatrixlist_from_background( 'Jaspar2020', 'hs', c(-950,50), 'hg38') 
+J2020_PSBG <- PscanR::generate_psmatrixlist_from_background( 'Jaspar2020', 
+                                                             'hs', 
+                                                             c(-950,50), 
+                                                             'hg38') 
 
 # Retrieve promoter regions 
-prom_rng <- GenomicFeatures::promoters(txdb, upstream = 950, downstream = 50, use.names = TRUE) 
+prom_rng <- GenomicFeatures::promoters(txdb, 
+                                       upstream = 950, 
+                                       downstream = 50, 
+                                       use.names = TRUE) 
 
 # Version numbers removal from transcript IDs
 prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name) 
@@ -105,10 +115,14 @@ execution_time <- function(prom_seq, bg, ncores, output_file){
   
   for (i in 1:iterations){
     timing <- system.time({
-      results <- PscanR::pscan(prom_seq, bg, BPPARAM = BiocParallel::MulticoreParam(ncores))}) 
+      results <- PscanR::pscan(prom_seq, 
+                               bg, 
+                               BPPARAM = BiocParallel::MulticoreParam(ncores))}
+      ) 
     if (i == 1){
       saveRDS(PscanR::ps_results_table(results), output_file) 
-# Analyse all the files to be sure that results don't change when changing the core numbers
+# Analyse all the files to be sure that results don't change when changing 
+# the core numbers
       }
     temp[i] <- timing["elapsed"]
     }
@@ -120,7 +134,10 @@ all_cores <- function(core_numbers, prom_seq, bg, iterations) {
   
   for (core in core_numbers) {
     output_file <- paste0("core", core, "_liver_950d_50u.rds")
-    results_list[[as.character(core)]] <- execution_time(prom_seq, bg, core, output_file)
+    results_list[[as.character(core)]] <- execution_time(prom_seq, 
+                                                         bg, 
+                                                         core, 
+                                                         output_file)
   }
   
   return(as.data.frame(results_list))
@@ -150,7 +167,7 @@ means <- colMeans(data, na.rm = TRUE)
 power_model <- lm(log(means) ~ log(N))  
 
 smooth_N <- seq(min(N), max(N), length.out = 500)  # 500 punti tra 1 e 24
-smooth_pred <- exp(predict(power_model, newdata = data.frame(N = smooth_N)))  # Previsioni
+smooth_pred <- exp(predict(power_model, newdata = data.frame(N = smooth_N)))  
 
 ss_total <- sum((means - mean(means))^2)
 ss_residual <- sum((means - exp(predict(power_model)))^2)
@@ -206,7 +223,7 @@ means <- colMeans(data, na.rm = TRUE)
 power_model <- lm(log(means) ~ log(N))  
 
 smooth_N <- seq(min(N), max(N), length.out = 500)  # 500 punti tra 1 e 24
-smooth_pred <- exp(predict(power_model, newdata = data.frame(N = smooth_N)))  # Previsioni
+smooth_pred <- exp(predict(power_model, newdata = data.frame(N = smooth_N)))  
 
 ss_total <- sum((means - mean(means))^2)
 ss_residual <- sum((means - exp(predict(power_model)))^2)
@@ -232,11 +249,12 @@ legend("topright", legend = bquote("Power regression, " ~ R^2 == .(round(r_squar
 
 ## **Final Remarks**
 
-This vignette demonstrated the impact of parallelization on **PscanR** execution
-time. The results show that **MulticoreParam** is more efficient but limited to
-Unix systems, while **SnowParam** ensures compatibility across all platforms. A
-plateau in performance gain beyond **8 cores** suggests an optimal configuration
-for parallel execution.
+This vignette demonstrated the impact of parallelization on **PscanR** 
+execution time. 
+The results show that **MulticoreParam** is more efficient but limited to
+Unix systems, while **SnowParam** ensures compatibility across all platforms. 
+A plateau in performance gain beyond **12 cores** suggests an optimal
+configuration for parallel execution.
 
 ```{r}
 # Display session information

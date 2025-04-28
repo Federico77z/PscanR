@@ -9,7 +9,7 @@ ps_build_bg(
   pfms,
   BPPARAM = bpparam(),
   BPOPTIONS = bpoptions(),
-  megaBG = FALSE
+  fullBG = FALSE
 )
 }
 \arguments{
@@ -33,15 +33,16 @@ function from the `BiocParallel` package. This can include additional
 options to control the behavior of parallel execution.
 See `BiocParallel` documentation for more details.}
 
-\item{megaBG}{Logical. Default is FALSE. When set to TRUE, it creates a 
+\item{fullBG}{Logical. Default is FALSE. When set to TRUE, it creates a 
 mapping between all sequence names in the organism of study 
 and the corresponding names retained after applying the unique() function. 
 For example, if multiple identical sequences exist (e.g., ID1, ID2, ID3, 
 and ID4), and unique() retains only ID2, the mapping will associate each 
-original name with its unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, 
-ID4 → ID2). This vector is stored in the transcriptIDLegend slot of the 
-PSMatrixList and helps generate a complete background PSMatrixList, 
-improving computational efficiency for the pscan_bg() function.
+original name with its unique counterpart (ID1 → ID2, ID2 → ID2, 
+ID3 → ID2, ID4 → ID2). This vector is stored in the transcriptIDLegend 
+slot of the PSMatrixList and helps generate a complete background 
+PSMatrixList, improving computational efficiency for the pscan_fullBG() 
+function.
 In addition, it retrieves for each PSM in the PSMatrixList output all the 
 background metrics relative to hits score, position, strand, and 
 oligonucleotide sequence of the regulatory sequences scanned with the PWM.}
@@ -51,11 +52,13 @@ A `PSMatrixList` object, containing each motif matrix from `pfms`,
 background-scored against the sequences in `x`.
 }
 \description{
-Generates a background probability profile matrix list using the BiocParallel
-framework for parallel execution. It computes background scores for each 
-motif matrix, collected, for example, from the JASPAR database, by scanning 
-them against a set of regulatory sequences (e.g., gene promoters) using the 
-`ps_scan` function.
+This function generates a background probability profile matrix list, 
+used to assess if a transcription factor binding motif is appearing more 
+often than by chance in the pscan() input sequences, using the BiocParallel 
+framework for parallel execution. 
+It computes background scores for each motif matrix, collected, for example, 
+from the JASPAR database, by scanning them against a set of regulatory 
+sequences (e.g., gene promoters) using the `ps_scan` function.
 Note that the promoter region analysed may vary.
 }
 \details{
@@ -69,19 +72,42 @@ The output of this function can be stored in a .txt file by the
 background mean and standard deviation are stored for each matrix. These 
 metrics will be later used for the computation of z-score by the pscan 
 function. 
+
 If a full background PSMatrixList is required, that includes all the 
 background scores for each oligonucleotide hits, their position, strand and 
 names, the user should store the output by the save() function and set 
-the megaBG flag as TRUE. Note that this process will generate a very large 
-file, that can reach several gigabytes in size.
+the fullBG flag as TRUE. Note that this process will generate a very large 
+file, that can reach several gigabytes in size. 
+
+Note: Currently, it is not possible to use this function with the 
+Arabidopsis thaliana organism due to the transcript nomenclature used. 
+The function is designed to handle transcript names without version 
+extensions (e.g., NM_30287 instead of NM_30287.1). 
+However, in Arabidopsis thaliana, the format typically follows a 
+gene.transcript pattern (e.g., AT1G01010.1). 
+This causes the function to truncate the transcript identifier, effectively 
+removing essential transcript-level information. As a result, the function 
+may return incorrect results for this organism. This is valid for any 
+organism for which this type of format is used.
+
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
 }
 \examples{
+# Note that the generation of the example may take few minutes
+#
+# Load the example dataset for promoter sequences (hg38 assembly, 
+# -200 +50 bp in respect to the TSS).
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
 
-J2020_path <- system.file("extdata", "J2020.rda", package = "PscanR")
-load(J2020_path)
+# Load the example dataset for JASPAR2020 matrices collection for 
+# vertebrates.
+J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(J2020_path)
 
 # Generate the background-scored motif matrices
 bg_matrices <- ps_build_bg(prom_seq, J2020, 
@@ -90,13 +116,14 @@ bg_matrices <- ps_build_bg(prom_seq, J2020,
 bg_matrices
 bg_matrices[[1]]
 
-# Example for mega-background generation
-mega_bg_matrices <- ps_build_bg(prom_seq, J2020, 
-                           BPPARAM = BiocParallel::SnowParam(1), megaBG = TRUE)
+# Example for full-background generation
+full_bg_matrices <- ps_build_bg(prom_seq, J2020, 
+                           BPPARAM = BiocParallel::SnowParam(1), 
+                           fullBG = TRUE)
                            
-mega_bg_matrices[[1]]
+full_bg_matrices[[1]]
 
 }
 \seealso{
-\code{\link{pscan_bg}}, \code{\link{ps_write_bg_to_file}}
+\code{\link{pscan_fullBG}}, \code{\link{ps_write_bg_to_file}}
 }

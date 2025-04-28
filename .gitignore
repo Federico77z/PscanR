@@ -15,6 +15,11 @@ R/.Rhistory
 /Meta/
 PscanR.Rproj
 Pscan-R.Rproj
+<<<<<<< HEAD
 prova_matrix.RData
 prova_matrix.R
 BG_complete/
+=======
+/test_and_scripts/
+/raw_data/
+>>>>>>> d2c12c80d8234537a47c538b00e1a04f73066e0a

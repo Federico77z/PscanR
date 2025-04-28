@@ -2,9 +2,15 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_score_position_BubbleChart}
 \alias{ps_score_position_BubbleChart}
-\title{Bubble chart of Pscan Motif Score vs Position}
+\title{Bubble Chart of Motif Score vs Position in Promoters}
 \usage{
-ps_score_position_BubbleChart(pfm, bubble_color = "blue")
+ps_score_position_BubbleChart(
+  pfm,
+  bubble_color = "blue",
+  alpha = 0.5,
+  st = "all",
+  pos_range = NULL
+)
 }
 \arguments{
 \item{pfm}{A `PSMatrix` object. It must be processed by the PscanR 
@@ -12,12 +18,26 @@ algorithm.}
 
 \item{bubble_color}{A character string specifying the color of the bubbles 
 (default: `"blue"`).}
+
+\item{alpha}{Numeric, between 0 and 1. Default is 0.5. Represents the level 
+of transparency of the bubbles.}
+
+\item{st}{Score threshold used to filter hits. Can be a numeric value to set 
+the threshold directly, or a character:
+\itemize{
+  \item `all`: the threshold is set to `0` (All the hits are evaluated).
+  \item `loose`: uses the background average score as threshold.
+  \item `strict`: uses the background average score together with the 
+  background standard deviation as threshold.}
+Default is set to loose.}
+
+\item{pos_range}{Numeric vector of length 2, e.g., c(-100, 50), to restrict 
+analysis to a specific promoter window. Default is `NULL` (full range).}
 }
 \value{
-A ggplot2 bubble chart. The x-axis corresponds to the position of 
-motif hits along the promoter, the y-axis corresponds to the score of motif 
-hits, and the size of the bubbles represents the count of occurrences for 
-each score-position combination.
+A ggplot2 bubble chart. The x-axis shows motif hit positions along 
+the promoter, the y-axis shows motif scores, and bubble size indicates the 
+number of occurrences for each score-position combination.
 }
 \description{
 This function creates a Bubble Chart to visualize the relationship
@@ -25,17 +45,29 @@ between position and score of the identified sites along the promoter
 sequences in a `PSMatrix` object.
 }
 \details{
-The function computes the count of occurrences for each combination of 
-PS hits score and position from the input `PSMatrix` and visualizes 
-this data using a bubble chart. The user can modify the color of bubbles. 
-Default is `blue`.
+This function aggregates motif hits by score and position, and 
+visualizes their frequency using a bubble chart. Larger bubbles 
+indicate more frequent score-position combinations. The user can modify the 
+color of bubbles. Default is `blue`.
+
+This function uses example datasets located in the `extdata/` directory for 
+demonstration purposes only. These files are not part of the core data used
+by the function. They can be accessed using `system.file()` as shown in the 
+examples.
 }
 \examples{
+# Note that the generation of the example may take few minutes
+#
+# Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
+# -200 +50 bp in respect to the TSS. 
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
+# Note: when running this example, you may see a message indicating that 
+# a file is being downloaded. This is expected behavior and not an error — 
+# it simply informs you that background data is being retrieved.
 J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
                                                     'hs', c(-200,50), 'hg38')
 

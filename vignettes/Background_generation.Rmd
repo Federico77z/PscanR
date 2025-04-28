@@ -2,7 +2,10 @@
 title: "How to Generate a Background Model for PscanR algorithm"
 author: "Diana Betelli"
 date: "`r Sys.Date()`"
-output: BiocStyle::html_document
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{2. How to Generate a Background Model for PscanR algorithm}
   %\VignetteEncoding{UTF-8}
@@ -28,16 +31,19 @@ transcription factors, identifying those that are significantly over or under
 represented. This provides valuable insights into potential transcription
 factors that may regulate the studied genes.
 
-In order to assess the significance of the obtained result, a background model
-must be computed. In other methods this is performed by shuffling the columns of
-the motif or by building random sequence sets of the same size and length of the
-sequence set investigated.
+In order to assess if a transcription factor binding motif is appearing more
+often than by chance in our input sequences, a background model must be
+computed. In other methods this is performed by shuffling the columns of the
+motif or by building random sequence sets of the same size and length of the
+sequence set investigated.0
 
 In Pscan, instead, the input sequences are considered a sample drawn from a
 universe consisting of all promoter sequences available for the species under
 investigation. This *universe* serves as the background model for statistical
 analyses, ensuring a comprehensive and unbiased assessment of the analysis
-outcomes.
+outcomes. So, the statistical analysis performed by `pscan()` function and
+`pscan_fullBG()` one is done on real biological data, rather than artificial
+random models.
 
 # Installation
 
@@ -49,7 +55,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 BiocManager::install(c("txdbmaker", "GenomicFeatures", "GenomeInfoDb", 
-                       "Biostrings", "TFBSTools", "PscanR", "BiocParallel"))
+                       "Biostrings", "TFBSTools", "BiocParallel"))
 
 ```
 
@@ -61,7 +67,6 @@ library(GenomicFeatures)
 library(GenomeInfoDb)
 library(Biostrings)
 library(TFBSTools)
-library(PscanR)
 library(BiocParallel)
 ```
 
@@ -96,11 +101,69 @@ include:
 
 -   1000 bp upstream and 0 bp downstream
 
-The motif matrices used to generate the background scores were obtained from the
-JASPAR databases for the 2020, 2022, and 2024 releases.
+The motif matrices used to generate the background scores were obtained from 
+the JASPAR databases for the 2020, 2022, and 2024 releases.
 
-To use a precomputed background, refer to the documentation for the
+To load a precomputed background, refer to the documentation for the
 \`generate_psmatrixlist_from_background\` function.
+
+## The S4 classes
+
+The background model taken as input in the `pscan()` and `pscan_fullBG()`
+functions is a Position-Specific Matrix List (PSMatrixList) S4 class, which is
+an extension of the existing PFMatrixList (Position Frequency Matrix List) one.
+Each background PSM contains the following parameters:
+
+-   **name**: The transcription factor associated with the motif (e.g., Arnt)
+
+-   **ID**: A unique identifiers for the motif. In our datasets is derived from
+    the JASPAR database (e.g., MA0004.1)
+
+-   **Matrix**: A numerical matrix representing the binding specificity of the
+    transcription factor.
+
+-   **Pscan Background Average** (ps_bg_avg slot): The mean motif score 
+    computer across all promoter sequences in the background model.
+
+-   **Pscan Background Stdev** (ps_bg_std_dev slot)**:** The standard deviation
+    of motif scores in the background model. This is important for statistical
+    tests (like Z-score and p-value computation).
+
+For the full input background of pscan_fullBG(), the PSMatrixList must have
+populated also the following slots:
+
+-   **transcriptIDLegend**: A character vector containing sequences 
+    identifiers.
+    This is build as a map between all sequence names in the organism of study
+    and the corresponding names retained after applying the unique() function.
+    For example, if multiple identical sequences exist (e.g., ID1, ID2, ID3, 
+    and ID4), and unique() retains only ID2, the mapping will associate each
+    original name with its unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2,
+    ID4 → ID2).
+
+And for each PSM in the full PSMatrixList:
+
+-   **ps_hits_score_bg**: A numerical vector containing the motif score for 
+    each sequence in the background when scanned with the PWM.
+
+-   **ps_hits_pos_bg**: A numerical vector containing the position of the
+    best-scored motif found in each promoter sequence.
+
+-   **ps_hits_strand_bg**: A character vector filled with the strand 
+    information relative to the motif hits.
+
+-   **ps_hits_oligo_bg**: A character vector containing the oligonucleotide
+    sequences of the best-scored motif found for each promoter sequence.
+
+All these values are retrieved by the `pscan_fullBG()` function for the input
+sequences of interest, without having to recalculate them. To visualize the
+slots use the View() function on the example PSMatrix below.
+
+```{r}
+PathFullBG <- system.file('extdata', 'full_pfm1.rds', package = 'PscanR')
+FullBG_PSM1 <- readRDS(PathFullBG)
+FullBG_PSM1
+```
 
 # Generating Custom Backgrounds
 
@@ -115,37 +178,47 @@ The first step is defining the species of interest and its genomic annotations.
 Gene annotations provide essential information about the structure and function
 of genes, including their location, the intron-exon structure, and regulatory
 elements. These annotations are crucial for downstream analysis, such as
-promoter regions definition and transcription factor binding site
+promoter regions definition and transcription factor binding site (TFBS)
 identification.
 
 The easiest way to retrieve annotation data is through UCSC using
-`txdbmaker::makeTxDbFromUCSC`, which allow direct import of genome data. You can
-modify the ***genome*** and ***tablename*** parameters based on your specie of
-interest. It is convenient to use the ***txdbmaker*** package to create a
-transcript database (TxDb) object. This serves as the foundation for defining
+`txdbmaker::makeTxDbFromUCSC`, which allow direct import of genome data. 
+You can modify the ***genome*** and ***tablename*** parameters based on your 
+specie of interest. 
+It is convenient to use the ***txdbmaker*** package to create a transcript 
+database (TxDb) object. This serves as the foundation for defining
 the promoter regions.
 
-An example with *Homo sapiens* is reported below:
+Example: Importing Human (hg38) Annotations from UCSC
 
 ```{r eval=FALSE, include=TRUE}
 txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", 
                                     tablename="ncbiRefSeqCurated")
 ```
 
-Alternatively, if the species is not present in UCSC, you can use a **GFF or GTF
-annotation file** from public repositories like **Ensembl, NCBI, or TAIR**.
-Example with *A. thaliana:*
+**Alternative: Import from GFF/GTF Files**
+
+If the species is not present in UCSC, you can use a **GFF or GTF annotation
+file** from public repositories like **Ensembl, NCBI, or TAIR**. Example with
+*A. thaliana:*
 
 ```{r eval=FALSE, include=TRUE}
-txdb <- txdbmaker::makeTxDbFromGFF('<path_to_your_file>', format = "gff3", dataSource="TAIR9", organism="Arabidopsis thaliana")
+txdb <- txdbmaker::makeTxDbFromGFF('<path_to_your_file>', 
+                                   format = "gff3", 
+                                   dataSource="TAIR9", 
+                                   organism="Arabidopsis thaliana")
 ```
 
-Another example is the most recent human genome assembly, hs1: if you are
-interested in constructing a background for this assembly, please follow the
-guidelines at <https://github.com/Bioconductor/txdbmaker/issues/1>
+### Handling the Latest Human Genome Assembly (hs1)
 
-Since we typically want to focus on main chromosomes, we can filter them
-accordingly:
+If you are working with the **most recent human genome assembly (hs1)** and 
+need to construct a background model for this version, follow the guidelines 
+provided here: <https://github.com/Bioconductor/txdbmaker/issues/1>
+
+## Filtering Chromosomes
+
+Since we typically want to focus on main chromosomes, rather than all contings,
+we can filter them accordingly:
 
 ```{r eval=FALSE, include=TRUE}
 GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24]
@@ -165,17 +238,20 @@ In bioinformatics, we can define promoter regions computationally using genomic
 annotation tools. For instance, in R, the `GenomicFeatures` package provides a
 straightforward way to extract promoter regions from a transcript database
 (`txdb`). The following command retrieves promoter sequences by selecting a
-region that extends **200 base pairs upstream** and **50 base pairs downstream**
-of the TSS:
+region that extends **200 base pairs upstream** and 
+**50 base pairs downstream** of the TSS:
 
 ```{r eval=FALSE, include=TRUE}
 # Define promoter regions
 
-prom_rng <- GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE)
+prom_rng <- GenomicFeatures::promoters(txdb, 
+                                       upstream = 200, 
+                                       downstream = 50, 
+                                       use.names = TRUE)
 ```
 
 To save time on `TxDb` object creation, we have prepared a file containing the
-promoter regions in advance.
+promoter regions.
 
 ```{r}
 promoters_path <- system.file("extdata", "promoters.rds", 
@@ -251,7 +327,8 @@ httr::set_config(httr::config(ssl_verifypeer = 0L))
 
 # Connect to the JASPAR 2024 database
 JASPAR2024 <- JASPAR2024::JASPAR2024()
-JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), JASPAR2024::db(JASPAR2024))
+JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), 
+                                    JASPAR2024::db(JASPAR2024))
 
 # Retrieve transcription factor binding matrices
 J2024 <- TFBSTools::getMatrixSet(JASPARConnect, opts)
@@ -271,18 +348,19 @@ power, it is recommended to use only **one core**.
 
 **Warning**: Using **a single core** (`BPPARAM = BiocParallel::SnowParam(1)`)
 will result in **extremely slow computation**, especially with large datasets.
-On a standard PC, the process may take **an entire day** to complete. To
-significantly reduce computation time, it is strongly recommended to run the
-analysis on a server with multiple available cores and adjust `BPPARAM`
-accordingly.
+On a standard PC, the process may take **days** to complete. To significantly
+reduce computation time, it is strongly recommended to run the analysis on a
+server with multiple available cores and adjust `BPPARAM` accordingly.
 
 In the following example, only 10 sequences are selected to reduce the
 computational time.
 
-For Windows:
+For all the systems:
 
 ```{r echo=TRUE}
-J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], JASPAR_matrices, BPPARAM = BiocParallel::SnowParam(1))
+J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], 
+                                  JASPAR_matrices, 
+                                  BPPARAM = BiocParallel::SnowParam(1))
 
 # Example for the first matrix
 J2022_PSBG[[1]]
@@ -292,8 +370,13 @@ For Unix-like systems:
 
 ```{r eval=FALSE, include=TRUE}
 # Build the Pscan background
-J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], JASPAR_matrices, BPPARAM = BiocParallel::MulticoreParam(1))
+J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], 
+                                  JASPAR_matrices, 
+                                  BPPARAM = BiocParallel::MulticoreParam(1))
 ```
+
+Refer to the 'Comparing execution time with varying processors' vignette to go
+into details of multithreading.
 
 ## Exporting the Generated Background
 
@@ -302,20 +385,23 @@ background to a file for future use.
 
 ```{r eval=FALSE, include=TRUE}
 # Export the background to a file 
-PscanR::ps_write_bg_to_file(J2022_PSBG, "J2022_mm10_450u_50d_UCSC_curated.psbg.txt")
+PscanR::ps_write_bg_to_file(J2022_PSBG, 
+                            "J2022_mm10_450u_50d_UCSC_curated.psbg.txt")
 ```
 
-# The mega background
+# The full background
 
 When dealing with multiple analysis on the same background dataset, it can be
-convenient to store an enlarged version of the background containing key metrics
-such as the score, position and oligonucleotide seuqence for each hit within the
-background, to reduce computational time.
+convenient to store an enlarged version of the background containing key 
+metrics such as the score, position and oligonucleotide sequence for each hit 
+within the background, to reduce computational time of the pscan algorithm on 
+the set of promoter sequences of interest.
 
-When you export the PSMatrixList with `ps_write_bg_to_file()` this infromation
-gets discarded to conserve memory. In fact, after the computation of the
-background mean and standard deviation, these data are no more needed since can
-be efficiently recomputed by `pscan()`.
+When you export the background PSMatrixList with `ps_write_bg_to_file(),` this
+information gets discarded to conserve memory. In fact, after the computation 
+of the background mean and standard deviation, the other background data are no
+more needed since can be recomputed by `pscan()` (just for the subset of
+promoter region of interest).
 
 Although `pscan()` supports parallel computation, making the recalculation
 relatively fast, scenarios that involve repeated analyses of the same promoter
@@ -325,28 +411,41 @@ eliminated, leading to enhanced computational efficiency, especially when
 working on large datasets or performing numerous iterations of the same
 analysis.
 
-## Mega-background Generation
+## Full-background Generation
 
-To create a mega-background dataset, you need to store the full output of the
+To create a full-background dataset, you need to store the full output of the
 `ps_build_bg()` function without discarding any computed values. This can be
-fullfilled using the `save()` function in R and by setting the megaBG flag on
-TRUE. This will generate an .RData file containing the hits score, position,
-strand, and oligonucleotide sequence, for each sequence scanned with the PWMs.
+fulfilled using the `save()` function in R and by setting the fullBG flag on
+TRUE for `ps_build_bg()`. This will generate an .RData file containing the hits
+score, position, strand, and oligonucleotide sequence, for each sequence 
+scanned with the PWMs.
 
 ## Application
 
-Once the mega-background has been created, it can be used in subsequent analyses
-to streamline computations. The `pscan_bg()` function requires two inputs:
+Once the full-background has been created, it can be used in subsequent 
+analyses  to streamline computations. The `pscan_full_bg()` function requires 
+two inputs:
 
 1.  **A vector of transcript names** -- This vector should contain the
     identifiers of the transcripts of interest.
 
-2.  **The generated mega-background dataset** -- The `.RData` file created in
+2.  **The generated full-background dataset** -- The `.RData` file created in
     the previous step.
 
-By using `pscan_bg()` with the saved mega-background, the analysis process
+By using `pscan_full_bg()` with the saved full-background, the analysis process
 becomes significantly more efficient, reducing computational overhead while
 maintaining accuracy and reproducibility.
+
+**Note:** Currently, it is not possible to use this function with the
+*Arabidopsis thaliana* organism due to the transcript nomenclature used. 
+The function is designed to handle transcript names without version extensions
+(e.g., `NM_30287` instead of `NM_30287.1`). 
+However, in *Arabidopsis thaliana*, the format typically follows a 
+`gene.transcript` pattern (e.g., `AT1G01010.1`).
+This causes the function to truncate the transcript identifier, effectively
+removing essential transcript-level information. As a result, the function may
+return incorrect results for this organism. This is valid for any organism for
+which this type of format is used.
 
 ```{r}
 # Display session information
