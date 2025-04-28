@@ -180,6 +180,9 @@ pscan_fullBG <- function(ID, full_pfms)
    # Use of all_seq_ID (mapping vector) to extract sequences name retained 
    # in full BG that have the same sequence to those inserted by the user. 
    x <- all_seq_ID[ID]
+   
+   .check_seq_duplicated(x)
+   
    x <- unique(x) 
    
    # NA removal. These correspond to sequences removed by .clean_sequence()

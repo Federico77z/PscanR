@@ -151,6 +151,14 @@
   return(destfile)
 }
 
+.check_seq_duplicated <- function(x){
+  for(i in seq_along(x)){
+    if(names(x[i]) != x[i])
+      warning(sprintf('%s will be evaluated instead of %s since they have the same 
+                      promoter region', x[i], names(x[i])))
+  }
+}
+
 #.ps_required_packages <- function()
 #{
 #  require("Biostrings")
