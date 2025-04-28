@@ -35,5 +35,6 @@ show(pfm1)
 \seealso{
 \code{\link{ps_bg_avg}}, \code{\link{ps_fg_avg}}, 
    \code{\link{ps_bg_std_dev}}, \code{\link{ps_bg_size}}, 
-   \code{\link{ps_fg_size}}, \code{\link{ps_zscore}}, \code{\link{ps_pvalue}}
+   \code{\link{ps_fg_size}}, \code{\link{ps_zscore}}, 
+   \code{\link{ps_pvalue}}
 }

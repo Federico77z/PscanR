@@ -20,9 +20,9 @@ ps_hits_pos(x, ...)
 }
 }
 \description{
-`ps_hits_pos` is a **generic function** that retrieves the positions of motif 
-hits in a given object. These positions indicate where motifs are located 
-within promoter sequences.
+`ps_hits_pos` is a **generic function** that retrieves the positions of 
+motif hits in a given object. These positions indicate where motifs are 
+located within promoter sequences.
 }
 \details{
 Methods should be implemented for specific object classes that store motif 

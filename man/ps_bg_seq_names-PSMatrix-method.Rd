@@ -27,7 +27,9 @@ The function extracts the sequence identifiers from the ps_bg_seq_names slot
 and, if applicable, assigns sequence names using .ps_bg_seq_names().
 }
 \examples{
-full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+full_pfm1_path <- system.file("extdata", 
+                              "full_pfm1.rds", 
+                              package = "PscanR")
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_bg_seq_names(full_pfm1)
 

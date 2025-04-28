@@ -20,27 +20,30 @@ and plot the results.
 \section{Main functions}{
 
 \itemize{
-   \item \code{\link{ps_retrieve_bg_from_file}}: Build background matrices 
-   from a file. 
-   \item \code{\link{pscan}}: Pscan algorithm utilization on a set 
-   of gen promoters.
-   \item \code{\link{ps_results_table}}: Data visualization. 
+   \item \code{\link{generate_psmatrixlist_from_background}}: 
+   Build background matrices from pre-computed files.
+   \item \code{\link{pscan}}: 
+   Pscan algorithm utilization on a set of gene promoters.
+   \item \code{\link{ps_results_table}}: 
+   Data visualization.
 }
 }
 
 \references{
 `Pscan` Web: \url{http://159.149.160.88/pscan/}
 
-Zambelli F, Pesole G, Pavesi G. Pscan: finding over-represented transcription 
-factor binding site motifs in sequences from co-regulated or co-expressed 
-genes. Nucleic Acids Res. 2009 Jul;37(Web Server issue):W247-52. 
-doi: 10.1093/nar/gkp464. Epub 2009 May 31. PMID: 19487240; PMCID: PMC2703934.
+Zambelli F, Pesole G, Pavesi G. Pscan: finding over-represented 
+transcription factor binding site motifs in sequences from co-regulated or 
+co-expressed genes. 
+Nucleic Acids Res. 2009 Jul;37(Web Server issue):W247-52. 
+doi: 10.1093/nar/gkp464. Epub 2009 May 31. PMID: 19487240; 
+PMCID: PMC2703934.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/Federico77z/Pscan-R}
-  \item Report bugs at \url{https://github.com/Federico77z/Pscan-R/issues}
+  \item \url{https://github.com/Federico77z/PscanR}
+  \item Report bugs at \url{https://github.com/Federico77z/PscanR/issues}
 }
 
 }

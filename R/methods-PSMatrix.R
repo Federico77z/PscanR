@@ -11,6 +11,14 @@
 #'    original sequence identifiers for the organism of study.    
 #' 
 #' @export
+#' 
+#' @examples
+#' full_pfms_path <- system.file('extdata', 
+#'                               'full_pfms.rds', 
+#'                               package = 'PscanR')
+#' full_pfms <- readRDS(full_pfms_path)
+#' head(transcriptIDLegend(full_pfms))
+#' 
 setMethod("transcriptIDLegend", "PSMatrixList", function(x) {
   out <- x@transcriptIDLegend
 
@@ -30,9 +38,9 @@ setMethod("transcriptIDLegend", "PSMatrixList", function(x) {
 #'    the function returns a single numeric value. It is included for 
 #'    consistency with other matrix-related methods.
 #' 
-#' @return A numeric value representing the background average score. This value 
-#'    is computed as the mean of the PWM scores obtained from scanning all 
-#'    promoter regions in the organism.
+#' @return A numeric value representing the background average score. 
+#'    This value is computed as the mean of the PWM scores obtained from 
+#'    scanning all promoter regions in the organism.
 #' 
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
@@ -59,9 +67,9 @@ setMethod("ps_bg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    the function returns a single numeric value. It is included for 
 #'    consistency with other matrix-related methods.
 #' 
-#' @return A numeric value representing the foreground average score. This value 
-#'    is computed as the mean of the PWM scores obtained from scanning a set of
-#'    promoter regions of genes of interest.
+#' @return A numeric value representing the foreground average score. 
+#'    This value is computed as the mean of the PWM scores obtained from 
+#'    scanning a set of promoter regions of genes of interest.
 #' 
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
@@ -172,15 +180,18 @@ setMethod("ps_hits_oligo", "PSMatrix", function(x, withDimnames = TRUE) {
 #' The function extracts the character values from the ps_hits_oligo_bg slot 
 #' and, if applicable, assigns sequence names using .ps_bg_seq_names().
 #' 
-#' These background metrics are particularly useful in motif enrichment analyses, 
-#' as they allow pscan() to compare foreground promoter sequences against a 
-#' reference distribution without the need for recomputation.
+#' These background metrics are particularly useful in motif enrichment 
+#' analyses, as they allow \code{pscan()} to compare promoter 
+#' sequences against a reference distribution without the need for 
+#' recomputation.
 #'    
 #' @return A character vector containing the sequences of motif matches 
 #'     (oligonucleotides) in the banckground set. 
 #'     
 #' @examples
-#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1_path <- system.file("extdata", 
+#'                               "full_pfm1.rds", 
+#'                               package = "PscanR")
 #' full_pfm1 <- readRDS(full_pfm1_path)
 #' ps_hits_oligo_bg(full_pfm1)
 #' 
@@ -220,8 +231,8 @@ setMethod(".ps_seq_names", "PSMatrix", function(x, out) {
 #'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
-#' @return A numeric value representing the standard deviation of the background 
-#'    PWM scores.
+#' @return A numeric value representing the standard deviation of the 
+#'    background PWM scores.
 #' 
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
@@ -321,8 +332,8 @@ setMethod("ps_hits_size", "PSMatrix", function(x, withDimnames = TRUE) {
 #' sequences when scanned with a Position Weight Matrix (PWM).
 #' 
 #' @param x A `PSMatrix` object.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
 #' @return A named numeric vector where names correspond to promoter sequence 
@@ -351,25 +362,28 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
 #' sequences when scanned with a Position Weight Matrix (PWM).
 #' 
 #' @param x A `PSMatrix` object.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
-#' @details
+#' #' @details
 #' This method is specifically designed for background datasets,
 #' where motif hit scores are precomputed for all promoter sequences. 
-#' The function extracts the scores from the ps_hits_score_bg slot and, 
-#' if applicable, assigns sequence names using .ps_bg_seq_names().
+#' The function extracts the scores from the \code{ps_hits_score_bg} slot and, 
+#' if applicable, assigns sequence names using \code{.ps_bg_seq_names()}. 
 #' 
-#' These background scores are particularly useful in motif enrichment analyses, 
-#' as they allow pscan() to compare foreground promoter sequences against a 
-#' reference distribution without the need for recomputation.  
+#' These background scores are particularly useful in motif enrichment 
+#' analyses, as they allow \code{pscan()} to compare foreground promoter 
+#' sequences against a reference distribution without the need for 
+#' recomputation.
 #'
 #' @return A named numeric vector where names correspond to promoter sequence 
 #'    identifiers and values represent their respective motif hit scores.
 #' 
 #' @examples
-#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1_path <- system.file("extdata", 
+#'                               "full_pfm1.rds", 
+#'                               package = "PscanR")
 #' full_pfm1 <- readRDS(full_pfm1_path)
 #' ps_hits_score_bg(full_pfm1)
 #' 
@@ -415,8 +429,8 @@ setMethod("ps_hits_z", "PSMatrix", function(x, withDimnames = TRUE) {
 #' Get Motif Hit Strand Information
 #' 
 #' Retrieves the strand information (`+` or `-`) of motif hits in a 
-#' `PSMatrix` object. This indicates whether a motif was detected on the forward 
-#' (`+`) or reverse (`-`) strand of the promoter sequence.
+#' `PSMatrix` object. This indicates whether a motif was detected on the 
+#' forward (`+`) or reverse (`-`) strand of the promoter sequence.
 #' The Pscan algorithm scans both the strands of the promoter sequences to 
 #' ensure that no potential binding sites are missed.
 #' 
@@ -461,19 +475,22 @@ setMethod("ps_hits_strand", "PSMatrix", function(x, withDimnames = TRUE) {
 #' @details
 #' This method is specifically designed for background datasets,
 #' where motif hit strands are precomputed for all promoter sequences. 
-#' The function extracts the strand values from the ps_hits_strand_bg slot and, 
-#' if applicable, assigns sequence names using .ps_bg_seq_names().
+#' The function extracts the strand values from the \code{ps_hits_strand_bg}
+#' slot and, if applicable, assigns sequence names using  
+#' \code{.ps_bg_seq_names()}.
 #' 
-#' These background metrics are particularly useful in motif enrichment analyses, 
-#' as they allow pscan() to compare foreground promoter sequences against a 
-#' reference distribution without the need for recomputation.
+#' These background metrics are particularly useful in motif enrichment 
+#' analyses, as they allow pscan() to compare foreground promoter sequences 
+#' against a reference distribution without the need for recomputation.
 #'    
 #' @return A named character vector where names correspond to promoter sequence 
 #'    identifiers, and values represent the strand (`+` or `-`) on which the 
 #'    motif was detected.
 #' 
 #' @examples
-#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1_path <- system.file("extdata", 
+#'                               "full_pfm1.rds", 
+#'                               package = "PscanR")
 #' full_pfm1 <- readRDS(full_pfm1_path)
 #' ps_hits_strand_bg(full_pfm1)
 #' 
@@ -534,15 +551,17 @@ setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L,
 #' The function extracts the position values from the ps_hits_pos_bg slot and, 
 #' if applicable, assigns sequence names using .ps_bg_seq_names().
 #' 
-#' These background metrics are particularly useful in motif enrichment analyses, 
-#' as they allow pscan() to compare foreground promoter sequences against a 
-#' reference distribution without the need for recomputation.
+#' These background metrics are particularly useful in motif enrichment 
+#' analyses, as they allow pscan() to compare foreground promoter sequences 
+#' against a reference distribution without the need for recomputation.
 #' 
 #' @return A named integer vector where names correspond to promoter sequence 
 #'    identifiers, and values represent the motif hit positions.
 #' 
 #' @examples
-#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1_path <- system.file("extdata", 
+#'                               "full_pfm1.rds", 
+#'                               package = "PscanR")
 #' full_pfm1 <- readRDS(full_pfm1_path)
 #' ps_hits_pos_bg(full_pfm1)
 #' 
@@ -599,7 +618,9 @@ setMethod("ps_seq_names", "PSMatrix", function(x, withDimnames = TRUE) {
 #' @return A character vector of names.
 #' 
 #' @examples
-#' full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+#' full_pfm1_path <- system.file("extdata", 
+#'                               "full_pfm1.rds", 
+#'                               package = "PscanR")
 #' full_pfm1 <- readRDS(full_pfm1_path)
 #' ps_bg_seq_names(full_pfm1)
 #' 
@@ -647,8 +668,8 @@ setMethod("all_sequences_ID", "PSMatrix", function(x, withDimnames = TRUE) {
 #'      \item `ps_hits_oligo`: a character vector of oligo sequences.}
 #' @param pos_shift Integer. Value for which the position gets shifted.
 #'    Default is `0`, meaning no shift.
-#' @param withDimnames Logical, whether to include dimension names in the output, 
-#'    if they exist in the object.
+#' @param withDimnames Logical, whether to include dimension names in the 
+#'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'  
 #' @return A `data.frame` ordered by decreasing score value, 
@@ -682,58 +703,57 @@ setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L,
 
 
 setMethod(".ps_add_hits", "PSMatrix", 
-          function(x, Pos, Strand, Score, Oligo, BG = FALSE, use_full_BG = FALSE,
-                   fullBG = FALSE, withDimnames = TRUE) {
-  
-  x@ps_hits_pos <- Pos
-  x@ps_hits_strand <- Strand
-  x@ps_hits_score <- Score
-  if (!use_full_BG)
-    x@ps_hits_score <- .ps_norm_score(x)
-  
-  if(BG)
-  {
-    ps_bg_size(x) <- length(x@ps_hits_pos)
-    ps_bg_avg(x) <- mean(x@ps_hits_score, na.rm = TRUE)
-    ps_bg_std_dev(x) <- sd(x@ps_hits_score, na.rm = TRUE)
-    if(ps_bg_std_dev(x) == 0)
-      ps_bg_std_dev(x) <- 0.00001
-    
-    if(fullBG){
-      x@ps_hits_pos_bg <- Pos
-      x@ps_hits_strand_bg <- Strand
-      x@ps_hits_score_bg <- x@ps_hits_score
-      names(x@ps_hits_score_bg) <- x@ps_bg_seq_names
-      x@ps_hits_oligo_bg <- Oligo
-    }
-    
-    x@ps_hits_pos <- integer()
-    x@ps_hits_strand <- character()
-    x@ps_hits_score <- numeric()
-  }
-  else {
-    if(!is.na(x@ps_bg_avg) && !is.na(x@ps_bg_std_dev))
-    {
-      ztest <- z.test(x@ps_hits_score, 
-                      mu = x@ps_bg_avg, 
-                      sigma.x = x@ps_bg_std_dev, 
-                      alternative = "greater")
-      
-      x@ps_zscore <- ztest$statistic["z"]
-      x@ps_pvalue <- as.numeric(ztest$p.value)
-      x@ps_fg_avg <- mean(x@ps_hits_score, na.rm = TRUE)
-      x@ps_fg_size <- length(x@ps_hits_pos)
-      x@ps_hits_oligo <- Oligo
-    }
-    
-    x@ps_hits_pos_bg <- integer()
-    x@ps_hits_strand_bg <- character()
-    x@ps_hits_score_bg <- numeric()
-    x@ps_hits_oligo_bg <- character()
-  }
-  
-  return(x)
-})
+          function(x, Pos, Strand, Score, Oligo, BG = FALSE, 
+                   use_full_BG = FALSE, fullBG = FALSE, withDimnames = TRUE) {
+            
+            x@ps_hits_pos <- Pos
+            x@ps_hits_strand <- Strand
+            x@ps_hits_score <- Score
+            if (!use_full_BG)
+              x@ps_hits_score <- .ps_norm_score(x)
+            
+            if(BG)
+              {
+              ps_bg_size(x) <- length(x@ps_hits_pos)
+              ps_bg_avg(x) <- mean(x@ps_hits_score, na.rm = TRUE)
+              ps_bg_std_dev(x) <- sd(x@ps_hits_score, na.rm = TRUE)
+              if(ps_bg_std_dev(x) == 0)
+                ps_bg_std_dev(x) <- 0.00001
+              
+              if(fullBG){
+                x@ps_hits_pos_bg <- Pos
+                x@ps_hits_strand_bg <- Strand
+                x@ps_hits_score_bg <- x@ps_hits_score
+                names(x@ps_hits_score_bg) <- x@ps_bg_seq_names
+                x@ps_hits_oligo_bg <- Oligo
+              }
+              x@ps_hits_pos <- integer()
+              x@ps_hits_strand <- character()
+              x@ps_hits_score <- numeric()
+              }
+            else {
+              if(!is.na(x@ps_bg_avg) && !is.na(x@ps_bg_std_dev)){
+                
+                ztest <- z.test(x@ps_hits_score, 
+                                mu = x@ps_bg_avg, 
+                                sigma.x = x@ps_bg_std_dev, 
+                                alternative = "greater")
+                
+                x@ps_zscore <- ztest$statistic["z"]
+                x@ps_pvalue <- as.numeric(ztest$p.value)
+                x@ps_fg_avg <- mean(x@ps_hits_score, na.rm = TRUE)
+                x@ps_fg_size <- length(x@ps_hits_pos)
+                x@ps_hits_oligo <- Oligo
+                }
+              
+              x@ps_hits_pos_bg <- integer()
+              x@ps_hits_strand_bg <- character()
+              x@ps_hits_score_bg <- numeric()
+              x@ps_hits_oligo_bg <- character()
+              }
+            return(x)
+            }
+          )
 
 
 setMethod(".ps_norm_score", "PSMatrix", function(x) {
@@ -755,7 +775,7 @@ setMethod(".ps_bg_from_table", "PSMatrix", function(x, short.matrix) {
   }
   else
   {
-    warning(paste("No background values found for", ID(x), name(x)))
+    warning(sprintf("No background values found for %s %s", ID(x), name(x)))
   }
 
   return(x)
@@ -795,8 +815,9 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' @param BG A logical value indicating whether to calculate background 
 #'    statistics.
 #'    Default is set to `FALSE`.
-#' @param use_full_BG A logical value (default is `FALSE`). If `TRUE`, the method 
-#'    assumes that the PSMatrix represent a special "full-background" set. 
+#' @param use_full_BG A logical value (default is `FALSE`). 
+#'    If `TRUE`, the method assumes that the PSMatrix represent a special 
+#'    "full-background" set. 
 #'    In this case, the `seqs` parameter should be a vector of sequence names 
 #'    (instead of actual DNA sequences). The function handles this by matching 
 #'    sequence names against precomputed background data in the `PSMatrix`.
@@ -819,15 +840,15 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' 
 #' If `use_full_BG` is set to `TRUE`, the function assumes that `seqs` contains 
 #' sequence identifiers rather than the sequences themselves. In this case, the 
-#' method matches the sequence names to those in the `PSMatrix`'s background hit 
-#' data and retrieves the corresponding binding information (score, strand, 
+#' method matches the sequence names to those in the `PSMatrix`'s background 
+#' hit data and retrieves the corresponding binding information (score, strand, 
 #' position, oligo).
 #' 
 #' When `use_full_BG` is set to `FALSE`, the function scan both the forward and 
 #' reverse complement strands of the sequences to ensure all potential binding 
-#' sites are detected. Optionally, the background statistics (background average 
-#' and standard deviation) can be computed and used during scanning when `BG` is 
-#' set to `TRUE`.
+#' sites are detected. Optionally, the background statistics 
+#' (background average and standard deviation) can be computed and used during 
+#' scanning when `BG` is set to `TRUE`.
 #' 
 #' @examples
 #' BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
@@ -854,18 +875,15 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE,
   } else {
     x@ps_seq_names <- names(seqs)
   }
-  
   seqs <- as.character(seqs)
   
   if(use_full_BG == TRUE){
     indices <- match(seqs, sub("\\..*$", "", names(x@ps_hits_score_bg)))
     
-    res <- list(
-      score = x@ps_hits_score_bg[indices],
-      strand = x@ps_hits_strand_bg[indices],
-      pos = x@ps_hits_pos_bg[indices],
-      oligo = x@ps_hits_oligo_bg[indices]
-    )
+    res <- list(score = x@ps_hits_score_bg[indices], 
+                strand = x@ps_hits_strand_bg[indices],
+                pos = x@ps_hits_pos_bg[indices],
+                oligo = x@ps_hits_oligo_bg[indices])
     
     x <- .ps_add_hits(x, Score = res$score, Strand = res$strand, Pos = res$pos, 
                       Oligo = res$oligo, BG = BG, use_full_BG = use_full_BG)
@@ -876,9 +894,9 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE,
     rc_x <- reverseComplement(x)
     
     Margs <- list(numx = as.numeric(Matrix(x)), 
-                numx_rc = as.numeric(Matrix(rc_x)),
-                ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), 
-                AB = .PS_ALPHABET(x)) 
+                  numx_rc = as.numeric(Matrix(rc_x)),
+                  ncolx = (0:(ncol(Matrix(x)) - 1))*length(.PS_ALPHABET(x)), 
+                  AB = .PS_ALPHABET(x)) 
     
     res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
     
@@ -892,7 +910,6 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE,
   }
   
   return(x)
-  
 })
 
 
@@ -953,14 +970,14 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB){
 #' @param object A `PSMatrix` object.
 #' 
 #' @details
-#' The function `validPSMatrix` ensures that the `PSMatrix` object has correctly 
-#' formatted background and foreground averages, standard deviations, 
+#' The function `validPSMatrix` ensures that the `PSMatrix` object has 
+#' correctly formatted background and foreground averages, standard deviations, 
 #' and hit-related values. 
 #' It performs the following steps:
 #' \itemize{
 #'   \item `ps_bg_avg`,`ps_fg_avg`, and `ps_bg_std_dev` must be of length 1.
-#'   \item `ps_bg_avg` and `ps_bg_std_dev` value must be between 0 and 1, 
-#'   excluding 0 for `ps_bg_std_dev`.
+#'   \item The values of \code{ps_bg_avg} and \code{ps_bg_std_dev} 
+#'   must be between 0 and 1 (excluding 0 for \code{ps_bg_std_dev}).
 #'   \item the length of `ps_hits_pos`, `ps_hits_strand`, and `ps_hits_score` 
 #'   vectors must be equal.}
 #' 
@@ -1006,7 +1023,8 @@ setValidity("PSMatrix", validPSMatrix)
 #' 
 #' @seealso \code{\link{ps_bg_avg}}, \code{\link{ps_fg_avg}}, 
 #'    \code{\link{ps_bg_std_dev}}, \code{\link{ps_bg_size}}, 
-#'    \code{\link{ps_fg_size}}, \code{\link{ps_zscore}}, \code{\link{ps_pvalue}}
+#'    \code{\link{ps_fg_size}}, \code{\link{ps_zscore}}, 
+#'    \code{\link{ps_pvalue}}
 #'    
 #' @return Prints a summary of the `PSMatrix` object, including:
 #' \itemize{

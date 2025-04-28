@@ -14,8 +14,8 @@ ps_hits_strand(x, ...)
 \value{
 \itemize{
   \item If `x` is a `PSMatrix` object: a **character vector**, where 
-  names correspond to promoter sequence identifiers, and values represent the 
-  strand (`+` or `-`) on which the motif was detected.
+  names correspond to promoter sequence identifiers, and values represent 
+  the strand (`+` or `-`) on which the motif was detected.
   \item If `x` is another supported class, the return format may differ.
 }
 }

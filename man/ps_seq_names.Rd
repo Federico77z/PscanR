@@ -15,7 +15,8 @@ ps_seq_names(x, ...)
 \itemize{
   \item If `x` is a `PSMatrix` object: a **character vector** of sequence 
   names corresponding to the analyzed promoter regions.
-  \item If `x` belongs to another supported class, the return format may vary.
+  \item If `x` belongs to another supported class, the return format may 
+  vary.
 }
 }
 \description{

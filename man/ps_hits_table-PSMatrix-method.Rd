@@ -18,8 +18,8 @@ slots:
 \item{pos_shift}{Integer. Value for which the position gets shifted.
 Default is `0`, meaning no shift.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the output, 
-if they exist in the object.
+\item{withDimnames}{Logical, whether to include dimension names in the 
+output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{

@@ -2,8 +2,8 @@
 % Please edit documentation in R/AllGenerics.R
 \name{ps_bg_std_dev}
 \alias{ps_bg_std_dev}
-\title{Compute the Background Standard Deviation Value for Motif Enrichment Analysis 
-(Generic Function)}
+\title{Compute the Background Standard Deviation Value for Motif Enrichment 
+Analysis (Generic Function)}
 \usage{
 ps_bg_std_dev(x, ...)
 }

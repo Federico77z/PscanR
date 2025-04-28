@@ -12,7 +12,8 @@ ps_hits_table(x, ...)
 \item{...}{Additional arguments passed to specific methods.}
 }
 \value{
-- If `x` is a `PSMatrix` object: a **data frame** with the following columns:
+- If `x` is a `PSMatrix` object: a **data frame** with the following 
+  columns:
   \itemize{
     \item `SCORE`: The motif hit score.
     \item `POS`: The position of the motif hit.

@@ -8,11 +8,11 @@ ps_write_bg_to_file(pfms, file)
 }
 \arguments{
 \item{pfms}{A `PSMatrixList` object of Position Weight Matrices 
-representing transcription factor binding preferences, obtained for example 
-from the JASPAR database, containing background statistics computed by 
-scanning each `PSMatrix` against the set of promoter regions of all 
-transcripts in the organism of study. The promoter regions analyzed may 
-vary. Each element should be a `PSMatrix` object or coercible to `PSMatrix`.}
+representing transcription factor binding preferences, obtained, for 
+example, from the JASPAR database. 
+Each matrix should already include background statistics 
+(e.g., computed from all promoter regions in the organism of 
+study). Each element must be a `PSMatrix` object or coercible to one.}
 
 \item{file}{A character string specifying the path to the output file where 
 the background statistics should be saved.}
@@ -27,11 +27,14 @@ for each Position Weight Matrix in a `PSMatrixList` object to a specified
 file.
 }
 \details{
-This function retrieves the background statistics (size, mean, and 
-standard deviation) using `ps_get_bg_table()` from the input `PSMatrixList` 
-object, after having validated the inputs. Then, it writes the result to a 
-specified file. 
-A header is added to the file (`[SHORT TFBS MATRIX`]).
+This function first extracts background statistics from the input `pfms` 
+using `ps_get_bg_table()`. It then writes the result to the specified file 
+in a tab-delimited format. The output file begins with a header line:
+`[SHORT TFBS MATRIX]`. This header is used internally for compatibility with 
+`ps_retrieve_bg_from_file()`, which expects it when reading.
+
+The output does not include column names; the first column contains matrix 
+identifiers, followed by `BG_SIZE`, `BG_MEAN`, and `BG_STDEV`.
 
 This function uses example datasets located in the `extdata/` directory for 
 demonstration purposes only. These files are not part of the core data used
@@ -39,7 +42,12 @@ by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
-# Load the example dataset for JASPAR2020 matrices collection for vertebrates.
+# Since the function create a .txt file in the user working directory, 
+# this example will not run automatically.
+# User can test it in the console.
+\dontrun{
+# Load the example dataset for JASPAR2020 matrices collection 
+# for vertebrates.
 J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 J2020 <- readRDS(J2020_path)
 # File path to save the result
@@ -62,7 +70,8 @@ PSM2 <- PSMatrix(
   
 PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
 
-# ps_write_bg_to_file(PSMatrixList_J2020, file_path)
+ps_write_bg_to_file(PSMatrixList_J2020, file_path)
+}
 
 }
 \seealso{

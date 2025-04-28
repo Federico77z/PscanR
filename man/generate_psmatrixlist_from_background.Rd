@@ -17,12 +17,15 @@ version. You can choose between 'JASPAR2020', 'JASPAR2022', or
 'JASPAR2024' (non case sensitive).}
 
 \item{org}{A string representing the organism acronym. Accepted values are: 
-`hs` (Homo sapiens), `mm` (Mus musculus), `at` (Arabidopsis thaliana), 
-`sc` (Saccharomyces cerevisiae), `dm` (Drosophila melanogaster).}
+`hs` (Homo sapiens),
+`mm` (Mus musculus), 
+`at` (Arabidopsis thaliana),
+`sc` (Saccharomyces cerevisiae),
+`dm` (Drosophila melanogaster).}
 
 \item{prom_reg}{A numeric vector of two integers as `[upstream, downstream]`
-bp from the transcription start site (TSS) indicating the range 
-of the promoter region. You can choose between:
+representing the promoter region relative to the TSS. 
+Allowed combinations:
 \itemize{
   \item 200 base pairs upstream and 50 downstream base pair from the TSS 
   (c(-200, 50))
@@ -37,15 +40,25 @@ mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
 For `"mm"` you can specify `"mm10"` or `"mm39"`. Default is character().}
 }
 \value{
-A `PSMatrixList` object created from the specified background 
-file and JASPAR matrix.
+A `PSMatrixList` object with background-scored motif matrices.
 }
 \description{
-This function retrieves background data for a specified organism and promoter 
-region, and then fetches a corresponding matrix set from a specified JASPAR 
-version. It returns a `PSMatrixList` object.
+This function retrieves background data for a specified organism and 
+promoter region, and then fetches a corresponding matrix set from a 
+specified JASPAR version. 
+It returns a `PSMatrixList` object with background statistics.
+}
+\details{
+The background files are downloaded from the GitHub repository:
+\url{https://github.com/dianabetelli/PscanR_backgrounds}
+This function automatically fetches the appropriate background file and 
+combines it with the specified JASPAR matrix collection to create a 
+`PSMatrixList` with background statistics.
 }
 \examples{
+# Note: when running this example, you may see a message indicating that 
+# a file is being downloaded. This is expected behavior and not an error — 
+# it simply informs you that background data is being retrieved.
 bg_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
                                                      c(-200,50), 'hg38')
 bg_matrices

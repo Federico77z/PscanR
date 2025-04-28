@@ -2,7 +2,8 @@
 % Please edit documentation in R/AllGenerics.R
 \name{ps_hits_strand_bg}
 \alias{ps_hits_strand_bg}
-\title{Retrieve Motif Hit Strand Information for the Background Dataset (Generic Function)}
+\title{Retrieve Motif Hit Strand Information for the Background Dataset 
+(Generic Function)}
 \usage{
 ps_hits_strand_bg(x, ...)
 }
@@ -14,8 +15,8 @@ ps_hits_strand_bg(x, ...)
 \value{
 \itemize{
   \item If `x` is a `PSMatrix` object: a **character vector**, where 
-  names correspond to promoter sequence identifiers, and values represent the 
-  strand (`+` or `-`) on which the motif was detected.
+  names correspond to promoter sequence identifiers, and values represent 
+  the strand (`+` or `-`) on which the motif was detected.
   \item If `x` is another supported class, the return format may differ.
 }
 }
@@ -37,13 +38,15 @@ The `ps_hits_strand_bg` function is particularly relevant for background
 datasets, which include motif scan results computed across all promoter 
 sequences.
 
-In a PSMatrixList object, the `ps_hits_strand_bg` slot is populated only for 
-background matrices (i.e., matrices derived from all promoters). This ensures 
-that the pscan() function can access precomputed metrics without recomputing 
-them, optimizing efficiency.
+In a PSMatrixList object, the `ps_hits_strand_bg` slot is populated only 
+for background matrices (i.e., matrices derived from all promoters). 
+This ensures that the pscan() function can access precomputed metrics 
+without recomputing them, optimizing efficiency.
 }
 \examples{
-full_pfm1_path <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
+full_pfm1_path <- system.file("extdata", 
+                              "full_pfm1.rds", 
+                              package = "PscanR")
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_hits_strand_bg(full_pfm1)
 
