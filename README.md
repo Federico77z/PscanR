@@ -4,12 +4,10 @@
 
 PscanR is implemented as a Bioconductor-ready package leveraging core functionalities from estabilished packages such as *Biostrings*, *TFBSTools*, *BiocParallel*, and others. A key feature of our implementation is the extension of the *PFMatrixList* S4 class from TFBSTools into a new PSMatrixList class, which handles most of the data processing and manipulation tasks.
 
-# Installation from Bioconductor
+# Installation from GitHub
 
 ```{r}
-if (!requireNamespace('BiocManager', quietly=TRUE))
-    install.packages('BiocManager')
-BiocManager::install('PscanR')
+devtools::install_github("Federico77z/PscanR")
 ```
 
 # Vignettes
