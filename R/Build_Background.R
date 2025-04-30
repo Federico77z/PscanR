@@ -552,10 +552,10 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
   file_name <- paste0('J', Jversion, '_', org_assembly, '_', p_up, 'u_', p_down, 
                       'd_', file_suffix)
   
-  AvailableBG <- readLines(.download_available_backgrounds())
+  AvailableBG <- get_availableBG()
   
   if(!(file_name %in% AvailableBG))
-    stop(sprintf("Invalid file name: '%s'\n\nYou can download the list of available files from this URL:\n https://raw.githubusercontent.com/dianabetelli/PscanR_backgrounds/refs/heads/main/AvailableBG.txt ", 
+    stop(sprintf("Invalid file name: '%s'\n\nPlease run 'get_availableBG()' to see the list of available background files", 
                  file_name))
   
   BG_path <- .download_background(file = file_name, destfile = destfile)
