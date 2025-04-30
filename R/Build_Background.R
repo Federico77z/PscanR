@@ -82,13 +82,6 @@
 #' background-scored against the sequences in `x`. 
 #' 
 #' @seealso \code{\link{pscan_fullBG}}, \code{\link{ps_write_bg_to_file}}
-#'
-#' @importFrom txdbmaker makeTxDbFromUCSC 
-#' @importFrom GenomicFeatures promoters
-#' @importFrom Biostrings getSeq
-#' @importFrom TFBSTools getMatrixSet
-#' @import BSgenome.Hsapiens.UCSC.hg38
-#' @import JASPAR2020
 #' 
 #' @examples
 #' # Note that the generation of the example may take few minutes
@@ -200,8 +193,6 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
 #' background-scored using the values provided in `file`. 
 #' See `ps_build_bg_from_table` for more details.
 #' 
-#' @importFrom TFBSTools getMatrixSet
-#' 
 #' @examples
 #' # Load a background information file
 #' file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
@@ -273,8 +264,6 @@ ps_retrieve_bg_from_file <- function(file, pfms)
 #' @return 
 #' A `PSMatrixList` object containing each motif from `pfms`, 
 #' enriched with background scoring parameters from `x`.
-#' 
-#' @importFrom TFBSTools getMatrixSet
 #'
 #' @examples
 #' # create the `data.frame`
@@ -337,7 +326,6 @@ ps_build_bg_from_table <- function(x, pfms)
 #'   \item `BG_STDEV`: A numeric vector containing the standard deviation 
 #'   of the background hits score for each PSM. 
 #' }
-#' @importFrom TFBSTools getMatrixSet
 #' 
 #' @details
 #' 
@@ -419,8 +407,6 @@ ps_get_bg_table <- function(pfms)
 #'
 #' @return None. It saves the given background statistics to the specified file
 #' in a tab-delimited format.
-#' 
-#' @importFrom TFBSTools getMatrixSet
 #'
 #' @examples
 #' # Since the function create a .txt file in the user working directory, 
@@ -528,6 +514,7 @@ ps_write_bg_to_file <- function(pfms, file)
 #' bg_matrices[[4]]
 #' 
 #' @import httr
+#' @importFrom TFBSTools getMatrixSet
 generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
                                                   assembly = character()){
   
