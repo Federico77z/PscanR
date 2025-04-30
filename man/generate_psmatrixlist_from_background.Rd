@@ -8,7 +8,9 @@ generate_psmatrixlist_from_background(
   JASPAR_matrix,
   org,
   prom_reg,
-  assembly = character()
+  assembly = character(),
+  version = "1",
+  destfile = NULL
 )
 }
 \arguments{
@@ -38,6 +40,19 @@ Allowed combinations:
 \item{assembly}{A string representing the assembly version for Human or 
 mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
 For `"mm"` you can specify `"mm10"` or `"mm39"`. Default is character().}
+
+\item{version}{A string indicating the version number of the desired 
+background. Since annotations may evolve over time, multiple versions 
+of the same background could exist. Default is '1', corresponding 
+to the first set of backgrounds generated between late 2024 and early 2025. 
+Currently, only this initial version is available.}
+
+\item{destfile}{A string indicating the path where the downloaded background 
+.txt file should be saved. This tab-separated file contains the matrix 
+identifiers, background size, average background score, and standard 
+deviation. See \code{\link{ps_retrieve_bg_from_file}} for details on how to 
+use this file. Default is NULL, so the file is not saved in user's working 
+environment.}
 }
 \value{
 A `PSMatrixList` object with background-scored motif matrices.

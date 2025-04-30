@@ -159,6 +159,18 @@
   }
 }
 
+.download_available_backgrounds <- function(destfile=NULL){
+  if (is.null(destfile)) {
+    destfile <- file.path(tempdir(), "AvailableBG.txt")
+  }
+  
+  URL <- 'https://raw.githubusercontent.com/dianabetelli/PscanR_backgrounds/refs/heads/main/AvailableBG.txt'
+  
+  utils::download.file(URL, destfile, mode = 'wb')
+  
+  return(destfile)
+}
+
 #.ps_required_packages <- function()
 #{
 #  require("Biostrings")
