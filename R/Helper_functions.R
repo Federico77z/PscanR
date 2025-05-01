@@ -159,6 +159,34 @@
   }
 }
 
+.download_available_backgrounds <- function(destfile=NULL){
+  if (is.null(destfile)) {
+    destfile <- file.path(tempdir(), "AvailableBG.txt")
+  }
+  
+  URL <- 'https://raw.githubusercontent.com/dianabetelli/PscanR_backgrounds/refs/heads/main/AvailableBG.txt'
+  
+  utils::download.file(URL, destfile, mode = 'wb')
+  
+  return(destfile)
+}
+
+#' @import httr
+#' @export
+get_availableBG <- function() {
+  
+  url <- 'https://api.github.com/repos/dianabetelli/PscanR_backgrounds/contents/BG_files'
+  
+  response <- httr::GET(url)
+  
+  httr::stop_for_status(response)
+  
+  files_info <- content(response)
+  file_names <- sapply(files_info, function(file) file$name)
+  
+  return(file_names)
+}
+
 #.ps_required_packages <- function()
 #{
 #  require("Biostrings")

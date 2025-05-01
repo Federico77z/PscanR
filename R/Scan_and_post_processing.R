@@ -576,11 +576,17 @@ ps_z_table <- function(pfms)
 #'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
+#' # Note: the plot may not appear when running this in non-interactive 
+#' # environments. Run the function directly in the R console to view the 
+#' # heatmap.
+#' 
 #' ps_zscore_heatmap(results, FDR = 0.05)
 #' 
 #' @export 
 #' @import pheatmap 
 #' @importFrom utils modifyList
+#' @importFrom grDevices colorRampPalette
+#' @importFrom grid grid.newpage grid.draw
 ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 {
   res_table <- ps_results_table(pfms)
@@ -605,7 +611,9 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
   
   z_table_reduced <- z_table[,tf_to_plot]
   
-  do.call(pheatmap, c(list(z_table_reduced), final_args))
+  res <- do.call(pheatmap::pheatmap, c(list(z_table_reduced), final_args))
+  grid::grid.newpage()
+  grid::grid.draw(res$gtable)
   
   invisible(z_table_reduced)
 }
@@ -672,12 +680,18 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 #'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
+#' # Note: the plot may not appear when running this in non-interactive 
+#' # environments. Run the function directly in the R console to view the 
+#' #heatmap.
+#' 
 #' ps_hitpos_map(results)
 #' 
 #' 
 #' @export
 #' @import pheatmap 
+#' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
+#' @importFrom grid grid.newpage grid.draw
 ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 {
   res_table <- ps_results_table(pfms)
@@ -708,7 +722,9 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
   colnames(pos_mat) <- res_table$NAME[topn]
   rownames(pos_mat) <- ps_seq_names(pfms[[1]])
   
-  do.call(pheatmap, c(list(pos_mat), final_args))
+  res <- do.call(pheatmap::pheatmap, c(list(pos_mat), final_args))
+  grid::grid.newpage()
+  grid::grid.draw(res$gtable)
   
   invisible(pos_mat)
 }
@@ -882,8 +898,8 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' ps_score_position_BubbleChart(pfm1)
 #' 
 #' @export
-#' @import dplyr 
 #' @import ggplot2
+#' @import dplyr 
 ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue', 
                                           alpha = 0.5, st = 'all', 
                                           pos_range = NULL)
@@ -914,8 +930,7 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue',
     group_by(Position, Score) %>%
     summarise(Count = n(), .groups = "drop")
   
-  ggplot(data_sum, aes(x = data_sum$Position, y = data_sum$Score, 
-                       size = data_sum$Count)) +
+  ggplot(data_sum, aes(x = Position, y = Score, size = Count)) +
     geom_point(alpha = alpha, color = bubble_color) +
     scale_size_continuous(guide = guide_legend(title = "Occurrences")) +
     labs(x = "PS Hits Position", y = "PS Hits Score", 

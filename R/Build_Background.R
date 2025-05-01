@@ -82,13 +82,6 @@
 #' background-scored against the sequences in `x`. 
 #' 
 #' @seealso \code{\link{pscan_fullBG}}, \code{\link{ps_write_bg_to_file}}
-#'
-#' @importFrom txdbmaker makeTxDbFromUCSC 
-#' @importFrom GenomicFeatures promoters
-#' @importFrom Biostrings getSeq
-#' @importFrom TFBSTools getMatrixSet
-#' @import BSgenome.Hsapiens.UCSC.hg38
-#' @import JASPAR2020
 #' 
 #' @examples
 #' # Note that the generation of the example may take few minutes
@@ -200,8 +193,6 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
 #' background-scored using the values provided in `file`. 
 #' See `ps_build_bg_from_table` for more details.
 #' 
-#' @importFrom TFBSTools getMatrixSet
-#' 
 #' @examples
 #' # Load a background information file
 #' file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", 
@@ -273,8 +264,6 @@ ps_retrieve_bg_from_file <- function(file, pfms)
 #' @return 
 #' A `PSMatrixList` object containing each motif from `pfms`, 
 #' enriched with background scoring parameters from `x`.
-#' 
-#' @importFrom TFBSTools getMatrixSet
 #'
 #' @examples
 #' # create the `data.frame`
@@ -337,7 +326,6 @@ ps_build_bg_from_table <- function(x, pfms)
 #'   \item `BG_STDEV`: A numeric vector containing the standard deviation 
 #'   of the background hits score for each PSM. 
 #' }
-#' @importFrom TFBSTools getMatrixSet
 #' 
 #' @details
 #' 
@@ -419,8 +407,6 @@ ps_get_bg_table <- function(pfms)
 #'
 #' @return None. It saves the given background statistics to the specified file
 #' in a tab-delimited format.
-#' 
-#' @importFrom TFBSTools getMatrixSet
 #'
 #' @examples
 #' # Since the function create a .txt file in the user working directory, 
@@ -506,6 +492,17 @@ ps_write_bg_to_file <- function(pfms, file)
 #' @param assembly A string representing the assembly version for Human or 
 #'   mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
 #'   For `"mm"` you can specify `"mm10"` or `"mm39"`. Default is character().
+#' @param version A string indicating the version number of the desired 
+#'   background. Since annotations may evolve over time, multiple versions 
+#'   of the same background could exist. Default is '1', corresponding 
+#'   to the first set of backgrounds generated between late 2024 and early 2025. 
+#'   Currently, only this initial version is available. 
+#' @param destfile A string indicating the path where the downloaded background 
+#'   .txt file should be saved. This tab-separated file contains the matrix 
+#'   identifiers, background size, average background score, and standard 
+#'   deviation. See \code{\link{ps_retrieve_bg_from_file}} for details on how to 
+#'   use this file. Default is NULL, so the file is not saved in user's working 
+#'   environment. 
 #'   
 #' @details
 #' The background files are downloaded from the GitHub repository:
@@ -528,39 +525,40 @@ ps_write_bg_to_file <- function(pfms, file)
 #' bg_matrices[[4]]
 #' 
 #' @import httr
+#' @importFrom TFBSTools getMatrixSet
 generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg, 
-                                                  assembly = character()){
+                                                  assembly = character(),
+                                                  version = '1',
+                                                  destfile = NULL){
   
   organism_map <- c("hs" = assembly, "mm" = assembly, "at" = "TAIR9", 
                        "sc" = "sacCer3", "dm" = "dm6")
   tax_map <- c('hs' = 'vertebrates', 'mm' = 'vertebrates', 'at' = 'plants',
                   'sc' = 'fungi','dm' = 'insects') 
   
-  org_assembly <- organism_map[[org]]
-  if(is.null(org_assembly))
-    stop("Invalid organism acronym. Choose between: 'hs', 'mm', 'at', 'sc', 
-         'dm'.")
+  org_assembly <- if (org %in% names(organism_map)) organism_map[[org]] else NULL
   
-  valid_JASPAR <- c("JASPAR2020", "JASPAR2022", "JASPAR2024")
   J_name <- toupper(JASPAR_matrix)
-  if(!(J_name %in% valid_JASPAR))
-    stop("Invalid database. Choose between: 'JASPAR2020', 'JASPAR2022', 
-    'JASPAR2024' (non case sensitive).")
+
+  Jversion <- substr(JASPAR_matrix,7, 10)
   
-  version <- substr(JASPAR_matrix,7, 10)
-  
-  if(length(prom_reg) != 2 || !is.numeric(prom_reg))
-    stop("Promoter region must be a numeric vector with two integer.")
   p_up <- abs(prom_reg[1])
   p_down <- abs(prom_reg[2])
   
-  file_suffix <- ifelse(org_assembly == "TAIR9", "TAIR.psbg.txt", 
-                        "UCSC.psbg.txt")
+  file_suffix <- ifelse(org_assembly == "TAIR9", 
+                        sprintf("TAIR.psbg%s.txt", version),
+                        sprintf("UCSC.psbg%s.txt", version))
   
-  file_name <- paste0('J', version, '_', org_assembly, '_', p_up, 'u_', p_down, 
+  file_name <- paste0('J', Jversion, '_', org_assembly, '_', p_up, 'u_', p_down, 
                       'd_', file_suffix)
   
-  BG_path <- .download_background(file = file_name)
+  AvailableBG <- get_availableBG()
+  
+  if(!(file_name %in% AvailableBG))
+    stop(sprintf("Invalid file name: '%s'\n\nPlease run 'get_availableBG()' to see the list of available background files", 
+                 file_name))
+  
+  BG_path <- .download_background(file = file_name, destfile = destfile)
   
   opts <- list("collection" = "CORE", "tax_group" = tax_map[[org]])
   

@@ -4,33 +4,39 @@ Title: Motif Enrichment Analysis of Regulatory DNA Sequences
 Version: 0.99.0
 Encoding: UTF-8
 Depends: R (>= 4.4.0), BSDA (>= 1.2)
-Imports: 
-    Biostrings (>= 2.64), 
-    TFBSTools (>= 1.34), 
-    BiocParallel (>= 1.30), 
-    GenomicFeatures (>= 1.48), 
-    BSgenome.Hsapiens.UCSC.hg38 (>= 1.4), 
-    dplyr, 
-    ggplot2, 
-    pheatmap, 
-    txdbmaker (>= 1.0.1), 
-    JASPAR2024, 
-    RSQLite, 
+Imports:
+    BiocParallel (>= 1.30),
     BiocGenerics (>= 0.40.0),
-    JASPAR2020 (>= 0.99), 
+    Biostrings (>= 2.64),
+    dplyr,
+    ggplot2,
+    graphics,
+    grDevices (>= 3.6.2),
+    grid,
+    httr,
     methods,
-    httr
+    pheatmap,
+    RSQLite,
+    stats,
+    TFBSTools (>= 1.34),
+    utils
 Suggests: 
+    BiocStyle,
+    BSgenome (>= 1.64),
+    BSgenome.Hsapiens.UCSC.hg38 (>= 1.4),
+    BSgenome.Mmusculus.UCSC.mm10 (>= 1.4),
+    GenomicFeatures (>= 1.48),
+    GenomeInfoDb,
+    JASPAR2016 (>= 1.24),
+    JASPAR2018 (>= 1.1.1),
+    JASPAR2020 (>= 0.99),
     JASPAR2022 (>= 0.99), 
-    JASPAR2018 (>= 1.1.1), 
-    JASPAR2016 (>= 1.24), 
-    BSgenome (>= 1.64), 
-    BSgenome.Mmusculus.UCSC.mm10 (>= 1.4), 
+    JASPAR2024 (>= 0.99),
+    knitr,
     RMariaDB, 
-    knitr, 
     rmarkdown, 
-    testthat (>= 3.0.0), 
-    BiocStyle
+    testthat (>= 3.0.0),
+    txdbmaker (>= 1.0.1)
 biocViews: SequenceMatching, MotifDiscovery, Transcription,
    Alignment, GeneRegulation, MotifAnnotation
 Date: 2022-12-05

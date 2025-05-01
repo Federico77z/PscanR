@@ -75,6 +75,10 @@ results <- pscan(prom_seq, J2020_PSBG,
                  BPPARAM = BiocParallel::SnowParam(1))
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
+# Note: the plot may not appear when running this in non-interactive 
+# environments. Run the function directly in the R console to view the 
+# heatmap.
+
 ps_zscore_heatmap(results, FDR = 0.05)
 
 }
