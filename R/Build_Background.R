@@ -599,14 +599,14 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #'    \item To filter by promoter region, use strings like '500u_0d', where 'u' 
 #'    stands for 'upstream' and 'd' for 'downstream'
 #'    \item You may also filter by version number, e.g., '1.txt'.
-#'    \item Multiple keywords can be combined (e.g., 'hs1.*450d_50u').}
+#'    \item Multiple keywords can be combined (e.g., 'hs1.*450u_50d').}
 #' 
 #' @seealso \code{\link{generate_psmatrixlist_from_background}}, \code{\link{ps_retrieve_bg_from_file}}
 #' 
 #' @examples
 #' head(get_availableBG())
 #' get_availableBG('mm10')
-#' get_availableBG('hs1.*450d_50u') 
+#' get_availableBG('hs1.*450u_50d') 
 #' 
 #' @import httr
 #' @export
