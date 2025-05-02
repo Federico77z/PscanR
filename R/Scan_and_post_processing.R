@@ -370,6 +370,10 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
 #'    metadata (foreground and background statistics). Typically is the output 
 #'    of `pscan()` or `pscan_fullBG()` functions. 
+#' @param FDR_threshold A numeric value indicating the maximum false discovery 
+#'    rate (FDR) allowed for filtering the result table. 
+#'    Only rows with FDR <= FDR_threshold will be retained. 
+#'    Defaul is 1, so all the results are displayed. 
 #'
 #' @return
 #' A data.frame with matrices ordered by increasing P.VALUE and decreasing 
@@ -423,11 +427,11 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
-#' ps_results_table(results)
+#' ps_results_table(results, FDR_threshold = 10e-2)
 #' 
 #' @export
 #' @importFrom stats p.adjust
-ps_results_table <- function(pfms)
+ps_results_table <- function(pfms, FDR_threshold = 1)
 {
   
   .ps_checks2(pfms)
@@ -442,6 +446,8 @@ ps_results_table <- function(pfms)
   tbl <- data.frame("NAME" = name(pfms), "BG_AVG" = bg_v, "BG_STDEV" = std_v, 
              "FG_AVG" = fg_v, "ZSCORE" = zs_v, 
              "P.VALUE" = pv_v, "FDR" = fdr_v, row.names = ID(pfms))
+  
+  tbl <- tbl[tbl$FDR <= FDR_threshold,]
   
   tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE,TRUE))),]
 }
