@@ -171,22 +171,6 @@
   return(destfile)
 }
 
-#' @import httr
-#' @export
-get_availableBG <- function() {
-  
-  url <- 'https://api.github.com/repos/dianabetelli/PscanR_backgrounds/contents/BG_files'
-  
-  response <- httr::GET(url)
-  
-  httr::stop_for_status(response)
-  
-  files_info <- content(response)
-  file_names <- sapply(files_info, function(file) file$name)
-  
-  return(file_names)
-}
-
 #.ps_required_packages <- function()
 #{
 #  require("Biostrings")
