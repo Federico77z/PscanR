@@ -576,3 +576,60 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
   
   ps_retrieve_bg_from_file(BG_path, J_matrix)
 }
+
+#' Get Available Pre-Computed Background Files 
+#' 
+#' This function retrieves the names of all available .txt files containing 
+#' background information, that serves for the construction of the background 
+#' PSMatrixList. If a keyword is specified, the function will return only the 
+#' file names that contains that string. Note that the filtering parameter 
+#' works only if you know the nomenclature used to name the file. See the 
+#' details paragraph for further informations. 
+#' 
+#' @param keyword A string to filter the file names. Default is NULL, so the 
+#'    complete list of available file names is printed
+#' 
+#' @details
+#' Some information for the filtering: 
+#' \itemize{
+#'    \item Type of collection: To filter by JASPAR version, 
+#'    search by year prefixed by 'J', e.g., 'J2020'.
+#'    \item To filter by genome assembly, use assembly identifiers like 
+#'    'mm10' or 'mm39'.
+#'    \item To filter by promoter region, use strings like '500u_0d', where 'u' 
+#'    stands for 'upstream' and 'd' for 'downstream'
+#'    \item You may also filter by version number, e.g., '1.txt'.
+#'    \item Multiple keywords can be combined (e.g., 'hs1.*450d_50u').}
+#' 
+#' @seealso \code{\link{generate_psmatrixlist_from_background}}, \code{\link{ps_retrieve_bg_from_file}}
+#' 
+#' @examples
+#' head(get_availableBG())
+#' get_availableBG('mm10')
+#' get_availableBG('hs1.*450d_50u') 
+#' 
+#' @import httr
+#' @export
+get_availableBG <- function(keyword = NULL) {
+  
+  url <- 'https://api.github.com/repos/dianabetelli/PscanR_backgrounds/contents/BG_files'
+  
+  response <- httr::GET(url)
+  
+  httr::stop_for_status(response)
+  
+  files_info <- content(response)
+  file_names <- sapply(files_info, function(file) file$name)
+  
+  if(!is.null(keyword)){
+    if(!is.character(keyword))
+      stop('Keyword parameter must be a string')
+    filtered_file_names <- file_names[grep(keyword, file_names)]
+    if(length(filtered_file_names)!=0)
+      return(filtered_file_names)
+    else
+      stop('Found 0 match with: ', keyword)
+  }
+  else
+    return(file_names)
+}
