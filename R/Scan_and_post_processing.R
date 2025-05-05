@@ -294,14 +294,11 @@ pscan_fullBG <- function(ID, full_pfms)
 #' 
 #' liver_proms_seq <- prom_seq[sub('\\..*$', '', names(prom_seq)) %in% liver_IDs]
 #' 
-#' prova_funzione <- PscanFiltered(liver_proms_seq, 
-#'                                 JM, 
-#'                                 background = bg, 
-#'                                 BPPARAM = BiocParallel::SnowParam(1))
+#' res <- PscanFiltered(liver_proms_seq, 
+#'                      JM, 
+#'                      background = bg, 
+#'                      BPPARAM = BiocParallel::SnowParam(1))
 #' 
-#' ps_pscan_result <- pscan(liver_proms_seq, 
-#'                          bg, 
-#'                          BPPARAM = BiocParallel::SnowParam(1))
 #' }
 #' 
 #' @export
@@ -582,17 +579,12 @@ ps_z_table <- function(pfms)
 #'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
-#' # Note: the plot may not appear when running this in non-interactive 
-#' # environments. Run the function directly in the R console to view the 
-#' # heatmap.
-#' 
 #' ps_zscore_heatmap(results, FDR = 0.05)
 #' 
 #' @export 
 #' @import pheatmap 
 #' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
-#' @importFrom grid grid.newpage grid.draw
 ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 {
   res_table <- ps_results_table(pfms)
@@ -618,8 +610,6 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
   z_table_reduced <- z_table[,tf_to_plot]
   
   res <- do.call(pheatmap::pheatmap, c(list(z_table_reduced), final_args))
-  grid::grid.newpage()
-  grid::grid.draw(res$gtable)
   
   invisible(z_table_reduced)
 }
@@ -686,10 +676,6 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 #'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
-#' # Note: the plot may not appear when running this in non-interactive 
-#' # environments. Run the function directly in the R console to view the 
-#' #heatmap.
-#' 
 #' ps_hitpos_map(results)
 #' 
 #' 
@@ -697,7 +683,6 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 #' @import pheatmap 
 #' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
-#' @importFrom grid grid.newpage grid.draw
 ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 {
   res_table <- ps_results_table(pfms)
@@ -729,8 +714,6 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
   rownames(pos_mat) <- ps_seq_names(pfms[[1]])
   
   res <- do.call(pheatmap::pheatmap, c(list(pos_mat), final_args))
-  grid::grid.newpage()
-  grid::grid.draw(res$gtable)
   
   invisible(pos_mat)
 }
@@ -948,7 +931,7 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue',
 #' Object
 #' 
 #' This function visualizes the density plot of distances between identified 
-#' hits sites in two `PSMatrix` object. The distance between hits is calculated 
+#' hit sites in two `PSMatrix` object. The distance between hits is calculated 
 #' for each sequence that is present in both matrices. 
 #' It allows to filter the identified sites based on a specified threshold 
 #' value. 

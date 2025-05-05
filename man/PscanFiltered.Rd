@@ -102,14 +102,11 @@ liver_IDs <- liver_IDs[,1]
 
 liver_proms_seq <- prom_seq[sub('\\\\..*$', '', names(prom_seq)) \%in\% liver_IDs]
 
-prova_funzione <- PscanFiltered(liver_proms_seq, 
-                                JM, 
-                                background = bg, 
-                                BPPARAM = BiocParallel::SnowParam(1))
+res <- PscanFiltered(liver_proms_seq, 
+                     JM, 
+                     background = bg, 
+                     BPPARAM = BiocParallel::SnowParam(1))
 
-ps_pscan_result <- pscan(liver_proms_seq, 
-                         bg, 
-                         BPPARAM = BiocParallel::SnowParam(1))
 }
 
 }
