@@ -7,7 +7,7 @@ output:
     toc: true
     toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{2. How to Generate a Background Model for PscanR algorithm}
+  %\VignetteIndexEntry{3. How to Generate a Background Model for PscanR algorithm}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
