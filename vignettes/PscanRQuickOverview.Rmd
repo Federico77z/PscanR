@@ -1,0 +1,124 @@
+---
+title: "PscanR Quick Overview"
+author: "Diana Betelli"
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{1. PscanR Quick Overview}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This document provides a Quick Overview of most, but not all, functions contained in the `PscanR` package, which is used for motif enrichment analysis in promoter sequences.  
+For a comprehensive reference, please consult the `PscanR` Reference Manual.
+
+<hr />
+
+## Table 1: PscanR main functions for Motif Enrichment Analysis
+
+<table style="border-collapse: collapse; width: 100%;">
+  <thead>
+    <tr>
+      <th style="width:20%; border-bottom: 2px solid #ccc;">Function</th>
+      <th style="width:80%; border-bottom: 2px solid #ccc;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>pscan()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Scans a set of promoter sequences with motif matrices to compute the binding affinity scores and assesses motif enrichment against a background.</td>
+    </tr>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>pscan_fullBG()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Uses a pre-computed full background containing the binding affinity scores for all promoters in the organism of study, and it retrieves the scores for the sequences in input (a subset of promoters) to avoid redundant calculation and speed up the analysis.  </td>
+    </tr>
+    <tr>
+      <td><code>PscanFiltered()</code></td>
+      <td>Applies the Pscan algorithm to sequences filtered based on their affinity with a specific motif matrix, allowing focused analysis on relevant sequences.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+## Table 2: Background construction
+
+We refer to ‘Background’ as the collection of scores obtained by scanning any promoter sequence of the organism of study against the set of motif matrices that are investigated for the motif enrichment analysis (can be sourced from public databases such as JASPAR).
+
+<table style="border-collapse: collapse; width: 100%;">
+  <thead>
+    <tr>
+      <th style="width:30%; border-bottom: 2px solid #ccc;">Function</th>
+      <th style="width:70%; border-bottom: 2px solid #ccc;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>ps_build_bg()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Constructs the background by applying the pscan() algorithm to all annotated promoter sequences of the organism.</td>
+    </tr>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>generate_psmatrixlist_from_background()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Retrieves pre-computed background. </td>
+    </tr>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>get_availableBG()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Displays the names of all available precomputed backgrounds, with options to filter by keywords.</td>
+    </tr>
+    <tr>
+      <td><code>ps_retrieve_bg_from_file()</code></td>
+      <td>Generates a background from a text file containing background information for each matrix, including ID, background size, average score, and standard deviation.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+## Table 3: Visualization of the results
+
+<table style="border-collapse: collapse; width: 100%;">
+  <thead>
+    <tr>
+      <th style="width:25%; border-bottom: 2px solid #ccc;">Function</th>
+      <th style="width:85%; border-bottom: 2px solid #ccc;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>ps_results_table()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Displays a summary table of results, ordered by increasing p-values. Transcription factors can be filtered based on a specified false discovery rate (FDR) threshold.</td>
+    </tr>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>ps_z_table()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Creates a matrix of Z-scores for motif occurrences across multiple PSMatrices contained in a PSMatrixList.</td>
+    </tr>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>ps_zscore_heatmap()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Generates a heatmap visualizing the correlation of Z-scores for transcription factors, based on a specified FDR threshold.</td>
+    </tr>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>ps_hitpos_map()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Produces a heatmap showing the positional distribution of motif hits, aiding in the identification of common binding regions.</td>
+    </tr>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>ps_density_plot()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Creates a density plot representing the distribution of hits along promoter sequences, based on their position and score for a specific position weight matrix (PWM).</td>
+    </tr>
+    <tr>
+      <td style="border-bottom: 1px solid #ddd;"><code>ps_score_position_BubbleChart()</code></td>
+      <td style="border-bottom: 1px solid #ddd;">Generates a bubble chart to visualize the relationship between the position and score of identified sites along promoter sequences in a PSMatrix object.</td>
+    </tr>
+    <tr>
+      <td><code>ps_density_distances_plot()</code></td>
+      <td>Visualizes the density plot of distances between identified hit sites in two PSMatrix objects, calculating distances for each sequence present in both matrices.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+```{r}
+# Display session information
+sessionInfo()
+```

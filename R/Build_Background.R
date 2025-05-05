@@ -603,6 +603,8 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #' 
 #' @seealso \code{\link{generate_psmatrixlist_from_background}}, \code{\link{ps_retrieve_bg_from_file}}
 #' 
+#' @return A character vector containing the names of the available background files
+#' 
 #' @examples
 #' head(get_availableBG())
 #' get_availableBG('mm10')
@@ -619,7 +621,7 @@ get_availableBG <- function(keyword = NULL) {
   httr::stop_for_status(response)
   
   files_info <- content(response)
-  file_names <- sapply(files_info, function(file) file$name)
+  file_names <- vapply(files_info, function(file) file$name, character(1))
   
   if(!is.null(keyword)){
     if(!is.character(keyword))
