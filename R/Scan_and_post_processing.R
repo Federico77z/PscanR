@@ -599,7 +599,10 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
   labels_col = res_table$NAME[topn], 
   clustering_distance_rows = "correlation",
   clustering_distance_cols = "correlation",
-  clustering_method = "complete")
+  clustering_method = "complete",
+  fontsize = 10,            
+  fontsize_row = 6,         
+  fontsize_col = 6)
   
   user_args <- list(...)
   
@@ -696,7 +699,9 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
                    fontsize = 10, show_rownames = FALSE, scale = "none",
                    clustering_distance_rows = "manhattan",
                    clustering_distance_cols = "manhattan", 
-                   clustering_method = "average"
+                   clustering_method = "average",
+                   fontsize_row = 6,         
+                   fontsize_col = 6
   )
   
   user_args <- list(...)
@@ -809,7 +814,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
   density_hits <- density(ps_hits_pos(pfm, pos_shift = shift)[g_scores])
   
   plot(density_hits, 
-       main = paste(name(pfm), "hits density on", sum_g, "promoters"),
+       main = paste(name(pfm), "binding site density across", sum_g, "promoter regions"),
        xlab = "Position along promoters",
        ylab = "Density",
        col = "blue",
@@ -919,11 +924,14 @@ ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue',
     group_by(Position, Score) %>%
     summarise(Count = n(), .groups = "drop")
   
+  breaks_vals <- sort(unique(data_sum$Count))
+  
   ggplot(data_sum, aes(x = Position, y = Score, size = Count)) +
     geom_point(alpha = alpha, color = bubble_color) +
-    scale_size_continuous(guide = guide_legend(title = "Occurrences")) +
+    scale_size(breaks = breaks_vals, 
+               guide = guide_legend(title = "Occurrences")) +
     labs(x = "PS Hits Position", y = "PS Hits Score", 
-         title = paste(pfm@name, "Bubble Chart of Score vs Position Hits")) +
+         title = paste("Bubble Chart of", pfm@name, "Binding Score by Position")) +
     theme_minimal()
 }
 
@@ -1032,7 +1040,7 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
   density_distances <- density(distances)
   
   plot(density_distances, 
-       main = paste(M1@name, 'and', M2@name, 'distances density plot'),
+       main = paste(M1@name, '-', M2@name, 'Binding Site Distance Distribution'),
        xlab = "Distances between the identified sites",
        ylab = "Density",
        col = "blue",
