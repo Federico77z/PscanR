@@ -20,10 +20,12 @@ Imports:
     TFBSTools (>= 1.34),
     utils
 Suggests: 
+    AnnotationDbi,
     BiocStyle,
     BSgenome (>= 1.64),
     BSgenome.Hsapiens.UCSC.hg38 (>= 1.4),
     BSgenome.Mmusculus.UCSC.mm10 (>= 1.4),
+    biomaRt,
     GenomicFeatures (>= 1.48),
     GenomeInfoDb,
     JASPAR2016 (>= 1.24),
@@ -32,6 +34,8 @@ Suggests:
     JASPAR2022 (>= 0.99), 
     JASPAR2024 (>= 0.99),
     knitr,
+    org.Sc.sgd.db,
+    org.Dm.eg.db,
     RMariaDB, 
     rmarkdown, 
     testthat (>= 3.0.0),
