@@ -11,7 +11,7 @@ ps_density_plot(pfm, shift = 0, st = ps_bg_avg(pfm))
 `PSMatrixList`, result of `pscan` function.}
 
 \item{shift}{Integer value specifying the positional shift applied to the 
-hit positions. 
+hit positions to obtain the position in respect to the TSS. 
 Default is `0`.}
 
 \item{st}{Score threshold used to filter hits. Can be a numeric value to set 
@@ -66,6 +66,6 @@ results <- pscan(prom_seq, J2020_PSBG,
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
 pfm1 <- results[[1]]
-ps_density_plot(pfm1)
+ps_density_plot(pfm1, shift = -200)
 
 }

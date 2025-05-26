@@ -23,11 +23,14 @@ A named integer vector where names correspond to promoter sequence
 \description{
 Retrieves the positions of hits stored in a `PSMatrix` object. These 
 positions indicate where the motifs are located in each promoter sequence. 
-The positions can be optionally shifted by a specified value.
+The positions can be shifted by a specified value to find the correspective
+position in respect to the TSS.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 pfm1 <- readRDS(pfm1_path)
 ps_hits_pos(pfm1)
+
+ps_hits_pos(pfm1, pos_shift = -200) # in respect to the TSS
 
 }

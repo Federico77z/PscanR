@@ -507,7 +507,8 @@ setMethod("ps_hits_strand_bg", "PSMatrix", function(x, withDimnames = TRUE) {
 #' 
 #' Retrieves the positions of hits stored in a `PSMatrix` object. These 
 #' positions indicate where the motifs are located in each promoter sequence. 
-#' The positions can be optionally shifted by a specified value.
+#' The positions can be shifted by a specified value to find the correspective
+#' position in respect to the TSS.
 #' 
 #' @param x A `PSMatrix` object.
 #' @param pos_shift Integer. Specifies the amount to shift the position. 
@@ -523,6 +524,8 @@ setMethod("ps_hits_strand_bg", "PSMatrix", function(x, withDimnames = TRUE) {
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 #' pfm1 <- readRDS(pfm1_path)
 #' ps_hits_pos(pfm1)
+#' 
+#' ps_hits_pos(pfm1, pos_shift = -200) # in respect to the TSS
 #' 
 #' @export
 setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L, 
@@ -666,7 +669,8 @@ setMethod("all_sequences_ID", "PSMatrix", function(x, withDimnames = TRUE) {
 #'      \item `ps_hits_strand`: a character vector of strand information
 #'      (`-` and `+`).
 #'      \item `ps_hits_oligo`: a character vector of oligo sequences.}
-#' @param pos_shift Integer. Value for which the position gets shifted.
+#' @param pos_shift Integer. Value for which the position gets shifted in respect
+#'    to the TSS.
 #'    Default is `0`, meaning no shift.
 #' @param withDimnames Logical, whether to include dimension names in the 
 #'    output, if they exist in the object.

@@ -15,7 +15,8 @@ slots:
   (`-` and `+`).
   \item `ps_hits_oligo`: a character vector of oligo sequences.}}
 
-\item{pos_shift}{Integer. Value for which the position gets shifted.
+\item{pos_shift}{Integer. Value for which the position gets shifted in respect
+to the TSS.
 Default is `0`, meaning no shift.}
 
 \item{withDimnames}{Logical, whether to include dimension names in the 
