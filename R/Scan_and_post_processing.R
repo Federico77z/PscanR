@@ -294,14 +294,11 @@ pscan_fullBG <- function(ID, full_pfms)
 #' 
 #' liver_proms_seq <- prom_seq[sub('\\..*$', '', names(prom_seq)) %in% liver_IDs]
 #' 
-#' prova_funzione <- PscanFiltered(liver_proms_seq, 
-#'                                 JM, 
-#'                                 background = bg, 
-#'                                 BPPARAM = BiocParallel::SnowParam(1))
+#' res <- PscanFiltered(liver_proms_seq, 
+#'                      JM, 
+#'                      background = bg, 
+#'                      BPPARAM = BiocParallel::SnowParam(1))
 #' 
-#' ps_pscan_result <- pscan(liver_proms_seq, 
-#'                          bg, 
-#'                          BPPARAM = BiocParallel::SnowParam(1))
 #' }
 #' 
 #' @export
@@ -370,6 +367,10 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
 #'    metadata (foreground and background statistics). Typically is the output 
 #'    of `pscan()` or `pscan_fullBG()` functions. 
+#' @param FDR_threshold A numeric value indicating the maximum false discovery 
+#'    rate (FDR) allowed for filtering the result table. 
+#'    Only rows with FDR <= FDR_threshold will be retained. 
+#'    Defaul is 1, so all the results are displayed. 
 #'
 #' @return
 #' A data.frame with matrices ordered by increasing P.VALUE and decreasing 
@@ -423,11 +424,11 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
-#' ps_results_table(results)
+#' ps_results_table(results, FDR_threshold = 10e-2)
 #' 
 #' @export
 #' @importFrom stats p.adjust
-ps_results_table <- function(pfms)
+ps_results_table <- function(pfms, FDR_threshold = 1)
 {
   
   .ps_checks2(pfms)
@@ -442,6 +443,8 @@ ps_results_table <- function(pfms)
   tbl <- data.frame("NAME" = name(pfms), "BG_AVG" = bg_v, "BG_STDEV" = std_v, 
              "FG_AVG" = fg_v, "ZSCORE" = zs_v, 
              "P.VALUE" = pv_v, "FDR" = fdr_v, row.names = ID(pfms))
+  
+  tbl <- tbl[tbl$FDR <= FDR_threshold,]
   
   tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE,TRUE))),]
 }
@@ -576,17 +579,12 @@ ps_z_table <- function(pfms)
 #'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
-#' # Note: the plot may not appear when running this in non-interactive 
-#' # environments. Run the function directly in the R console to view the 
-#' # heatmap.
-#' 
 #' ps_zscore_heatmap(results, FDR = 0.05)
 #' 
 #' @export 
 #' @import pheatmap 
 #' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
-#' @importFrom grid grid.newpage grid.draw
 ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 {
   res_table <- ps_results_table(pfms)
@@ -601,7 +599,10 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
   labels_col = res_table$NAME[topn], 
   clustering_distance_rows = "correlation",
   clustering_distance_cols = "correlation",
-  clustering_method = "complete")
+  clustering_method = "complete",
+  fontsize = 10,            
+  fontsize_row = 6,         
+  fontsize_col = 6)
   
   user_args <- list(...)
   
@@ -612,8 +613,6 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
   z_table_reduced <- z_table[,tf_to_plot]
   
   res <- do.call(pheatmap::pheatmap, c(list(z_table_reduced), final_args))
-  grid::grid.newpage()
-  grid::grid.draw(res$gtable)
   
   invisible(z_table_reduced)
 }
@@ -630,7 +629,8 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 #'    of `pscan()` or `pscan_fullBG()` function. 
 #' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
 #'    to be included in the analysis. The default is set to `0.01`.
-#' @param shift Integer. A value to shift the reported positions of motif hits. 
+#' @param shift Integer. A value to shift the reported positions of motif hits
+#'    in respect to the TSS.
 #'    Default is set to `0`.
 #' @param ... Additional user defined arguments that can be passed to 
 #'    the function (e.g., the color palette) to change the default settings.
@@ -680,18 +680,12 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 #'                  BPPARAM = BiocParallel::SnowParam(1))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
-#' # Note: the plot may not appear when running this in non-interactive 
-#' # environments. Run the function directly in the R console to view the 
-#' #heatmap.
-#' 
-#' ps_hitpos_map(results)
-#' 
+#' ps_hitpos_map(results, shift = -200)
 #' 
 #' @export
 #' @import pheatmap 
 #' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
-#' @importFrom grid grid.newpage grid.draw
 ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 {
   res_table <- ps_results_table(pfms)
@@ -705,7 +699,9 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
                    fontsize = 10, show_rownames = FALSE, scale = "none",
                    clustering_distance_rows = "manhattan",
                    clustering_distance_cols = "manhattan", 
-                   clustering_method = "average"
+                   clustering_method = "average",
+                   fontsize_row = 6,         
+                   fontsize_col = 6
   )
   
   user_args <- list(...)
@@ -723,8 +719,6 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
   rownames(pos_mat) <- ps_seq_names(pfms[[1]])
   
   res <- do.call(pheatmap::pheatmap, c(list(pos_mat), final_args))
-  grid::grid.newpage()
-  grid::grid.draw(res$gtable)
   
   invisible(pos_mat)
 }
@@ -739,7 +733,7 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' @param pfm A `PSMatrix` object. It is a selected matrix from the 
 #'    `PSMatrixList`, result of `pscan` function. 
 #' @param shift Integer value specifying the positional shift applied to the 
-#'    hit positions. 
+#'    hit positions to obtain the position in respect to the TSS. 
 #'    Default is `0`.
 #' @param st Score threshold used to filter hits. Can be a numeric value to set 
 #'    the threshold directly, or a character:
@@ -786,7 +780,7 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
 #' pfm1 <- results[[1]]
-#' ps_density_plot(pfm1)
+#' ps_density_plot(pfm1, shift = -200)
 #' 
 #' @export
 #' @importFrom grDevices rgb
@@ -820,7 +814,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
   density_hits <- density(ps_hits_pos(pfm, pos_shift = shift)[g_scores])
   
   plot(density_hits, 
-       main = paste(name(pfm), "hits density on", sum_g, "promoters"),
+       main = paste(name(pfm), "binding site density across", sum_g, "promoter regions"),
        xlab = "Position along promoters",
        ylab = "Density",
        col = "blue",
@@ -841,8 +835,10 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' between position and score of the identified sites along the promoter 
 #' sequences in a `PSMatrix` object. 
 #' 
-#' @param pfm A `PSMatrix` object. It must be processed by the PscanR 
+#' @param PSM A `PSMatrix` object. It must be processed by the PscanR 
 #'    algorithm.
+#' @param shift Integer. Value for which the positions get shifted in respect
+#'    to the TSS. Default is `0`, meaning no shift.
 #' @param bubble_color A character string specifying the color of the bubbles 
 #'    (default: `"blue"`).
 #' @param alpha Numeric, between 0 and 1. Default is 0.5. Represents the level 
@@ -855,14 +851,21 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #'      \item `strict`: uses the background average score together with the 
 #'      background standard deviation as threshold.}
 #'    Default is set to loose.
-#' @param pos_range Numeric vector of length 2, e.g., c(-100, 50), to restrict 
-#'    analysis to a specific promoter window. Default is `NULL` (full range).
+#' @param pos_bin Size of the bins used to group position values. Default is 10.
+#' @param score_quantile Number of quantiles used to divide score values. Default is 10. 
+#' 
 #'    
 #' @details
 #' This function aggregates motif hits by score and position, and 
 #' visualizes their frequency using a bubble chart. Larger bubbles 
-#' indicate more frequent score-position combinations. The user can modify the 
-#' color of bubbles. Default is `blue`.
+#' indicate more frequent score-position combinations. 
+#' 4 lines are plotted: 
+#' \itemize{
+#'   \item The green line represents the average score of the foreground.
+#'   \item The red line represents the average score of the background.
+#'   \item The two orange lines create a range representing the typical 
+#'   background variation, defined as the mean + or - 1 standard deviation.}
+#' The user can modify the color of bubbles. Default is `blue`.
 #' 
 #' This function uses example datasets located in the `extdata/` directory for 
 #' demonstration purposes only. These files are not part of the core data used
@@ -895,54 +898,88 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #' 
 #' pfm1 <- results[[1]]
-#' ps_score_position_BubbleChart(pfm1)
+#' ps_score_position_BubbleChart(pfm1, shift = -200)
 #' 
 #' @export
 #' @import ggplot2
+#' @importFrom stats quantile
 #' @import dplyr 
-ps_score_position_BubbleChart <- function(pfm, bubble_color = 'blue', 
-                                          alpha = 0.5, st = 'all', 
-                                          pos_range = NULL)
-{
-  
+ps_score_position_BubbleChart <- function(PSM, shift = 0L, alpha = 0.5,
+                                          bubble_color = 'blue', st = 'all',
+                                          pos_bin = 10, 
+                                          score_quantile = 10){
   if (is.character(st)) {
-    if (st == "all") {
+    if (st == 'all') {
       st_val <- 0
-    } else if (st == "loose") {
-      st_val <- ps_bg_avg(pfm)
-    } else if (st == "strict") {
-      st_val <- ps_bg_avg(pfm) + ps_bg_std_dev(pfm)
+    } else if (st == 'loose') {
+      st_val <- ps_bg_avg(PSM)
+    } else if (st == 'strict') {
+      st_val <- ps_bg_avg(PSM) + ps_bg_std_dev(PSM)
     } else {
-      warning("Invalid value for 'st'. Defaulting to 'loose'")
-      st_val <- ps_bg_avg(pfm)
+      warning('Invalid value for "st". Defaulting to "loose"')
+      st_val <- ps_bg_avg(PSM)
     }
   }
   
-  data <- ps_hits_table(pfm)
-  colnames(data)[seq_len(2)] <- c("Score", "Position")
-  data <- dplyr::filter(data, data$Score >= st_val)
-  if (!is.null(pos_range) && length(pos_range) == 2) {
-    data <- dplyr::filter(data, data$Position >= pos_range[1],
-                          Position <= pos_range[2])
+  data <- ps_hits_table(PSM, pos_shift = shift)
+  data <- dplyr::filter(data, data$SCORE >= st_val)
+  
+  ScoreQ <- stats::quantile(data$SCORE, probs = seq(0, 1, length.out = score_quantile + 1))
+  ScoreQ <- unique(ScoreQ)
+  data$ScoreBin <- cut(data$SCORE, breaks = ScoreQ, include.lowest = TRUE)
+  
+  best_start <- NA 
+  best_score <- -Inf
+  
+  for(start in seq(min(data$POS), max(data$POS) - pos_bin + 1)){
+    end <- start + pos_bin - 1 
+    score <- sum(data$POS >= start & data$POS <= end)
+    if(score > best_score){
+      best_score <- score
+      best_start <- start
+    }
   }
   
-  data_sum <- data %>%
-    group_by(Position, Score) %>%
-    summarise(Count = n(), .groups = "drop")
+  right_bins <- seq(best_start, max(data$POS) + pos_bin, by = pos_bin)
+  left_bins <- seq(best_start - pos_bin, min(data$POS) - pos_bin, by = -pos_bin)
+  all_bins <- sort(unique(c(left_bins, right_bins)))
+  breaks <- sort(unique(c(all_bins, max(data$POS) + 1)))
   
-  ggplot(data_sum, aes(x = Position, y = Score, size = Count)) +
+  data$PosBin <- cut(data$POS, breaks = breaks, include.lowest = TRUE)
+  
+  data_sum <- data %>%
+    group_by(PosBin, ScoreBin) %>%
+    summarise(Count = n(), .groups = 'drop')
+  
+  data_sum$PosCenter <- sapply(as.character(data_sum$PosBin), function(x) {
+    range <- as.numeric(gsub("\\[|\\(|\\]", "", unlist(strsplit(x, ","))))
+    mean(range)
+  })
+  data_sum$ScoreCenter <- sapply(as.character(data_sum$ScoreBin), function(x) {
+    range <- as.numeric(gsub("\\[|\\(|\\]", "", unlist(strsplit(x, ","))))
+    mean(range)
+  })
+  
+  ggplot(data_sum, aes(x = PosCenter, y = ScoreCenter, size = Count)) +
     geom_point(alpha = alpha, color = bubble_color) +
-    scale_size_continuous(guide = guide_legend(title = "Occurrences")) +
-    labs(x = "PS Hits Position", y = "PS Hits Score", 
-         title = paste(pfm@name, "Bubble Chart of Score vs Position Hits")) +
+    labs(x = 'Hits Positions', y = 'Hits Scores', 
+         title = paste('Bubble Chart of', PSM@name, 'Binding Score by Position')) +
+    geom_hline(aes(yintercept = PSM@ps_bg_avg, color = 'BG avg'), linetype='dashed') +
+    geom_hline(aes(yintercept = PSM@ps_fg_avg, color = 'FG avg'), linetype='solid') +
+    geom_hline(aes(yintercept = PSM@ps_bg_avg - PSM@ps_bg_std_dev, color = 'BG avg +- std dev'), linetype='dashed') +
+    geom_hline(aes(yintercept = PSM@ps_bg_avg + PSM@ps_bg_std_dev, color = 'BG avg +- std dev'), linetype='dashed') +
+    scale_color_manual('', values = c('BG avg' = 'red', 
+                                      'FG avg' = 'chartreuse3',
+                                      'BG avg +- std dev' = 'chocolate2')) +
     theme_minimal()
 }
+
 
 #' Density Plot of Distances between Identified Motif Hits in two PSMatrix 
 #' Object
 #' 
 #' This function visualizes the density plot of distances between identified 
-#' hits sites in two `PSMatrix` object. The distance between hits is calculated 
+#' hit sites in two `PSMatrix` object. The distance between hits is calculated 
 #' for each sequence that is present in both matrices. 
 #' It allows to filter the identified sites based on a specified threshold 
 #' value. 
@@ -1043,7 +1080,7 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
   density_distances <- density(distances)
   
   plot(density_distances, 
-       main = paste(M1@name, 'and', M2@name, 'distances density plot'),
+       main = paste(M1@name, '-', M2@name, 'Binding Site Distance Distribution'),
        xlab = "Distances between the identified sites",
        ylab = "Density",
        col = "blue",

@@ -10,6 +10,9 @@ get_availableBG(keyword = NULL)
 \item{keyword}{A string to filter the file names. Default is NULL, so the 
 complete list of available file names is printed}
 }
+\value{
+A character vector containing the names of the available background files
+}
 \description{
 This function retrieves the names of all available .txt files containing 
 background information, that serves for the construction of the background 

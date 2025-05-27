@@ -14,7 +14,8 @@ of `pscan()` or `pscan_fullBG()` function.}
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to be included in the analysis. The default is set to `0.01`.}
 
-\item{shift}{Integer. A value to shift the reported positions of motif hits. 
+\item{shift}{Integer. A value to shift the reported positions of motif hits
+in respect to the TSS.
 Default is set to `0`.}
 
 \item{...}{Additional user defined arguments that can be passed to 
@@ -72,11 +73,6 @@ results <- pscan(prom_seq, J2020_PSBG,
                  BPPARAM = BiocParallel::SnowParam(1))
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
-# Note: the plot may not appear when running this in non-interactive 
-# environments. Run the function directly in the R console to view the 
-#heatmap.
-
-ps_hitpos_map(results)
-
+ps_hitpos_map(results, shift = -200)
 
 }

@@ -7,7 +7,7 @@ output:
     toc: true
     toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{3. Comparing execution time with varying processors}
+  %\VignetteIndexEntry{4. Comparing execution time with varying processors}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -133,7 +133,7 @@ all_cores <- function(core_numbers, prom_seq, bg, iterations) {
   results_list <- list()
   
   for (core in core_numbers) {
-    output_file <- paste0("core", core, "_liver_950d_50u.rds")
+    output_file <- paste0("core", core, "_liver_950u_50d.rds")
     results_list[[as.character(core)]] <- execution_time(prom_seq, 
                                                          bg, 
                                                          core, 
@@ -178,7 +178,7 @@ r_squared <- 1 - (ss_residual / ss_total)
 ```{r boxplot-example, fig.width=6, fig.height=4}
 boxplot(data,
         main = "PscanR Execution Time with MulticoreParam",
-        xlab = "Cores (N)\nLiver dataset (950d−50u), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
+        xlab = "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
         cex.lab = 0.8,
         ylab = "Time (s)",
         col = "lightblue",
@@ -233,7 +233,7 @@ r_squared <- 1 - (ss_residual / ss_total)
 ```{r}
 boxplot(data,
         main = "PscanR Execution Time with SnowParam",
-        xlab = "Cores (N)\nLiver dataset (950d−50u), JASPAR2020 (746 matrices), 
+        xlab = "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 (746 matrices), 
         329 promoters (1000bp)",
         cex.lab = 0.8,
         ylab = "Time (s)",

@@ -36,7 +36,7 @@ A density plot showing the distribution of distances between
 }
 \description{
 This function visualizes the density plot of distances between identified 
-hits sites in two `PSMatrix` object. The distance between hits is calculated 
+hit sites in two `PSMatrix` object. The distance between hits is calculated 
 for each sequence that is present in both matrices. 
 It allows to filter the identified sites based on a specified threshold 
 value.

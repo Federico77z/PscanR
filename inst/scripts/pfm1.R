@@ -7,7 +7,7 @@
 # Load the pre-computed promoter sequences
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
-prom_seq <- prom_seq[1:50] # We take only 50 sequences to reduce the computation
+# We take only 50 sequences to reduce the computation
 # time and the dimension of the final dataset. 
  
 # Generate the background PSMatrixList
@@ -19,5 +19,5 @@ results <- pscan(prom_seq, J2020_PSBG,
                 BPPARAM = BiocParallel::SnowParam(1))
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
  
-pfm1 <- results[[1]]
-save(pfm1, file = 'pfm1.RData')
+pfm1 <- results[['MA0506.1']]
+saveRDS(pfm1, 'inst/extdata/pfm1.rds')

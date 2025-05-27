@@ -7,7 +7,7 @@ output:
     toc: true
     toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{1. Introduction to PscanR}
+  %\VignetteIndexEntry{2. Introduction to PscanR}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -50,18 +50,17 @@ Currently, the PscanR package implements two functions for the manipulation of
 promoter regions: `pscan()` and `pscan_fullBG()`.
 
 `pscan()` takes as input a DNAStringSet object containing the set of regulatory
-sequences from co-regulated or co-expressed genes 
-(i.e. a set of gene promoters) and a PSMatrixList object containing PWMs and 
-background statistics (e.g., the standard deviation and average of hits scores 
-when all the promoters in the organism of study are scanned with the position 
-weight matrices).
+sequences from co-regulated or co-expressed genes (i.e. a set of gene promoters)
+and a PSMatrixList object containing PWMs and background statistics (e.g., the
+standard deviation and average of hits scores when all the promoters in the
+organism of study are scanned with the position weight matrices).
 
 `pscan_fullBG()` can work if a full background is available (note: no full
 backgrounds are included in the packages), containing scores, positions,
 oligonucleotide sequences, and strand information for all promoter sequences of
 a given organism (scanned using a Position Weight Matrix). The other input is a
-vector containing the sequence identifiers (for the transcript) for the 
-organism of study.
+vector containing the sequence identifiers (for the transcript) for the organism
+of study.
 
 # The Background Model
 
@@ -80,8 +79,8 @@ outcomes.
 ## Pre-computed background models
 
 For convenience, several background models have already been computed and
-optimized to meet common research needs. Precomputed backgrounds are stored in 
-a public repository at <https://github.com/dianabetelli/PscanR_backgrounds> for
+optimized to meet common research needs. Precomputed backgrounds are stored in a
+public repository at <https://github.com/dianabetelli/PscanR_backgrounds> for
 the following species:
 
 -   *Homo sapiens* (both hg38 and hs1 assembly)
@@ -108,18 +107,17 @@ include:
 -   1000 bp upstream and 0 bp downstream
 
 Background scores were generated using motif matrices from the JASPAR databases
-for the 2020, 2022, and 2024 releases. Only **core motifs** from JASPAR are 
-used in the analysis.
+for the 2020, 2022, and 2024 releases. Only **core motifs** from JASPAR are used
+in the analysis.
 
 ### Loading a Pre-Computed Background
 
-To load a pre-computed background model, PscanR provides a dedicated function 
-to retrieve the .txt files stored in the PscanR_backgrounds repository and 
-generate the required PSMatrixList. 
-This requires specifying the JASPAR release, species acronym, promoter region 
-definition, and genome assembly (the last step only for Mus musculus and Homo 
-sapiens). 
-Refer to the previous paragraph for the available backgrounds.
+To load a pre-computed background model, PscanR provides a dedicated function to
+retrieve the .txt files stored in the PscanR_backgrounds repository and generate
+the required PSMatrixList. This requires specifying the JASPAR release, species
+acronym, promoter region definition, and genome assembly (the last step only for
+Mus musculus and Homo sapiens). Refer to the previous paragraph for the
+available backgrounds.
 
 ```{r}
 J2020_PSBG <- PscanR::generate_psmatrixlist_from_background('Jaspar2020', 'hs',                                                             c(-200,50), 'hg38') 
@@ -133,8 +131,8 @@ documentation.
 
 To ensure flexibility and allow users to create **custom background models**
 tailored to their specific experimental conditions, **PscanR** provides a
-dedicated vignette. This resource guides users through the process of 
-generating background models optimized for their research needs.
+dedicated vignette. This resource guides users through the process of generating
+background models optimized for their research needs.
 
 For detailed instructions, please refer to the **PscanR** vignette 'How to
 Generate a Background Model for PscanR algorithm'.
@@ -142,41 +140,186 @@ Generate a Background Model for PscanR algorithm'.
 # The Input Transcript For `pscan()`
 
 **`pscan()`** accepts as input a DNAStringSet object containing the DNA
-sequences of co-regulated or co-expressed genes. This object can be built from 
-a list of gene/transcript identifiers.
+sequences of co-regulated or co-expressed genes. This object can be built from a
+list of gene/transcript identifiers.
 
 For humans, mice, and Drosophila, the available background models are based on
 RefSeq identifiers, for Arabidopsis on TAIR, and for yeast on SGD IDs. Other
-types of gene identifiers can also be used if the corresponding background 
-model is created (see the vignette "How to Generate a Background Model for the 
-PscanR Algorithm" for more details).
+types of gene identifiers can also be used if the corresponding background model
+is created (see the vignette "How to Generate a Background Model for the PscanR
+Algorithm" for more details).
 
-Below is an example dataset containing **human NF-κB target transcripts**
+Below is an example dataset containing **human NRF1 target transcripts**
 (RefSeq), curated from the literature. Since PscanR works at the transcript
 level, gene identifiers must be converted to their corresponding transcript IDs
-before analysis. The number **50** indicates that 50% transcripts in the list
-correspond to known NF-κB target genes.
+before analysis. The number **100** indicates that 100% transcripts in the list
+correspond to known NRF1 target.
 
 ```{r}
-file_path <- system.file("extdata", "nfkb50.txt", 
+file_path <- system.file("extdata", "nrf1100.txt", 
                          package = "PscanR")
 target <- read.csv(file_path, header = FALSE)
+head(target)
+```
+
+## Gene IDs - Transcript IDs conversion
+
+Since the functions work with Transcript IDs, we provide different pipelines for
+various organism to help users in the conversion from Gene IDs.
+
+### ENSEMBL
+
+For ENSEMBL-based annotation, the `biomaRt` package can be used. Below is an
+example for *Homo sapiens*.
+
+```{r eval=FALSE, include=TRUE}
+# Homo sapiens example 
+mart <- biomaRt::useMart('ensembl', dataset = 'hsapiens_gene_ensembl')
+GeneTranscript_ids <- biomaRt::getBM(attributes = 
+                                       c('ensembl_gene_id',
+                                         'ensembl_transcript_id',
+                                         'transcript_tsl'),
+                                     mart = mart) 
+```
+
+```{r eval = TRUE, include = FALSE}
+path <- system.file('extdata', 'GeneTranscript_ids.rds', package = 'PscanR')
+GeneTranscript_ids <- readRDS(path)
+```
+
+```{r eval = TRUE, include = TRUE}
+head(GeneTranscript_ids)
+```
+
+This code chunk retrieves all gene identifiers for *Homo sapiens*, along with
+the corresponding transcript IDs and their Transcript Support Level (TSL).
+
+To slect only trasncripts with the highest level of experimental support, filter
+by TSL1. This means that there is experimentally evidence that all the splice
+junctions of the annotated transcript actually exist in the cells:
+
+```{r}
+genes <- c('ENSG00000271254', 'ENSG00000277196', 'ENSG00000277196')
+
+transcripts <- GeneTranscript_ids[GeneTranscript_ids[,1] %in% genes & GeneTranscript_ids[,3] == 'tsl1',2]
+
+transcripts
+```
+
+Change the dataset parameter according to the organism of study:
+
+-   *Mus musculus*: 'mmusculus_gene_ensembl'
+
+-   *Drosophila melanogaster*: 'dmelanogaster_gene_ensembl'. Note that for this
+    organism the TSL attribute is not available.
+
+### RefSeq
+
+For RefSeq-based annotations, the AnnotationDbi package can be used together
+with organism specific packages. Here's an example with `org.Dm.eg.db` for
+*Drosophila melanogaster*.
+
+```{r}
+library(org.Dm.eg.db)
+library(dplyr)
+
+genes <- c('CG46191', 'dbr', 'Pp1-Y2')
+
+transcripts <- AnnotationDbi::select(org.Dm.eg.db,
+                                        keys = genes, 
+                                        keytype = 'SYMBOL', # Entrez can be used
+                                        columns = 'REFSEQ') %>% filter(grepl('^NM_', REFSEQ))
+
+transcripts
+```
+
+For other organisms:
+
+-   *Homo sapiens*: use the `org.Hs.eg.db` library
+
+-   *Mus musculus*: use the `org.Mm.ge.db` library
+
+### GENCODE
+
+For GENCODE-based annotations, you need to download the GFF files because an R
+package for the conversion is not available. Alternatively you can use the
+`biomaRt` package, but you will obtain ENSEMBL identifiers that lacks of
+variants information.
+
+Below is an example with *Homo sapiens*. Because of high computational time and
+memory requirements, it is not run during the building of the vignette.
+
+```{r eval=FALSE, include=TRUE}
+gtf <- rtracklayer::import("gencode.v47.basic.annotation.gff3.gz")
+
+genes <- c('ENSG00000171723.16', 'ENSG00000112715.26', 'ENSG00000142156.16', 'ENSG00000170873.19')
+
+transcripts <- gtf[gtf$gene_id %in% genes & !is.na(gtf$transcript_support_level) & gtf$transcript_support_level == '1', ]$transcript_id
+
+transcripts <- unique(transcripts)
+```
+
+```{r eval=TRUE, include=FALSE}
+transcripts <- readRDS(system.file('extdata', 'transcripts.rds', package = 'PscanR'))
+```
+
+```{r}
+transcripts 
+```
+
+### TAIR
+
+In *Arabidopsis thaliana*, transcript ids are generated by appending the isoform
+number to the gene id, after a dot (e.g., `AT1G01010.1`, `AT1G01010.2`). If you
+want to know how many different isoforms are present for a transcript, you can
+either download TAIR GFF files or you can use the biomaRt package via ENSEMBL
+plants:
+
+```{r}
+ensembl_plants <- biomaRt::useMart('plants_mart', dataset = 'athaliana_eg_gene', host = 'https://plants.ensembl.org')
+tair_genes <- c('AT1G01010', 'AT1G01020')
+transcript_map <- biomaRt::getBM(
+  attributes = c('tair_locus', 'ensembl_transcript_id'),
+  filters = 'tair_locus',
+  values = tair_genes,
+  mart = ensembl_plants
+)
+
+transcript_map
+```
+
+### SGD
+
+In *Saccharomyces cerevisiae*, genes are often referred to by their **systematic
+ORF IDs** (e.g., `YPR195C`). If you have **gene symbols**, you can convert them
+as shown below. Note that not all the systematic IDs have the corresponding
+symbol.
+
+```{r}
+library(org.Sc.sgd.db)
+gene_symbols <- c('TIF5', 'CDC28', 'RPL3')
+
+ORF <- AnnotationDbi::select(org.Sc.sgd.db,
+                             keys = gene_symbols,
+                             columns = c('ORF', 'GENENAME'),
+                             keytype = 'GENENAME')
+
+ORF # take the second column for systematic ids
 ```
 
 # The Input Promoters
 
 ## Promoter Regions
 
-Promoter regions are specific DNA sequences located near the transcription 
-start site (TSS) of a gene. They serve as binding sites for transcription 
-factors and RNA polymerase, playing a crucial role in the regulation of gene 
-expression. Typically, promoter regions extend both upstream and slightly 
-downstream of the TSS.
+Promoter regions are specific DNA sequences located near the transcription start
+site (TSS) of a gene. They serve as binding sites for transcription factors and
+RNA polymerase, playing a crucial role in the regulation of gene expression.
+Typically, promoter regions extend both upstream and slightly downstream of the
+TSS.
 
-In **R**, promoter regions can be extracted using genomic annotation tools, 
-such as the **GenomicFeatures** package. 
-The following example demonstrates how to retrieve promoter regions from 
-a **transcript database (txdb)**:
+In **R**, promoter regions can be extracted using genomic annotation tools, such
+as the **GenomicFeatures** package. The following example demonstrates how to
+retrieve promoter regions from a **transcript database (txdb)**:
 
 ```{r eval=FALSE, include=TRUE}
 txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", 
@@ -193,8 +336,8 @@ This code extracts regions **200 bp upstream and 50 bp downstream** of the TSS
 for all annotated genes in the **Homo sapiens (hg38)** assembly.
 
 For reproducibility, this vignette uses a precomputed dataset (`promoters.rds`)
-instead of retrieving promoters from UCSC, which requires an internet 
-connection and may be subject to database updates.
+instead of retrieving promoters from UCSC, which requires an internet connection
+and may be subject to database updates.
 
 ```{r echo=FALSE}
 promoters_path <- system.file("extdata", "promoters.rds", 
@@ -205,15 +348,13 @@ prom_rng
 
 #### **Processing Promoter Identifiers**
 
-Ensure that your target identifiers match those in `prom_rng$tx_name_clean`. 
-If your dataset contains gene symbols instead of transcript IDs, 
-convert them using annotation tools 
-(e.g., `AnnotationDbi` with `org.Hs.eg.db`).
+Ensure that your target identifiers match those in `prom_rng$tx_name_clean`. If
+your dataset contains gene symbols instead of transcript IDs, convert them using
+annotation tools (e.g., `AnnotationDbi` with `org.Hs.eg.db`).
 
-In this example, the list of target transcripts does not include version 
-numbers (e.g., *NM_002188* instead of *NM_002188.1*). 
-Therefore, we need to remove version numbers from `prom_rng$tx_name` before 
-filtering promoter regions:
+In this example, the list of target transcripts does not include version numbers
+(e.g., *NM_002188* instead of *NM_002188.1*). Therefore, we need to remove
+version numbers from `prom_rng$tx_name` before filtering promoter regions:
 
 ```{r}
 prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
@@ -255,17 +396,17 @@ well the k-mer matches the Transcription Factor Binding Motif provided by the
 PWM. For each sequence-PWM pair, only the k-mer with the highest score is
 retained.
 
-To assess motif enrichment, the foreground average score (the mean of the 
-scores for a PWM) for each PSM is compared with the background average score 
-and standard deviation (contained in the background PSMatrixList) to compute 
-z-score and pvalue.
+To assess motif enrichment, the foreground average score (the mean of the scores
+for a PWM) for each PSM is compared with the background average score and
+standard deviation (contained in the background PSMatrixList) to compute z-score
+and pvalue.
 
 ### Parallel Computation in PscanR
 
 **PscanR** supports **parallel computation** to enhance performance when
 analyzing large datasets. The function `pscan()` utilizes the **BiocParallel**
-package, which enables users to specify different parallelization strategies 
-via the `BPPARAM` argument.
+package, which enables users to specify different parallelization strategies via
+the `BPPARAM` argument.
 
 #### **SnowParam vs. MulticoreParam**
 
@@ -336,10 +477,9 @@ Rows contain matrices names retrieved from the JASPAR database, 2020 release.
 PscanR::ps_zscore_heatmap(results, FDR = 0.01)
 ```
 
-The command above plots correlations with a False Discovery Rate (FDR) 
-threshold of 0.01, which means only statistically significant correlations 
-are shown. 
-To interpret this plot you can follow the color scale:
+The command above plots correlations with a False Discovery Rate (FDR) threshold
+of 0.01, which means only statistically significant correlations are shown. To
+interpret this plot you can follow the color scale:
 
 -   Red: Positive correlation.
 
@@ -348,42 +488,72 @@ To interpret this plot you can follow the color scale:
 -   White/gray: Neutral or weak correlation.
 
 Interpretation: transcripts with similar expression patterns are clustered
-together. Red clusters represent co-regulated transcripts, whereas blue 
-clusters indicate transcripts that are negatively correlated 
-(when one is up-regulated the other is down-regulated).
+together. Red clusters represent co-regulated transcripts, whereas blue clusters
+indicate transcripts that are negatively correlated (when one is up-regulated
+the other is down-regulated).
+
+As we can see, NRF1 is highly enriched in all the promoter regions (red color
+for all the rows). This is expected behaviour since all the analysed promoter
+regions are known to be bound by the transcription factor.
 
 ## Hits Position Heatmap
 
 ```{r}
-PscanR::ps_hitpos_map(results, FDR = 0.01)
+PscanR::ps_hitpos_map(results, FDR = 0.01, shift = -200)
 ```
 
-This heatmap represent the distribution of hits (binding events) for different
+This heatmap represents the distribution of hits (binding events) for different
 transcription factors (TFs) across various promoter sequences. On the x axis we
 find the TFs, whereas the y axis represents the promoter sequences retrieved
 from a dataset.
 
-The color gradient reflects the binding affinity: red areas indicate strong TF
-binding affinity at specific promoter sequences, while lighter colors indicate
-weaker binding.
+Red areas indicate binding events near the TSS, while lighter colors indicate
+farthest binding events on the analysed sequences.
 
 ## Density plot
 
+This plot analyse the binding site distribution across the promoter region of
+the analysed sequences for NRF1 transcription factor.
+
 ```{r}
-pfm1 <- results[[1]]
-PscanR::ps_density_plot(pfm1)
+pfm1 <- results[['MA0506.1']]
+PscanR::ps_density_plot(pfm1, shift = -200)
 ```
 
 This density plot visualizes the distribution of binding sites for the
-transcription factor **Arnt** across **56 promoter sequences**. 
-In this example, the studied length of promoter region is around 250 bp, 
-between 200 bp before the TSS and 50 bp after.
+transcription factor **NRF1** across **86 promoter sequences**, selected to have
+a score greater than the background average value. In this example, the studied
+length of promoter region is around 250 bp, between 200 bp before the TSS and 50
+bp after.
 
-The highest density of Arnt binding occurs around **position 77** along the
-promoters (marked by the dashed vertical line). This suggest a preferential
-binding region between the first 100 bp of the promoter region. Another broad
-peak is observed between 100 and 200 bp, indicating a potential secondary
-binding region.
+The highest density of NRF1 binding occurs around **position -36 bp** along the
+promoters (marked by the dashed vertical line). Another peak is in the region
+-150/-200 bp.
+
+## Bubble chart
+
+```{r}
+PscanR::ps_score_position_BubbleChart(results[['MA0506.1']], shift = -200)
+```
+
+This plot visualizes the distribution of binding scores by position for a given
+transcription factor (e.g., NRF1), allowing to inspect both binding affinity and
+position preferences across all input promoter sequences.
+
+-   X-axis: Position relative to the TSS (placed on 0)
+
+-   Y-axis: Hit scores. Higher values suggest stronger motif enrichment.
+
+-   Bubble size: Indicates the number of binding site hits at a given position
+    range and score.
+
+-   Colored horizontal lines:
+
+    -   Background average score (red dashed line)
+
+    -   Standard deviation range (delimited by orange dashed lines)
+
+    -   Foreground average score (green solid line)
 
 ```{r}
 # Display session information

@@ -36,7 +36,7 @@
 #' PMCID: PMC2703934.
 #' 
 #' @author 
-#' Federico Zambelli [cre], Diana Betelli [aut], Giulio Pavesi [cre]
+#' Federico Zambelli [cre], Giulio Pavesi [cre]
 #' 
 #' Maintainer: Federico Zambelli <federico.zambelli@unimi.it>
 #' 

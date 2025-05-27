@@ -71,7 +71,7 @@ prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
 target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
 
 # Get the target promoter sequences 
-prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
+prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, target_prom_rng) 
 
 # Optionally, you can build the background from pre-computed files. 
 # See 'How to Generate a Background Model for PscanR algorithm' for 

@@ -5,22 +5,27 @@
 \title{Bubble Chart of Motif Score vs Position in Promoters}
 \usage{
 ps_score_position_BubbleChart(
-  pfm,
-  bubble_color = "blue",
+  PSM,
+  shift = 0L,
   alpha = 0.5,
+  bubble_color = "blue",
   st = "all",
-  pos_range = NULL
+  pos_bin = 10,
+  score_quantile = 10
 )
 }
 \arguments{
-\item{pfm}{A `PSMatrix` object. It must be processed by the PscanR 
+\item{PSM}{A `PSMatrix` object. It must be processed by the PscanR 
 algorithm.}
 
-\item{bubble_color}{A character string specifying the color of the bubbles 
-(default: `"blue"`).}
+\item{shift}{Integer. Value for which the positions get shifted in respect
+to the TSS. Default is `0`, meaning no shift.}
 
 \item{alpha}{Numeric, between 0 and 1. Default is 0.5. Represents the level 
 of transparency of the bubbles.}
+
+\item{bubble_color}{A character string specifying the color of the bubbles 
+(default: `"blue"`).}
 
 \item{st}{Score threshold used to filter hits. Can be a numeric value to set 
 the threshold directly, or a character:
@@ -31,8 +36,9 @@ the threshold directly, or a character:
   background standard deviation as threshold.}
 Default is set to loose.}
 
-\item{pos_range}{Numeric vector of length 2, e.g., c(-100, 50), to restrict 
-analysis to a specific promoter window. Default is `NULL` (full range).}
+\item{pos_bin}{Size of the bins used to group position values. Default is 10.}
+
+\item{score_quantile}{Number of quantiles used to divide score values. Default is 10.}
 }
 \value{
 A ggplot2 bubble chart. The x-axis shows motif hit positions along 
@@ -47,8 +53,14 @@ sequences in a `PSMatrix` object.
 \details{
 This function aggregates motif hits by score and position, and 
 visualizes their frequency using a bubble chart. Larger bubbles 
-indicate more frequent score-position combinations. The user can modify the 
-color of bubbles. Default is `blue`.
+indicate more frequent score-position combinations. 
+4 lines are plotted: 
+\itemize{
+  \item The green line represents the average score of the foreground.
+  \item The red line represents the average score of the background.
+  \item The two orange lines create a range representing the typical 
+  background variation, defined as the mean + or - 1 standard deviation.}
+The user can modify the color of bubbles. Default is `blue`.
 
 This function uses example datasets located in the `extdata/` directory for 
 demonstration purposes only. These files are not part of the core data used
@@ -77,6 +89,6 @@ results <- pscan(prom_seq, J2020_PSBG,
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
 pfm1 <- results[[1]]
-ps_score_position_BubbleChart(pfm1)
+ps_score_position_BubbleChart(pfm1, shift = -200)
 
 }
