@@ -120,7 +120,7 @@ pscan <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 #' scores, TFBS positions, strands, and binding oligos for a selected subset of 
 #' sequences from the complete background.
 #' 
-#' This is particularly useful when analyzing different subsets of sequences on
+#' This is particularly useful when analyzing different subsets of sequences
 #' on the same background, reducing computation time.
 #' 
 #' @param ID A character vector containing sequence identifiers (transcript 
@@ -181,11 +181,7 @@ pscan_fullBG <- function(ID, full_pfms)
    # in full BG that have the same sequence to those inserted by the user. 
    x <- all_seq_ID[ID]
    
-   .check_seq_duplicated(x)
-   
-   x <- unique(x) 
-   
-   # NA removal. These correspond to sequences removed by .clean_sequence()
+   # NA removal
    rem_names <- names(x[is.na(x)])
    
    if(length(rem_names)> 0){
@@ -196,6 +192,10 @@ pscan_fullBG <- function(ID, full_pfms)
    }
    
    x <- x[!is.na(x)]
+   
+   .check_seq_duplicated(x)
+   
+   x <- unique(x)
    
    # See ps_scan for details 
    
@@ -1004,8 +1004,10 @@ ps_score_position_BubbleChart <- function(PSM, shift = 0L, alpha = 0.5,
 #'
 #' @return A density plot showing the distribution of distances between 
 #'    identified motif hits in \code{M1} and \code{M2}. The x-axis represents 
-#'    the distances between corresponding hits, and the y-axis represents 
-#'    the density of those distances.
+#'    the distances between corresponding hits: positive values indicate that M1
+#'    is positioned upstream in respect to M2, whereas negative values 
+#'    indicates that it is downstream to M2. 
+#'    Y-axis represents the density of those distances.
 #' 
 #' @seealso \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}}, 
 #' \code{\link{ps_hits_score}}, \code{\link{ps_hits_pos}}
@@ -1080,7 +1082,7 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
   density_distances <- density(distances)
   
   plot(density_distances, 
-       main = paste(M1@name, '-', M2@name, 'Binding Site Distance Distribution'),
+       main = paste(M1@name, 'Binding Site Distance Distribution Relative to', M2@name),
        xlab = "Distances between the identified sites",
        ylab = "Density",
        col = "blue",

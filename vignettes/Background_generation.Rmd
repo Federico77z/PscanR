@@ -35,7 +35,7 @@ In order to assess if a transcription factor binding motif is appearing more
 often than by chance in our input sequences, a background model must be
 computed. In other methods this is performed by shuffling the columns of the
 motif or by building random sequence sets of the same size and length of the
-sequence set investigated.0
+sequence set investigated.
 
 In Pscan, instead, the input sequences are considered a sample drawn from a
 universe consisting of all promoter sequences available for the species under
