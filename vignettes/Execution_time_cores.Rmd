@@ -223,7 +223,8 @@ means <- colMeans(data, na.rm = TRUE)
 power_model <- lm(log(means) ~ log(N))  
 
 nls_model <- nls(means ~ a * N^(-b) + c,
-                 start = list(a = 1500, b = 0.8, c = 300)) 
+                 start = list(a = 1500, b = 1, c = 300)) 
+smooth_N <- seq(min(N), max(N), length.out = 500)  
 smooth_pred <- predict(nls_model, newdata = data.frame(N = smooth_N))
 
 ss_total <- sum((means - mean(means))^2)
