@@ -31,8 +31,10 @@ Default is set to `loose`.}
 \value{
 A density plot showing the distribution of distances between 
    identified motif hits in \code{M1} and \code{M2}. The x-axis represents 
-   the distances between corresponding hits, and the y-axis represents 
-   the density of those distances.
+   the distances between corresponding hits: positive values indicate that M1
+   is positioned upstream in respect to M2, whereas negative values 
+   indicates that it is downstream to M2. 
+   Y-axis represents the density of those distances.
 }
 \description{
 This function visualizes the density plot of distances between identified 

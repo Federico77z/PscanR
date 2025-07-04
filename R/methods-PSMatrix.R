@@ -873,7 +873,7 @@ setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE,
   
   if (BG || use_full_BG) {
     if(use_full_BG)
-      x@ps_bg_seq_names <- seqs
+      x@ps_seq_names <- seqs
     else 
       x@ps_bg_seq_names <- names(seqs)
   } else {

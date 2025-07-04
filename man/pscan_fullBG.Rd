@@ -30,7 +30,7 @@ scores, TFBS positions, strands, and binding oligos for a selected subset of
 sequences from the complete background.
 }
 \details{
-This is particularly useful when analyzing different subsets of sequences on
+This is particularly useful when analyzing different subsets of sequences
 on the same background, reducing computation time.
 
 
