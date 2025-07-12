@@ -487,10 +487,11 @@ interpret this plot you can follow the color scale:
 
 -   White/gray: Neutral or weak correlation.
 
-Interpretation: transcripts with similar expression patterns are clustered
-together. Red clusters represent co-regulated transcripts, whereas blue clusters
-indicate transcripts that are negatively correlated (when one is up-regulated
-the other is down-regulated).
+Interpretation: transcription factors with similar enrichment patterns are
+clustered together. Red clusters represent a strong enrichment for the TF motif
+in the clustered promoter region, whereas blue clusters indicate
+underrepresentation of the motif in the promoter region in respect to the
+background.
 
 As we can see, NRF1 is highly enriched in all the promoter regions (red color
 for all the rows). This is expected behaviour since all the analysed promoter
