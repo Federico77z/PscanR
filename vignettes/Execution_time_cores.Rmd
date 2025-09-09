@@ -179,10 +179,13 @@ r_squared <- 1 - (ss_residual / ss_total)
 boxplot(data,
         main = "PscanR Execution Time with MulticoreParam",
         xlab = "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
-        cex.lab = 0.8,
+        yaxt = "n",
+        cex.lab = 1.2,
         ylab = "Time (s)",
         col = "lightblue",
         las = 1, names = N, outline = FALSE)
+
+axis(2, at = seq(0, 2000, by = 200), las = 1)
 
 lines(smooth_N, smooth_pred, col = "blue", lwd = 2)
 
@@ -235,12 +238,15 @@ r_squared <- 1 - (ss_residual / ss_total)
 ```{r}
 boxplot(data,
         main = "PscanR Execution Time with SnowParam",
-        xlab = "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 (746 matrices), 
-        329 promoters (1000bp)",
-        cex.lab = 0.8,
+        xlab = "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
+        yaxt = "n",
+        cex.lab = 1.2,
         ylab = "Time (s)",
         col = "lightblue",
-        las = 1, names = N, outline = FALSE)
+        ylim = c(200, 2000),
+        names = N, outline = FALSE)
+
+axis(2, at = seq(0, 2000, by = 200), las = 1)
 
 lines(smooth_N, smooth_pred, col = "blue", lwd = 2)
 
