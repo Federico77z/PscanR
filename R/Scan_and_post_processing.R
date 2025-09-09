@@ -1089,8 +1089,8 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
        lwd = 2)
   polygon(density_distances, col = rgb(0,0,1,0.1), border = NA)
   
-  #peak <- density_distances$x[which.max(density_distances$y)]
-  #abline(v = peak, col = "gray", lty = 2, lwd = 2)
-  #text(peak, max(density_distances$y), 
-  #     labels = paste("\tMode:", round(peak)), pos = 4)
+  peak <- density_distances$x[which.max(density_distances$y)]
+  abline(v = peak, col = "gray", lty = 2, lwd = 2)
+  text(peak, max(density_distances$y), 
+       labels = paste("\tMode:", round(peak)), pos = 4)
 }
