@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
@@ -17,19 +17,20 @@ Default set to `TRUE`.}
 A character vector of names.
 }
 \description{
-Retrieves the names or identifiers of the promoter sequences in a `PSMatrix` 
+Retrieves the names or identifiers of the promoter sequences in a `PSMatrix`
 object computed on the background dataset (all promoters in a specific
 organism).
 }
 \details{
 This method is specifically designed for background datasets.
-The function extracts the sequence identifiers from the ps_bg_seq_names slot 
+The function extracts the sequence identifiers from the ps_bg_seq_names slot
 and, if applicable, assigns sequence names using .ps_bg_seq_names().
 }
 \examples{
-full_pfm1_path <- system.file("extdata", 
-                              "full_pfm1.rds", 
-                              package = "PscanR")
+full_pfm1_path <- system.file("extdata",
+  "full_pfm1.rds",
+  package = "PscanR"
+)
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_bg_seq_names(full_pfm1)
 

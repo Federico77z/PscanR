@@ -7,8 +7,8 @@
 ps_hitpos_map(pfms, FDR = 0.01, shift = 0, ...)
 }
 \arguments{
-\item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
-metadata (foreground and background statistics). Typically the output 
+\item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated
+metadata (foreground and background statistics). Typically the output
 of `pscan()` or `pscan_fullBG()` function.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
@@ -18,26 +18,26 @@ to be included in the analysis. The default is set to `0.01`.}
 in respect to the TSS.
 Default is set to `0`.}
 
-\item{...}{Additional user-defined arguments that can be passed to 
+\item{...}{Additional user-defined arguments that can be passed to
 the function (e.g., the color palette) to change the default settings.}
 }
 \value{
-Invisibly returns the positional hits matrix used for plotting. 
+Invisibly returns the positional hits matrix used for plotting.
   The heatmap is drawn as a side effect.
 }
 \description{
 This function creates a heatmap visualizing the positional distribution
-of motif hits based on a specified false discovery rate threshold. 
+of motif hits based on a specified false discovery rate threshold.
 The heatmap helps visualize where significant motif hits occur within the
 analyzed sequences.
 }
 \details{
-The function performs the following steps: 
+The function performs the following steps:
 \itemize{
   \item Extracts the result table from the pscan algorithm result.
   \item Filters the result table based on the given FDR threshold.
   \item Creates a positional hits matrix.
-  \item Generates the heatmap using the `pheatmap` function, 
+  \item Generates the heatmap using the `pheatmap` function,
      with customizable settings.}
 
 Default settings (which can be changed) are:
@@ -47,30 +47,33 @@ Default settings (which can be changed) are:
   \item The main `Pscan Hits Position Heatmap`.
   }
 
-This function uses example datasets located in the `extdata/` directory for 
+This function uses example datasets located in the `extdata/` directory for
 demonstration purposes only. These files are not part of the core data used
-by the function. They can be accessed using `system.file()` as shown in the 
+by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
 # Note that the generation of the example may take few minutes
 #
-# Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
-# -200 +50 bp in respect to the TSS. 
+# Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
+# -200 +50 bp in respect to the TSS.
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
-# Note: when running this example, you may see a message indicating that 
-# a file is being downloaded. This is expected behavior and not an error — 
+# Note: when running this example, you may see a message indicating that
+# a file is being downloaded. This is expected behavior and not an error —
 # it simply informs you that background data is being retrieved.
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
-                                                    'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background(
+  "Jaspar2020",
+  "hs", c(-200, 50), "hg38"
+)
 
 # Execute the Pscan algorithm and view the result table
-results <- pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::SnowParam(1))
+results <- pscan(prom_seq, J2020_PSBG,
+  BPPARAM = BiocParallel::SnowParam(1)
+)
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
 ps_hitpos_map(results, shift = -200)

@@ -7,10 +7,10 @@
 ps_bg_std_dev(x, ...) <- value
 }
 \arguments{
-\item{x}{An object to which the background standard deviation will be 
+\item{x}{An object to which the background standard deviation will be
 assigned, typically a `PSMatrix` object.}
 
-\item{...}{Additional arguments (not used in the generic function but may be 
+\item{...}{Additional arguments (not used in the generic function but may be
 used in specific methods).}
 
 \item{value}{A numeric value representing the background standard deviation.}
@@ -19,11 +19,11 @@ used in specific methods).}
 The updated object with the assigned background standard deviation.
 }
 \description{
-`ps_bg_std_dev<-` is a **generic function** that sets the background 
+`ps_bg_std_dev<-` is a **generic function** that sets the background
 standard deviation value for a given object.
 }
 \details{
-Methods should be implemented for specific object classes that support 
+Methods should be implemented for specific object classes that support
 background standard deviation assignment.
 }
 \examples{

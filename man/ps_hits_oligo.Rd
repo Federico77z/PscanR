@@ -13,19 +13,19 @@ ps_hits_oligo(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **character vector**, where 
-  names correspond to sequence identifiers, and values represent the 
-  oligonucleotide sequences (subset of the input promoter sequences) 
+  \item If `x` is a `PSMatrix` object: a **character vector**, where
+  names correspond to sequence identifiers, and values represent the
+  oligonucleotide sequences (subset of the input promoter sequences)
   matching the motif.
   \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
-`ps_hits_oligo` is a **generic function** that extracts the oligonucleotide 
+`ps_hits_oligo` is a **generic function** that extracts the oligonucleotide
 sequences corresponding to motif hits in a given object.
 }
 \details{
-Methods should be implemented for specific object classes that store motif 
+Methods should be implemented for specific object classes that store motif
 scanning results.
 }
 \examples{

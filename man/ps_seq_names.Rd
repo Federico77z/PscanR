@@ -13,18 +13,18 @@ ps_seq_names(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **character vector** of sequence 
+  \item If `x` is a `PSMatrix` object: a **character vector** of sequence
   names corresponding to the analyzed promoter regions.
-  \item If `x` belongs to another supported class, the return format may 
+  \item If `x` belongs to another supported class, the return format may
   vary.
 }
 }
 \description{
-`ps_seq_names` is a **generic function** that extracts the sequence names 
+`ps_seq_names` is a **generic function** that extracts the sequence names
 or identifiers from an object containing promoter sequence data.
 }
 \details{
-Methods should be implemented for specific object classes storing sequence 
+Methods should be implemented for specific object classes storing sequence
 data.
 }
 \examples{

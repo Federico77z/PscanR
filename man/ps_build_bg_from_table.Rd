@@ -14,48 +14,48 @@ The data frame should include the following columns:
    \item `BG_MEAN`: Mean score of background hits.
    \item `BG_STDEV`: Standard deviation of background hits score.
 }
-The row names of `x` should correspond to the identifiers of the motifs 
+The row names of `x` should correspond to the identifiers of the motifs
 in `pfms`.}
 
-\item{pfms}{A `PFMatrixList` object containing position frequency matrices 
-representing transcription factor binding preferences, obtained, for 
+\item{pfms}{A `PFMatrixList` object containing position frequency matrices
+representing transcription factor binding preferences, obtained, for
 example, from the JASPAR database.
-The number of elements in `pfms` should match the number of rows of `x`, 
+The number of elements in `pfms` should match the number of rows of `x`,
 and their identifiers should correspond.}
 }
 \value{
-A `PSMatrixList` object containing each motif from `pfms`, 
+A `PSMatrixList` object containing each motif from `pfms`,
 enriched with background scoring parameters from `x`.
 }
 \description{
-Associates background parameters from a `data.frame` with a list of position 
-frequency matrices (PFMs) and returns the updated matrices as 
+Associates background parameters from a `data.frame` with a list of position
+frequency matrices (PFMs) and returns the updated matrices as
 a `PSMatrixList` object.
 }
 \details{
-This function: 
+This function:
 \itemize{
    \item Validates the input type. `x` must be a `data.frame`.
-   \item Converts each element of pfms into `PSMatrix` objects. 
-   \item A warning is issued if the number of elements in `pfms` doesn't 
+   \item Converts each element of pfms into `PSMatrix` objects.
+   \item A warning is issued if the number of elements in `pfms` doesn't
    match the number of rows of `x`.
 }
 
-Note: This function does not compute new background scores — it assigns 
-existing background parameters to each motif, assuming they were previously 
+Note: This function does not compute new background scores — it assigns
+existing background parameters to each motif, assuming they were previously
 computed.
 
-This function uses example datasets located in the `extdata/` directory for 
+This function uses example datasets located in the `extdata/` directory for
 demonstration purposes only. These files are not part of the core data used
-by the function. They can be accessed using `system.file()` as shown in the 
+by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
 # create the `data.frame`
 background_data <- data.frame(
-BG_SIZE = c(500, 450, 480),
-BG_MEAN = c(0.3, 0.25, 0.35),
-BG_STDEV = c(0.05, 0.07, 0.06)
+  BG_SIZE = c(500, 450, 480),
+  BG_MEAN = c(0.3, 0.25, 0.35),
+  BG_STDEV = c(0.05, 0.07, 0.06)
 )
 
 # Retrieve motif matrices for vertebrates from JASPAR2020

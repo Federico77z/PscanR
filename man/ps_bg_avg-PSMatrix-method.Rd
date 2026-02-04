@@ -9,25 +9,25 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
-Default set to `TRUE`, but this argument is currently unused as 
-the function returns a single numeric value. It is included for 
+Default set to `TRUE`, but this argument is currently unused as
+the function returns a single numeric value. It is included for
 consistency with other matrix-related methods.}
 }
 \value{
-A numeric value representing the background average score. 
-   This value is computed as the mean of the PWM scores obtained from 
+A numeric value representing the background average score.
+   This value is computed as the mean of the PWM scores obtained from
    scanning all promoter regions in the organism.
 }
 \description{
 Retrieves the background average score stored in a `PSMatrix` object.
-This score represents the average binding score of promoter regions 
+This score represents the average binding score of promoter regions
 when scanned with a PWM.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 pfm1 <- readRDS(pfm1_path)
-ps_bg_avg(pfm1) 
+ps_bg_avg(pfm1)
 
 }

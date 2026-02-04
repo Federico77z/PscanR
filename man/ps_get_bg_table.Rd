@@ -7,39 +7,39 @@
 ps_get_bg_table(pfms)
 }
 \arguments{
-\item{pfms}{A `PSMatrixList` of Position Weight Matrices representing 
-transcription factor binding preferences . 
+\item{pfms}{A `PSMatrixList` of Position Weight Matrices representing
+transcription factor binding preferences .
 Each element must be a `PSMatrix` object or coercible to one.}
 }
 \value{
-A `data.frame` with one row per matrix (corresponding to a 
-transcription factor) in `pfms`. 
+A `data.frame` with one row per matrix (corresponding to a
+transcription factor) in `pfms`.
 The row names will match the matrix identifiers.
 
-Columns: 
+Columns:
 \itemize{
-  \item `BG_SIZE`: An integer vector containing the background set size for 
-  each PSM. 
-  \item `BG_MEAN`: A numeric vector containing the mean of the background 
+  \item `BG_SIZE`: An integer vector containing the background set size for
+  each PSM.
+  \item `BG_MEAN`: A numeric vector containing the mean of the background
   hits score for each PSM.
-  \item `BG_STDEV`: A numeric vector containing the standard deviation 
-  of the background hits score for each PSM. 
+  \item `BG_STDEV`: A numeric vector containing the standard deviation
+  of the background hits score for each PSM.
 }
 }
 \description{
-Extracts background statistics (size, mean, and standard deviation) 
-from a `PSMatrixList` of Position Weight Matrices representing 
-transcription factor binding preferences, and returns a data frame 
+Extracts background statistics (size, mean, and standard deviation)
+from a `PSMatrixList` of Position Weight Matrices representing
+transcription factor binding preferences, and returns a data frame
 containing these metrics.
 }
 \details{
-This function is useful for exporting background-scored matrices to a 
-tabular format. The resulting `data.frame` can be saved and later 
+This function is useful for exporting background-scored matrices to a
+tabular format. The resulting `data.frame` can be saved and later
 reapplied to PFMs using `ps_build_bg_from_table()`.
 
-This function uses example datasets located in the `extdata/` directory for 
+This function uses example datasets located in the `extdata/` directory for
 demonstration purposes only. These files are not part of the core data used
-by the function. They can be accessed using `system.file()` as shown in the 
+by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
@@ -50,9 +50,9 @@ J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 
 # create the `data.frame`
 background_data <- data.frame(
-BG_SIZE = c(500, 450, 480),
-BG_MEAN = c(0.3, 0.25, 0.35),
-BG_STDEV = c(0.05, 0.07, 0.06)
+  BG_SIZE = c(500, 450, 480),
+  BG_MEAN = c(0.3, 0.25, 0.35),
+  BG_STDEV = c(0.05, 0.07, 0.06)
 )
 
 rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")
@@ -60,10 +60,10 @@ rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")
 # Generate background-scored motif matrices
 bg_matrices <- ps_build_bg_from_table(background_data, J2020_subset)
 bg_table <- ps_get_bg_table(bg_matrices)
-bg_table 
+bg_table
 
 }
 \seealso{
-\code{\link{ps_build_bg_from_table}}, 
+\code{\link{ps_build_bg_from_table}},
 \code{\link{ps_retrieve_bg_from_file}}
 }

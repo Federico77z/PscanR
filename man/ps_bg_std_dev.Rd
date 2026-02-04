@@ -2,7 +2,7 @@
 % Please edit documentation in R/AllGenerics.R
 \name{ps_bg_std_dev}
 \alias{ps_bg_std_dev}
-\title{Compute the Background Standard Deviation Value for Motif Enrichment 
+\title{Compute the Background Standard Deviation Value for Motif Enrichment
 Analysis (Generic Function)}
 \usage{
 ps_bg_std_dev(x, ...)
@@ -14,18 +14,18 @@ ps_bg_std_dev(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value** 
+  \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
   representing the computed background standard deviation value
   \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
-`ps_bg_std_dev` is a **generic function** that retrieves the background 
-standard deviation value for motif enrichment analysis. Methods should be 
+`ps_bg_std_dev` is a **generic function** that retrieves the background
+standard deviation value for motif enrichment analysis. Methods should be
 implemented for specific object classes that store scan results.
 }
 \details{
-The background standard deviation value quantifies the variability in the 
+The background standard deviation value quantifies the variability in the
 background motif binding scores.
 }
 \examples{

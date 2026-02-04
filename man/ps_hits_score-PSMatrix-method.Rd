@@ -9,18 +9,18 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A named numeric vector where names correspond to promoter sequence 
+A named numeric vector where names correspond to promoter sequence
    identifiers and values represent their respective motif hit scores.
 }
 \description{
-Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` 
+Retrieves the motif hit scores for each promoter sequence in a `PSMatrix`
 object.
-These scores represent the binding affinity or enrichment level of promoter 
+These scores represent the binding affinity or enrichment level of promoter
 sequences when scanned with a Position Weight Matrix (PWM).
 }
 \examples{

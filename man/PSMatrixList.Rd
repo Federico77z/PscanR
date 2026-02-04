@@ -10,35 +10,35 @@ PSMatrixList(..., transcriptIDLegend = character(), use.names = TRUE)
 \arguments{
 \item{...}{Objects of class `PSMatrix` to include in the list.}
 
-\item{transcriptIDLegend}{Named character vector. The names correspond to 
-the IDs of all transcripts expressed in the organism of study, whereas 
-corresponding values are the IDs of transcripts retained by the unique() 
-function when multiple identical sequences exist. So, if multiple 
-identical sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique() 
-retains only ID2, the mapping will associate each original name with its 
-unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2). 
-This argument is currently ignored by the constructor; the slot is 
+\item{transcriptIDLegend}{Named character vector. The names correspond to
+the IDs of all transcripts expressed in the organism of study, whereas
+corresponding values are the IDs of transcripts retained by the unique()
+function when multiple identical sequences exist. So, if multiple
+identical sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique()
+retains only ID2, the mapping will associate each original name with its
+unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2).
+This argument is currently ignored by the constructor; the slot is
 typically populated by background-building helpers.}
 
 \item{use.names}{Logical. Assert whether to use names from the input objects.
 Default = `TRUE`}
 }
 \value{
-A `PSMatrixList` object, which is a list containing `PSMatrix` 
-   objects. Each element in the list corresponds to a `PSMatrix` object 
+A `PSMatrixList` object, which is a list containing `PSMatrix`
+   objects. Each element in the list corresponds to a `PSMatrix` object
    provided as input.
 
-A `PSMatrixList` object, which is a list containing the `PSMatrix` 
+A `PSMatrixList` object, which is a list containing the `PSMatrix`
    objects converted from the `PFMatrixList`.
 }
 \description{
-This constructor creates a `PSMatrixList` object, which is a container for 
-managing multiple `PSMatrix` objects. It is similar to `PFMatrixList` but 
+This constructor creates a `PSMatrixList` object, which is a container for
+managing multiple `PSMatrix` objects. It is similar to `PFMatrixList` but
 extends its functionality.
 
-This method converts a `PFMatrixList` object into a `PSMatrixList` object by 
-applying the conversion for each `PFMatrix` in the list to a `PSMatrix`. 
-The resulting `PSMatrixList` is created by combining the converted `PSMatrix` 
+This method converts a `PFMatrixList` object into a `PSMatrixList` object by
+applying the conversion for each `PFMatrix` in the list to a `PSMatrix`.
+The resulting `PSMatrixList` is created by combining the converted `PSMatrix`
 objects into a list and returning the new object.
 }
 \examples{
@@ -48,18 +48,18 @@ J2020 <- readRDS(J2020_path)
 
 PSM1 <- PSMatrix(
   pfm = J2020[[1]],
-  ps_bg_avg = 0.25,        
-  ps_fg_avg = 0.5,         
-  ps_bg_std_dev = 0.05,    
-  ps_bg_size = 250L        
-  )
+  ps_bg_avg = 0.25,
+  ps_fg_avg = 0.5,
+  ps_bg_std_dev = 0.05,
+  ps_bg_size = 250L
+)
 PSM2 <- PSMatrix(
   pfm = J2020[[2]],
-  ps_bg_avg = 0.25,        
-  ps_fg_avg = 0.5,         
-  ps_bg_std_dev = 0.05,    
-  ps_bg_size = 250L        
-  )
+  ps_bg_avg = 0.25,
+  ps_fg_avg = 0.5,
+  ps_bg_std_dev = 0.05,
+  ps_bg_size = 250L
+)
 result <- PSMatrixList(PSM1, PSM2)
 ps_results_table(result)
 }

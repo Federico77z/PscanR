@@ -9,16 +9,16 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-An integer value representing the background promoter region size 
+An integer value representing the background promoter region size
    used for background scoring.
 }
 \description{
-Retrieves the background promoter region size used to compute the 
+Retrieves the background promoter region size used to compute the
 background statistics in a `PSMatrix` object (e.g., 250L).
 }
 \examples{

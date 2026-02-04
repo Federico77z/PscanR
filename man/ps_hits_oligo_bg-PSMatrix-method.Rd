@@ -9,34 +9,35 @@
 \arguments{
 \item{x}{A `PSMatrix` object, typically the result of the `Pscan` algorithm.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A character vector containing the sequences of motif matches 
+A character vector containing the sequences of motif matches
     (oligonucleotides) in the background set.
 }
 \description{
-Retrieves the oligonucleotide sequences that match the motif in the 
+Retrieves the oligonucleotide sequences that match the motif in the
 background sequences, returning a character vector.
 }
 \details{
 This method is specifically designed for background datasets,
-where motif hit oligonucleotide sequences are precomputed for all 
-promoter sequences. 
-The function extracts the character values from the ps_hits_oligo_bg slot 
+where motif hit oligonucleotide sequences are precomputed for all
+promoter sequences.
+The function extracts the character values from the ps_hits_oligo_bg slot
 and, if applicable, assigns sequence names using .ps_bg_seq_names().
 
-These background metrics are particularly useful in motif enrichment 
-analyses, as they allow \code{pscan()} to compare promoter 
-sequences against a reference distribution without the need for 
+These background metrics are particularly useful in motif enrichment
+analyses, as they allow \code{pscan()} to compare promoter
+sequences against a reference distribution without the need for
 recomputation.
 }
 \examples{
-full_pfm1_path <- system.file("extdata", 
-                              "full_pfm1.rds", 
-                              package = "PscanR")
+full_pfm1_path <- system.file("extdata",
+  "full_pfm1.rds",
+  package = "PscanR"
+)
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_hits_oligo_bg(full_pfm1)
 

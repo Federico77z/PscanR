@@ -14,7 +14,7 @@ ps_bg_avg(x, ...) <- value
 \item{value}{The value for the background average.}
 }
 \value{
-An object of the same class of the input with the modified 
+An object of the same class of the input with the modified
    background average value.
 }
 \description{
@@ -23,6 +23,6 @@ Generic Setter Method for Background Mean Value of an object
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 pfm1 <- readRDS(pfm1_path)
-`ps_bg_avg<-`(pfm1, value = 0.73473) 
+`ps_bg_avg<-`(pfm1, value = 0.73473)
 
 }

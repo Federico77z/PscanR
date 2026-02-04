@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
@@ -17,8 +17,8 @@ Default set to `TRUE`.}
 A character vector of names.
 }
 \description{
-Retrieves the names or identifiers of the promoter sequences in a `PSMatrix` 
-object. These names correspond to the promoter regions that were scanned by 
+Retrieves the names or identifiers of the promoter sequences in a `PSMatrix`
+object. These names correspond to the promoter regions that were scanned by
 the Pscan algorithm.
 }
 \examples{

@@ -16,97 +16,104 @@ PscanFiltered(
 \arguments{
 \item{prom_seq}{A DNAStringSet object. The promoter sequences to be filtered.}
 
-\item{Jmatrix}{A PSMatrix object. A JASPAR matrix containing background 
-average and standard deviation statistics, used to filter promoter 
+\item{Jmatrix}{A PSMatrix object. A JASPAR matrix containing background
+average and standard deviation statistics, used to filter promoter
 sequences.}
 
-\item{n}{A numeric value determining the threshold for filtering. The 
-threshold is computed as n*ps_bg_std_dev(Jmatrix) + ps_bg_avg(Jmatrix). 
-Positive values retain sequences with higher affinity, while 
+\item{n}{A numeric value determining the threshold for filtering. The
+threshold is computed as n*ps_bg_std_dev(Jmatrix) + ps_bg_avg(Jmatrix).
+Positive values retain sequences with higher affinity, while
 negative values retain sequences with lower affinity. Default is 1.}
 
-\item{background}{A PSMatrixList object. It contains PWMs and background 
+\item{background}{A PSMatrixList object. It contains PWMs and background
 statistics.
-For background statistics we refer to the standard deviation and average 
-of hits scores when the background (set of promoters of all the 
-transcript in the organism of study) is scanned with the position weight 
-matrices. 
-This is used to assert the statistical enrichment of motif occurrences 
+For background statistics we refer to the standard deviation and average
+of hits scores when the background (set of promoters of all the
+transcript in the organism of study) is scanned with the position weight
+matrices.
+This is used to assert the statistical enrichment of motif occurrences
 in co-expressed or co-regulated genes.
-See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}}, 
-\code{\link{ps_build_bg_from_table}}, 
+See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}},
+\code{\link{ps_build_bg_from_table}},
 \code{\link{generate_psmatrixlist_from_background}}
-for how to create `PSMatrixList` objects that contain background 
+for how to create `PSMatrixList` objects that contain background
 statistics.}
 
 \item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel package.
 This argument is passed to `BiocParallel::bplapply`.
-If BPPARAM is not explicitly set, the default value (bpparam()) will be 
-used, which automatically chooses a sensible parallelization method based 
-on the user's system. 
-You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating 
+If BPPARAM is not explicitly set, the default value (bpparam()) will be
+used, which automatically chooses a sensible parallelization method based
+on the user's system.
+You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating
 systems, or BPPARAM = BiocParallel::MulticoreParam(8) on Unix-like
 systems to use, for example, 8 cores.}
 
 \item{BPOPTIONS}{The BPOPTIONS used by bplapply. See BiocParallel package.
-This argument is passed to `BiocParallel::bplapply`. 
+This argument is passed to `BiocParallel::bplapply`.
 The default is `bpoptions()`.
-Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
-progressbar = TRUE enables a progress bar that can be useful when 
+Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE).
+progressbar = TRUE enables a progress bar that can be useful when
 processing many tasks. log = TRUE enables logging to debug each step of
 the parallel tasks.}
 }
 \value{
-A `PSMatrixList` object in which the foreground values 
-(the alignment scores) have been computed for each sequence in `prom_seq`, 
-that has passed the threshold, based on the position weight matrices 
-in `background`. If no sequences pass the filter, a warning is issued, and  
+A `PSMatrixList` object in which the foreground values
+(the alignment scores) have been computed for each sequence in `prom_seq`,
+that has passed the threshold, based on the position weight matrices
+in `background`. If no sequences pass the filter, a warning is issued, and
 the function returns `NULL`.
 }
 \description{
-This function filters input promoter sequences based on their affinity 
-with a specified JASPAR matrix before applying the Pscan algorithm with the 
+This function filters input promoter sequences based on their affinity
+with a specified JASPAR matrix before applying the Pscan algorithm with the
 background reference.
 }
 \details{
 This function:
    \itemize{
       \item scans promoter sequences using the `Jmatrix` PWM.
-      \item retains only those that meet the threshold criterion. 
+      \item retains only those that meet the threshold criterion.
       \item scans the filtered sequences across the background PWMs.
    }
 }
 \examples{
 # Due to computational time issues, this example is not automatically run.
-# User can run it in the console and use the ps_results_table() function to 
-# visualize the results of pscan() and PscanFiltered(). 
-\dontrun{
-bg <- generate_psmatrixlist_from_background('jaspar2020', 
-                                            'hs', 
-                                            c(-450,+50), 
-                                            'hg38')
-txdb <- txdbmaker::makeTxDbFromUCSC('hg38', 'ncbiRefSeqCurated')
+# User can run it in the console and use the ps_results_table() function to
+# visualize the results of pscan() and PscanFiltered().
+# Not run during checks because it is time-consuming and requires
+# downloading large annotation resources.
+\donttest{
+bg <- generate_psmatrixlist_from_background(
+  "jaspar2020",
+  "hs",
+  c(-450, +50),
+  "hg38"
+)
+txdb <- txdbmaker::makeTxDbFromUCSC("hg38", "ncbiRefSeqCurated")
 GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24]
-prom_rng <- GenomicFeatures::promoters(txdb, 
-                                       upstream = 450, 
-                                       downstream = 50, 
-                                       use.names = TRUE)
-prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
-                               prom_rng) #promoter sequences
+prom_rng <- GenomicFeatures::promoters(txdb,
+  upstream = 450,
+  downstream = 50,
+  use.names = TRUE
+)
+prom_seq <- Biostrings::getSeq(
+  x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38,
+  prom_rng
+) # promoter sequences
 
 JM <- bg$MA0484.2
 
-file_path <- system.file('extdata', 'liver.txt', package = 'PscanR')
-liver_IDs <- read.csv(file_path, header = F, sep = '\t')
-liver_IDs <- liver_IDs[,1]
+file_path <- system.file("extdata", "liver.txt", package = "PscanR")
+liver_IDs <- read.csv(file_path, header = F, sep = "\t")
+liver_IDs <- liver_IDs[, 1]
 
-liver_proms_seq <- prom_seq[sub('\\\\..*$', '', names(prom_seq)) \%in\% liver_IDs]
+liver_proms_seq <- prom_seq[sub("\\\\..*$", "", names(prom_seq)) \%in\% liver_IDs]
 
-res <- PscanFiltered(liver_proms_seq, 
-                     JM, 
-                     background = bg, 
-                     BPPARAM = BiocParallel::SnowParam(1))
-
+res <- PscanFiltered(liver_proms_seq,
+  JM,
+  background = bg,
+  BPPARAM = BiocParallel::SnowParam(1)
+)
 }
 
 }

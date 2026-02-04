@@ -9,22 +9,21 @@
 \arguments{
 \item{x}{A `PSMatrix` object, typically the result of the `Pscan` algorithm.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A character vector containing the sequences of motif matches 
+A character vector containing the sequences of motif matches
     (oligonucleotides) in the foreground set.
 }
 \description{
-Retrieves the oligonucleotide sequences that match the motif in the 
+Retrieves the oligonucleotide sequences that match the motif in the
 foreground sequences, returning a character vector.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 pfm1 <- readRDS(pfm1_path)
 ps_hits_oligo(pfm1)
-
 
 }
