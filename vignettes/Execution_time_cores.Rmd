@@ -3,22 +3,22 @@ title: "Comparing execution time with varying processors"
 author: "Diana Betelli"
 date: "`r Sys.Date()`"
 output:
-  BiocStyle::html_document:
+    BiocStyle::html_document:
     toc: true
     toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{4. Comparing execution time with varying processors}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{4. Comparing execution time with varying processors}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
-  markdown: 
+    markdown: 
     wrap: 80
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+    collapse = TRUE,
+    comment = "#>"
 )
 ```
 
@@ -73,15 +73,15 @@ GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24]
 
 # Background generation. JASPAR core dataset for Vertebrates, 2020 release
 J2020_PSBG <- PscanR::generate_psmatrixlist_from_background( 'Jaspar2020', 
-                                                             'hs', 
-                                                             c(-950,50), 
-                                                             'hg38') 
+                                                                'hs', 
+                                                                c(-950,50), 
+                                                                'hg38') 
 
 # Retrieve promoter regions 
 prom_rng <- GenomicFeatures::promoters(txdb, 
-                                       upstream = 950, 
-                                       downstream = 50, 
-                                       use.names = TRUE) 
+                                        upstream = 950, 
+                                        downstream = 50, 
+                                        use.names = TRUE) 
 
 # Version numbers removal from transcript IDs
 prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name) 
@@ -111,36 +111,36 @@ iterations <- 100 # Number of iterations
 core_numbers <- c(1,2,4,6,8,12,18,24) # Cores used
 
 execution_time <- function(prom_seq, bg, ncores, output_file){
-  temp <- numeric(iterations)
-  
-  for (i in 1:iterations){
+    temp <- numeric(iterations)
+    
+    for (i in 1:iterations){
     timing <- system.time({
-      results <- PscanR::pscan(prom_seq, 
-                               bg, 
-                               BPPARAM = BiocParallel::MulticoreParam(ncores))}
-      ) 
+        results <- PscanR::pscan(prom_seq, 
+                                bg, 
+                                BPPARAM = BiocParallel::MulticoreParam(ncores))}
+        ) 
     if (i == 1){
-      saveRDS(PscanR::ps_results_table(results), output_file) 
+        saveRDS(PscanR::ps_results_table(results), output_file) 
 # Analyse all the files to be sure that results don't change when changing 
 # the core numbers
-      }
+        }
     temp[i] <- timing["elapsed"]
     }
-  return(temp)
-  }
+    return(temp)
+    }
 
 all_cores <- function(core_numbers, prom_seq, bg, iterations) {
-  results_list <- list()
-  
-  for (core in core_numbers) {
+    results_list <- list()
+    
+    for (core in core_numbers) {
     output_file <- paste0("core", core, "_liver_950u_50d.rds")
     results_list[[as.character(core)]] <- execution_time(prom_seq, 
-                                                         bg, 
-                                                         core, 
-                                                         output_file)
-  }
-  
-  return(as.data.frame(results_list))
+                                                            bg, 
+                                                            core, 
+                                                            output_file)
+    }
+    
+    return(as.data.frame(results_list))
 } 
 
 df_processori <- all_cores(core_numbers, prom_seq, bg_hg38_2020, iterations)
@@ -178,7 +178,10 @@ r_squared <- 1 - (ss_residual / ss_total)
 ```{r chunk-2}
 boxplot(data,
         main = "PscanR Execution Time with MulticoreParam",
-        xlab = "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
+        xlab = paste0(
+            "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 ",
+            "(746 matrices), 329 promoters (1000bp)"
+        ),
         yaxt = "n",
         cex.lab = 0.9,
         ylab = "Time (s)",
@@ -190,8 +193,10 @@ axis(2, at = seq(0, 2000, by = 200), las = 1)
 
 lines(smooth_N, smooth_pred, col = "blue", lwd = 2)
 
-legend("topright", legend = bquote("Power regression, " ~ R^2 == .(round(r_squared, 3))),
-       col = "blue", lwd = 2)
+legend(
+    "topright",
+    legend = bquote("Power regression, " ~ R^2 == .(round(r_squared, 3))),
+        col = "blue", lwd = 2)
 ```
 
 ## Consideration
@@ -215,7 +220,7 @@ evaluated time for each core.
 
 ```{r chunk-3}
 file_path <- system.file("extdata", "df_processori_SnowParam.rds", 
-                         package = "PscanR")
+                            package = "PscanR")
 data <- readRDS(file_path)
 
 head(data)
@@ -227,7 +232,7 @@ means <- colMeans(data, na.rm = TRUE)
 power_model <- lm(log(means) ~ log(N))  
 
 nls_model <- nls(means ~ a * N^(-b) + c,
-                 start = list(a = 1500, b = 1, c = 300)) 
+                    start = list(a = 1500, b = 1, c = 300)) 
 smooth_N <- seq(min(N), max(N), length.out = 500)  
 smooth_pred <- predict(nls_model, newdata = data.frame(N = smooth_N))
 
@@ -239,7 +244,10 @@ r_squared <- 1 - (ss_residual / ss_total)
 ```{r chunk-4}
 boxplot(data,
         main = "PscanR Execution Time with SnowParam",
-        xlab = "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
+        xlab = paste0(
+            "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 ",
+            "(746 matrices), 329 promoters (1000bp)"
+        ),
         yaxt = "n",
         cex.lab = 1.2,
         ylab = "Time (s)",
@@ -251,8 +259,10 @@ axis(2, at = seq(0, 2000, by = 200), las = 1)
 
 lines(smooth_N, smooth_pred, col = "blue", lwd = 2)
 
-legend("topright", legend = bquote("Power regression, " ~ R^2 == .(round(r_squared, 3))),
-       col = "blue", lwd = 2)
+legend(
+    "topright",
+    legend = bquote("Power regression, " ~ R^2 == .(round(r_squared, 3))),
+        col = "blue", lwd = 2)
 
 ```
 

@@ -11,7 +11,8 @@ get_availableBG(keyword = NULL)
 complete list of available file names is printed}
 }
 \value{
-A character vector containing the names of the available background files
+A character vector containing the names of the available background
+files
 }
 \description{
 This function retrieves the names of all available .txt files containing
@@ -40,5 +41,6 @@ get_availableBG("hs1.*450u_50d")
 
 }
 \seealso{
-\code{\link{generate_psmatrixlist_from_background}}, \code{\link{ps_retrieve_bg_from_file}}
+\code{\link{generate_psmatrixlist_from_background}},
+\code{\link{ps_retrieve_bg_from_file}}
 }

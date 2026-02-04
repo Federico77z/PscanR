@@ -77,44 +77,27 @@ This function:
    }
 }
 \examples{
-# Due to computational time issues, this example is not automatically run.
-# User can run it in the console and use the ps_results_table() function to
-# visualize the results of pscan() and PscanFiltered().
-# Not run during checks because it is time-consuming and requires
-# downloading large annotation resources.
-\donttest{
-bg <- generate_psmatrixlist_from_background(
-  "jaspar2020",
-  "hs",
-  c(-450, +50),
-  "hg38"
+# Run on a small subset using bundled data (no downloads).
+prom_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+prom_seq <- readRDS(prom_path)
+set.seed(1)
+n_prom <- min(100, length(prom_seq))
+prom_seq <- prom_seq[sample(seq_along(prom_seq), n_prom)]
+
+bg_path <- system.file("extdata",
+  "J2020_hg38_200u_50d_UCSC.psbg.txt",
+  package = "PscanR"
 )
-txdb <- txdbmaker::makeTxDbFromUCSC("hg38", "ncbiRefSeqCurated")
-GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24]
-prom_rng <- GenomicFeatures::promoters(txdb,
-  upstream = 450,
-  downstream = 50,
-  use.names = TRUE
-)
-prom_seq <- Biostrings::getSeq(
-  x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38,
-  prom_rng
-) # promoter sequences
+J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(J2020_path)
+bg <- ps_retrieve_bg_from_file(bg_path, J2020)
 
-JM <- bg$MA0484.2
-
-file_path <- system.file("extdata", "liver.txt", package = "PscanR")
-liver_IDs <- read.csv(file_path, header = F, sep = "\t")
-liver_IDs <- liver_IDs[, 1]
-
-liver_proms_seq <- prom_seq[sub("\\\\..*$", "", names(prom_seq)) \%in\% liver_IDs]
-
-res <- PscanFiltered(liver_proms_seq,
+JM <- bg[[1]]
+res <- PscanFiltered(prom_seq,
   JM,
   background = bg,
   BPPARAM = BiocParallel::SnowParam(1)
 )
-}
 
 }
 \seealso{

@@ -112,14 +112,14 @@
 #' @export
 ps_build_bg <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions(),
                         fullBG = FALSE) {
-  .ps_checks(x, pfms, type = 1)
+    .ps_checks(x, pfms, type = 1)
 
-  x_unique <- BiocGenerics::unique(x)
-  x_unique <- .clean_sequence(x_unique)
+    x_unique <- BiocGenerics::unique(x)
+    x_unique <- .clean_sequence(x_unique)
 
-  pfms <- as(pfms, "PSMatrixList")
+    pfms <- as(pfms, "PSMatrixList")
 
-  pfms <- bplapply(
+    pfms <- bplapply(
     pfms,
     FUN = ps_scan,
     x_unique,
@@ -127,15 +127,15 @@ ps_build_bg <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions(),
     fullBG = fullBG,
     BPPARAM = BPPARAM,
     BPOPTIONS = BPOPTIONS
-  )
+    )
 
-  pfms <- do.call(PSMatrixList, pfms)
+    pfms <- do.call(PSMatrixList, pfms)
 
-  if (fullBG == TRUE) {
+    if (fullBG == TRUE) {
     pfms <- .mapping_unique_names(x, pfms)
-  }
+    }
 
-  return(pfms)
+    return(pfms)
 }
 
 #' Import background-scored matrices from a file
@@ -209,13 +209,13 @@ ps_build_bg <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions(),
 #'
 #' @export
 ps_retrieve_bg_from_file <- function(file, pfms) {
-  .ps_checks(file, pfms, type = 2)
+    .ps_checks(file, pfms, type = 2)
 
-  short.matrix <- read.table(file, header = FALSE, row.names = 1, skip = 1)
+    short.matrix <- read.table(file, header = FALSE, row.names = 1, skip = 1)
 
-  colnames(short.matrix)[seq_len(3)] <- c("BG_SIZE", "BG_MEAN", "BG_STDEV")
+    colnames(short.matrix)[seq_len(3)] <- c("BG_SIZE", "BG_MEAN", "BG_STDEV")
 
-  pfms <- ps_build_bg_from_table(short.matrix, pfms)
+    pfms <- ps_build_bg_from_table(short.matrix, pfms)
 }
 
 #' Apply background parameters to position frequency matrices
@@ -283,20 +283,20 @@ ps_retrieve_bg_from_file <- function(file, pfms) {
 #' bg_matrices[[1]]
 #' @export
 ps_build_bg_from_table <- function(x, pfms) {
-  .ps_checks(x, pfms, type = 3)
+    .ps_checks(x, pfms, type = 3)
 
-  pfms <- lapply(pfms, FUN = as, "PSMatrix")
+    pfms <- lapply(pfms, FUN = as, "PSMatrix")
 
-  if (length(pfms) != nrow(x)) {
+    if (length(pfms) != nrow(x)) {
     warning(
-      "Mismatch between number of PFMs in PFMatrixList/PSMatrixList object",
-      "and file table"
+        "Mismatch between number of PFMs in PFMatrixList/PSMatrixList object",
+        "and file table"
     )
-  }
+    }
 
-  pfms <- lapply(pfms, FUN = .ps_bg_from_table, x)
+    pfms <- lapply(pfms, FUN = .ps_bg_from_table, x)
 
-  do.call(PSMatrixList, pfms)
+    do.call(PSMatrixList, pfms)
 }
 
 #' Extract background statistics from a `PSMatrixList` object
@@ -361,13 +361,13 @@ ps_build_bg_from_table <- function(x, pfms) {
 #'
 #' @export
 ps_get_bg_table <- function(pfms) {
-  .ps_checks2(pfms)
+    .ps_checks2(pfms)
 
-  BG_SIZE <- vapply(pfms, ps_bg_size, integer(length = 1))
-  BG_MEAN <- vapply(pfms, ps_bg_avg, numeric(length = 1))
-  BG_STDEV <- vapply(pfms, ps_bg_std_dev, numeric(length = 1))
+    BG_SIZE <- vapply(pfms, ps_bg_size, integer(length = 1))
+    BG_MEAN <- vapply(pfms, ps_bg_avg, numeric(length = 1))
+    BG_STDEV <- vapply(pfms, ps_bg_std_dev, numeric(length = 1))
 
-  data.frame(BG_SIZE, BG_MEAN, BG_STDEV, row.names = names(pfms))
+    data.frame(BG_SIZE, BG_MEAN, BG_STDEV, row.names = names(pfms))
 }
 
 #' Save background statistics from a `PSMatrixList` object to a file
@@ -407,17 +407,12 @@ ps_get_bg_table <- function(pfms) {
 #'   tab-delimited format.
 #'
 #' @examples
-#' # Since the function create a .txt file in the user working directory,
-#' # this example will not run automatically.
-#' # User can test it in the console.
-#' # Not run during checks because it writes to disk.
-#' \donttest{
 #' # Load the example dataset for JASPAR2020 matrices collection
 #' # for vertebrates.
 #' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 #' J2020 <- readRDS(J2020_path)
-#' # File path to save the result
-#' file_path <- "J2020_hg38_bg_stats.txt"
+#' # File path to save the result (temporary file)
+#' file_path <- tempfile(fileext = ".txt")
 #'
 #' PSM1 <- PSMatrix(
 #'   pfm = J2020[[1]],
@@ -437,19 +432,19 @@ ps_get_bg_table <- function(pfms) {
 #' PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
 #'
 #' ps_write_bg_to_file(PSMatrixList_J2020, file_path)
-#' }
+#' unlink(file_path)
 #'
 #' @seealso \code{\link{ps_get_bg_table}}
 #'
 #' @export
 ps_write_bg_to_file <- function(pfms, file) {
-  .ps_checks2(pfms, file)
+    .ps_checks2(pfms, file)
 
-  tab <- ps_get_bg_table(pfms)
+    tab <- ps_get_bg_table(pfms)
 
-  write("[SHORT TFBS MATRIX]", file = file, append = FALSE)
+    write("[SHORT TFBS MATRIX]", file = file, append = FALSE)
 
-  write.table(
+    write.table(
     tab,
     file = file,
     quote = FALSE,
@@ -457,7 +452,55 @@ ps_write_bg_to_file <- function(pfms, file) {
     row.names = TRUE,
     col.names = FALSE,
     append = TRUE
-  )
+    )
+}
+
+# .ps_bg_filename and .ps_load_jaspar_collection are internal helpers used by
+# generate_psmatrixlist_from_background.
+.ps_bg_filename <- function(JASPAR_matrix, org, prom_reg, assembly, version) {
+    organism_map <- c(
+    "hs" = assembly, "mm" = assembly, "at" = "TAIR9",
+    "sc" = "sacCer3", "dm" = "dm6"
+    )
+    org_assembly <- if (org %in% names(organism_map)) {
+    organism_map[[org]]
+    } else {
+    NULL
+    }
+    Jversion <- substr(JASPAR_matrix, 7, 10)
+    p_up <- abs(prom_reg[1])
+    p_down <- abs(prom_reg[2])
+    file_suffix <- ifelse(
+    org_assembly == "TAIR9",
+    sprintf("TAIR.psbg%s.txt", version),
+    sprintf("UCSC.psbg%s.txt", version)
+    )
+    paste0(
+    "J", Jversion, "_", org_assembly, "_", p_up, "u_", p_down,
+    "d_", file_suffix
+    )
+}
+
+.ps_load_jaspar_collection <- function(JASPAR_matrix, org) {
+    tax_map <- c(
+    "hs" = "vertebrates", "mm" = "vertebrates", "at" = "plants",
+    "sc" = "fungi", "dm" = "insects"
+    )
+    opts <- list("collection" = "CORE", "tax_group" = tax_map[[org]])
+    J_name <- toupper(JASPAR_matrix)
+    switch(J_name,
+    "JASPAR2020" = TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts),
+    "JASPAR2022" = TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts),
+    "JASPAR2024" = {
+        httr::set_config(httr::config(ssl_verifypeer = 0L))
+        JASPAR2024 <- JASPAR2024::JASPAR2024()
+        JASPARConnect <- RSQLite::dbConnect(
+        RSQLite::SQLite(),
+        JASPAR2024::db(JASPAR2024)
+        )
+        TFBSTools::getMatrixSet(JASPARConnect, opts)
+    }
+    )
 }
 
 #' Generate PSMatrixList from Background data and JASPAR Matrix
@@ -528,65 +571,27 @@ ps_write_bg_to_file <- function(pfms, file) {
 #' @import httr
 #' @importFrom TFBSTools getMatrixSet
 generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
-                                                  assembly = character(),
-                                                  version = "1",
-                                                  destfile = NULL) {
-  organism_map <- c(
-    "hs" = assembly, "mm" = assembly, "at" = "TAIR9",
-    "sc" = "sacCer3", "dm" = "dm6"
-  )
-  tax_map <- c(
-    "hs" = "vertebrates", "mm" = "vertebrates", "at" = "plants",
-    "sc" = "fungi", "dm" = "insects"
-  )
-
-  org_assembly <- if (org %in% names(organism_map)) organism_map[[org]] else NULL
-
-  J_name <- toupper(JASPAR_matrix)
-
-  Jversion <- substr(JASPAR_matrix, 7, 10)
-
-  p_up <- abs(prom_reg[1])
-  p_down <- abs(prom_reg[2])
-
-  file_suffix <- ifelse(org_assembly == "TAIR9",
-    sprintf("TAIR.psbg%s.txt", version),
-    sprintf("UCSC.psbg%s.txt", version)
-  )
-
-  file_name <- paste0(
-    "J", Jversion, "_", org_assembly, "_", p_up, "u_", p_down,
-    "d_", file_suffix
-  )
-
-  AvailableBG <- get_availableBG()
-
-  if (!(file_name %in% AvailableBG)) {
+                                                    assembly = character(),
+                                                    version = "1",
+                                                    destfile = NULL) {
+    file_name <- .ps_bg_filename(
+    JASPAR_matrix,
+    org,
+    prom_reg,
+    assembly,
+    version
+    )
+    AvailableBG <- get_availableBG()
+    if (!(file_name %in% AvailableBG)) {
     stop(sprintf(
-      "Invalid file name: '%s'\n\nPlease run 'get_availableBG()' to see the list of available background files",
-      file_name
+        "Invalid file name: '%s'\\n\\nPlease run 'get_availableBG()' %s",
+        file_name,
+        "to see the list of available background files"
     ))
-  }
-
-  BG_path <- .download_background(file = file_name, destfile = destfile)
-
-  opts <- list("collection" = "CORE", "tax_group" = tax_map[[org]])
-
-  J_matrix <- switch(J_name,
-    "JASPAR2020" = TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts),
-    "JASPAR2022" = TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts),
-    "JASPAR2024" = {
-      httr::set_config(httr::config(ssl_verifypeer = 0L))
-      JASPAR2024 <- JASPAR2024::JASPAR2024()
-      JASPARConnect <- RSQLite::dbConnect(
-        RSQLite::SQLite(),
-        JASPAR2024::db(JASPAR2024)
-      )
-      J_matrix <- TFBSTools::getMatrixSet(JASPARConnect, opts)
     }
-  )
-
-  ps_retrieve_bg_from_file(BG_path, J_matrix)
+    BG_path <- .download_background(file = file_name, destfile = destfile)
+    J_matrix <- .ps_load_jaspar_collection(JASPAR_matrix, org)
+    ps_retrieve_bg_from_file(BG_path, J_matrix)
 }
 
 #' Get Available Pre-Computed Background Files
@@ -613,9 +618,11 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #'    \item You may also filter by version number, e.g., '1.txt'.
 #'    \item Multiple keywords can be combined (e.g., 'hs1.*450u_50d').}
 #'
-#' @seealso \code{\link{generate_psmatrixlist_from_background}}, \code{\link{ps_retrieve_bg_from_file}}
+#' @seealso \code{\link{generate_psmatrixlist_from_background}},
+#' \code{\link{ps_retrieve_bg_from_file}}
 #'
-#' @return A character vector containing the names of the available background files
+#' @return A character vector containing the names of the available background
+#' files
 #'
 #' @examples
 #' head(get_availableBG())
@@ -625,26 +632,29 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #' @import httr
 #' @export
 get_availableBG <- function(keyword = NULL) {
-  url <- "https://api.github.com/repos/dianabetelli/PscanR_backgrounds/contents/BG_files"
+    url <- paste0(
+    "https://api.github.com/repos/",
+    "dianabetelli/PscanR_backgrounds/contents/BG_files"
+    )
 
-  response <- httr::GET(url)
+    response <- httr::GET(url)
 
-  httr::stop_for_status(response)
+    httr::stop_for_status(response)
 
-  files_info <- content(response)
-  file_names <- vapply(files_info, function(file) file$name, character(1))
+    files_info <- content(response)
+    file_names <- vapply(files_info, function(file) file$name, character(1))
 
-  if (!is.null(keyword)) {
+    if (!is.null(keyword)) {
     if (!is.character(keyword)) {
-      stop("Keyword parameter must be a string")
+        stop("Keyword parameter must be a string")
     }
     filtered_file_names <- file_names[grep(keyword, file_names)]
     if (length(filtered_file_names) != 0) {
-      return(filtered_file_names)
+        return(filtered_file_names)
     } else {
-      stop("Found 0 match with: ", keyword)
+        stop("Found 0 match with: ", keyword)
     }
-  } else {
+    } else {
     return(file_names)
-  }
+    }
 }

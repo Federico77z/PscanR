@@ -4,7 +4,8 @@
 \alias{ps_scan,PSMatrix-method}
 \title{Perform a Scan of DNA Sequences Using a `PSMatrix` Object}
 \usage{
-\S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE, use_full_BG = FALSE, fullBG = FALSE)
+\S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE,
+  use_full_BG = FALSE, fullBG = FALSE)
 }
 \arguments{
 \item{x}{A `PSMatrix` object representing the motif and related statistics

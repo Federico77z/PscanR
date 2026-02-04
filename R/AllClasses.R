@@ -1,7 +1,7 @@
 #' @import TFBSTools
 #' @importFrom TFBSTools PFMatrix
 .PSMatrix <- setClass("PSMatrix",
-  slots = representation(
+    slots = representation(
     ps_bg_avg = "numeric",
     ps_fg_avg = "numeric",
     ps_bg_std_dev = "numeric",
@@ -21,8 +21,8 @@
     ps_bg_seq_names = "character",
     .PS_PSEUDOCOUNT = "numeric",
     .PS_ALPHABET = "integer"
-  ),
-  contains = "PFMatrix"
+    ),
+    contains = "PFMatrix"
 )
 
 #' An S4 Class for a Single Position-Specific Matrix
@@ -76,12 +76,12 @@
 #' )
 #' print(result)
 PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
-                     ps_fg_avg = as.numeric(NA),
-                     ps_bg_std_dev = as.numeric(NA),
-                     ps_bg_size = as.integer(NA),
-                     .PS_PSEUDOCOUNT = 0.01, ...) {
-  #  .ps_required_packages()
-  .ps_norm_matrix(.PSMatrix(pfm,
+                        ps_fg_avg = as.numeric(NA),
+                        ps_bg_std_dev = as.numeric(NA),
+                        ps_bg_size = as.integer(NA),
+                        .PS_PSEUDOCOUNT = 0.01, ...) {
+    #  .ps_required_packages()
+    .ps_norm_matrix(.PSMatrix(pfm,
     ps_bg_avg = ps_bg_avg,
     ps_fg_avg = ps_fg_avg,
     ps_bg_std_dev = ps_bg_std_dev,
@@ -101,16 +101,16 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
     ps_hits_oligo = character(),
     ps_hits_oligo_bg = character(),
     .PS_ALPHABET = setNames(
-      seq_len(4),
-      c("A", "C", "G", "T")
+        seq_len(4),
+        c("A", "C", "G", "T")
     )
-  ))
+    ))
 }
 
 #' @importFrom TFBSTools PFMatrixList
 .PSMatrixList <- setClass("PSMatrixList",
-  contains = "PFMatrixList",
-  slots = list(transcriptIDLegend = "character")
+    contains = "PFMatrixList",
+    slots = list(transcriptIDLegend = "character")
 )
 
 #' An S4 Class for Storing Position-Specific Matrices
@@ -159,12 +159,12 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' ps_results_table(result)
 #' @export
 PSMatrixList <- function(...,
-                         transcriptIDLegend = character(),
-                         use.names = TRUE) {
-  listData <- list(...)
-  XMatrixList(listData,
+                            transcriptIDLegend = character(),
+                            use.names = TRUE) {
+    listData <- list(...)
+    XMatrixList(listData,
     use.names = use.names,
     type = "PSMatrixList",
     matrixClass = "PSMatrix"
-  )
+    )
 }

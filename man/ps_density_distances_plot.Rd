@@ -2,7 +2,8 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_density_distances_plot}
 \alias{ps_density_distances_plot}
-\title{Bubble Chart of Motif Score vs Position in Promoters}
+\title{Density Plot of Distances between Identified Motif Hits in two PSMatrix
+Objects}
 \usage{
 ps_density_distances_plot(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
 }
@@ -36,12 +37,13 @@ A density plot showing the distribution of distances between
    The y-axis represents the density of those distances.
 }
 \description{
-Bubble Chart of Motif Score vs Position in Promoters
+This function visualizes the density plot of distances between identified
+hit sites in two `PSMatrix` objects. The distance between hits is calculated
+for each sequence that is present in both matrices.
+It allows filtering the identified sites based on a specified threshold
+value.
 }
 \details{
-This function and its documentation are intentionally commented out because
-it is no longer needed.
-
 Hit positions are shifted by half of the motif length (i.e., `ncol(M1)/2`
 and `ncol(M2)/2`) before distances are computed, so distances are centered
 on the motif midpoint.
@@ -84,54 +86,3 @@ ps_density_distances_plot(pfm1, pfm2, "all", "loose")
 \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}},
 \code{\link{ps_hits_score}}, \code{\link{ps_hits_pos}}
 }
-\keyword{#}
-\keyword{<-}
-\keyword{Density}
-\keyword{Distances}
-\keyword{Hits}
-\keyword{Identified}
-\keyword{It}
-\keyword{Motif}
-\keyword{Objects}
-\keyword{PSMatrix}
-\keyword{Plot}
-\keyword{The}
-\keyword{This}
-\keyword{`PSMatrix`}
-\keyword{a}
-\keyword{allows}
-\keyword{based}
-\keyword{between}
-\keyword{both}
-\keyword{calculated}
-\keyword{density}
-\keyword{distance}
-\keyword{distances}
-\keyword{each}
-\keyword{filtering}
-\keyword{for}
-\keyword{function}
-\keyword{function(...)}
-\keyword{hit}
-\keyword{hits}
-\keyword{identified}
-\keyword{in}
-\keyword{internal}
-\keyword{is}
-\keyword{matrices.}
-\keyword{objects.}
-\keyword{of}
-\keyword{on}
-\keyword{plot}
-\keyword{present}
-\keyword{ps_score_position_BubbleChart}
-\keyword{sequence}
-\keyword{sites}
-\keyword{specified}
-\keyword{that}
-\keyword{the}
-\keyword{threshold}
-\keyword{two}
-\keyword{value.}
-\keyword{visualizes}
-\keyword{{}}

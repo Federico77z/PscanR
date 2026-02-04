@@ -1,4 +1,4 @@
-#' Retrieve Transcript ID Legend from a PSMatrixList Object (Generic Function)
+#' Transcript ID Legend (Generic Function)
 #'
 #' `transcriptIDLegend` is a **generic function** that retrieves the
 #' `transcriptIDLegend` slot from a `PSMatrixList` object. This slot contains
@@ -18,8 +18,8 @@
 #' head(transcriptIDLegend(full_pfms))
 #'
 setGeneric(
-  "transcriptIDLegend",
-  function(x, ...) standardGeneric("transcriptIDLegend")
+    "transcriptIDLegend",
+    function(x, ...) standardGeneric("transcriptIDLegend")
 )
 
 #' Compute the Z-score for motif enrichment analysis (Generic Function)
@@ -318,8 +318,8 @@ setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 #'
 #' @export
 setGeneric(
-  "ps_hits_score_bg",
-  function(x, ...) standardGeneric("ps_hits_score_bg")
+    "ps_hits_score_bg",
+    function(x, ...) standardGeneric("ps_hits_score_bg")
 )
 
 #' Compute Motif Hit Z-Scores (Generic Function)
@@ -383,8 +383,8 @@ setGeneric("ps_hits_z", function(x, ...) standardGeneric("ps_hits_z"))
 #'
 #' @export
 setGeneric(
-  "ps_hits_strand",
-  function(x, ...) standardGeneric("ps_hits_strand")
+    "ps_hits_strand",
+    function(x, ...) standardGeneric("ps_hits_strand")
 )
 
 #' Retrieve Motif Hit Strand Information for the Background Dataset
@@ -432,8 +432,8 @@ setGeneric(
 #'
 #' @export
 setGeneric(
-  "ps_hits_strand_bg",
-  function(x, ...) standardGeneric("ps_hits_strand_bg")
+    "ps_hits_strand_bg",
+    function(x, ...) standardGeneric("ps_hits_strand_bg")
 )
 
 #' Retrieve Motif Hit Positions (Generic Function)
@@ -576,8 +576,8 @@ setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 #'
 #' @export
 setGeneric(
-  "ps_hits_oligo_bg",
-  function(x, ...) standardGeneric("ps_hits_oligo_bg")
+    "ps_hits_oligo_bg",
+    function(x, ...) standardGeneric("ps_hits_oligo_bg")
 )
 
 #' Retrieve a Summary Table of Motif Hits (Generic Function)
@@ -681,30 +681,30 @@ setGeneric("ps_seq_names", function(x, ...) standardGeneric("ps_seq_names"))
 #'
 #' @export
 setGeneric(
-  "ps_bg_seq_names",
-  function(x, ...) standardGeneric("ps_bg_seq_names")
+    "ps_bg_seq_names",
+    function(x, ...) standardGeneric("ps_bg_seq_names")
 )
 
 setGeneric(
-  ".PS_PSEUDOCOUNT",
-  function(x, ...) standardGeneric(".PS_PSEUDOCOUNT")
-)
-
-
-setGeneric(
-  ".PS_ALPHABET",
-  function(x, ...) standardGeneric(".PS_ALPHABET")
+    ".PS_PSEUDOCOUNT",
+    function(x, ...) standardGeneric(".PS_PSEUDOCOUNT")
 )
 
 
 setGeneric(
-  ".ps_norm_matrix",
-  function(x, ...) standardGeneric(".ps_norm_matrix")
+    ".PS_ALPHABET",
+    function(x, ...) standardGeneric(".PS_ALPHABET")
+)
+
+
+setGeneric(
+    ".ps_norm_matrix",
+    function(x, ...) standardGeneric(".ps_norm_matrix")
 )
 
 setGeneric(
-  ".ps_bg_seq_names",
-  function(x, out) standardGeneric(".ps_bg_seq_names")
+    ".ps_bg_seq_names",
+    function(x, out) standardGeneric(".ps_bg_seq_names")
 )
 
 setGeneric(".ps_seq_names", function(x, out) standardGeneric(".ps_seq_names"))
@@ -747,8 +747,8 @@ setGeneric("ps_scan", function(x, ...) standardGeneric("ps_scan"))
 
 
 setGeneric(
-  ".ps_bg_from_table",
-  function(x, ...) standardGeneric(".ps_bg_from_table")
+    ".ps_bg_from_table",
+    function(x, ...) standardGeneric(".ps_bg_from_table")
 )
 
 
@@ -756,8 +756,8 @@ setGeneric(".ps_scan_s", function(x, ...) standardGeneric(".ps_scan_s"))
 
 
 setGeneric(
-  ".ps_norm_score",
-  function(x, ...) standardGeneric(".ps_norm_score")
+    ".ps_norm_score",
+    function(x, ...) standardGeneric(".ps_norm_score")
 )
 
 # setGeneric(".ps_assign_score",
@@ -765,13 +765,13 @@ setGeneric(
 
 
 setGeneric(
-  ".ps_add_hits",
-  function(x, ...) standardGeneric(".ps_add_hits")
+    ".ps_add_hits",
+    function(x, ...) standardGeneric(".ps_add_hits")
 )
 
 setGeneric(
-  "all_sequences_ID",
-  function(x, ...) standardGeneric("all_sequences_ID")
+    "all_sequences_ID",
+    function(x, ...) standardGeneric("all_sequences_ID")
 )
 
 #' Generic Setter Method for Background Mean Value of an object
@@ -790,8 +790,8 @@ setGeneric(
 #'
 #' @export
 setGeneric(
-  "ps_bg_avg<-",
-  function(x, ..., value) standardGeneric("ps_bg_avg<-")
+    "ps_bg_avg<-",
+    function(x, ..., value) standardGeneric("ps_bg_avg<-")
 )
 
 #' Set Background Standard Deviation (Generic Function)
@@ -816,8 +816,8 @@ setGeneric(
 #'
 #' @export
 setGeneric(
-  "ps_bg_std_dev<-",
-  function(x, ..., value) standardGeneric("ps_bg_std_dev<-")
+    "ps_bg_std_dev<-",
+    function(x, ..., value) standardGeneric("ps_bg_std_dev<-")
 )
 
 #' Set Background Size (Generic Function)
@@ -845,6 +845,6 @@ setGeneric(
 #'
 #' @export
 setGeneric(
-  "ps_bg_size<-",
-  function(x, ..., value) standardGeneric("ps_bg_size<-")
+    "ps_bg_size<-",
+    function(x, ..., value) standardGeneric("ps_bg_size<-")
 )

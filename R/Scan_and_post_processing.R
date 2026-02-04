@@ -98,21 +98,21 @@
 #' ps_results_table(results)
 #'
 pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
-  .ps_checks(x, pfms, type = 4)
+    .ps_checks(x, pfms, type = 4)
 
-  x <- BiocGenerics::unique(x)
-  x <- .clean_sequence(x)
+    x <- BiocGenerics::unique(x)
+    x <- .clean_sequence(x)
 
-  pfms <- BiocParallel::bplapply(
+    pfms <- BiocParallel::bplapply(
     pfms,
     FUN = ps_scan,
     x,
     BG = FALSE,
     BPPARAM = BPPARAM,
     BPOPTIONS = BPOPTIONS
-  )
+    )
 
-  BiocGenerics::do.call(PSMatrixList, pfms)
+    BiocGenerics::do.call(PSMatrixList, pfms)
 }
 
 #' Extract Pre-Computed Metrics from a PSMatrixList Object
@@ -169,53 +169,97 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
 #'
 #' @export
 pscan_fullBG <- function(ID, full_pfms) {
-  if (!is.character(ID)) {
+    if (!is.character(ID)) {
     stop("ID must be a character vector containing transcript identifiers")
-  }
-  if (length(full_pfms@transcriptIDLegend) == 0) {
+    }
+    if (length(full_pfms@transcriptIDLegend) == 0) {
     stop("The background PSMatrixList must be a full background")
-  }
+    }
 
-  all_seq_ID <- full_pfms@transcriptIDLegend
+    all_seq_ID <- full_pfms@transcriptIDLegend
 
-  # Remove transcript extension for any name
-  names(all_seq_ID) <- sub("\\..*$", "", names(all_seq_ID))
-  all_seq_ID <- sub("\\..*$", "", all_seq_ID)
-  ID <- sub("\\..*$", "", ID)
+    # Remove transcript extension for any name
+    names(all_seq_ID) <- sub("\\..*$", "", names(all_seq_ID))
+    all_seq_ID <- sub("\\..*$", "", all_seq_ID)
+    ID <- sub("\\..*$", "", ID)
 
-  # Use of all_seq_ID (mapping vector) to extract sequences name retained
-  # in full BG that have the same sequence to those inserted by the user.
-  x <- all_seq_ID[ID]
+    # Use of all_seq_ID (mapping vector) to extract sequences name retained
+    # in full BG that have the same sequence to those inserted by the user.
+    x <- all_seq_ID[ID]
 
-  # NA removal
-  rem_names <- names(x[is.na(x)])
+    # NA removal
+    rem_names <- names(x[is.na(x)])
 
-  if (length(rem_names) > 0) {
+    if (length(rem_names) > 0) {
     warning(paste(
-      "Found", length(rem_names), "sequences with more than 50% of
-                  N content or with a length different from the reference.
-                  Removing the following sequences:",
-      paste(rem_names, collapse = ", ")
+        "Found", length(rem_names), "sequences with more than 50% of
+                    N content or with a length different from the reference.
+                    Removing the following sequences:",
+        paste(rem_names, collapse = ", ")
     ))
-  }
+    }
 
-  x <- x[!is.na(x)]
+    x <- x[!is.na(x)]
 
-  .check_seq_duplicated(x)
+    .check_seq_duplicated(x)
 
-  x <- unique(x)
+    x <- unique(x)
 
-  # See ps_scan for details
+    # See ps_scan for details
 
-  pfms <- lapply(
+    pfms <- lapply(
     full_pfms,
     FUN = ps_scan,
     x,
     BG = FALSE,
     use_full_BG = TRUE
-  )
+    )
 
-  BiocGenerics::do.call(PSMatrixList, pfms)
+    BiocGenerics::do.call(PSMatrixList, pfms)
+}
+
+# .ps_check_filtered_inputs and .ps_filter_promoters are internal helpers used
+# by PscanFiltered.
+.ps_check_filtered_inputs <- function(prom_seq, Jmatrix, background) {
+    if (!is(prom_seq, "DNAStringSet")) {
+    stop("Invalid input: 'prom_seq' must be a DNAStringSet")
+    }
+    if (!is(Jmatrix, "PSMatrix")) {
+    stop("Invalid input: 'Jmatrix' must be a PSMatrix")
+    }
+    if (!is(background, "PSMatrixList")) {
+    stop("Invalid input: 'background' must be a PSMatrixList")
+    }
+}
+
+.ps_filter_promoters <- function(prom_seq, Jmatrix, n) {
+    threshold <- ps_bg_avg(Jmatrix) + n * ps_bg_std_dev(Jmatrix)
+    rc_matrix <- reverseComplement(Jmatrix)
+    Margs <- list(
+    numx = as.numeric(Matrix(Jmatrix)),
+    numx_rc = as.numeric(Matrix(rc_matrix)),
+    ncolx = (0:(ncol(Matrix(Jmatrix)) - 1)) * length(.PS_ALPHABET(Jmatrix)),
+    AB = .PS_ALPHABET(Jmatrix)
+    )
+    res <- mapply(.ps_scan_s, list(Jmatrix), as.character(prom_seq),
+    MoreArgs = Margs
+    )
+    Jmatrix@ps_hits_score <- as.numeric(res["score", ])
+    Jmatrix@ps_hits_score <- .ps_norm_score(Jmatrix)
+    Score <- Jmatrix@ps_hits_score
+
+    filtered_prom_seq <- character()
+    if (n > 0) {
+    filtered_prom_seq <- prom_seq[Score >= threshold]
+    }
+    if (n < 0) {
+    filtered_prom_seq <- prom_seq[Score <= threshold]
+    }
+    if (length(filtered_prom_seq) == 0) {
+    warning("No sequence satisfy the filter criterium")
+    return(NULL)
+    }
+    filtered_prom_seq
 }
 
 #' Filter and Scan Promoter Regions with Pscan
@@ -278,101 +322,48 @@ pscan_fullBG <- function(ID, full_pfms) {
 #' the function returns `NULL`.
 #'
 #' @examples
-#' # Due to computational time issues, this example is not automatically run.
-#' # User can run it in the console and use the ps_results_table() function to
-#' # visualize the results of pscan() and PscanFiltered().
-#' # Not run during checks because it is time-consuming and requires
-#' # downloading large annotation resources.
-#' \donttest{
-#' bg <- generate_psmatrixlist_from_background(
-#'   "jaspar2020",
-#'   "hs",
-#'   c(-450, +50),
-#'   "hg38"
+#' # Run on a small subset using bundled data (no downloads).
+#' prom_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+#' prom_seq <- readRDS(prom_path)
+#' set.seed(1)
+#' n_prom <- min(100, length(prom_seq))
+#' prom_seq <- prom_seq[sample(seq_along(prom_seq), n_prom)]
+#'
+#' bg_path <- system.file("extdata",
+#'   "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'   package = "PscanR"
 #' )
-#' txdb <- txdbmaker::makeTxDbFromUCSC("hg38", "ncbiRefSeqCurated")
-#' GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24]
-#' prom_rng <- GenomicFeatures::promoters(txdb,
-#'   upstream = 450,
-#'   downstream = 50,
-#'   use.names = TRUE
-#' )
-#' prom_seq <- Biostrings::getSeq(
-#'   x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38,
-#'   prom_rng
-#' ) # promoter sequences
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
+#' bg <- ps_retrieve_bg_from_file(bg_path, J2020)
 #'
-#' JM <- bg$MA0484.2
-#'
-#' file_path <- system.file("extdata", "liver.txt", package = "PscanR")
-#' liver_IDs <- read.csv(file_path, header = F, sep = "\t")
-#' liver_IDs <- liver_IDs[, 1]
-#'
-#' liver_proms_seq <- prom_seq[sub("\\..*$", "", names(prom_seq)) %in% liver_IDs]
-#'
-#' res <- PscanFiltered(liver_proms_seq,
+#' JM <- bg[[1]]
+#' res <- PscanFiltered(prom_seq,
 #'   JM,
 #'   background = bg,
 #'   BPPARAM = BiocParallel::SnowParam(1)
 #' )
-#' }
 #'
 #' @export
 PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
-                          BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
-  if (!is(prom_seq, "DNAStringSet")) {
-    stop("Invalid input: 'prom_seq' must be a DNAStringSet")
-  }
-  if (!is(Jmatrix, "PSMatrix")) {
-    stop("Invalid input: 'Jmatrix' must be a PSMatrix")
-  }
-  if (!is(background, "PSMatrixList")) {
-    stop("Invalid input: 'background' must be a PSMatrixList")
-  }
+                            BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
+    .ps_check_filtered_inputs(prom_seq, Jmatrix, background)
 
-  threshold <- ps_bg_avg(Jmatrix) + n * ps_bg_std_dev(Jmatrix)
-
-  rc_matrix <- reverseComplement(Jmatrix)
-
-  Margs <- list(
-    numx = as.numeric(Matrix(Jmatrix)),
-    numx_rc = as.numeric(Matrix(rc_matrix)),
-    ncolx = (0:(ncol(Matrix(Jmatrix)) - 1)) * length(.PS_ALPHABET(Jmatrix)),
-    AB = .PS_ALPHABET(Jmatrix)
-  )
-
-  res <- mapply(.ps_scan_s, list(Jmatrix), as.character(prom_seq),
-    MoreArgs = Margs
-  )
-
-  Jmatrix@ps_hits_score <- as.numeric(res["score", ])
-  Jmatrix@ps_hits_score <- .ps_norm_score(Jmatrix)
-
-  Score <- Jmatrix@ps_hits_score
-
-  filtered_prom_seq <- character()
-  if (n > 0) {
-    filtered_prom_seq <- prom_seq[Score >= threshold]
-  }
-  if (n < 0) {
-    filtered_prom_seq <- prom_seq[Score <= threshold]
-  }
-
-  if (length(filtered_prom_seq) == 0) {
-    warning("No sequence satisfy the filter criterium")
+    filtered_prom_seq <- .ps_filter_promoters(prom_seq, Jmatrix, n)
+    if (is.null(filtered_prom_seq)) {
     return(NULL)
-  }
+    }
 
-  pfms <- BiocParallel::bplapply(
+    pfms <- BiocParallel::bplapply(
     background,
     FUN = ps_scan,
     filtered_prom_seq,
     BG = FALSE,
     BPPARAM = BPPARAM,
     BPOPTIONS = BPOPTIONS
-  )
+    )
 
-  BiocGenerics::do.call(PSMatrixList, pfms)
+    BiocGenerics::do.call(PSMatrixList, pfms)
 }
 
 #' Create a Summary Table of PscanR Results
@@ -455,24 +446,24 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #' @export
 #' @importFrom stats p.adjust
 ps_results_table <- function(pfms, FDR_threshold = 1) {
-  .ps_checks2(pfms)
+    .ps_checks2(pfms)
 
-  bg_v <- vapply(pfms, ps_bg_avg, numeric(length = 1L))
-  std_v <- vapply(pfms, ps_bg_std_dev, numeric(length = 1L))
-  fg_v <- vapply(pfms, ps_fg_avg, numeric(length = 1L))
-  zs_v <- vapply(pfms, ps_zscore, numeric(length = 1L))
-  pv_v <- vapply(pfms, ps_pvalue, numeric(length = 1L))
-  fdr_v <- p.adjust(pv_v, method = "BH")
+    bg_v <- vapply(pfms, ps_bg_avg, numeric(length = 1L))
+    std_v <- vapply(pfms, ps_bg_std_dev, numeric(length = 1L))
+    fg_v <- vapply(pfms, ps_fg_avg, numeric(length = 1L))
+    zs_v <- vapply(pfms, ps_zscore, numeric(length = 1L))
+    pv_v <- vapply(pfms, ps_pvalue, numeric(length = 1L))
+    fdr_v <- p.adjust(pv_v, method = "BH")
 
-  tbl <- data.frame(
+    tbl <- data.frame(
     "NAME" = name(pfms), "BG_AVG" = bg_v, "BG_STDEV" = std_v,
     "FG_AVG" = fg_v, "ZSCORE" = zs_v,
     "P.VALUE" = pv_v, "FDR" = fdr_v, row.names = ID(pfms)
-  )
+    )
 
-  tbl <- tbl[tbl$FDR <= FDR_threshold, ]
+    tbl <- tbl[tbl$FDR <= FDR_threshold, ]
 
-  tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE, TRUE))), ]
+    tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE, TRUE))), ]
 }
 
 #' Generate a Z-score Matrix of Motif Enrichment per Sequence
@@ -531,13 +522,13 @@ ps_results_table <- function(pfms, FDR_threshold = 1) {
 #'
 #' @export
 ps_z_table <- function(pfms) {
-  .ps_checks2(pfms)
+    .ps_checks2(pfms)
 
-  tbl <- lapply(pfms, ps_hits_z)
+    tbl <- lapply(pfms, ps_hits_z)
 
-  # as.matrix(as.data.frame(tbl, col.names = name(pfms)))
+    # as.matrix(as.data.frame(tbl, col.names = name(pfms)))
 
-  as.matrix(as.data.frame(tbl, col.names = ID(pfms)))
+    as.matrix(as.data.frame(tbl, col.names = ID(pfms)))
 }
 
 #' Motif Z-Score Correlation Heatmap from Pscan Results
@@ -616,11 +607,11 @@ ps_z_table <- function(pfms) {
 #' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
 ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
-  res_table <- ps_results_table(pfms)
-  z_table <- ps_z_table(pfms)
-  topn <- which(res_table$FDR <= FDR)
+    res_table <- ps_results_table(pfms)
+    z_table <- ps_z_table(pfms)
+    topn <- which(res_table$FDR <= FDR)
 
-  defaults <- list(
+    defaults <- list(
     cluster_rows = TRUE,
     cluster_cols = TRUE,
     color = colorRampPalette(c("blue", "white", "red"))(50),
@@ -633,19 +624,19 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
     fontsize = 10,
     fontsize_row = 6,
     fontsize_col = 6
-  )
+    )
 
-  user_args <- list(...)
+    user_args <- list(...)
 
-  final_args <- modifyList(defaults, user_args)
+    final_args <- modifyList(defaults, user_args)
 
-  tf_to_plot <- rownames(res_table)[topn]
+    tf_to_plot <- rownames(res_table)[topn]
 
-  z_table_reduced <- z_table[, tf_to_plot]
+    z_table_reduced <- z_table[, tf_to_plot]
 
-  res <- do.call(pheatmap::pheatmap, c(list(z_table_reduced), final_args))
+    res <- do.call(pheatmap::pheatmap, c(list(z_table_reduced), final_args))
 
-  invisible(z_table_reduced)
+    invisible(z_table_reduced)
 }
 
 #' Heatmap of Motif Hit Positions from Pscan Results
@@ -721,11 +712,11 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
 #' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
 ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
-  res_table <- ps_results_table(pfms)
+    res_table <- ps_results_table(pfms)
 
-  topn <- which(res_table$FDR <= FDR)
+    topn <- which(res_table$FDR <= FDR)
 
-  defaults <- list(
+    defaults <- list(
     cluster_rows = TRUE,
     cluster_cols = TRUE,
     color = colorRampPalette(c("white", "yellow", "red"))(100),
@@ -736,29 +727,29 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
     clustering_method = "average",
     fontsize_row = 6,
     fontsize_col = 6
-  )
+    )
 
-  user_args <- list(...)
+    user_args <- list(...)
 
-  final_args <- modifyList(defaults, user_args)
+    final_args <- modifyList(defaults, user_args)
 
-  pos_mat <- matrix(
+    pos_mat <- matrix(
     data = NA, nrow = ps_fg_size(pfms[[1]]),
     ncol = length(topn)
-  )
-
-  for (v in topn) {
-    pos_mat[, v] <- ps_hits_pos(pfms[[row.names(res_table)[v]]],
-      pos_shift = shift
     )
-  }
 
-  colnames(pos_mat) <- res_table$NAME[topn]
-  rownames(pos_mat) <- ps_seq_names(pfms[[1]])
+    for (v in topn) {
+    pos_mat[, v] <- ps_hits_pos(pfms[[row.names(res_table)[v]]],
+        pos_shift = shift
+    )
+    }
 
-  res <- do.call(pheatmap::pheatmap, c(list(pos_mat), final_args))
+    colnames(pos_mat) <- res_table$NAME[topn]
+    rownames(pos_mat) <- ps_seq_names(pfms[[1]])
 
-  invisible(pos_mat)
+    res <- do.call(pheatmap::pheatmap, c(list(pos_mat), final_args))
+
+    invisible(pos_mat)
 }
 
 #' Density Plot of Motif Hits Along Promoter Regions
@@ -830,55 +821,84 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 #' @importFrom graphics text
 #' @importFrom stats density
 ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
-  # st = score threshold. It can be passed as a numeric value
-  # or as one of three characters "all", "loose", "strict".
+    # st = score threshold. It can be passed as a numeric value
+    # or as one of three characters "all", "loose", "strict".
 
-  if (is.character(st)) {
+    if (is.character(st)) {
     if (st == "all") {
-      st <- 0
+        st <- 0
     } else if (st == "loose") {
-      st <- ps_bg_avg(pfm)
+        st <- ps_bg_avg(pfm)
     } else if (st == "strict") {
-      st <- ps_bg_avg(pfm) + ps_bg_std_dev(pfm)
+        st <- ps_bg_avg(pfm) + ps_bg_std_dev(pfm)
     } else {
-      warning("Invalid value for st, reverting to loose")
-      st <- ps_bg_avg(pfm)
+        warning("Invalid value for st, reverting to loose")
+        st <- ps_bg_avg(pfm)
     }
-  }
+    }
 
-  scores <- ps_hits_score(pfm)
-  g_scores <- scores >= st
-  sum_g <- sum(g_scores)
+    scores <- ps_hits_score(pfm)
+    g_scores <- scores >= st
+    sum_g <- sum(g_scores)
 
-  density_hits <- density(ps_hits_pos(pfm, pos_shift = shift)[g_scores])
+    density_hits <- density(ps_hits_pos(pfm, pos_shift = shift)[g_scores])
 
-  plot(density_hits,
-    main = paste(name(pfm), "binding site density across", sum_g, "promoter regions"),
+    plot(density_hits,
+    main = paste(
+        name(pfm), "binding site density across", sum_g, "promoter regions"
+    ),
     xlab = "Position along promoters",
     ylab = "Density",
     col = "blue",
     lwd = 2
-  )
+    )
 
-  polygon(density_hits, col = rgb(0, 0, 1, 0.1), border = NA)
+    polygon(density_hits, col = rgb(0, 0, 1, 0.1), border = NA)
 
-  peak <- density_hits$x[which.max(density_hits$y)]
-  abline(v = peak, col = "gray", lty = 2, lwd = 2)
-  text(peak, max(density_hits$y),
+    peak <- density_hits$x[which.max(density_hits$y)]
+    abline(v = peak, col = "gray", lty = 2, lwd = 2)
+    text(peak, max(density_hits$y),
     labels = paste("\tMode:", round(peak)), pos = 4
-  )
+    )
 }
 
-#' Bubble Chart of Motif Score vs Position in Promoters
-#'
-#' @details
-#' This function and its documentation are intentionally commented out because
-#' it is no longer needed.
-#'
-#' @keywords internal
-#'
-#' # ps_score_position_BubbleChart <- function(...) {}
+# Bubble Chart of Motif Score vs Position in Promoters
+#
+# This function and its documentation are intentionally commented out because
+# it is no longer needed.
+#
+# ps_score_position_BubbleChart <- function(...) {}
 
+
+.ps_resolve_threshold <- function(st, M, label) {
+    if (!is.character(st)) {
+    return(st)
+    }
+    switch(st,
+    "all" = 0,
+    "loose" = ps_bg_avg(M),
+    "strict" = ps_bg_avg(M) + ps_bg_std_dev(M),
+    {
+        warning(sprintf("Invalid value for %s, reverting to loose", label))
+        ps_bg_avg(M)
+    }
+    )
+}
+
+.ps_hit_distances <- function(M1, M2, st1, st2) {
+    scores1 <- ps_hits_score(M1)
+    g_scores1 <- scores1 >= st1
+    scores2 <- ps_hits_score(M2)
+    g_scores2 <- scores2 >= st2
+
+    hits1 <- ps_hits_pos(M1, pos_shift = ncol(M1) / 2)[g_scores1]
+    hits2 <- ps_hits_pos(M2, pos_shift = ncol(M2) / 2)[g_scores2]
+
+    hits1 <- hits1[names(hits1) %in% names(hits2)]
+    hits2 <- hits2[names(hits2) %in% names(hits1)]
+
+    hits1 - hits2
+}
 
 #' Density Plot of Distances between Identified Motif Hits in two PSMatrix
 #' Objects
@@ -957,61 +977,30 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
 #' ps_density_distances_plot(pfm1, pfm2, "all", "loose")
 #' @export
 ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
-                                      st2 = ps_bg_avg(M2)) {
-  if (!is(M1, "PSMatrix") || !is(M2, "PSMatrix")) {
+                                        st2 = ps_bg_avg(M2)) {
+    if (!is(M1, "PSMatrix") || !is(M2, "PSMatrix")) {
     stop("Both object must be of class PSMatrix")
-  }
+    }
 
-  if (is.character(st1)) {
-    st1 <- switch(st1,
-      "all" = 0,
-      "loose" = ps_bg_avg(M1),
-      "strict" = ps_bg_avg(M1) + ps_bg_std_dev(M1),
-      {
-        warning("Invalid value for st1, reverting to loose")
-        ps_bg_avg(M1)
-      }
-    )
-  }
+    st1 <- .ps_resolve_threshold(st1, M1, "st1")
+    st2 <- .ps_resolve_threshold(st2, M2, "st2")
+    distances <- .ps_hit_distances(M1, M2, st1, st2)
+    density_distances <- density(distances)
 
-  if (is.character(st2)) {
-    st2 <- switch(st2,
-      "all" = 0,
-      "loose" = ps_bg_avg(M2),
-      "strict" = ps_bg_avg(M2) + ps_bg_std_dev(M2),
-      {
-        warning("Invalid value for st2, reverting to loose")
-        ps_bg_avg(M2)
-      }
-    )
-  }
-
-  scores1 <- ps_hits_score(M1)
-  g_scores1 <- scores1 >= st1
-  scores2 <- ps_hits_score(M2)
-  g_scores2 <- scores2 >= st2
-
-  hits1 <- ps_hits_pos(M1, pos_shift = ncol(M1) / 2)[g_scores1]
-  hits2 <- ps_hits_pos(M2, pos_shift = ncol(M2) / 2)[g_scores2]
-
-  hits1 <- hits1[names(hits1) %in% names(hits2)]
-  hits2 <- hits2[names(hits2) %in% names(hits1)]
-
-  distances <- hits1 - hits2
-  density_distances <- density(distances)
-
-  plot(density_distances,
-    main = paste(M1@name, "Binding Site Distance Distribution Relative to", M2@name),
+    plot(density_distances,
+    main = paste(
+        M1@name, "Binding Site Distance Distribution Relative to", M2@name
+    ),
     xlab = "Distances between the identified sites",
     ylab = "Density",
     col = "blue",
     lwd = 2
-  )
-  polygon(density_distances, col = rgb(0, 0, 1, 0.1), border = NA)
+    )
+    polygon(density_distances, col = rgb(0, 0, 1, 0.1), border = NA)
 
-  peak <- density_distances$x[which.max(density_distances$y)]
-  abline(v = peak, col = "gray", lty = 2, lwd = 2)
-  text(peak, max(density_distances$y),
+    peak <- density_distances$x[which.max(density_distances$y)]
+    abline(v = peak, col = "gray", lty = 2, lwd = 2)
+    text(peak, max(density_distances$y),
     labels = paste("\tMode:", round(peak)), pos = 4
-  )
+    )
 }

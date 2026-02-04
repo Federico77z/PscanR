@@ -672,7 +672,8 @@ setMethod("all_sequences_ID", "PSMatrix", function(x, withDimnames = TRUE) {
 #'      \item `ps_hits_strand`: a character vector of strand information
 #'      (`-` and `+`).
 #'      \item `ps_hits_oligo`: a character vector of oligo sequences.}
-#' @param pos_shift Integer. Value for which the position gets shifted in respect
+#' @param pos_shift Integer. Value for which the position gets shifted in
+#' respect
 #'    to the TSS.
 #'    Default is `0`, meaning no shift.
 #' @param withDimnames Logical, whether to include dimension names in the
@@ -803,6 +804,61 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
   return(x)
 })
 
+# .ps_set_seq_names, .ps_scan_use_full_bg, and .ps_scan_standard are internal
+# helpers used by ps_scan.
+.ps_set_seq_names <- function(x, seqs, BG, use_full_BG) {
+  if (BG || use_full_BG) {
+    if (use_full_BG) {
+      x@ps_seq_names <- seqs
+    } else {
+      x@ps_bg_seq_names <- names(seqs)
+    }
+  } else {
+    x@ps_seq_names <- names(seqs)
+  }
+  x
+}
+
+.ps_scan_use_full_bg <- function(x, seqs, BG, use_full_BG) {
+  indices <- match(seqs, sub("\\..*$", "", names(x@ps_hits_score_bg)))
+  res <- list(
+    score = x@ps_hits_score_bg[indices],
+    strand = x@ps_hits_strand_bg[indices],
+    pos = x@ps_hits_pos_bg[indices],
+    oligo = x@ps_hits_oligo_bg[indices]
+  )
+  x <- .ps_add_hits(x,
+    Score = res$score, Strand = res$strand, Pos = res$pos,
+    Oligo = res$oligo, BG = BG, use_full_BG = use_full_BG
+  )
+  x@ps_bg_seq_names <- character()
+  x
+}
+
+.ps_scan_standard <- function(x, seqs, BG, use_full_BG, fullBG) {
+  rc_x <- reverseComplement(x)
+  Margs <- list(
+    numx = as.numeric(Matrix(x)),
+    numx_rc = as.numeric(Matrix(rc_x)),
+    ncolx = (0:(ncol(Matrix(x)) - 1)) * length(.PS_ALPHABET(x)),
+    AB = .PS_ALPHABET(x)
+  )
+  res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
+  x <- .ps_add_hits(x,
+    Score = as.numeric(res["score", ]),
+    Strand = as.character(res["strand", ]),
+    Pos = as.integer(res["pos", ]),
+    Oligo = as.character(res["oligo", ]),
+    BG = BG,
+    use_full_BG = use_full_BG,
+    fullBG = fullBG
+  )
+  if (!fullBG) {
+    x@ps_bg_seq_names <- character()
+  }
+  x
+}
+
 #' Perform a Scan of DNA Sequences Using a `PSMatrix` Object
 #'
 #' This method performs a scan of DNA sequences using a `PSMatrix` object
@@ -865,64 +921,30 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 #' scanned_result
 #'
 #' @export
-setMethod("ps_scan", "PSMatrix", function(x, seqs, BG = FALSE,
-                                          use_full_BG = FALSE, fullBG = FALSE) {
-  if (!is(seqs, "DNAStringSet") && !use_full_BG) {
-    stop("seqs is not an object of DNAStringSet class")
-  }
+#
+#' @usage
+#' \S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE,
+#'   use_full_BG = FALSE, fullBG = FALSE)
+setMethod(
+  "ps_scan",
+  "PSMatrix",
+  function(x, seqs, BG = FALSE, use_full_BG = FALSE, fullBG = FALSE) {
+    if (!is(seqs, "DNAStringSet") && !use_full_BG) {
+      stop("seqs is not an object of DNAStringSet class")
+    }
 
-  if (BG || use_full_BG) {
-    if (use_full_BG) {
-      x@ps_seq_names <- seqs
+    x <- .ps_set_seq_names(x, seqs, BG, use_full_BG)
+    seqs <- as.character(seqs)
+
+    if (use_full_BG == TRUE) {
+      x <- .ps_scan_use_full_bg(x, seqs, BG, use_full_BG)
     } else {
-      x@ps_bg_seq_names <- names(seqs)
+      x <- .ps_scan_standard(x, seqs, BG, use_full_BG, fullBG)
     }
-  } else {
-    x@ps_seq_names <- names(seqs)
+
+    return(x)
   }
-  seqs <- as.character(seqs)
-
-  if (use_full_BG == TRUE) {
-    indices <- match(seqs, sub("\\..*$", "", names(x@ps_hits_score_bg)))
-
-    res <- list(
-      score = x@ps_hits_score_bg[indices],
-      strand = x@ps_hits_strand_bg[indices],
-      pos = x@ps_hits_pos_bg[indices],
-      oligo = x@ps_hits_oligo_bg[indices]
-    )
-
-    x <- .ps_add_hits(x,
-      Score = res$score, Strand = res$strand, Pos = res$pos,
-      Oligo = res$oligo, BG = BG, use_full_BG = use_full_BG
-    )
-    x@ps_bg_seq_names <- character()
-  } else {
-    rc_x <- reverseComplement(x)
-
-    Margs <- list(
-      numx = as.numeric(Matrix(x)),
-      numx_rc = as.numeric(Matrix(rc_x)),
-      ncolx = (0:(ncol(Matrix(x)) - 1)) * length(.PS_ALPHABET(x)),
-      AB = .PS_ALPHABET(x)
-    )
-
-    res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
-
-    x <- .ps_add_hits(x,
-      Score = as.numeric(res["score", ]),
-      Strand = as.character(res["strand", ]),
-      Pos = as.integer(res["pos", ]),
-      Oligo = as.character(res["oligo", ]), BG = BG,
-      use_full_BG = use_full_BG, fullBG = fullBG
-    )
-    if (!fullBG) {
-      x@ps_bg_seq_names <- character()
-    }
-  }
-
-  return(x)
-})
+)
 
 
 #' @importMethodsFrom Biostrings maxScore minScore
@@ -972,7 +994,8 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB) {
 #' @importMethodsFrom Biostrings reverseComplement
 
 # setMethod(".ps_assign_score", "PSMatrix", function(x, S){
-#  sum(Matrix(x)[matrix(data = c(.PS_ALPHABET(x)[S], 1:length(x)), ncol = 2, nrow = length(x))])
+# sum(Matrix(x)[matrix(data = c(.PS_ALPHABET(x)[S], 1:length(x)), ncol = 2, nrow
+# = length(x))])
 # })
 
 .ps_assign_score <- function(S, x, AB, ncolx) {
@@ -1017,16 +1040,23 @@ validPSMatrix <- function(object) {
   if (length(object@ps_bg_std_dev) != 1) {
     return("Background stdev must be of length 1")
   }
-  if ((object@ps_bg_avg < 0 || object@ps_bg_avg > 1) && !is.na(object@ps_bg_avg)) {
+  if ((object@ps_bg_avg < 0 || object@ps_bg_avg > 1) &&
+    !is.na(object@ps_bg_avg)) {
     return(paste("Invalid value for Background average: ", object@ps_bg_avg))
   }
-  if ((object@ps_bg_std_dev < 0 || object@ps_bg_std_dev > 1) && !is.na(object@ps_bg_std_dev)) {
+  if ((object@ps_bg_std_dev < 0 || object@ps_bg_std_dev > 1) &&
+    !is.na(object@ps_bg_std_dev)) {
     return(paste("Invalid value for Background stddev: ", object@ps_bg_std_dev))
   }
   # if(object@ps_bg_size < 1000 && !is.na(object@ps_bg_size))
-  #  return(paste("Invalid value for Background size: ", object@ps_bg_size, " Background must be of at least 1000 sequences"))
-  if (length(object@ps_hits_pos) != length(object@ps_hits_strand) || length(object@ps_hits_pos) != length(object@ps_hits_score)) {
-    return(paste("Invalid PSMatrix object: different values for hits, strands and scores vectors"))
+  # return(paste("Invalid value for Background size: ", object@ps_bg_size, "
+  # Background must be of at least 1000 sequences"))
+  if (length(object@ps_hits_pos) != length(object@ps_hits_strand) ||
+    length(object@ps_hits_pos) != length(object@ps_hits_score)) {
+    return(paste(
+      "Invalid PSMatrix object: different values for hits, strands ",
+      "and scores vectors"
+    ))
   }
 
   TRUE
@@ -1178,13 +1208,17 @@ setReplaceMethod("ps_bg_size", "PSMatrix", function(x, value) {
 #' @export
 #' @importFrom TFBSTools PFMatrix
 setAs("PFMatrix", "PSMatrix", function(from) {
-  # .ps_norm_matrix(new("PSMatrix", from, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA),
-  #                    ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01))
+  # .ps_norm_matrix(new(
+  #   "PSMatrix", from, ps_bg_avg = as.numeric(NA),
+  #   ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA),
+  #   ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01
+  # ))
 
   PSMatrix(from)
 })
 
-# PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA),
+# PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), ps_fg_avg =
+# as.numeric(NA), ps_bg_std_dev = as.numeric(NA),
 #                     ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01, ...)
 
 #' Convert PFMatrixList to PSMatrixList

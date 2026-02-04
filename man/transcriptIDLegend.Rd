@@ -2,7 +2,7 @@
 % Please edit documentation in R/AllGenerics.R
 \name{transcriptIDLegend}
 \alias{transcriptIDLegend}
-\title{Retrieve Transcript ID Legend from a PSMatrixList Object (Generic Function)}
+\title{Transcript ID Legend (Generic Function)}
 \usage{
 transcriptIDLegend(x, ...)
 }

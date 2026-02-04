@@ -3,22 +3,23 @@ title: "How to Generate a Background Model for PscanR algorithm"
 author: "Diana Betelli"
 date: "`r Sys.Date()`"
 output:
-  BiocStyle::html_document:
+    BiocStyle::html_document:
     toc: true
     toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{3. How to Generate a Background Model for PscanR algorithm}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{3. How to Generate a Background Model for
+PscanR algorithm}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
-  markdown: 
+    markdown: 
     wrap: 80
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+    collapse = TRUE,
+    comment = "#>"
 )
 ```
 
@@ -55,7 +56,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 BiocManager::install(c("txdbmaker", "GenomicFeatures", "GenomeInfoDb", 
-                       "Biostrings", "TFBSTools", "BiocParallel"))
+                        "Biostrings", "TFBSTools", "BiocParallel"))
 
 ```
 
@@ -204,9 +205,9 @@ file** from public repositories like **Ensembl, NCBI, or TAIR**. Example with
 
 ```{r eval=FALSE, include=TRUE}
 txdb <- txdbmaker::makeTxDbFromGFF('<path_to_your_file>', 
-                                   format = "gff3", 
-                                   dataSource="TAIR9", 
-                                   organism="Arabidopsis thaliana")
+                                    format = "gff3", 
+                                    dataSource="TAIR9", 
+                                    organism="Arabidopsis thaliana")
 ```
 
 ### Handling the Latest Human Genome Assembly (hs1)
@@ -245,9 +246,9 @@ region that extends **200 base pairs upstream** and
 # Define promoter regions
 
 prom_rng <- GenomicFeatures::promoters(txdb, 
-                                       upstream = 200, 
-                                       downstream = 50, 
-                                       use.names = TRUE)
+                                        upstream = 200, 
+                                        downstream = 50, 
+                                        use.names = TRUE)
 ```
 
 To save time on `TxDb` object creation, we have prepared a file containing the
@@ -255,7 +256,7 @@ promoter regions.
 
 ```{r chunk-2}
 promoters_path <- system.file("extdata", "promoters.rds", 
-                         package = "PscanR")
+                            package = "PscanR")
 prom_rng <- readRDS(promoters_path)
 prom_rng
 ```
@@ -277,7 +278,10 @@ library("BSgenome.Hsapiens.UCSC.hg38")
 ```{r chunk-3}
 # Retrieve promoter sequences
 
-prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, prom_rng)
+prom_seq <- Biostrings::getSeq(
+    x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38,
+    prom_rng
+)
 ```
 
 ## Retrieve Transcription Factors Binding Site Profiles
@@ -359,8 +363,8 @@ For all the systems:
 
 ```{r echo=TRUE}
 J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], 
-                                  JASPAR_matrices, 
-                                  BPPARAM = BiocParallel::SnowParam(1))
+                                    JASPAR_matrices, 
+                                    BPPARAM = BiocParallel::SnowParam(1))
 
 # Example for the first matrix
 J2022_PSBG[[1]]
@@ -371,8 +375,8 @@ For Unix-like systems:
 ```{r eval=FALSE, include=TRUE}
 # Build the Pscan background
 J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], 
-                                  JASPAR_matrices, 
-                                  BPPARAM = BiocParallel::MulticoreParam(1))
+                                    JASPAR_matrices, 
+                                    BPPARAM = BiocParallel::MulticoreParam(1))
 ```
 
 Refer to the 'Comparing execution time with varying processors' vignette to go
