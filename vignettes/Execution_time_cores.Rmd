@@ -154,7 +154,7 @@ saveRDS(df_processori, "df_processori.rds")
 The following chuck of code produce a plot useful to analyse the evaluated
 times.
 
-```{r}
+```{r chunk-1}
 file_path <- system.file("extdata", "df_processori.rds", package = "PscanR")
 data<- readRDS(file_path)
 
@@ -175,7 +175,7 @@ r_squared <- 1 - (ss_residual / ss_total)
 
 ```
 
-```{r}
+```{r chunk-2}
 boxplot(data,
         main = "PscanR Execution Time with MulticoreParam",
         xlab = "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
@@ -213,7 +213,7 @@ evaluated time for each core.
 
 ## Analysis of the timing
 
-```{r}
+```{r chunk-3}
 file_path <- system.file("extdata", "df_processori_SnowParam.rds", 
                          package = "PscanR")
 data <- readRDS(file_path)
@@ -236,7 +236,7 @@ ss_residual <- sum((means - exp(predict(power_model)))^2)
 r_squared <- 1 - (ss_residual / ss_total)
 ```
 
-```{r}
+```{r chunk-4}
 boxplot(data,
         main = "PscanR Execution Time with SnowParam",
         xlab = "Cores (N)\nLiver dataset (950u−50d), JASPAR2020 (746 matrices), 329 promoters (1000bp)",
@@ -265,7 +265,7 @@ Unix systems, while **SnowParam** ensures compatibility across all platforms.
 A plateau in performance gain beyond **12 cores** suggests an optimal
 configuration for parallel execution.
 
-```{r}
+```{r chunk-5}
 # Display session information
 
 sessionInfo()

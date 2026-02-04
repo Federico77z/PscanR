@@ -159,7 +159,7 @@ All these values are retrieved by the `pscan_fullBG()` function for the input
 sequences of interest, without having to recalculate them. To visualize the
 slots use the View() function on the example PSMatrix below.
 
-```{r}
+```{r chunk-1}
 PathFullBG <- system.file('extdata', 'full_pfm1.rds', package = 'PscanR')
 FullBG_PSM1 <- readRDS(PathFullBG)
 FullBG_PSM1
@@ -253,7 +253,7 @@ prom_rng <- GenomicFeatures::promoters(txdb,
 To save time on `TxDb` object creation, we have prepared a file containing the
 promoter regions.
 
-```{r}
+```{r chunk-2}
 promoters_path <- system.file("extdata", "promoters.rds", 
                          package = "PscanR")
 prom_rng <- readRDS(promoters_path)
@@ -274,7 +274,7 @@ if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE))
 library("BSgenome.Hsapiens.UCSC.hg38")
 ```
 
-```{r}
+```{r chunk-3}
 # Retrieve promoter sequences
 
 prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, prom_rng)
@@ -298,7 +298,7 @@ if (!requireNamespace("JASPAR2022", quietly = TRUE))
 library("JASPAR2022")
 ```
 
-```{r}
+```{r chunk-4}
 opts <- list()
 opts[["collection"]] <- "CORE"  # The desired collection
 opts[["tax_group"]] <- "vertebrates"  # The taxonomic group
@@ -321,7 +321,7 @@ if (!requireNamespace("JASPAR2024", quietly = TRUE))
 library(JASPAR2024)
 ```
 
-```{r}
+```{r chunk-5}
 # Disable SSL verification if necessary
 httr::set_config(httr::config(ssl_verifypeer = 0L))
 
@@ -447,7 +447,7 @@ removing essential transcript-level information. As a result, the function may
 return incorrect results for this organism. This is valid for any organism for
 which this type of format is used.
 
-```{r}
+```{r chunk-6}
 # Display session information
 sessionInfo()
 ```

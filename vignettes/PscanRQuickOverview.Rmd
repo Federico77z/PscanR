@@ -133,7 +133,7 @@ We refer to ‘Background’ as the collection of scores obtained by scanning an
 
 <hr />
 
-```{r}
+```{r chunk-1}
 # Display session information
 sessionInfo()
 ```
