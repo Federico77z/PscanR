@@ -1,11 +1,11 @@
 #' Executes the Pscan algorithm on a set of regulatory sequences.
 #' 
-#' This function computes the alignment scores between regulatory sequences 
-#' (a set of gene promoters (`x` parameter)) and position weight matrices, 
+#' This function computes alignment scores between regulatory sequences 
+#' (a set of gene promoters, `x`) and position weight matrices, 
 #' which quantify potential binding affinities of transcription factors in that 
 #' region.
 #' These matrices can be sourced from public databases such as JASPAR.
-#' The scanning is performed throughout the Pscan algorithm. 
+#' The scanning is performed by the Pscan algorithm. 
 #' 
 #' @param x A `DNAStringSet` object containing the set of regulatory sequences 
 #'    from co-regulated or co-expressed genes (i.e. a set of gene promoters). 
@@ -38,26 +38,26 @@
 #'    The default is `bpoptions()`.
 #'    Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
 #'    progressbar = TRUE enables a progress bar that can be useful when 
-#'    processing many tasks. log = TRUE enable logging to debug each step of
+#'    processing many tasks. log = TRUE enables logging to debug each step of
 #'    the parallel tasks. 
 #'    
 #' @details
 #' The `pscan` function performs sequence scanning using the `ps_scan` method 
 #' for individual PWMs, accounting for both the forward and reverse complement 
 #' strands, ensuring no potential binding sites are missed.
-#' The method extract all the k-mers substring of the input sequences with the 
+#' The method extracts all k-mer substrings of the input sequences with the 
 #' same length of the motif and evaluates a score for both the forward and 
 #' reverse strand based on how well the k-mer matches the Transcription Factor
 #' Binding Motif provided by the PWM. For each input sequence scanned with 
 #' individual PWM, only the k-mer with the highest score is selected. 
-#' The method will populate the following PSMatrix slots for each input 
+#' The method populates the following PSMatrix slots for each input 
 #' sequence: 
 #' \itemize{
 #'    \item ps_hits_score: the highest matching value found for each sequence. 
-#'    \item ps_hits_pos: position of the best TFBS match
+#'    \item ps_hits_pos: position of the best TFBS match.
 #'    \item ps_hits_strand: the DNA strand of the TFBS ('+' for forward and '-'
-#'    for reverse)
-#'    \item ps_hits_oligo: the sequence of the binding site} 
+#'    for reverse).
+#'    \item ps_hits_oligo: the sequence of the binding site.} 
 #'    
 #' This function uses example datasets located in the `extdata/` directory for 
 #' demonstration purposes only. These files are not part of the core data used
@@ -249,8 +249,8 @@ pscan_fullBG <- function(ID, full_pfms)
 #'    The default is `bpoptions()`.
 #'    Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
 #'    progressbar = TRUE enables a progress bar that can be useful when 
-#'    processing many tasks. log = TRUE enable logging to debug each step of
-#'    the parallel tasks.  description
+#'    processing many tasks. log = TRUE enables logging to debug each step of
+#'    the parallel tasks. 
 #'    
 #' @details
 #'    This function:
@@ -324,10 +324,10 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
   res <- mapply(.ps_scan_s, list(Jmatrix), as.character(prom_seq), 
                 MoreArgs = Margs)
   
-  JM@ps_hits_score <- as.numeric(res["score",]) 
-  JM@ps_hits_score <- .ps_norm_score(JM)
+  Jmatrix@ps_hits_score <- as.numeric(res["score",]) 
+  Jmatrix@ps_hits_score <- .ps_norm_score(Jmatrix)
   
-  Score <- JM@ps_hits_score
+  Score <- Jmatrix@ps_hits_score
   
   filtered_prom_seq <- character()
   if(n > 0)
@@ -365,12 +365,12 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #' Returns a table ordered by decreasing `ZSCORE` and increasing `P.VALUE`.  
 #'
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
-#'    metadata (foreground and background statistics). Typically is the output 
+#'    metadata (foreground and background statistics). Typically the output 
 #'    of `pscan()` or `pscan_fullBG()` functions. 
 #' @param FDR_threshold A numeric value indicating the maximum false discovery 
 #'    rate (FDR) allowed for filtering the result table. 
 #'    Only rows with FDR <= FDR_threshold will be retained. 
-#'    Defaul is 1, so all the results are displayed. 
+#'    Default is 1, so all the results are displayed. 
 #'
 #' @return
 #' A data.frame with matrices ordered by increasing P.VALUE and decreasing 
@@ -384,8 +384,8 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #'   \item "FG_AVG": The average foreground score (the TFBS scores found by 
 #'   scanning the chosen subset of regulatory regions) for each PWM.
 #'   \item "ZSCORE": The Z-score for each PWM computed as 
-#'   (FG_AVG-BG_AVG)/BG_STDEV. It represent a statistical measure of motif 
-#'   enrichment, quantifying how much the averge foreground score deviates from
+#'   (FG_AVG-BG_AVG)/BG_STDEV. It represents a statistical measure of motif 
+#'   enrichment, quantifying how much the average foreground score deviates from
 #'   the background one.
 #'   \item "P.VALUE": The p-value for each PWM.
 #'   \item "FDR": The adjusted p-value, representing the False Discovery Rate, 
@@ -460,7 +460,7 @@ ps_results_table <- function(pfms, FDR_threshold = 1)
 #'    This object is the output of `pscan()` function. 
 #'
 #' @details
-#' Z-Score represents the statistical significance of the alignment scores 
+#' Z-score represents the statistical significance of the alignment scores 
 #' for regulatory sequences relative to background expectation. A high Z-score 
 #' suggests strong motif enrichment in the foreground compared to 
 #' the background.
@@ -473,7 +473,7 @@ ps_results_table <- function(pfms, FDR_threshold = 1)
 #' @return
 #' A matrix in which each column corresponds to a motif in the `PSMatrixList`
 #' object, and each row to the sequence identifiers. The matrix contains 
-#' z-score values for each sequence-motif pairs, indicating how much the 
+#' z-score values for each sequence-motif pair, indicating how much the 
 #' computed scores deviate from the expected background distribution. 
 #' Higher Z-score values represent stronger motif enrichment. 
 #' 
@@ -521,12 +521,12 @@ ps_z_table <- function(pfms)
 #' It allows customization of the heatmap's appearance.  
 #' 
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
-#'    metadata (foreground and background statistics). Typically is the output 
+#'    metadata (foreground and background statistics). Typically the output 
 #'    of `pscan()` or `pscan_fullBG()` functions. 
 #' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
 #'    to include in the analysis. The default is `0.01`.
-#' @param ... Additional user defined arguments to customize the heatmap 
-#'    settings, such as color palettes or clustering object.
+#' @param ... Additional user-defined arguments to customize the heatmap 
+#'    settings, such as color palettes or clustering objects.
 #'   
 #' @details
 #' The heatmap represents the correlation of motif Z-scores, helping to 
@@ -542,7 +542,7 @@ ps_z_table <- function(pfms)
 #'   \item Generates the heatmap using the `pheatmap` function, 
 #'      with customizable settings.}
 #' 
-#'  Default settings, that can be changed by the users, are: 
+#'  Default settings (which can be changed) are: 
 #'  \itemize{
 #'    \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
 #'    \item `color`, which uses a blue-white-red palette.
@@ -555,8 +555,8 @@ ps_z_table <- function(pfms)
 #' by the function. They can be accessed using `system.file()` as shown in the 
 #' examples.
 #'
-#' @return A heatmap plot showing Z-score correlations for selected 
-#'    transcription factors, filtered by FDR values. 
+#' @return Invisibly returns the Z-score submatrix used for plotting. 
+#'   The heatmap is drawn as a side effect.
 #' 
 #' @examples
 #' # The generation of the example might take few minutes
@@ -625,14 +625,14 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 #' analyzed sequences.
 #' 
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated 
-#'    metadata (foreground and background statistics). Typically is the output 
+#'    metadata (foreground and background statistics). Typically the output 
 #'    of `pscan()` or `pscan_fullBG()` function. 
 #' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
 #'    to be included in the analysis. The default is set to `0.01`.
 #' @param shift Integer. A value to shift the reported positions of motif hits
 #'    in respect to the TSS.
 #'    Default is set to `0`.
-#' @param ... Additional user defined arguments that can be passed to 
+#' @param ... Additional user-defined arguments that can be passed to 
 #'    the function (e.g., the color palette) to change the default settings.
 #'   
 #' @details
@@ -644,7 +644,7 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 #'   \item Generates the heatmap using the `pheatmap` function, 
 #'      with customizable settings.}
 #' 
-#' Default settings, that can be changed by the users, are:
+#' Default settings (which can be changed) are:
 #' \itemize{
 #'   \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
 #'   \item `color`, which uses a white-yellow-red palette by default.
@@ -656,8 +656,8 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...)
 #' by the function. They can be accessed using `system.file()` as shown in the 
 #' examples.
 #' 
-#' @return A heatmap plot showing the distribution of motif hit positions for 
-#'    transcription factors passing the FDR threshold.
+#' @return Invisibly returns the positional hits matrix used for plotting. 
+#'   The heatmap is drawn as a side effect.
 #' 
 #' @examples
 #' # Note that the generation of the example may take few minutes
@@ -742,7 +742,7 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...)
 #'      \item `loose`: uses the background average score as threshold.
 #'      \item `strict`: uses the background average score together with the 
 #'      background standard deviation as threshold.}
-#'    Default is set to loose.
+#'    Default is `loose` (background average).
 #'      
 #' @return A density plot showing the distribution of hits along the promoter 
 #'    region.
@@ -839,18 +839,18 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #'    algorithm.
 #' @param shift Integer. Value for which the positions get shifted in respect
 #'    to the TSS. Default is `0`, meaning no shift.
-#' @param bubble_color A character string specifying the color of the bubbles 
-#'    (default: `"blue"`).
 #' @param alpha Numeric, between 0 and 1. Default is 0.5. Represents the level 
 #'    of transparency of the bubbles. 
+#' @param bubble_color A character string specifying the color of the bubbles 
+#'    (default: `"blue"`).
 #' @param st Score threshold used to filter hits. Can be a numeric value to set 
 #'    the threshold directly, or a character:
 #'    \itemize{
-#'      \item `all`: the threshold is set to `0` (All the hits are evaluated).
+#'      \item `all`: the threshold is set to `0` (all hits are evaluated).
 #'      \item `loose`: uses the background average score as threshold.
 #'      \item `strict`: uses the background average score together with the 
 #'      background standard deviation as threshold.}
-#'    Default is set to loose.
+#'    Default is `all` (no threshold).
 #' @param pos_bin Size of the bins used to group position values. Default is 10.
 #' @param score_quantile Number of quantiles used to divide score values. Default is 10. 
 #' 
@@ -859,12 +859,12 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm))
 #' This function aggregates motif hits by score and position, and 
 #' visualizes their frequency using a bubble chart. Larger bubbles 
 #' indicate more frequent score-position combinations. 
-#' 4 lines are plotted: 
+#' Four lines are plotted: 
 #' \itemize{
 #'   \item The green line represents the average score of the foreground.
 #'   \item The red line represents the average score of the background.
 #'   \item The two orange lines create a range representing the typical 
-#'   background variation, defined as the mean + or - 1 standard deviation.}
+#'   background variation, defined as the mean ± 1 standard deviation.}
 #' The user can modify the color of bubbles. Default is `blue`.
 #' 
 #' This function uses example datasets located in the `extdata/` directory for 
@@ -976,12 +976,12 @@ ps_score_position_BubbleChart <- function(PSM, shift = 0L, alpha = 0.5,
 
 
 #' Density Plot of Distances between Identified Motif Hits in two PSMatrix 
-#' Object
+#' Objects
 #' 
 #' This function visualizes the density plot of distances between identified 
-#' hit sites in two `PSMatrix` object. The distance between hits is calculated 
+#' hit sites in two `PSMatrix` objects. The distance between hits is calculated 
 #' for each sequence that is present in both matrices. 
-#' It allows to filter the identified sites based on a specified threshold 
+#' It allows filtering the identified sites based on a specified threshold 
 #' value. 
 #' 
 #'
@@ -1006,13 +1006,17 @@ ps_score_position_BubbleChart <- function(PSM, shift = 0L, alpha = 0.5,
 #'    identified motif hits in \code{M1} and \code{M2}. The x-axis represents 
 #'    the distances between corresponding hits: positive values indicate that M1
 #'    is positioned upstream in respect to M2, whereas negative values 
-#'    indicates that it is downstream to M2. 
-#'    Y-axis represents the density of those distances.
+#'    indicate that it is downstream to M2. 
+#'    The y-axis represents the density of those distances. 
 #' 
 #' @seealso \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}}, 
 #' \code{\link{ps_hits_score}}, \code{\link{ps_hits_pos}}
 #' 
 #' @details
+#' Hit positions are shifted by half of the motif length (i.e., `ncol(M1)/2` 
+#' and `ncol(M2)/2`) before distances are computed, so distances are centered 
+#' on the motif midpoint.
+#'
 #' This function uses example datasets located in the `extdata/` directory for 
 #' demonstration purposes only. These files are not part of the core data used
 #' by the function. They can be accessed using `system.file()` as shown in the 

@@ -24,7 +24,7 @@ size value for motif enrichment analysis. Methods should be
 implemented for specific object classes that store scan results.
 }
 \details{
-The foreground size value represent the dimension of the scanned input 
+The foreground size value represents the dimension of the scanned input 
 (number of promoter sequences from co-regulated or co-expressed genes 
 used as input).
 }

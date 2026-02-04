@@ -20,7 +20,7 @@ in `pfms`.}
 \item{pfms}{A `PFMatrixList` object containing position frequency matrices 
 representing transcription factor binding preferences, obtained, for 
 example, from the JASPAR database.
-The number of elements in `pfms` should match the number of row of `x`, 
+The number of elements in `pfms` should match the number of rows of `x`, 
 and their identifiers should correspond.}
 }
 \value{
@@ -36,9 +36,9 @@ a `PSMatrixList` object.
 This function: 
 \itemize{
    \item Validates the input type. `x` must be a `data.frame`.
-   \item Converts each elements of pfms into `PSMatrix` objects. 
+   \item Converts each element of pfms into `PSMatrix` objects. 
    \item A warning is issued if the number of elements in `pfms` doesn't 
-   match the number of row of `x`.
+   match the number of rows of `x`.
 }
 
 Note: This function does not compute new background scores — it assigns 

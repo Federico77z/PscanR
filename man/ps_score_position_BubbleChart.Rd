@@ -30,11 +30,11 @@ of transparency of the bubbles.}
 \item{st}{Score threshold used to filter hits. Can be a numeric value to set 
 the threshold directly, or a character:
 \itemize{
-  \item `all`: the threshold is set to `0` (All the hits are evaluated).
+  \item `all`: the threshold is set to `0` (all hits are evaluated).
   \item `loose`: uses the background average score as threshold.
   \item `strict`: uses the background average score together with the 
   background standard deviation as threshold.}
-Default is set to loose.}
+Default is `all` (no threshold).}
 
 \item{pos_bin}{Size of the bins used to group position values. Default is 10.}
 
@@ -54,12 +54,12 @@ sequences in a `PSMatrix` object.
 This function aggregates motif hits by score and position, and 
 visualizes their frequency using a bubble chart. Larger bubbles 
 indicate more frequent score-position combinations. 
-4 lines are plotted: 
+Four lines are plotted: 
 \itemize{
   \item The green line represents the average score of the foreground.
   \item The red line represents the average score of the background.
   \item The two orange lines create a range representing the typical 
-  background variation, defined as the mean + or - 1 standard deviation.}
+  background variation, defined as the mean ± 1 standard deviation.}
 The user can modify the color of bubbles. Default is `blue`.
 
 This function uses example datasets located in the `extdata/` directory for 

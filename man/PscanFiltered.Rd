@@ -53,8 +53,8 @@ This argument is passed to `BiocParallel::bplapply`.
 The default is `bpoptions()`.
 Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
 progressbar = TRUE enables a progress bar that can be useful when 
-processing many tasks. log = TRUE enable logging to debug each step of
-the parallel tasks.  description}
+processing many tasks. log = TRUE enables logging to debug each step of
+the parallel tasks.}
 }
 \value{
 A `PSMatrixList` object in which the foreground values 

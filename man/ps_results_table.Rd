@@ -8,13 +8,13 @@ ps_results_table(pfms, FDR_threshold = 1)
 }
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
-metadata (foreground and background statistics). Typically is the output 
+metadata (foreground and background statistics). Typically the output 
 of `pscan()` or `pscan_fullBG()` functions.}
 
 \item{FDR_threshold}{A numeric value indicating the maximum false discovery 
 rate (FDR) allowed for filtering the result table. 
 Only rows with FDR <= FDR_threshold will be retained. 
-Defaul is 1, so all the results are displayed.}
+Default is 1, so all the results are displayed.}
 }
 \value{
 A data.frame with matrices ordered by increasing P.VALUE and decreasing 
@@ -28,8 +28,8 @@ It contains the following columns:
   \item "FG_AVG": The average foreground score (the TFBS scores found by 
   scanning the chosen subset of regulatory regions) for each PWM.
   \item "ZSCORE": The Z-score for each PWM computed as 
-  (FG_AVG-BG_AVG)/BG_STDEV. It represent a statistical measure of motif 
-  enrichment, quantifying how much the averge foreground score deviates from
+  (FG_AVG-BG_AVG)/BG_STDEV. It represents a statistical measure of motif 
+  enrichment, quantifying how much the average foreground score deviates from
   the background one.
   \item "P.VALUE": The p-value for each PWM.
   \item "FDR": The adjusted p-value, representing the False Discovery Rate, 

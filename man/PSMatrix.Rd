@@ -3,7 +3,7 @@
 \name{PSMatrix}
 \alias{PSMatrix}
 \alias{setAs,PFMatrix,PSMatrix-method}
-\title{An S4 Class for a Single Positiont-Specific Matrix}
+\title{An S4 Class for a Single Position-Specific Matrix}
 \usage{
 PSMatrix(
   pfm,
@@ -31,11 +31,11 @@ co-expressed or co-regulated genes when scanned with a PWM.}
 \item{ps_bg_std_dev}{Numeric. The background standard deviation of PWM 
 scores, default = `NA`.}
 
-\item{ps_bg_size}{Integer. The size of the background promoter region, 
+\item{ps_bg_size}{Integer. The number of background promoter sequences, 
 default = `NA`.}
 
-\item{.PS_PSEUDOCOUNT}{Numeric. The Pseudo-Count to add to avoid division
-by zero. Default = `0.01`}
+\item{.PS_PSEUDOCOUNT}{Numeric. The pseudocount added to avoid division
+by zero. Default = `0.01`.}
 
 \item{...}{Additional arguments passed to other methods or used in the 
 initialization.}
@@ -47,7 +47,7 @@ A `PSMatrix` object containing the provided statistics, initialized
 A `PSMatrix` object created from the input `PFMatrix` object.
 }
 \description{
-This function creates a `PSMatrix` object, which contains a single 
+This constructor creates a `PSMatrix` object, which contains a single 
 Position Frequency Matrix (PFM) and associated metadata related to promoter 
 sequence motif hits, such as background and foreground averages, standard 
 deviation, size, z-scores, and other related information.

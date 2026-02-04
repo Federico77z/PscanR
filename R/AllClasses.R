@@ -22,9 +22,9 @@
                                              .PS_ALPHABET="integer"),
                       contains="PFMatrix")
 
-#' An S4 Class for a Single Positiont-Specific Matrix
+#' An S4 Class for a Single Position-Specific Matrix
 #'
-#' This function creates a `PSMatrix` object, which contains a single 
+#' This constructor creates a `PSMatrix` object, which contains a single 
 #' Position Frequency Matrix (PFM) and associated metadata related to promoter 
 #' sequence motif hits, such as background and foreground averages, standard 
 #' deviation, size, z-scores, and other related information. 
@@ -40,10 +40,10 @@
 #'    co-expressed or co-regulated genes when scanned with a PWM.
 #' @param ps_bg_std_dev Numeric. The background standard deviation of PWM 
 #'    scores, default = `NA`.
-#' @param ps_bg_size Integer. The size of the background promoter region, 
+#' @param ps_bg_size Integer. The number of background promoter sequences, 
 #'    default = `NA`.
-#' @param .PS_PSEUDOCOUNT Numeric. The Pseudo-Count to add to avoid division
-#'    by zero. Default = `0.01`
+#' @param .PS_PSEUDOCOUNT Numeric. The pseudocount added to avoid division
+#'    by zero. Default = `0.01`.
 #' @param ... Additional arguments passed to other methods or used in the 
 #'    initialization.
 #'    
@@ -107,20 +107,22 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 
 #' An S4 Class for Storing Position-Specific Matrices
 #' 
-#' This function creates a `PSMatrixList` object, which is a container for 
-#' managing multiple `PSMatrix` object. It is similar to `PFMatrixList` but 
+#' This constructor creates a `PSMatrixList` object, which is a container for 
+#' managing multiple `PSMatrix` objects. It is similar to `PFMatrixList` but 
 #' extends its functionality.
 #'
 #' @param ... Objects of class `PSMatrix` to include in the list.
 #' @param use.names Logical. Assert whether to use names from the input objects.
 #'    Default = `TRUE`
 #' @param transcriptIDLegend Named character vector. The names correspond to 
-#'   the IDs of all the transcript expressed in the organism of study, whereas 
-#'   corresponding values are the IDs of transcript retained by the unique() 
+#'   the IDs of all transcripts expressed in the organism of study, whereas 
+#'   corresponding values are the IDs of transcripts retained by the unique() 
 #'   function when multiple identical sequences exist. So, if multiple 
 #'   identical sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique() 
 #'   retains only ID2, the mapping will associate each original name with its 
 #'   unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2). 
+#'   This argument is currently ignored by the constructor; the slot is 
+#'   typically populated by background-building helpers.
 #'
 #' @return A `PSMatrixList` object, which is a list containing `PSMatrix` 
 #'    objects. Each element in the list corresponds to a `PSMatrix` object 

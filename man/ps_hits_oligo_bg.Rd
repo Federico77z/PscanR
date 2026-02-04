@@ -23,7 +23,7 @@ ps_hits_oligo_bg(x, ...)
 }
 \description{
 `ps_hits_oligo_bg` is a **generic function** that extracts the 
-oligonucleotide sequences corresponding to motif hits among a bacground 
+oligonucleotide sequences corresponding to motif hits among a background 
 dataset in a given object.
 }
 \details{

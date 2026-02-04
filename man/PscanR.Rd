@@ -10,8 +10,8 @@
 transcription factor binding site motif analysis. 
 The package is designed to work with Bioconductor data objects: 
 it extends PFMatrix and PFMatrixList from 
-the TFBSTools package for transcription factors binding profiles and
-employs Biostring DNAStringSet for promoter sequences. 
+the TFBSTools package for transcription factor binding profiles and
+employs Biostrings DNAStringSet for promoter sequences. 
 PscanR supports multithreading through the BiocParallel package.
 PscanR includes functions to build the background for a set of promoter 
 sequences, to scan a foreground set of promoter sequences, and to visualize 
@@ -52,3 +52,4 @@ Federico Zambelli [cre], Giulio Pavesi [cre]
 
 Maintainer: Federico Zambelli <federico.zambelli@unimi.it>
 }
+\keyword{internal}

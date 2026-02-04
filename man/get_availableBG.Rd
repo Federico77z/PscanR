@@ -17,9 +17,9 @@ A character vector containing the names of the available background files
 This function retrieves the names of all available .txt files containing 
 background information, that serves for the construction of the background 
 PSMatrixList. If a keyword is specified, the function will return only the 
-file names that contains that string. Note that the filtering parameter 
+file names that contain that string. Note that the filtering parameter 
 works only if you know the nomenclature used to name the file. See the 
-details paragraph for further informations.
+details paragraph for further information.
 }
 \details{
 Some information for the filtering: 

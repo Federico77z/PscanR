@@ -14,7 +14,7 @@ This object is the output of `pscan()` function.}
 \value{
 A matrix in which each column corresponds to a motif in the `PSMatrixList`
 object, and each row to the sequence identifiers. The matrix contains 
-z-score values for each sequence-motif pairs, indicating how much the 
+z-score values for each sequence-motif pair, indicating how much the 
 computed scores deviate from the expected background distribution. 
 Higher Z-score values represent stronger motif enrichment.
 }
@@ -24,7 +24,7 @@ multiple PSMatrix contained in a `PSMatrixList` object. Each row corresponds
 to a sequence, and each column represents a motif.
 }
 \details{
-Z-Score represents the statistical significance of the alignment scores 
+Z-score represents the statistical significance of the alignment scores 
 for regulatory sequences relative to background expectation. A high Z-score 
 suggests strong motif enrichment in the foreground compared to 
 the background.

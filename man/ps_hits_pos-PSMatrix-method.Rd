@@ -23,7 +23,7 @@ A named integer vector where names correspond to promoter sequence
 \description{
 Retrieves the positions of hits stored in a `PSMatrix` object. These 
 positions indicate where the motifs are located in each promoter sequence. 
-The positions can be shifted by a specified value to find the correspective
+The positions can be shifted by a specified value to find the corresponding
 position in respect to the TSS.
 }
 \examples{

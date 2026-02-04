@@ -15,7 +15,7 @@ Default set to `TRUE`.}
 }
 \value{
 A character vector containing the sequences of motif matches 
-    (oligonucleotides) in the banckground set.
+    (oligonucleotides) in the background set.
 }
 \description{
 Retrieves the oligonucleotide sequences that match the motif in the 

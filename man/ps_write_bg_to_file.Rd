@@ -18,8 +18,9 @@ study). Each element must be a `PSMatrix` object or coercible to one.}
 the background statistics should be saved.}
 }
 \value{
-None. It saves the given background statistics to the specified file
-in a tab-delimited format.
+`NULL` (invisibly). This function is called for its side effect of 
+  writing the given background statistics to the specified file in a 
+  tab-delimited format.
 }
 \description{
 Saves background statistics (such as size, mean, and standard deviation) 

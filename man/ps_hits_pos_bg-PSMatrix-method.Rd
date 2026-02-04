@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods-PSMatrix.R
 \name{ps_hits_pos_bg,PSMatrix-method}
 \alias{ps_hits_pos_bg,PSMatrix-method}
-\title{Get Motif Hit Positions in a Backrgound Dataset}
+\title{Get Motif Hit Positions in a Background Dataset}
 \usage{
 \S4method{ps_hits_pos_bg}{PSMatrix}(x, withDimnames = TRUE)
 }
@@ -19,7 +19,7 @@ A named integer vector where names correspond to promoter sequence
 }
 \description{
 Retrieves the positions of hits stored in a `PSMatrix` object computed on 
-the background dataset (all the promoter in a specific organism). These 
+the background dataset (all promoters in a specific organism). These 
 positions indicate where the motifs are located in each promoter sequence.
 }
 \details{

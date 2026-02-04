@@ -92,9 +92,8 @@ setMethod("ps_fg_avg", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    the output, if they exist in the object.
 #'    Default set to `TRUE`.
 #' 
-#' @return A numeric value representing the `PSMatrix` Z-score. This associates 
-#' with each profile the probability of obtaining the same score on a random 
-#' sequence set. 
+#' @return A numeric value representing the `PSMatrix` Z-score (z-statistic)
+#' computed during motif scanning. 
 #'
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
@@ -186,7 +185,7 @@ setMethod("ps_hits_oligo", "PSMatrix", function(x, withDimnames = TRUE) {
 #' recomputation.
 #'    
 #' @return A character vector containing the sequences of motif matches 
-#'     (oligonucleotides) in the banckground set. 
+#'     (oligonucleotides) in the background set. 
 #'     
 #' @examples
 #' full_pfm1_path <- system.file("extdata", 
@@ -356,7 +355,7 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
 #' Get Hits Score for Background Dataset
 #' 
 #' Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` 
-#' object computed on the background dataset (all the promoter in a specific
+#' object computed on the background dataset (all promoters in a specific
 #' organism).
 #' These scores represent the binding affinity or enrichment level of promoter 
 #' sequences when scanned with a Position Weight Matrix (PWM).
@@ -366,7 +365,7 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
 #'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
-#' #' @details
+#' @details
 #' This method is specifically designed for background datasets,
 #' where motif hit scores are precomputed for all promoter sequences. 
 #' The function extracts the scores from the \code{ps_hits_score_bg} slot and, 
@@ -400,7 +399,7 @@ setMethod("ps_hits_score_bg", "PSMatrix", function(x, withDimnames = TRUE) {
 #' 
 #' Computes the Z-Scores for motif hit scores in a `PSMatrix` object. 
 #' The Z-score measures how unusual a motif score is compared to background 
-#' sequences (all the promoters expressed in an organism). Higher Z-scores mean 
+#' sequences (all promoters expressed in an organism). Higher Z-scores mean 
 #' stronger motif enrichment, suggesting potential regulatory significance.
 #'
 #' 
@@ -461,7 +460,7 @@ setMethod("ps_hits_strand", "PSMatrix", function(x, withDimnames = TRUE) {
 #' Get Motif Hit Strand Information of a Background Dataset
 #' 
 #' Retrieves the strand information (`+` or `-`) of motif hits in a 
-#' `PSMatrix` object computed on the background dataset (all the promoter in a 
+#' `PSMatrix` object computed on the background dataset (all promoters in a 
 #' specific organism). This indicates whether a motif was detected on 
 #' the forward (`+`) or reverse (`-`) strand of the promoter sequence.
 #' The Pscan algorithm scans both the strands of the promoter sequences to 
@@ -507,7 +506,7 @@ setMethod("ps_hits_strand_bg", "PSMatrix", function(x, withDimnames = TRUE) {
 #' 
 #' Retrieves the positions of hits stored in a `PSMatrix` object. These 
 #' positions indicate where the motifs are located in each promoter sequence. 
-#' The positions can be shifted by a specified value to find the correspective
+#' The positions can be shifted by a specified value to find the corresponding
 #' position in respect to the TSS.
 #' 
 #' @param x A `PSMatrix` object.
@@ -537,10 +536,10 @@ setMethod("ps_hits_pos", "PSMatrix", function(x, pos_shift = 0L,
   return(out)
 })
 
-#' Get Motif Hit Positions in a Backrgound Dataset
+#' Get Motif Hit Positions in a Background Dataset
 #' 
 #' Retrieves the positions of hits stored in a `PSMatrix` object computed on 
-#' the background dataset (all the promoter in a specific organism). These 
+#' the background dataset (all promoters in a specific organism). These 
 #' positions indicate where the motifs are located in each promoter sequence. 
 #' 
 #' @param x A `PSMatrix` object.
@@ -577,7 +576,7 @@ setMethod("ps_hits_pos_bg", "PSMatrix", function(x,withDimnames = TRUE) {
   return(out)
 })
 
-#' Get the Sequences Name 
+#' Get Sequence Names 
 #' 
 #' Retrieves the names or identifiers of the promoter sequences in a `PSMatrix` 
 #' object. These names correspond to the promoter regions that were scanned by 
@@ -602,10 +601,10 @@ setMethod("ps_seq_names", "PSMatrix", function(x, withDimnames = TRUE) {
   return(out)
 })
 
-#' Get the Sequences Identifiers of the Background Dataset 
+#' Get Sequence Identifiers of the Background Dataset 
 #' 
 #' Retrieves the names or identifiers of the promoter sequences in a `PSMatrix` 
-#' object computed on the background dataset (all the promoter in a specific
+#' object computed on the background dataset (all promoters in a specific
 #' organism).
 #' 
 #' @param x A `PSMatrix` object.
@@ -682,8 +681,9 @@ setMethod("all_sequences_ID", "PSMatrix", function(x, withDimnames = TRUE) {
 #'   \item `SCORE`: the motif hit score
 #'   \item `POS`: the position of the motif hit
 #'   \item `STRAND`: the strand orientation for each hit
-#'   \item `OLIGO`: the oligo sequence corresponding to each hit} 
-#' Row names correspond to the sequences name. 
+#'   \item `OLIGO`: the oligo sequence corresponding to each hit (a 
+#'   `DNAStringSet`).} 
+#' Row names correspond to the sequence names. 
 #' 
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
@@ -814,13 +814,13 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' 
 #' @param x A `PSMatrix` object representing the motif and related statistics 
 #'     to be used for scanning DNA sequences.
-#' @param seqs `A DNAstringSet` object representing the sequences to be
+#' @param seqs A `DNAStringSet` object representing the sequences to be
 #'    scanned for motif occurrences.
 #' @param BG A logical value indicating whether to calculate background 
 #'    statistics.
 #'    Default is set to `FALSE`.
 #' @param use_full_BG A logical value (default is `FALSE`). 
-#'    If `TRUE`, the method assumes that the PSMatrix represent a special 
+#'    If `TRUE`, the method assumes that the PSMatrix represents a special 
 #'    "full-background" set. 
 #'    In this case, the `seqs` parameter should be a vector of sequence names 
 #'    (instead of actual DNA sequences). The function handles this by matching 
@@ -848,7 +848,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x){
 #' hit data and retrieves the corresponding binding information (score, strand, 
 #' position, oligo).
 #' 
-#' When `use_full_BG` is set to `FALSE`, the function scan both the forward and 
+#' When `use_full_BG` is set to `FALSE`, the function scans both the forward and 
 #' reverse complement strands of the sequences to ensure all potential binding 
 #' sites are detected. Optionally, the background statistics 
 #' (background average and standard deviation) can be computed and used during 
@@ -1066,7 +1066,7 @@ setMethod("show", "PSMatrix", function(object) {
 
 #' Set Background Average 
 #' 
-#' This method specifically set the background average for an object of 
+#' This method specifically sets the background average for an object of 
 #' class `PSMatrix`.
 #' 
 #' @param x An object of class `PSMatrix`.
@@ -1081,7 +1081,7 @@ setMethod("show", "PSMatrix", function(object) {
 #' @details
 #' The background size is the total number of promoters used to compute 
 #' background statistics, such as the average score and standard deviation. 
-#' This method allows user to modify this value. 
+#' This method allows users to modify this value. 
 #' 
 #' 
 #' @examples
@@ -1099,7 +1099,7 @@ setReplaceMethod("ps_bg_avg", "PSMatrix", function(x,value){
 
 #' Set Background Standard Deviation 
 #' 
-#' This method updated the background standard deviation stored in a `PSMatrix`
+#' This method updates the background standard deviation stored in a `PSMatrix`
 #' object.
 #' 
 #' @param x A `PSMatrix` object.
@@ -1128,7 +1128,7 @@ setReplaceMethod("ps_bg_std_dev", "PSMatrix", function(x,value){
 
 #' Set Background Size in a PSMatrix
 #' 
-#' This method specifically set the background size for a `PSMatrix` object. 
+#' This method specifically sets the background size for a `PSMatrix` object. 
 #' The background size represents the number of promoter regions used in the 
 #' background model.
 #' 
@@ -1197,4 +1197,3 @@ setAs("PFMatrixList", "PSMatrixList", function(from){
   do.call(PSMatrixList, to)
   
 })
-

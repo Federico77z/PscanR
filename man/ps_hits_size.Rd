@@ -24,7 +24,7 @@ for motif enrichment analysis. Methods should be
 implemented for specific object classes that store scan results.
 }
 \details{
-The hits size value represent the total number of motif hits detected in 
+The hits size value represents the total number of motif hits detected in 
 the input promoter sequences.
 }
 \examples{

@@ -39,7 +39,8 @@ Allowed combinations:
 
 \item{assembly}{A string representing the assembly version for Human or 
 mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
-For `"mm"` you can specify `"mm10"` or `"mm39"`. Default is character().}
+For `"mm"` you can specify `"mm10"` or `"mm39"`. Required for `"hs"` and 
+`"mm"`; ignored for other organisms.}
 
 \item{version}{A string indicating the version number of the desired 
 background. Since annotations may evolve over time, multiple versions 

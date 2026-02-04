@@ -8,7 +8,7 @@ ps_hitpos_map(pfms, FDR = 0.01, shift = 0, ...)
 }
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
-metadata (foreground and background statistics). Typically is the output 
+metadata (foreground and background statistics). Typically the output 
 of `pscan()` or `pscan_fullBG()` function.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
@@ -18,12 +18,12 @@ to be included in the analysis. The default is set to `0.01`.}
 in respect to the TSS.
 Default is set to `0`.}
 
-\item{...}{Additional user defined arguments that can be passed to 
+\item{...}{Additional user-defined arguments that can be passed to 
 the function (e.g., the color palette) to change the default settings.}
 }
 \value{
-A heatmap plot showing the distribution of motif hit positions for 
-   transcription factors passing the FDR threshold.
+Invisibly returns the positional hits matrix used for plotting. 
+  The heatmap is drawn as a side effect.
 }
 \description{
 This function creates a heatmap visualizing the positional distribution
@@ -40,7 +40,7 @@ The function performs the following steps:
   \item Generates the heatmap using the `pheatmap` function, 
      with customizable settings.}
 
-Default settings, that can be changed by the users, are:
+Default settings (which can be changed) are:
 \itemize{
   \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
   \item `color`, which uses a white-yellow-red palette by default.

@@ -8,18 +8,18 @@ ps_zscore_heatmap(pfms, FDR = 0.01, ...)
 }
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
-metadata (foreground and background statistics). Typically is the output 
+metadata (foreground and background statistics). Typically the output 
 of `pscan()` or `pscan_fullBG()` functions.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to include in the analysis. The default is `0.01`.}
 
-\item{...}{Additional user defined arguments to customize the heatmap 
-settings, such as color palettes or clustering object.}
+\item{...}{Additional user-defined arguments to customize the heatmap 
+settings, such as color palettes or clustering objects.}
 }
 \value{
-A heatmap plot showing Z-score correlations for selected 
-   transcription factors, filtered by FDR values.
+Invisibly returns the Z-score submatrix used for plotting. 
+  The heatmap is drawn as a side effect.
 }
 \description{
 This function generates a heatmap that visualizes the correlation of 
@@ -41,7 +41,7 @@ The function performs the following steps:
   \item Generates the heatmap using the `pheatmap` function, 
      with customizable settings.}
 
- Default settings, that can be changed by the users, are: 
+ Default settings (which can be changed) are: 
  \itemize{
    \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
    \item `color`, which uses a blue-white-red palette.

@@ -18,7 +18,7 @@ of all the regulatory sequences of the organism of study
 (e.g., gene promoters retrieved from a `TxDb` object). 
 These sequences are the target for background scanning.}
 
-\item{pfms}{A `PFMatrixlist` object containing position frequency matrices 
+\item{pfms}{A `PFMatrixList` object containing position frequency matrices 
 (PFM) representing transcription factor binding preferences. 
 Those are sourced from databases such as JASPAR.}
 
@@ -63,7 +63,7 @@ Note that the promoter region analysed may vary.
 }
 \details{
 This function validates input types and removes duplicated sequences
-from `x` to avoid redundant computations. It also remove all the sequences 
+from `x` to avoid redundant computations. It also removes all sequences 
 with an N content above 50%.
 The motif matrices are background scored by the `ps_scan` function in 
 parallel.
@@ -73,22 +73,18 @@ background mean and standard deviation are stored for each matrix. These
 metrics will be later used for the computation of z-score by the pscan 
 function. 
 
-If a full background PSMatrixList is required, that includes all the 
-background scores for each oligonucleotide hits, their position, strand and 
-names, the user should store the output by the save() function and set 
-the fullBG flag as TRUE. Note that this process will generate a very large 
-file, that can reach several gigabytes in size. 
+If a full background PSMatrixList is required (including all background 
+hit scores along with their positions, strands, and oligonucleotide 
+sequences), store the output using `save()` and set the `fullBG` flag to 
+`TRUE`. Note that this process can generate a very large file (several 
+gigabytes). 
 
-Note: Currently, it is not possible to use this function with the 
-Arabidopsis thaliana organism due to the transcript nomenclature used. 
-The function is designed to handle transcript names without version 
-extensions (e.g., NM_30287 instead of NM_30287.1). 
-However, in Arabidopsis thaliana, the format typically follows a 
-gene.transcript pattern (e.g., AT1G01010.1). 
-This causes the function to truncate the transcript identifier, effectively 
-removing essential transcript-level information. As a result, the function 
-may return incorrect results for this organism. This is valid for any 
-organism for which this type of format is used.
+Note: this function assumes transcript identifiers can be safely matched 
+without version suffixes (e.g., NM_30287 instead of NM_30287.1). 
+For organisms where transcript identifiers use dot-separated versions as 
+part of the identifier (e.g., AT1G01010.1), version stripping can remove 
+transcript-level information and lead to incorrect mappings. Use caution 
+for such organisms.
 
 This function uses example datasets located in the `extdata/` directory for 
 demonstration purposes only. These files are not part of the core data used

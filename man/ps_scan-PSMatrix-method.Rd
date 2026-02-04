@@ -10,7 +10,7 @@
 \item{x}{A `PSMatrix` object representing the motif and related statistics 
 to be used for scanning DNA sequences.}
 
-\item{seqs}{`A DNAstringSet` object representing the sequences to be
+\item{seqs}{A `DNAStringSet` object representing the sequences to be
 scanned for motif occurrences.}
 
 \item{BG}{A logical value indicating whether to calculate background 
@@ -18,7 +18,7 @@ statistics.
 Default is set to `FALSE`.}
 
 \item{use_full_BG}{A logical value (default is `FALSE`). 
-If `TRUE`, the method assumes that the PSMatrix represent a special 
+If `TRUE`, the method assumes that the PSMatrix represents a special 
 "full-background" set. 
 In this case, the `seqs` parameter should be a vector of sequence names 
 (instead of actual DNA sequences). The function handles this by matching 
@@ -53,7 +53,7 @@ method matches the sequence names to those in the `PSMatrix`'s background
 hit data and retrieves the corresponding binding information (score, strand, 
 position, oligo).
 
-When `use_full_BG` is set to `FALSE`, the function scan both the forward and 
+When `use_full_BG` is set to `FALSE`, the function scans both the forward and 
 reverse complement strands of the sequences to ensure all potential binding 
 sites are detected. Optionally, the background statistics 
 (background average and standard deviation) can be computed and used during 

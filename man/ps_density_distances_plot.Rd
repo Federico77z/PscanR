@@ -3,7 +3,7 @@
 \name{ps_density_distances_plot}
 \alias{ps_density_distances_plot}
 \title{Density Plot of Distances between Identified Motif Hits in two PSMatrix 
-Object}
+Objects}
 \usage{
 ps_density_distances_plot(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
 }
@@ -33,17 +33,21 @@ A density plot showing the distribution of distances between
    identified motif hits in \code{M1} and \code{M2}. The x-axis represents 
    the distances between corresponding hits: positive values indicate that M1
    is positioned upstream in respect to M2, whereas negative values 
-   indicates that it is downstream to M2. 
-   Y-axis represents the density of those distances.
+   indicate that it is downstream to M2. 
+   The y-axis represents the density of those distances.
 }
 \description{
 This function visualizes the density plot of distances between identified 
-hit sites in two `PSMatrix` object. The distance between hits is calculated 
+hit sites in two `PSMatrix` objects. The distance between hits is calculated 
 for each sequence that is present in both matrices. 
-It allows to filter the identified sites based on a specified threshold 
+It allows filtering the identified sites based on a specified threshold 
 value.
 }
 \details{
+Hit positions are shifted by half of the motif length (i.e., `ncol(M1)/2` 
+and `ncol(M2)/2`) before distances are computed, so distances are centered 
+on the motif midpoint.
+
 This function uses example datasets located in the `extdata/` directory for 
 demonstration purposes only. These files are not part of the core data used
 by the function. They can be accessed using `system.file()` as shown in the 

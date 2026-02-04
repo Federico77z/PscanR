@@ -168,7 +168,7 @@ setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 #' size value for motif enrichment analysis. Methods should be 
 #' implemented for specific object classes that store scan results.
 #'
-#' The background size value represent the dimension of the background 
+#' The background size value represents the dimension of the background 
 #' (number of promoter sequences used as background).
 #'
 #' @param x An object containing motif scan results.
@@ -195,7 +195,7 @@ setGeneric("ps_bg_size", function(x, ...) standardGeneric("ps_bg_size"))
 #' size value for motif enrichment analysis. Methods should be 
 #' implemented for specific object classes that store scan results.
 #'
-#' The foreground size value represent the dimension of the scanned input 
+#' The foreground size value represents the dimension of the scanned input 
 #' (number of promoter sequences from co-regulated or co-expressed genes 
 #' used as input).
 #'
@@ -223,7 +223,7 @@ setGeneric("ps_fg_size", function(x, ...) standardGeneric("ps_fg_size"))
 #' for motif enrichment analysis. Methods should be 
 #' implemented for specific object classes that store scan results.
 #'
-#' The hits size value represent the total number of motif hits detected in 
+#' The hits size value represents the total number of motif hits detected in 
 #' the input promoter sequences.
 #' 
 #' @param x An object containing motif scan results.
@@ -526,7 +526,7 @@ setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 #' (Generic Function)
 #'
 #' `ps_hits_oligo_bg` is a **generic function** that extracts the 
-#' oligonucleotide sequences corresponding to motif hits among a bacground 
+#' oligonucleotide sequences corresponding to motif hits among a background 
 #' dataset in a given object. 
 #'
 #' Methods should be implemented for specific object classes that store motif 

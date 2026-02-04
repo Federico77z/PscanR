@@ -20,7 +20,7 @@ A named character vector where names correspond to promoter sequence
 }
 \description{
 Retrieves the strand information (`+` or `-`) of motif hits in a 
-`PSMatrix` object computed on the background dataset (all the promoter in a 
+`PSMatrix` object computed on the background dataset (all promoters in a 
 specific organism). This indicates whether a motif was detected on 
 the forward (`+`) or reverse (`-`) strand of the promoter sequence.
 The Pscan algorithm scans both the strands of the promoter sequences to 

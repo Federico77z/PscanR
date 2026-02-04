@@ -17,7 +17,7 @@ The modified `PSMatrix` object with the updated background
    standard deviation.
 }
 \description{
-This method updated the background standard deviation stored in a `PSMatrix`
+This method updates the background standard deviation stored in a `PSMatrix`
 object.
 }
 \examples{

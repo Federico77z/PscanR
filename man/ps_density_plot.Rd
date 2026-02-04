@@ -21,7 +21,7 @@ the threshold directly, or a character:
   \item `loose`: uses the background average score as threshold.
   \item `strict`: uses the background average score together with the 
   background standard deviation as threshold.}
-Default is set to loose.}
+Default is `loose` (background average).}
 }
 \value{
 A density plot showing the distribution of hits along the promoter 

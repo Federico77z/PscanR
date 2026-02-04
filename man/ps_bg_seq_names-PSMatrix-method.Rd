@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods-PSMatrix.R
 \name{ps_bg_seq_names,PSMatrix-method}
 \alias{ps_bg_seq_names,PSMatrix-method}
-\title{Get the Sequences Identifiers of the Background Dataset}
+\title{Get Sequence Identifiers of the Background Dataset}
 \usage{
 \S4method{ps_bg_seq_names}{PSMatrix}(x, withDimnames = TRUE)
 }
@@ -18,7 +18,7 @@ A character vector of names.
 }
 \description{
 Retrieves the names or identifiers of the promoter sequences in a `PSMatrix` 
-object computed on the background dataset (all the promoter in a specific
+object computed on the background dataset (all promoters in a specific
 organism).
 }
 \details{

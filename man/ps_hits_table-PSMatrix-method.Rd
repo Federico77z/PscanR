@@ -30,8 +30,9 @@ with the following columns:
   \item `SCORE`: the motif hit score
   \item `POS`: the position of the motif hit
   \item `STRAND`: the strand orientation for each hit
-  \item `OLIGO`: the oligo sequence corresponding to each hit} 
-Row names correspond to the sequences name.
+  \item `OLIGO`: the oligo sequence corresponding to each hit (a 
+  `DNAStringSet`).} 
+Row names correspond to the sequence names.
 }
 \description{
 Creates a data frame summarizing the motif hits from a `PSMatrix` object, 

@@ -15,7 +15,7 @@
 The modified `PSMatrix` object with the updated background size.
 }
 \description{
-This method specifically set the background size for a `PSMatrix` object. 
+This method specifically sets the background size for a `PSMatrix` object. 
 The background size represents the number of promoter regions used in the 
 background model.
 }

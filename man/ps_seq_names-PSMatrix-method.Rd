@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods-PSMatrix.R
 \name{ps_seq_names,PSMatrix-method}
 \alias{ps_seq_names,PSMatrix-method}
-\title{Get the Sequences Name}
+\title{Get Sequence Names}
 \usage{
 \S4method{ps_seq_names}{PSMatrix}(x, withDimnames = TRUE)
 }

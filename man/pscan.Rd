@@ -38,7 +38,7 @@ This argument is passed to `BiocParallel::bplapply`.
 The default is `bpoptions()`.
 Some useful tasks: bpoptions(progressbar = TRUE, log = TRUE). 
 progressbar = TRUE enables a progress bar that can be useful when 
-processing many tasks. log = TRUE enable logging to debug each step of
+processing many tasks. log = TRUE enables logging to debug each step of
 the parallel tasks.}
 }
 \value{
@@ -47,30 +47,30 @@ Enriched PSMatrixList object where each matrix includes
 and \code{ps_hits_oligo} populated for each input sequence.
 }
 \description{
-This function computes the alignment scores between regulatory sequences 
-(a set of gene promoters (`x` parameter)) and position weight matrices, 
+This function computes alignment scores between regulatory sequences 
+(a set of gene promoters, `x`) and position weight matrices, 
 which quantify potential binding affinities of transcription factors in that 
 region.
 These matrices can be sourced from public databases such as JASPAR.
-The scanning is performed throughout the Pscan algorithm.
+The scanning is performed by the Pscan algorithm.
 }
 \details{
 The `pscan` function performs sequence scanning using the `ps_scan` method 
 for individual PWMs, accounting for both the forward and reverse complement 
 strands, ensuring no potential binding sites are missed.
-The method extract all the k-mers substring of the input sequences with the 
+The method extracts all k-mer substrings of the input sequences with the 
 same length of the motif and evaluates a score for both the forward and 
 reverse strand based on how well the k-mer matches the Transcription Factor
 Binding Motif provided by the PWM. For each input sequence scanned with 
 individual PWM, only the k-mer with the highest score is selected. 
-The method will populate the following PSMatrix slots for each input 
+The method populates the following PSMatrix slots for each input 
 sequence: 
 \itemize{
    \item ps_hits_score: the highest matching value found for each sequence. 
-   \item ps_hits_pos: position of the best TFBS match
+   \item ps_hits_pos: position of the best TFBS match.
    \item ps_hits_strand: the DNA strand of the TFBS ('+' for forward and '-'
-   for reverse)
-   \item ps_hits_oligo: the sequence of the binding site} 
+   for reverse).
+   \item ps_hits_oligo: the sequence of the binding site.} 
    
 This function uses example datasets located in the `extdata/` directory for 
 demonstration purposes only. These files are not part of the core data used

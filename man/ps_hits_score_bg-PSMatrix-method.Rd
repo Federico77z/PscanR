@@ -10,10 +10,21 @@
 \item{x}{A `PSMatrix` object.}
 
 \item{withDimnames}{Logical, whether to include dimension names in the 
-   output, if they exist in the object.
-   Default set to `TRUE`.
-   
-#' @details
+output, if they exist in the object.
+Default set to `TRUE`.}
+}
+\value{
+A named numeric vector where names correspond to promoter sequence 
+   identifiers and values represent their respective motif hit scores.
+}
+\description{
+Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` 
+object computed on the background dataset (all promoters in a specific
+organism).
+These scores represent the binding affinity or enrichment level of promoter 
+sequences when scanned with a Position Weight Matrix (PWM).
+}
+\details{
 This method is specifically designed for background datasets,
 where motif hit scores are precomputed for all promoter sequences. 
 The function extracts the scores from the \code{ps_hits_score_bg} slot and, 
@@ -22,18 +33,7 @@ if applicable, assigns sequence names using \code{.ps_bg_seq_names()}.
 These background scores are particularly useful in motif enrichment 
 analyses, as they allow \code{pscan()} to compare foreground promoter 
 sequences against a reference distribution without the need for 
-recomputation.}
-}
-\value{
-A named numeric vector where names correspond to promoter sequence 
-   identifiers and values represent their respective motif hit scores.
-}
-\description{
-Retrieves the motif hit scores for each promoter sequence in a `PSMatrix` 
-object computed on the background dataset (all the promoter in a specific
-organism).
-These scores represent the binding affinity or enrichment level of promoter 
-sequences when scanned with a Position Weight Matrix (PWM).
+recomputation.
 }
 \examples{
 full_pfm1_path <- system.file("extdata", 

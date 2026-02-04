@@ -14,7 +14,7 @@
 #'   (e.g., gene promoters retrieved from a `TxDb` object). 
 #'   These sequences are the target for background scanning.
 #' 
-#' @param pfms A `PFMatrixlist` object containing position frequency matrices 
+#' @param pfms A `PFMatrixList` object containing position frequency matrices 
 #'   (PFM) representing transcription factor binding preferences. 
 #'   Those are sourced from databases such as JASPAR.
 #' 
@@ -45,7 +45,7 @@
 #'     
 #' @details 
 #' This function validates input types and removes duplicated sequences
-#' from `x` to avoid redundant computations. It also remove all the sequences 
+#' from `x` to avoid redundant computations. It also removes all sequences 
 #' with an N content above 50%.
 #' The motif matrices are background scored by the `ps_scan` function in 
 #' parallel.
@@ -55,22 +55,18 @@
 #' metrics will be later used for the computation of z-score by the pscan 
 #' function. 
 #' 
-#' If a full background PSMatrixList is required, that includes all the 
-#' background scores for each oligonucleotide hits, their position, strand and 
-#' names, the user should store the output by the save() function and set 
-#' the fullBG flag as TRUE. Note that this process will generate a very large 
-#' file, that can reach several gigabytes in size. 
+#' If a full background PSMatrixList is required (including all background 
+#' hit scores along with their positions, strands, and oligonucleotide 
+#' sequences), store the output using `save()` and set the `fullBG` flag to 
+#' `TRUE`. Note that this process can generate a very large file (several 
+#' gigabytes). 
 #' 
-#' Note: Currently, it is not possible to use this function with the 
-#' Arabidopsis thaliana organism due to the transcript nomenclature used. 
-#' The function is designed to handle transcript names without version 
-#' extensions (e.g., NM_30287 instead of NM_30287.1). 
-#' However, in Arabidopsis thaliana, the format typically follows a 
-#' gene.transcript pattern (e.g., AT1G01010.1). 
-#' This causes the function to truncate the transcript identifier, effectively 
-#' removing essential transcript-level information. As a result, the function 
-#' may return incorrect results for this organism. This is valid for any 
-#' organism for which this type of format is used.
+#' Note: this function assumes transcript identifiers can be safely matched 
+#' without version suffixes (e.g., NM_30287 instead of NM_30287.1). 
+#' For organisms where transcript identifiers use dot-separated versions as 
+#' part of the identifier (e.g., AT1G01010.1), version stripping can remove 
+#' transcript-level information and lead to incorrect mappings. Use caution 
+#' for such organisms.
 #' 
 #' This function uses example datasets located in the `extdata/` directory for 
 #' demonstration purposes only. These files are not part of the core data used
@@ -176,11 +172,11 @@ ps_build_bg <- function(x, pfms, BPPARAM=bpparam(), BPOPTIONS = bpoptions(),
 #' }
 #' 
 #' This function uses example datasets located in the `extdata/` directory for 
-#' demonstration purposes only. These file are not part of the core data used
+#' demonstration purposes only. These files are not part of the core data used
 #' by the function. They can be accessed using `system.file()` as shown in the 
 #' examples. 
 #' 
-#' Other background datasets are aviable at the public repository
+#' Other background datasets are available at the public repository
 #' PscanR_background on GitHub: 
 #' \url{https://github.com/dianabetelli/PscanR_backgrounds}
 #' See vignettes for further details on the type of background available.
@@ -240,16 +236,16 @@ ps_retrieve_bg_from_file <- function(file, pfms)
 #' @param pfms A `PFMatrixList` object containing position frequency matrices 
 #'   representing transcription factor binding preferences, obtained, for 
 #'   example, from the JASPAR database.
-#'   The number of elements in `pfms` should match the number of row of `x`, 
+#'   The number of elements in `pfms` should match the number of rows of `x`, 
 #'   and their identifiers should correspond.
 #' 
 #' @details 
 #' This function: 
 #' \itemize{
 #'    \item Validates the input type. `x` must be a `data.frame`.
-#'    \item Converts each elements of pfms into `PSMatrix` objects. 
+#'    \item Converts each element of pfms into `PSMatrix` objects. 
 #'    \item A warning is issued if the number of elements in `pfms` doesn't 
-#'    match the number of row of `x`.
+#'    match the number of rows of `x`.
 #' }
 #' 
 #' Note: This function does not compute new background scores — it assigns 
@@ -405,8 +401,9 @@ ps_get_bg_table <- function(pfms)
 #' by the function. They can be accessed using `system.file()` as shown in the 
 #' examples. 
 #'
-#' @return None. It saves the given background statistics to the specified file
-#' in a tab-delimited format.
+#' @return `NULL` (invisibly). This function is called for its side effect of 
+#'   writing the given background statistics to the specified file in a 
+#'   tab-delimited format.
 #'
 #' @examples
 #' # Since the function create a .txt file in the user working directory, 
@@ -491,7 +488,8 @@ ps_write_bg_to_file <- function(pfms, file)
 #'      } 
 #' @param assembly A string representing the assembly version for Human or 
 #'   mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
-#'   For `"mm"` you can specify `"mm10"` or `"mm39"`. Default is character().
+#'   For `"mm"` you can specify `"mm10"` or `"mm39"`. Required for `"hs"` and 
+#'   `"mm"`; ignored for other organisms.
 #' @param version A string indicating the version number of the desired 
 #'   background. Since annotations may evolve over time, multiple versions 
 #'   of the same background could exist. Default is '1', corresponding 
@@ -582,9 +580,9 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #' This function retrieves the names of all available .txt files containing 
 #' background information, that serves for the construction of the background 
 #' PSMatrixList. If a keyword is specified, the function will return only the 
-#' file names that contains that string. Note that the filtering parameter 
+#' file names that contain that string. Note that the filtering parameter 
 #' works only if you know the nomenclature used to name the file. See the 
-#' details paragraph for further informations. 
+#' details paragraph for further information. 
 #' 
 #' @param keyword A string to filter the file names. Default is NULL, so the 
 #'    complete list of available file names is printed

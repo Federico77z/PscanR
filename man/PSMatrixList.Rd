@@ -11,12 +11,14 @@ PSMatrixList(..., transcriptIDLegend = character(), use.names = TRUE)
 \item{...}{Objects of class `PSMatrix` to include in the list.}
 
 \item{transcriptIDLegend}{Named character vector. The names correspond to 
-the IDs of all the transcript expressed in the organism of study, whereas 
-corresponding values are the IDs of transcript retained by the unique() 
+the IDs of all transcripts expressed in the organism of study, whereas 
+corresponding values are the IDs of transcripts retained by the unique() 
 function when multiple identical sequences exist. So, if multiple 
 identical sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique() 
 retains only ID2, the mapping will associate each original name with its 
-unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2).}
+unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2). 
+This argument is currently ignored by the constructor; the slot is 
+typically populated by background-building helpers.}
 
 \item{use.names}{Logical. Assert whether to use names from the input objects.
 Default = `TRUE`}
@@ -30,8 +32,8 @@ A `PSMatrixList` object, which is a list containing the `PSMatrix`
    objects converted from the `PFMatrixList`.
 }
 \description{
-This function creates a `PSMatrixList` object, which is a container for 
-managing multiple `PSMatrix` object. It is similar to `PFMatrixList` but 
+This constructor creates a `PSMatrixList` object, which is a container for 
+managing multiple `PSMatrix` objects. It is similar to `PFMatrixList` but 
 extends its functionality.
 
 This method converts a `PFMatrixList` object into a `PSMatrixList` object by 

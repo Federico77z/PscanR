@@ -46,11 +46,11 @@ This function:
 }
 
 This function uses example datasets located in the `extdata/` directory for 
-demonstration purposes only. These file are not part of the core data used
+demonstration purposes only. These files are not part of the core data used
 by the function. They can be accessed using `system.file()` as shown in the 
 examples. 
 
-Other background datasets are aviable at the public repository
+Other background datasets are available at the public repository
 PscanR_background on GitHub: 
 \url{https://github.com/dianabetelli/PscanR_backgrounds}
 See vignettes for further details on the type of background available.
