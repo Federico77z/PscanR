@@ -31,8 +31,8 @@ co-expressed or co-regulated genes when scanned with a PWM.}
 \item{ps_bg_std_dev}{Numeric. The background standard deviation of PWM 
 scores, default = `NA`.}
 
-\item{ps_bg_size}{Integer. The number of background promoter sequences, 
-default = `NA`.}
+\item{ps_bg_size}{Integer. The size of the background promoter region 
+(e.g., 250L), default = `NA`.}
 
 \item{.PS_PSEUDOCOUNT}{Numeric. The pseudocount added to avoid division
 by zero. Default = `0.01`.}

@@ -40,8 +40,8 @@
 #'    co-expressed or co-regulated genes when scanned with a PWM.
 #' @param ps_bg_std_dev Numeric. The background standard deviation of PWM 
 #'    scores, default = `NA`.
-#' @param ps_bg_size Integer. The number of background promoter sequences, 
-#'    default = `NA`.
+#' @param ps_bg_size Integer. The size of the background promoter region 
+#'    (e.g., 250L), default = `NA`.
 #' @param .PS_PSEUDOCOUNT Numeric. The pseudocount added to avoid division
 #'    by zero. Default = `0.01`.
 #' @param ... Additional arguments passed to other methods or used in the 

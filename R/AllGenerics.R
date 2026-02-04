@@ -168,8 +168,8 @@ setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 #' size value for motif enrichment analysis. Methods should be 
 #' implemented for specific object classes that store scan results.
 #'
-#' The background size value represents the dimension of the background 
-#' (number of promoter sequences used as background).
+#' The background size value represents the promoter region size used as 
+#' background (e.g., 250L).
 #'
 #' @param x An object containing motif scan results.
 #' @param ... Additional arguments passed to specific methods.

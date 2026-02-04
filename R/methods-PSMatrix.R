@@ -247,16 +247,15 @@ setMethod("ps_bg_std_dev", "PSMatrix", function(x, withDimnames = TRUE) {
 
 #' Get Background Size
 #' 
-#' Retrieves the number of promoter regions used to compute the background 
-#' statistics in a `PSMatrix` object. This represents the total number of 
-#' promoters expressed in the organism of study. 
+#' Retrieves the background promoter region size used to compute the 
+#' background statistics in a `PSMatrix` object (e.g., 250L). 
 #' 
 #' @param x A `PSMatrix` object.
 #' @param withDimnames Logical, whether to include dimension names in the 
 #'    output, if they exist in the object.
 #'    Default set to `TRUE`.
 #'    
-#' @return An integer value representing the total number of promoter regions
+#' @return An integer value representing the background promoter region size 
 #'    used for background scoring. 
 #' 
 #' @examples
