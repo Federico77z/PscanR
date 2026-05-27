@@ -4,16 +4,16 @@
 \alias{ps_results_table}
 \title{Create a Summary Table of PscanR Results}
 \usage{
-ps_results_table(pfms, FDR_threshold = 1)
+ps_results_table(pfms, FDR = 1)
 }
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated
 metadata (foreground and background statistics). Typically the output
 of `pscan()` or `pscan_fullBG()` functions.}
 
-\item{FDR_threshold}{A numeric value indicating the maximum false discovery
+\item{FDR}{A numeric value indicating the maximum false discovery
 rate (FDR) allowed for filtering the result table.
-Only rows with FDR <= FDR_threshold will be retained.
+Only rows with FDR <= `FDR` will be retained.
 Default is 1, so all the results are displayed.}
 }
 \value{
@@ -81,6 +81,6 @@ results <- pscan(prom_seq, J2020_PSBG,
 )
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
-ps_results_table(results, FDR_threshold = 10e-2)
+ps_results_table(results, FDR = 0.1)
 
 }

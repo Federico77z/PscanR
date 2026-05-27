@@ -75,19 +75,33 @@ test_that("ps_result_table works", {
   result <- pscan(x, pfms, BPPARAM = BiocParallel::SnowParam(1))
   
   table <- ps_results_table(result)
+  filtered_table <- ps_results_table(result, FDR = max(table$FDR))
+  empty_table <- ps_results_table(result, FDR = 0)
   
   # The type of the result
   
   expect_type(table, "list")
+  expect_s3_class(filtered_table, "data.frame")
+  expect_s3_class(empty_table, "data.frame")
   
   # The table is not empty 
   
   expect_gt(length(table), 0)
+  expect_equal(nrow(filtered_table), nrow(table))
+  expect_equal(nrow(empty_table), 0)
   
   # Invalid input 
   err_pfms <- c(5,6,89,4)
   expect_error(ps_results_table(err_pfms), 
                "pfms is not an object of PSMatrixList class")
+  expect_error(ps_results_table(result, FDR = -0.1),
+               "FDR must be a single numeric value between 0 and 1")
+  expect_error(ps_results_table(result, FDR = 1.1),
+               "FDR must be a single numeric value between 0 and 1")
+  expect_error(ps_results_table(result, FDR = c(0.01, 0.05)),
+               "FDR must be a single numeric value between 0 and 1")
+  expect_error(ps_results_table(result, FDR = NA_real_),
+               "FDR must be a single numeric value between 0 and 1")
   
 })
 

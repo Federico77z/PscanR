@@ -381,9 +381,9 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated
 #'    metadata (foreground and background statistics). Typically the output
 #'    of `pscan()` or `pscan_fullBG()` functions.
-#' @param FDR_threshold A numeric value indicating the maximum false discovery
+#' @param FDR A numeric value indicating the maximum false discovery
 #'    rate (FDR) allowed for filtering the result table.
-#'    Only rows with FDR <= FDR_threshold will be retained.
+#'    Only rows with FDR <= `FDR` will be retained.
 #'    Default is 1, so all the results are displayed.
 #'
 #' @return
@@ -441,12 +441,17 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #' )
 #' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #'
-#' ps_results_table(results, FDR_threshold = 10e-2)
+#' ps_results_table(results, FDR = 0.1)
 #'
 #' @export
 #' @importFrom stats p.adjust
-ps_results_table <- function(pfms, FDR_threshold = 1) {
+ps_results_table <- function(pfms, FDR = 1) {
     .ps_checks2(pfms)
+
+    if (!is.numeric(FDR) || length(FDR) != 1L || is.na(FDR) ||
+        FDR < 0 || FDR > 1) {
+    stop("FDR must be a single numeric value between 0 and 1")
+    }
 
     bg_v <- vapply(pfms, ps_bg_avg, numeric(length = 1L))
     std_v <- vapply(pfms, ps_bg_std_dev, numeric(length = 1L))
@@ -461,9 +466,10 @@ ps_results_table <- function(pfms, FDR_threshold = 1) {
     "P.VALUE" = pv_v, "FDR" = fdr_v, row.names = ID(pfms)
     )
 
-    tbl <- tbl[tbl$FDR <= FDR_threshold, ]
+    tbl <- tbl[tbl$FDR <= FDR, , drop = FALSE]
 
-    tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE, TRUE))), ]
+    tbl[with(tbl, order(P.VALUE, ZSCORE, decreasing = c(FALSE, TRUE))),
+        , drop = FALSE]
 }
 
 #' Generate a Z-score Matrix of Motif Enrichment per Sequence
