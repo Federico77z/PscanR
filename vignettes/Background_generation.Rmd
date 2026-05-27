@@ -427,7 +427,7 @@ scanned with the PWMs.
 ## Application
 
 Once the full-background has been created, it can be used in subsequent 
-analyses  to streamline computations. The `pscan_full_bg()` function requires 
+analyses  to streamline computations. The `pscan_fullBG()` function requires 
 two inputs:
 
 1.  **A vector of transcript names** -- This vector should contain the
@@ -436,7 +436,7 @@ two inputs:
 2.  **The generated full-background dataset** -- The `.RData` file created in
     the previous step.
 
-By using `pscan_full_bg()` with the saved full-background, the analysis process
+By using `pscan_fullBG()` with the saved full-background, the analysis process
 becomes significantly more efficient, reducing computational overhead while
 maintaining accuracy and reproducibility.
 
