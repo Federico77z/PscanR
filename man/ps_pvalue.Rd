@@ -12,21 +12,21 @@ ps_pvalue(x, ...)
 \item{...}{Additional arguments passed to specific methods.}
 }
 \value{
-\itemize{ 
-  \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value** 
+\itemize{
+  \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
   representing the computed p-value.
   \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
-`ps_pvalue` is a **generic function** that computes the p-value 
-for motif enrichment analysis. Methods should be implemented for 
+`ps_pvalue` is a **generic function** that computes the p-value
+for motif enrichment analysis. Methods should be implemented for
 specific object classes that store scan results.
 }
 \details{
-The p-value quantifies the statistical significance of motif 
-enrichment in the input sequences compared to the background model. 
-A lower p-value indicates a stronger likelihood that the motif 
+The p-value quantifies the statistical significance of motif
+enrichment in the input sequences compared to the background model.
+A lower p-value indicates a stronger likelihood that the motif
 enrichment is not due to random chance.
 }
 \examples{

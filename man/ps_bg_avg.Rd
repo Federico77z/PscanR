@@ -2,7 +2,7 @@
 % Please edit documentation in R/AllGenerics.R
 \name{ps_bg_avg}
 \alias{ps_bg_avg}
-\title{Compute the Background Average Score for Motif Enrichment Analysis 
+\title{Compute the Background Average Score for Motif Enrichment Analysis
 (Generic Function)}
 \usage{
 ps_bg_avg(x, ...)
@@ -14,19 +14,19 @@ ps_bg_avg(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value** 
+  \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
   representing the computed background average score.
   \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
-`ps_bg_avg` is a **generic function** that retrieves the average background 
-score for motif enrichment analysis. Methods should be implemented for 
+`ps_bg_avg` is a **generic function** that retrieves the average background
+score for motif enrichment analysis. Methods should be implemented for
 specific object classes that store scan results.
 }
 \details{
-The background average score represents the mean motif score computed 
-over the background sequences. This value is essential for normalizing 
+The background average score represents the mean motif score computed
+over the background sequences. This value is essential for normalizing
 motif enrichment results.
 }
 \examples{

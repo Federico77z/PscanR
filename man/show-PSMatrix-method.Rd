@@ -22,8 +22,8 @@ Prints a summary of the `PSMatrix` object, including:
 }
 }
 \description{
-This method displays a summary of a `PSMatrix` object, including 
-background and foreground statistics, standard deviation, background 
+This method displays a summary of a `PSMatrix` object, including
+background and foreground statistics, standard deviation, background
 and foreground size, z-scores and P-Value.
 }
 \examples{
@@ -33,8 +33,8 @@ show(pfm1)
 
 }
 \seealso{
-\code{\link{ps_bg_avg}}, \code{\link{ps_fg_avg}}, 
-   \code{\link{ps_bg_std_dev}}, \code{\link{ps_bg_size}}, 
-   \code{\link{ps_fg_size}}, \code{\link{ps_zscore}}, 
+\code{\link{ps_bg_avg}}, \code{\link{ps_fg_avg}},
+   \code{\link{ps_bg_std_dev}}, \code{\link{ps_bg_size}},
+   \code{\link{ps_fg_size}}, \code{\link{ps_zscore}},
    \code{\link{ps_pvalue}}
 }

@@ -13,35 +13,36 @@ ps_bg_seq_names(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **character vector** of sequence 
+  \item If `x` is a `PSMatrix` object: a **character vector** of sequence
   names corresponding to the analyzed promoter regions.
-  \item If `x` belongs to another supported class, the return format may 
+  \item If `x` belongs to another supported class, the return format may
   vary.
 }
 }
 \description{
-`ps_bg_seq_names` is a **generic function** that extracts the sequence names 
-or identifiers from an object containing all the promoter sequence data for 
+`ps_bg_seq_names` is a **generic function** that extracts the sequence names
+or identifiers from an object containing all the promoter sequence data for
 a specific organism.
 }
 \details{
-Methods should be implemented for specific object classes storing sequence 
+Methods should be implemented for specific object classes storing sequence
 data.
 
 
-The `ps_bg_seq_names` function is particularly relevant for background 
-datasets, which include motif scan results computed across all promoter 
+The `ps_bg_seq_names` function is particularly relevant for background
+datasets, which include motif scan results computed across all promoter
 sequences.
 
-In a PSMatrixList object, the `ps_bg_seq_names` slot is populated only for 
-background matrices (i.e., matrices derived from all promoters). 
-This ensures that the pscan() function can access precomputed metrics 
+In a PSMatrixList object, the `ps_bg_seq_names` slot is populated only for
+background matrices (i.e., matrices derived from all promoters).
+This ensures that the pscan() function can access precomputed metrics
 without recomputing them, optimizing efficiency.
 }
 \examples{
-full_pfm1_path <- system.file("extdata", 
-                              "full_pfm1.rds", 
-                              package = "PscanR")
+full_pfm1_path <- system.file("extdata",
+  "full_pfm1.rds",
+  package = "PscanR"
+)
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_bg_seq_names(full_pfm1)
 

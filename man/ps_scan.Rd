@@ -7,31 +7,33 @@
 ps_scan(x, ...)
 }
 \arguments{
-\item{x}{An object containing motif information, typically a `PSMatrix` 
+\item{x}{An object containing motif information, typically a `PSMatrix`
 object.}
 
 \item{...}{Additional arguments passed to specific methods.}
 }
 \value{
-- If `x` is a `PSMatrix` object: a **PSMatrix object** with updated motif 
-  hit information, including positions, strands, scores, and matched 
+- If `x` is a `PSMatrix` object: a **PSMatrix object** with updated motif
+  hit information, including positions, strands, scores, and matched
   sequences.
 
 - If `x` belongs to another supported class, the return format may vary.
 }
 \description{
-`ps_scan` is a **generic function** that scans DNA sequences for motif 
-occurrences using an object containing motif scoring data. The scan is 
-typically performed on both the forward and reverse complement strands to 
+`ps_scan` is a **generic function** that scans DNA sequences for motif
+occurrences using an object containing motif scoring data. The scan is
+typically performed on both the forward and reverse complement strands to
 detect all potential transcription factor binding sites.
 }
 \details{
-Methods should be implemented for specific object classes that support motif 
+Methods should be implemented for specific object classes that support motif
 scanning.
 }
 \examples{
-BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
-                                                     c(-200,50),'hg38')
+BG_matrices <- generate_psmatrixlist_from_background(
+  "Jaspar2020", "hs",
+  c(-200, 50), "hg38"
+)
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[25:50]

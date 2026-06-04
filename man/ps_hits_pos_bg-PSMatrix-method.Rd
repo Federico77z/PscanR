@@ -2,40 +2,41 @@
 % Please edit documentation in R/methods-PSMatrix.R
 \name{ps_hits_pos_bg,PSMatrix-method}
 \alias{ps_hits_pos_bg,PSMatrix-method}
-\title{Get Motif Hit Positions in a Backrgound Dataset}
+\title{Get Motif Hit Positions in a Background Dataset}
 \usage{
 \S4method{ps_hits_pos_bg}{PSMatrix}(x, withDimnames = TRUE)
 }
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A named integer vector where names correspond to promoter sequence 
+A named integer vector where names correspond to promoter sequence
    identifiers, and values represent the motif hit positions.
 }
 \description{
-Retrieves the positions of hits stored in a `PSMatrix` object computed on 
-the background dataset (all the promoter in a specific organism). These 
+Retrieves the positions of hits stored in a `PSMatrix` object computed on
+the background dataset (all promoters in a specific organism). These
 positions indicate where the motifs are located in each promoter sequence.
 }
 \details{
 This method is specifically designed for background datasets,
-where motif hit positions are precomputed for all promoter sequences. 
-The function extracts the position values from the ps_hits_pos_bg slot and, 
+where motif hit positions are precomputed for all promoter sequences.
+The function extracts the position values from the ps_hits_pos_bg slot and,
 if applicable, assigns sequence names using .ps_bg_seq_names().
 
-These background metrics are particularly useful in motif enrichment 
-analyses, as they allow pscan() to compare foreground promoter sequences 
+These background metrics are particularly useful in motif enrichment
+analyses, as they allow pscan() to compare foreground promoter sequences
 against a reference distribution without the need for recomputation.
 }
 \examples{
-full_pfm1_path <- system.file("extdata", 
-                              "full_pfm1.rds", 
-                              package = "PscanR")
+full_pfm1_path <- system.file("extdata",
+  "full_pfm1.rds",
+  package = "PscanR"
+)
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_hits_pos_bg(full_pfm1)
 

@@ -13,19 +13,19 @@ ps_hits_pos(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: an **integer vector**, where 
-  names correspond to promoter sequence identifiers, and values represent 
+  \item If `x` is a `PSMatrix` object: an **integer vector**, where
+  names correspond to promoter sequence identifiers, and values represent
   motif hit positions (with an optional shift).
   \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
-`ps_hits_pos` is a **generic function** that retrieves the positions of 
-motif hits in a given object. These positions indicate where motifs are 
+`ps_hits_pos` is a **generic function** that retrieves the positions of
+motif hits in a given object. These positions indicate where motifs are
 located within promoter sequences.
 }
 \details{
-Methods should be implemented for specific object classes that store motif 
+Methods should be implemented for specific object classes that store motif
 scanning results.
 }
 \examples{

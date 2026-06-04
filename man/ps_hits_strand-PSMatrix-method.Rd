@@ -9,20 +9,20 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A named character vector where names correspond to promoter sequence 
-   identifiers, and values represent the strand (`+` or `-`) on which the 
+A named character vector where names correspond to promoter sequence
+   identifiers, and values represent the strand (`+` or `-`) on which the
    motif was detected.
 }
 \description{
-Retrieves the strand information (`+` or `-`) of motif hits in a 
-`PSMatrix` object. This indicates whether a motif was detected on the 
+Retrieves the strand information (`+` or `-`) of motif hits in a
+`PSMatrix` object. This indicates whether a motif was detected on the
 forward (`+`) or reverse (`-`) strand of the promoter sequence.
-The Pscan algorithm scans both the strands of the promoter sequences to 
+The Pscan algorithm scans both the strands of the promoter sequences to
 ensure that no potential binding sites are missed.
 }
 \examples{

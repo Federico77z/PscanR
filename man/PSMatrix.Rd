@@ -3,7 +3,7 @@
 \name{PSMatrix}
 \alias{PSMatrix}
 \alias{setAs,PFMatrix,PSMatrix-method}
-\title{An S4 Class for a Single Positiont-Specific Matrix}
+\title{An S4 Class for a Single Position-Specific Matrix}
 \usage{
 PSMatrix(
   pfm,
@@ -16,46 +16,46 @@ PSMatrix(
 )
 }
 \arguments{
-\item{pfm}{An object of class `PFMatrix` from the `TFBSTools` package, 
-typically a position frequency matrix (PFM) representing the motif for 
+\item{pfm}{An object of class `PFMatrix` from the `TFBSTools` package,
+typically a position frequency matrix (PFM) representing the motif for
 which all the organism's promoter regions will be scanned.}
 
 \item{ps_bg_avg}{Numeric. The background average value, default = `NA`.
-It is the average binding score of promoter regions when scanned with a 
+It is the average binding score of promoter regions when scanned with a
 PWM.}
 
 \item{ps_fg_avg}{Numeric. The foreground average value, default = `NA`.
-Represents the average binding score of a set of promoter regions of 
+Represents the average binding score of a set of promoter regions of
 co-expressed or co-regulated genes when scanned with a PWM.}
 
-\item{ps_bg_std_dev}{Numeric. The background standard deviation of PWM 
+\item{ps_bg_std_dev}{Numeric. The background standard deviation of PWM
 scores, default = `NA`.}
 
-\item{ps_bg_size}{Integer. The size of the background promoter region, 
-default = `NA`.}
+\item{ps_bg_size}{Integer. The size of the background promoter region
+(e.g., 250L), default = `NA`.}
 
-\item{.PS_PSEUDOCOUNT}{Numeric. The Pseudo-Count to add to avoid division
-by zero. Default = `0.01`}
+\item{.PS_PSEUDOCOUNT}{Numeric. The pseudocount added to avoid division
+by zero. Default = `0.01`.}
 
-\item{...}{Additional arguments passed to other methods or used in the 
+\item{...}{Additional arguments passed to other methods or used in the
 initialization.}
 }
 \value{
-A `PSMatrix` object containing the provided statistics, initialized 
+A `PSMatrix` object containing the provided statistics, initialized
    with default or provided values.
 
 A `PSMatrix` object created from the input `PFMatrix` object.
 }
 \description{
-This function creates a `PSMatrix` object, which contains a single 
-Position Frequency Matrix (PFM) and associated metadata related to promoter 
-sequence motif hits, such as background and foreground averages, standard 
+This constructor creates a `PSMatrix` object, which contains a single
+Position Frequency Matrix (PFM) and associated metadata related to promoter
+sequence motif hits, such as background and foreground averages, standard
 deviation, size, z-scores, and other related information.
 }
 \details{
-When a `PSMatrix` object is created or modified, it is automatically 
-validated using an internal function. The validation ensures that the 
-background and foreground statistics are properly formatted, and that motif 
+When a `PSMatrix` object is created or modified, it is automatically
+validated using an internal function. The validation ensures that the
+background and foreground statistics are properly formatted, and that motif
 hit-related vectors have consistent lengths.
 }
 \examples{
@@ -66,10 +66,10 @@ J2020 <- readRDS(J2020_path)
 
 result <- PSMatrix(
   pfm = J2020[[1]],
-  ps_bg_avg = 0.25,        
-  ps_fg_avg = 0.5,         
-  ps_bg_std_dev = 0.05,    
-  ps_bg_size = 250L        
-  )
+  ps_bg_avg = 0.25,
+  ps_fg_avg = 0.5,
+  ps_bg_std_dev = 0.05,
+  ps_bg_size = 250L
+)
 print(result)
 }

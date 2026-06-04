@@ -2,7 +2,7 @@
 % Please edit documentation in R/AllGenerics.R
 \name{ps_bg_size}
 \alias{ps_bg_size}
-\title{Retrieve the Background Size Value for Motif Enrichment Analysis 
+\title{Retrieve the Background Size Value for Motif Enrichment Analysis
 (Generic Function)}
 \usage{
 ps_bg_size(x, ...)
@@ -19,13 +19,13 @@ ps_bg_size(x, ...)
 }
 }
 \description{
-`ps_bg_size` is a **generic function** that retrieves the background 
-size value for motif enrichment analysis. Methods should be 
+`ps_bg_size` is a **generic function** that retrieves the background
+size value for motif enrichment analysis. Methods should be
 implemented for specific object classes that store scan results.
 }
 \details{
-The background size value represent the dimension of the background 
-(number of promoter sequences used as background).
+The background size value represents the promoter region size used as
+background (e.g., 250L).
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

@@ -7,31 +7,30 @@
 ps_bg_size(x, ...) <- value
 }
 \arguments{
-\item{x}{An object to which the background size will be assigned, 
+\item{x}{An object to which the background size will be assigned,
 typically a `PSMatrix` object.}
 
-\item{...}{Additional arguments (not used in the generic function but may be 
+\item{...}{Additional arguments (not used in the generic function but may be
 used in specific methods).}
 
-\item{value}{A numeric value representing the background size (e.g., number 
+\item{value}{A numeric value representing the background size (e.g., number
 of background sequences).}
 }
 \value{
 The updated object with the assigned background size.
 }
 \description{
-`ps_bg_size<-` is a **generic function** that assigns the background 
-size for a given object. The background size typically represents 
+`ps_bg_size<-` is a **generic function** that assigns the background
+size for a given object. The background size typically represents
 the number of background sequences used for motif enrichment analysis.
 }
 \details{
-Methods should be implemented for specific object classes that support 
+Methods should be implemented for specific object classes that support
 background size assignment.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 pfm1 <- readRDS(pfm1_path)
 `ps_bg_size<-`(pfm1, value = 25629L)
-
 
 }

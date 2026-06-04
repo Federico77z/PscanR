@@ -13,18 +13,18 @@ ps_zscore(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value** 
+  \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
   representing the computed Z-score.
   \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
-`ps_zscore` is a **generic function** that computes the Z-score 
-for motif enrichment analysis. Methods should be implemented for 
+`ps_zscore` is a **generic function** that computes the Z-score
+for motif enrichment analysis. Methods should be implemented for
 specific object classes that store scan results.
 }
 \details{
-The Z-score represents how significantly a motif is enriched in 
+The Z-score represents how significantly a motif is enriched in
 the input sequences compared to the background model.
 }
 \examples{

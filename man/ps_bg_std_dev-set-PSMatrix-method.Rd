@@ -9,15 +9,15 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{value}{Numeric. The value representing the new background 
+\item{value}{Numeric. The value representing the new background
 standard deviation.}
 }
 \value{
-The modified `PSMatrix` object with the updated background 
+The modified `PSMatrix` object with the updated background
    standard deviation.
 }
 \description{
-This method updated the background standard deviation stored in a `PSMatrix`
+This method updates the background standard deviation stored in a `PSMatrix`
 object.
 }
 \examples{
@@ -27,7 +27,7 @@ pfm1 <- readRDS(pfm1_path)
 
 }
 \seealso{
-\code{\link{ps_bg_std_dev}} to retrieve the background 
-   standard deviation, and \code{\link{validObject}} to see which checks 
+\code{\link{ps_bg_std_dev}} to retrieve the background
+   standard deviation, and \code{\link{validObject}} to see which checks
    are performed on the input `PSMatrix` object.
 }

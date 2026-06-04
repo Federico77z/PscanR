@@ -9,14 +9,13 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in 
+\item{withDimnames}{Logical, whether to include dimension names in
 the output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric value representing the `PSMatrix` Z-score. This associates 
-with each profile the probability of obtaining the same score on a random 
-sequence set.
+A numeric value representing the `PSMatrix` Z-score (z-statistic)
+computed during motif scanning.
 }
 \description{
 Retrieves the Z-Score stored in a `PSMatrix` object.

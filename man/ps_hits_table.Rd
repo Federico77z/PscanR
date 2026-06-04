@@ -12,7 +12,7 @@ ps_hits_table(x, ...)
 \item{...}{Additional arguments passed to specific methods.}
 }
 \value{
-- If `x` is a `PSMatrix` object: a **data frame** with the following 
+- If `x` is a `PSMatrix` object: a **data frame** with the following
   columns:
   \itemize{
     \item `SCORE`: The motif hit score.
@@ -25,13 +25,13 @@ ps_hits_table(x, ...)
 - If `x` belongs to another supported class, the return format may vary.
 }
 \description{
-`ps_hits_table` is a **generic function** that extracts motif hit 
-information from an object and organizes it into a structured table. 
-The table includes motif hit scores, strand orientation, positions, 
+`ps_hits_table` is a **generic function** that extracts motif hit
+information from an object and organizes it into a structured table.
+The table includes motif hit scores, strand orientation, positions,
 and the matched oligonucleotide sequences.
 }
 \details{
-Methods should be implemented for specific object classes that store motif 
+Methods should be implemented for specific object classes that store motif
 scanning results.
 }
 \examples{

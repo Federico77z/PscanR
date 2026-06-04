@@ -3,22 +3,22 @@ title: "Introduction to PscanR"
 author: "Diana Betelli"
 date: "`r Sys.Date()`"
 output:
-  BiocStyle::html_document:
+    BiocStyle::html_document:
     toc: true
     toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{2. Introduction to PscanR}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{2. Introduction to PscanR}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
-  markdown: 
+    markdown: 
     wrap: 80
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+    collapse = TRUE,
+    comment = "#>"
 )
 ```
 
@@ -119,8 +119,10 @@ acronym, promoter region definition, and genome assembly (the last step only for
 Mus musculus and Homo sapiens). Refer to the previous paragraph for the
 available backgrounds.
 
-```{r}
-J2020_PSBG <- PscanR::generate_psmatrixlist_from_background('Jaspar2020', 'hs',                                                             c(-200,50), 'hg38') 
+```{r chunk-1}
+J2020_PSBG <- PscanR::generate_psmatrixlist_from_background(
+    'Jaspar2020', 'hs', c(-200, 50), 'hg38'
+) 
 J2020_PSBG[[4]] # An example of Matrix
 ```
 
@@ -155,9 +157,9 @@ level, gene identifiers must be converted to their corresponding transcript IDs
 before analysis. The number **100** indicates that 100% transcripts in the list
 correspond to known NRF1 target.
 
-```{r}
+```{r chunk-2}
 file_path <- system.file("extdata", "nrf1100.txt", 
-                         package = "PscanR")
+                            package = "PscanR")
 target <- read.csv(file_path, header = FALSE)
 head(target)
 ```
@@ -176,10 +178,10 @@ example for *Homo sapiens*.
 # Homo sapiens example 
 mart <- biomaRt::useMart('ensembl', dataset = 'hsapiens_gene_ensembl')
 GeneTranscript_ids <- biomaRt::getBM(attributes = 
-                                       c('ensembl_gene_id',
-                                         'ensembl_transcript_id',
-                                         'transcript_tsl'),
-                                     mart = mart) 
+                                        c('ensembl_gene_id',
+                                            'ensembl_transcript_id',
+                                            'transcript_tsl'),
+                                        mart = mart) 
 ```
 
 ```{r eval = TRUE, include = FALSE}
@@ -198,10 +200,14 @@ To slect only trasncripts with the highest level of experimental support, filter
 by TSL1. This means that there is experimentally evidence that all the splice
 junctions of the annotated transcript actually exist in the cells:
 
-```{r}
+```{r chunk-3}
 genes <- c('ENSG00000271254', 'ENSG00000277196', 'ENSG00000277196')
 
-transcripts <- GeneTranscript_ids[GeneTranscript_ids[,1] %in% genes & GeneTranscript_ids[,3] == 'tsl1',2]
+transcripts <- GeneTranscript_ids[
+    GeneTranscript_ids[, 1] %in% genes &
+    GeneTranscript_ids[, 3] == 'tsl1',
+    2
+]
 
 transcripts
 ```
@@ -219,7 +225,7 @@ For RefSeq-based annotations, the AnnotationDbi package can be used together
 with organism specific packages. Here's an example with `org.Dm.eg.db` for
 *Drosophila melanogaster*.
 
-```{r}
+```{r chunk-4}
 library(org.Dm.eg.db)
 library(dplyr)
 
@@ -228,7 +234,8 @@ genes <- c('CG46191', 'dbr', 'Pp1-Y2')
 transcripts <- AnnotationDbi::select(org.Dm.eg.db,
                                         keys = genes, 
                                         keytype = 'SYMBOL', # Entrez can be used
-                                        columns = 'REFSEQ') %>% filter(grepl('^NM_', REFSEQ))
+    columns = 'REFSEQ') %>%
+    filter(grepl('^NM_', REFSEQ))
 
 transcripts
 ```
@@ -252,18 +259,27 @@ memory requirements, it is not run during the building of the vignette.
 ```{r eval=FALSE, include=TRUE}
 gtf <- rtracklayer::import("gencode.v47.basic.annotation.gff3.gz")
 
-genes <- c('ENSG00000171723.16', 'ENSG00000112715.26', 'ENSG00000142156.16', 'ENSG00000170873.19')
+genes <- c(
+    'ENSG00000171723.16', 'ENSG00000112715.26',
+    'ENSG00000142156.16', 'ENSG00000170873.19'
+)
 
-transcripts <- gtf[gtf$gene_id %in% genes & !is.na(gtf$transcript_support_level) & gtf$transcript_support_level == '1', ]$transcript_id
+transcripts <- gtf[
+    gtf$gene_id %in% genes &
+    !is.na(gtf$transcript_support_level) &
+    gtf$transcript_support_level == '1',
+]$transcript_id
 
 transcripts <- unique(transcripts)
 ```
 
 ```{r eval=TRUE, include=FALSE}
-transcripts <- readRDS(system.file('extdata', 'transcripts.rds', package = 'PscanR'))
+transcripts <- readRDS(
+    system.file('extdata', 'transcripts.rds', package = 'PscanR')
+)
 ```
 
-```{r}
+```{r chunk-5}
 transcripts 
 ```
 
@@ -274,14 +290,14 @@ ORF IDs** (e.g., `YPR195C`). If you have **gene symbols**, you can convert them
 as shown below. Note that not all the systematic IDs have the corresponding
 symbol.
 
-```{r}
+```{r chunk-6}
 library(org.Sc.sgd.db)
 gene_symbols <- c('TIF5', 'CDC28', 'RPL3')
 
 ORF <- AnnotationDbi::select(org.Sc.sgd.db,
-                             keys = gene_symbols,
-                             columns = c('ORF', 'GENENAME'),
-                             keytype = 'GENENAME')
+                                keys = gene_symbols,
+                                columns = c('ORF', 'GENENAME'),
+                                keytype = 'GENENAME')
 
 ORF # take the second column for systematic ids
 ```
@@ -306,9 +322,9 @@ txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38",
 # use only canonical chromosomes 
 GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24] 
 prom_rng <- GenomicFeatures::promoters(txdb, 
-                                       upstream = 200, 
-                                       downstream = 50, 
-                                       use.names = TRUE)
+                                        upstream = 200, 
+                                        downstream = 50, 
+                                        use.names = TRUE)
 ```
 
 This code extracts regions **200 bp upstream and 50 bp downstream** of the TSS
@@ -320,7 +336,7 @@ and may be subject to database updates.
 
 ```{r echo=FALSE}
 promoters_path <- system.file("extdata", "promoters.rds", 
-                         package = "PscanR")
+                            package = "PscanR")
 prom_rng <- readRDS(promoters_path)
 prom_rng
 ```
@@ -335,7 +351,7 @@ In this example, the list of target transcripts does not include version numbers
 (e.g., *NM_002188* instead of *NM_002188.1*). Therefore, we need to remove
 version numbers from `prom_rng$tx_name` before filtering promoter regions:
 
-```{r}
+```{r chunk-7}
 prom_rng$tx_name_clean <- sub("\\..*$", "", prom_rng$tx_name)
 target_prom_rng <- prom_rng[prom_rng$tx_name_clean %in% target[,1]]
 ```
@@ -346,10 +362,10 @@ Once the promoter regions are defined, their corresponding DNA sequences can be
 extracted from the reference genome using, for example, **Biostrings** and
 **BSgenome**:
 
-```{r}
+```{r chunk-8}
 prom_seq <- Biostrings::getSeq(
-  x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
-  target_prom_rng)
+    x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
+    target_prom_rng)
 prom_seq
 ```
 
@@ -363,9 +379,9 @@ sites are missed.
 
 To execute the motif scan, use the following function:
 
-```{r}
+```{r chunk-9}
 results <- PscanR::pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::SnowParam(1)) 
+                    BPPARAM = BiocParallel::SnowParam(1)) 
 ```
 
 The method scans each input sequence by extracting all possible **k-mers**
@@ -401,7 +417,7 @@ follows (recommended for Unix-based systems):
 
 ```{r eval=FALSE, include=TRUE}
 results <- PscanR::pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::MulticoreParam(8)) 
+                    BPPARAM = BiocParallel::MulticoreParam(8)) 
 ```
 
 Here, 8 specifies the number of CPU cores to be used. Adjust this number based
@@ -419,7 +435,7 @@ Processors"**.
 To visualize the statistics of the different results, run the chunk of code
 below:
 
-```{r}
+```{r chunk-10}
 table <- PscanR::ps_results_table(results) 
 head(table)
 ```
@@ -452,7 +468,7 @@ Rows contain matrices names retrieved from the JASPAR database, 2020 release.
 
 ## Score Correlation Map
 
-```{r}
+```{r chunk-11}
 PscanR::ps_zscore_heatmap(results, FDR = 0.01)
 ```
 
@@ -478,7 +494,7 @@ regions are known to be bound by the transcription factor.
 
 ## Hits Position Heatmap
 
-```{r}
+```{r chunk-12}
 PscanR::ps_hitpos_map(results, FDR = 0.01, shift = -200)
 ```
 
@@ -495,7 +511,7 @@ farthest binding events on the analysed sequences.
 This plot analyse the binding site distribution across the promoter region of
 the analysed sequences for NRF1 transcription factor.
 
-```{r}
+```{r chunk-13}
 pfm1 <- results[['MA0506.1']]
 PscanR::ps_density_plot(pfm1, shift = -200)
 ```
@@ -512,7 +528,7 @@ promoters (marked by the dashed vertical line). Another peak is in the region
 
 ## Bubble chart
 
-```{r}
+```{r chunk-14}
 PscanR::ps_score_position_BubbleChart(results[['MA0506.1']], shift = -200)
 ```
 
@@ -535,7 +551,7 @@ position preferences across all input promoter sequences.
 
     -   Foreground average score (green solid line)
 
-```{r}
+```{r chunk-15}
 # Display session information
 sessionInfo()
 ```

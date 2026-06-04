@@ -9,18 +9,18 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A named numeric vector where names correspond to promoter sequence 
+A named numeric vector where names correspond to promoter sequence
    identifiers and values represent their respective Z-scores.
 }
 \description{
-Computes the Z-Scores for motif hit scores in a `PSMatrix` object. 
-The Z-score measures how unusual a motif score is compared to background 
-sequences (all the promoters expressed in an organism). Higher Z-scores mean 
+Computes the Z-Scores for motif hit scores in a `PSMatrix` object.
+The Z-score measures how unusual a motif score is compared to background
+sequences (all promoters expressed in an organism). Higher Z-scores mean
 stronger motif enrichment, suggesting potential regulatory significance.
 }
 \examples{

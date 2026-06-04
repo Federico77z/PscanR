@@ -10,9 +10,9 @@
 \item{x}{An object of class `PSMatrixList`.}
 }
 \value{
-A named character vector containing transcript ID mappings where 
-   values are the sequence identifiers maintained during the generation of 
-   the background by the unique() function, while the names are the 
+A named character vector containing transcript ID mappings where
+   values are the sequence identifiers maintained during the generation of
+   the background by the unique() function, while the names are the
    original sequence identifiers for the organism of study.
 }
 \description{
@@ -20,9 +20,10 @@ This method retrieves the value stored in the `transcriptIDLegend` slot of
 a `PSMatrixList` object.
 }
 \examples{
-full_pfms_path <- system.file('extdata', 
-                              'full_pfms.rds', 
-                              package = 'PscanR')
+full_pfms_path <- system.file("extdata",
+  "full_pfms.rds",
+  package = "PscanR"
+)
 full_pfms <- readRDS(full_pfms_path)
 head(transcriptIDLegend(full_pfms))
 

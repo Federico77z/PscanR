@@ -9,17 +9,17 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-An integer representing the total number of motif hits detected in 
+An integer representing the total number of motif hits detected in
    the input promoter sequences.
 }
 \description{
-Retrieves the number of motif hits detected by the Pscan algorithm in a 
-`PSMatrix` object. A motif hit represents a significant match between a 
+Retrieves the number of motif hits detected by the Pscan algorithm in a
+`PSMatrix` object. A motif hit represents a significant match between a
 promoter sequence and the Position Weight Matrix (PWM).
 }
 \examples{

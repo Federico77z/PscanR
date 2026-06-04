@@ -13,23 +13,23 @@ ps_hits_strand(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **character vector**, where 
-  names correspond to promoter sequence identifiers, and values represent 
+  \item If `x` is a `PSMatrix` object: a **character vector**, where
+  names correspond to promoter sequence identifiers, and values represent
   the strand (`+` or `-`) on which the motif was detected.
   \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
-`ps_hits_strand` is a **generic function** that retrieves the strand 
-information (`+` or `-`) of motif hits within an object. This indicates 
-whether a motif was detected on the forward (`+`) or reverse (`-`) strand 
+`ps_hits_strand` is a **generic function** that retrieves the strand
+information (`+` or `-`) of motif hits within an object. This indicates
+whether a motif was detected on the forward (`+`) or reverse (`-`) strand
 of a promoter sequence.
 }
 \details{
-The Pscan algorithm scans both strands of promoter sequences to ensure that 
+The Pscan algorithm scans both strands of promoter sequences to ensure that
 no potential transcription factor binding sites are missed.
 
-Methods should be implemented for specific object classes that store motif 
+Methods should be implemented for specific object classes that store motif
 scanning results.
 }
 \examples{

@@ -7,52 +7,55 @@
 ps_z_table(pfms)
 }
 \arguments{
-\item{pfms}{A `PSMatrixList` object containing multiple Position Weight 
-Matrices and associated metadata (foreground and background statistics). 
+\item{pfms}{A `PSMatrixList` object containing multiple Position Weight
+Matrices and associated metadata (foreground and background statistics).
 This object is the output of `pscan()` function.}
 }
 \value{
 A matrix in which each column corresponds to a motif in the `PSMatrixList`
-object, and each row to the sequence identifiers. The matrix contains 
-z-score values for each sequence-motif pairs, indicating how much the 
-computed scores deviate from the expected background distribution. 
+object, and each row to the sequence identifiers. The matrix contains
+z-score values for each sequence-motif pair, indicating how much the
+computed scores deviate from the expected background distribution.
 Higher Z-score values represent stronger motif enrichment.
 }
 \description{
-This function creates a matrix of Z-scores for motif occurrences across 
-multiple PSMatrix contained in a `PSMatrixList` object. Each row corresponds 
+This function creates a matrix of Z-scores for motif occurrences across
+multiple PSMatrix contained in a `PSMatrixList` object. Each row corresponds
 to a sequence, and each column represents a motif.
 }
 \details{
-Z-Score represents the statistical significance of the alignment scores 
-for regulatory sequences relative to background expectation. A high Z-score 
-suggests strong motif enrichment in the foreground compared to 
+Z-score represents the statistical significance of the alignment scores
+for regulatory sequences relative to background expectation. A high Z-score
+suggests strong motif enrichment in the foreground compared to
 the background.
 
-This function uses example datasets located in the `extdata/` directory for 
+This function uses example datasets located in the `extdata/` directory for
 demonstration purposes only. These files are not part of the core data used
-by the function. They can be accessed using `system.file()` as shown in the 
+by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
-# The generation of the example may take a few minutes 
+# The generation of the example may take a few minutes
 #
-# Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
-# -200 +50 bp in respect to the TSS. 
+# Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
+# -200 +50 bp in respect to the TSS.
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:10]
 
 # Retrieve Background PWMs
-# Note: when running this example, you may see a message indicating that 
-# a file is being downloaded. This is expected behavior and not an error — 
+# Note: when running this example, you may see a message indicating that
+# a file is being downloaded. This is expected behavior and not an error —
 # it simply informs you that background data is being retrieved.
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
-                                                    'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background(
+  "Jaspar2020",
+  "hs", c(-200, 50), "hg38"
+)
 
 # Execute the Pscan algorithm and view the result table
-results <- pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::SnowParam(1))
+results <- pscan(prom_seq, J2020_PSBG,
+  BPPARAM = BiocParallel::SnowParam(1)
+)
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
 ps_z_table(results)

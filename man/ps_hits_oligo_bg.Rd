@@ -2,7 +2,7 @@
 % Please edit documentation in R/AllGenerics.R
 \name{ps_hits_oligo_bg}
 \alias{ps_hits_oligo_bg}
-\title{Retrieve Matched Oligonucleotide Sequences from a Background Dataset 
+\title{Retrieve Matched Oligonucleotide Sequences from a Background Dataset
 (Generic Function)}
 \usage{
 ps_hits_oligo_bg(x, ...)
@@ -14,36 +14,37 @@ ps_hits_oligo_bg(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **character vector**, where 
-  names correspond to sequence identifiers, and values represent the 
-  oligonucleotide sequences (subset of the promoter sequences) matching 
+  \item If `x` is a `PSMatrix` object: a **character vector**, where
+  names correspond to sequence identifiers, and values represent the
+  oligonucleotide sequences (subset of the promoter sequences) matching
   the motif.
   \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
-`ps_hits_oligo_bg` is a **generic function** that extracts the 
-oligonucleotide sequences corresponding to motif hits among a bacground 
+`ps_hits_oligo_bg` is a **generic function** that extracts the
+oligonucleotide sequences corresponding to motif hits among a background
 dataset in a given object.
 }
 \details{
-Methods should be implemented for specific object classes that store motif 
+Methods should be implemented for specific object classes that store motif
 scanning results.
 
 
-The `ps_hits_oligo_bg` function is particularly relevant for background 
-datasets, which include motif scan results computed across all promoter 
+The `ps_hits_oligo_bg` function is particularly relevant for background
+datasets, which include motif scan results computed across all promoter
 sequences.
 
-In a PSMatrixList object, the `ps_hits_oligo_bg` slot is populated only 
-for background matrices (i.e., matrices derived from all promoters). 
-This ensures that the pscan() function can access precomputed metrics 
+In a PSMatrixList object, the `ps_hits_oligo_bg` slot is populated only
+for background matrices (i.e., matrices derived from all promoters).
+This ensures that the pscan() function can access precomputed metrics
 without recomputing them, optimizing efficiency.
 }
 \examples{
-full_pfm1_path <- system.file("extdata", 
-                              "full_pfm1.rds", 
-                              package = "PscanR")
+full_pfm1_path <- system.file("extdata",
+  "full_pfm1.rds",
+  package = "PscanR"
+)
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_hits_oligo_bg(full_pfm1)
 

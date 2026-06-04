@@ -13,20 +13,20 @@ ps_hits_score(x, ...)
 }
 \value{
 \itemize{
-  \item If `x` is a `PSMatrix` object: a **named numeric vector**, where 
-  names correspond to promoter sequence identifiers and values represent 
+  \item If `x` is a `PSMatrix` object: a **named numeric vector**, where
+  names correspond to promoter sequence identifiers and values represent
   their respective motif hit scores.
   \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
-`ps_hits_score` is a **generic function** that retrieves the motif hit 
-scores for each promoter sequence in an object. These scores represent 
-the binding affinity or enrichment level of promoter sequences when 
+`ps_hits_score` is a **generic function** that retrieves the motif hit
+scores for each promoter sequence in an object. These scores represent
+the binding affinity or enrichment level of promoter sequences when
 scanned with a Position Weight Matrix (PWM).
 }
 \details{
-Methods should be implemented for specific object classes that store 
+Methods should be implemented for specific object classes that store
 motif scanning results.
 }
 \examples{

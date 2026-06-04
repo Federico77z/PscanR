@@ -2,80 +2,87 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_density_distances_plot}
 \alias{ps_density_distances_plot}
-\title{Density Plot of Distances between Identified Motif Hits in two PSMatrix 
-Object}
+\title{Density Plot of Distances between Identified Motif Hits in two PSMatrix
+Objects}
 \usage{
 ps_density_distances_plot(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
 }
 \arguments{
-\item{M1}{A `PSMatrix` object. It must be processed by the PscanR 
+\item{M1}{A `PSMatrix` object. It must be processed by the PscanR
 algorithm.}
 
-\item{M2}{A `PSMatrix` object. It must be processed by the PscanR 
+\item{M2}{A `PSMatrix` object. It must be processed by the PscanR
 algorithm.}
 
-\item{st1}{Score threshold used to filter hits for the first `PSMatrix` . 
+\item{st1}{Score threshold used to filter hits for the first `PSMatrix` .
 Can be a numeric value to set the threshold directly, or a character:
 \itemize{
   \item `all`: the threshold is set to `0` (All hits are evaluated).
   \item `loose`: uses the background average as threshold.
-  \item `strict`: uses the background average plus the background 
+  \item `strict`: uses the background average plus the background
   standard deviation as threshold.}
 Default is set to `loose`.}
 
-\item{st2}{Score threshold used to filter hits for the second `PSMatrix`. 
-Can be a numeric value to set the threshold directly, or a character, as 
-for st1. 
+\item{st2}{Score threshold used to filter hits for the second `PSMatrix`.
+Can be a numeric value to set the threshold directly, or a character, as
+for st1.
 Default is set to `loose`.}
 }
 \value{
-A density plot showing the distribution of distances between 
-   identified motif hits in \code{M1} and \code{M2}. The x-axis represents 
+A density plot showing the distribution of distances between
+   identified motif hits in \code{M1} and \code{M2}. The x-axis represents
    the distances between corresponding hits: positive values indicate that M1
-   is positioned upstream in respect to M2, whereas negative values 
-   indicates that it is downstream to M2. 
-   Y-axis represents the density of those distances.
+   is positioned upstream in respect to M2, whereas negative values
+   indicate that it is downstream to M2.
+   The y-axis represents the density of those distances.
 }
 \description{
-This function visualizes the density plot of distances between identified 
-hit sites in two `PSMatrix` object. The distance between hits is calculated 
-for each sequence that is present in both matrices. 
-It allows to filter the identified sites based on a specified threshold 
+This function visualizes the density plot of distances between identified
+hit sites in two `PSMatrix` objects. The distance between hits is calculated
+for each sequence that is present in both matrices.
+It allows filtering the identified sites based on a specified threshold
 value.
 }
 \details{
-This function uses example datasets located in the `extdata/` directory for 
+Hit positions are shifted by half of the motif length (i.e., `ncol(M1)/2`
+and `ncol(M2)/2`) before distances are computed, so distances are centered
+on the motif midpoint.
+
+This function uses example datasets located in the `extdata/` directory for
 demonstration purposes only. These files are not part of the core data used
-by the function. They can be accessed using `system.file()` as shown in the 
+by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
 # Note that the generation of the example may take few minutes
 #
-# Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
-# -200 +50 bp in respect to the TSS. 
+# Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
+# -200 +50 bp in respect to the TSS.
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[25:50]
 
 # Retrieve Background PWMs
-# Note: when running this example, you may see a message indicating that 
-# a file is being downloaded. This is expected behavior and not an error — 
+# Note: when running this example, you may see a message indicating that
+# a file is being downloaded. This is expected behavior and not an error —
 # it simply informs you that background data is being retrieved.
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
-                                                    'hs', c(-200,50), 'hg38')
-                                       
+J2020_PSBG <- generate_psmatrixlist_from_background(
+  "Jaspar2020",
+  "hs", c(-200, 50), "hg38"
+)
+
 
 # Execute the Pscan algorithm and view the result table
-results <- pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::SnowParam(1))
+results <- pscan(prom_seq, J2020_PSBG,
+  BPPARAM = BiocParallel::SnowParam(1)
+)
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
 pfm1 <- results[[1]]
 pfm2 <- results[[2]]
-ps_density_distances_plot(pfm1, pfm2, 'all', 'loose')
+ps_density_distances_plot(pfm1, pfm2, "all", "loose")
 }
 \seealso{
-\code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}}, 
+\code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}},
 \code{\link{ps_hits_score}}, \code{\link{ps_hits_pos}}
 }

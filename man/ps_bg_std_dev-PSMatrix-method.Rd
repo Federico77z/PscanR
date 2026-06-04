@@ -9,17 +9,17 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric value representing the standard deviation of the 
+A numeric value representing the standard deviation of the
    background PWM scores.
 }
 \description{
-Retrieves the background standard deviation of PWM scores stored in a 
-`PSMatrix` object. This value quantifies the variability in the background 
+Retrieves the background standard deviation of PWM scores stored in a
+`PSMatrix` object. This value quantifies the variability in the background
 motif binding scores.
 }
 \examples{

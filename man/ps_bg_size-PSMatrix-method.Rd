@@ -9,18 +9,17 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-An integer value representing the total number of promoter regions
+An integer value representing the background promoter region size
    used for background scoring.
 }
 \description{
-Retrieves the number of promoter regions used to compute the background 
-statistics in a `PSMatrix` object. This represents the total number of 
-promoters expressed in the organism of study.
+Retrieves the background promoter region size used to compute the
+background statistics in a `PSMatrix` object (e.g., 250L).
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

@@ -9,38 +9,39 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A named character vector where names correspond to promoter sequence 
-   identifiers, and values represent the strand (`+` or `-`) on which the 
+A named character vector where names correspond to promoter sequence
+   identifiers, and values represent the strand (`+` or `-`) on which the
    motif was detected.
 }
 \description{
-Retrieves the strand information (`+` or `-`) of motif hits in a 
-`PSMatrix` object computed on the background dataset (all the promoter in a 
-specific organism). This indicates whether a motif was detected on 
+Retrieves the strand information (`+` or `-`) of motif hits in a
+`PSMatrix` object computed on the background dataset (all promoters in a
+specific organism). This indicates whether a motif was detected on
 the forward (`+`) or reverse (`-`) strand of the promoter sequence.
-The Pscan algorithm scans both the strands of the promoter sequences to 
+The Pscan algorithm scans both the strands of the promoter sequences to
 ensure that no potential binding sites are missed.
 }
 \details{
 This method is specifically designed for background datasets,
-where motif hit strands are precomputed for all promoter sequences. 
+where motif hit strands are precomputed for all promoter sequences.
 The function extracts the strand values from the \code{ps_hits_strand_bg}
-slot and, if applicable, assigns sequence names using  
+slot and, if applicable, assigns sequence names using
 \code{.ps_bg_seq_names()}.
 
-These background metrics are particularly useful in motif enrichment 
-analyses, as they allow pscan() to compare foreground promoter sequences 
+These background metrics are particularly useful in motif enrichment
+analyses, as they allow pscan() to compare foreground promoter sequences
 against a reference distribution without the need for recomputation.
 }
 \examples{
-full_pfm1_path <- system.file("extdata", 
-                              "full_pfm1.rds", 
-                              package = "PscanR")
+full_pfm1_path <- system.file("extdata",
+  "full_pfm1.rds",
+  package = "PscanR"
+)
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_hits_strand_bg(full_pfm1)
 

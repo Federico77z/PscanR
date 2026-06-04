@@ -9,13 +9,13 @@
 \arguments{
 \item{x}{A `PSMatrix` object, typically the result of the `Pscan` algorithm.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A numeric value representing the statistical significance of motif 
-    enrichment. Lower values suggest stronger motif enrichment in the 
+A numeric value representing the statistical significance of motif
+    enrichment. Lower values suggest stronger motif enrichment in the
     foreground set.
 }
 \description{

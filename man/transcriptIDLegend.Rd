@@ -2,26 +2,26 @@
 % Please edit documentation in R/AllGenerics.R
 \name{transcriptIDLegend}
 \alias{transcriptIDLegend}
-\title{Retrieve Transcript ID Legend from a PSMatrixList Object (Generic Function)}
+\title{Transcript ID Legend (Generic Function)}
 \usage{
 transcriptIDLegend(x, ...)
 }
 \arguments{
 \item{x}{A `PSMatrixList` object.}
 
-\item{...}{Additional arguments (not used in this method but included 
+\item{...}{Additional arguments (not used in this method but included
 for extensibility).}
 }
 \value{
 A character vector containing transcript ID mappings.
 }
 \description{
-`transcriptIDLegend` is a **generic function** that retrieves the 
-`transcriptIDLegend` slot from a `PSMatrixList` object. This slot contains 
+`transcriptIDLegend` is a **generic function** that retrieves the
+`transcriptIDLegend` slot from a `PSMatrixList` object. This slot contains
 a character vector mapping transcript IDs used in the dataset.
 }
 \examples{
-full_pfms_path <- system.file('extdata', 'full_pfms.rds', package = 'PscanR')
+full_pfms_path <- system.file("extdata", "full_pfms.rds", package = "PscanR")
 full_pfms <- readRDS(full_pfms_path)
 head(transcriptIDLegend(full_pfms))
 

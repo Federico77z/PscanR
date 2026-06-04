@@ -9,21 +9,21 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{pos_shift}{Integer. Specifies the amount to shift the position. 
+\item{pos_shift}{Integer. Specifies the amount to shift the position.
 Default is set to `0`.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A named integer vector where names correspond to promoter sequence 
+A named integer vector where names correspond to promoter sequence
    identifiers, and values represent the adjusted motif hit positions.
 }
 \description{
-Retrieves the positions of hits stored in a `PSMatrix` object. These 
-positions indicate where the motifs are located in each promoter sequence. 
-The positions can be shifted by a specified value to find the correspective
+Retrieves the positions of hits stored in a `PSMatrix` object. These
+positions indicate where the motifs are located in each promoter sequence.
+The positions can be shifted by a specified value to find the corresponding
 position in respect to the TSS.
 }
 \examples{

@@ -7,38 +7,40 @@
 get_availableBG(keyword = NULL)
 }
 \arguments{
-\item{keyword}{A string to filter the file names. Default is NULL, so the 
+\item{keyword}{A string to filter the file names. Default is NULL, so the
 complete list of available file names is printed}
 }
 \value{
-A character vector containing the names of the available background files
+A character vector containing the names of the available background
+files
 }
 \description{
-This function retrieves the names of all available .txt files containing 
-background information, that serves for the construction of the background 
-PSMatrixList. If a keyword is specified, the function will return only the 
-file names that contains that string. Note that the filtering parameter 
-works only if you know the nomenclature used to name the file. See the 
-details paragraph for further informations.
+This function retrieves the names of all available .txt files containing
+background information, that serves for the construction of the background
+PSMatrixList. If a keyword is specified, the function will return only the
+file names that contain that string. Note that the filtering parameter
+works only if you know the nomenclature used to name the file. See the
+details paragraph for further information.
 }
 \details{
-Some information for the filtering: 
+Some information for the filtering:
 \itemize{
-   \item Type of collection: To filter by JASPAR version, 
+   \item Type of collection: To filter by JASPAR version,
    search by year prefixed by 'J', e.g., 'J2020'.
-   \item To filter by genome assembly, use assembly identifiers like 
+   \item To filter by genome assembly, use assembly identifiers like
    'mm10' or 'mm39'.
-   \item To filter by promoter region, use strings like '500u_0d', where 'u' 
+   \item To filter by promoter region, use strings like '500u_0d', where 'u'
    stands for 'upstream' and 'd' for 'downstream'
    \item You may also filter by version number, e.g., '1.txt'.
    \item Multiple keywords can be combined (e.g., 'hs1.*450u_50d').}
 }
 \examples{
 head(get_availableBG())
-get_availableBG('mm10')
-get_availableBG('hs1.*450u_50d') 
+get_availableBG("mm10")
+get_availableBG("hs1.*450u_50d")
 
 }
 \seealso{
-\code{\link{generate_psmatrixlist_from_background}}, \code{\link{ps_retrieve_bg_from_file}}
+\code{\link{generate_psmatrixlist_from_background}},
+\code{\link{ps_retrieve_bg_from_file}}
 }

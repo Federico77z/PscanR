@@ -7,62 +7,65 @@
 ps_density_plot(pfm, shift = 0, st = ps_bg_avg(pfm))
 }
 \arguments{
-\item{pfm}{A `PSMatrix` object. It is a selected matrix from the 
+\item{pfm}{A `PSMatrix` object. It is a selected matrix from the
 `PSMatrixList`, result of `pscan` function.}
 
-\item{shift}{Integer value specifying the positional shift applied to the 
-hit positions to obtain the position in respect to the TSS. 
+\item{shift}{Integer value specifying the positional shift applied to the
+hit positions to obtain the position in respect to the TSS.
 Default is `0`.}
 
-\item{st}{Score threshold used to filter hits. Can be a numeric value to set 
+\item{st}{Score threshold used to filter hits. Can be a numeric value to set
 the threshold directly, or a character:
 \itemize{
   \item `all`: the threshold is set to `0` (All the hits are evaluated).
   \item `loose`: uses the background average score as threshold.
-  \item `strict`: uses the background average score together with the 
+  \item `strict`: uses the background average score together with the
   background standard deviation as threshold.}
-Default is set to loose.}
+Default is `loose` (background average).}
 }
 \value{
-A density plot showing the distribution of hits along the promoter 
+A density plot showing the distribution of hits along the promoter
    region.
 }
 \description{
-This function creates a density plot representing the distribution of hits 
-along the promoter sequences based on their position and score for a 
-specific PWM. 
+This function creates a density plot representing the distribution of hits
+along the promoter sequences based on their position and score for a
+specific PWM.
 It helps visualize where motif occurrences are concentrated.
 }
 \details{
-The function filters motif hits based on a specified threshold and generates 
-a density plot to show their distribution. The function includes a vertical 
-dashed line marking the mode (the most frequent position along the 
+The function filters motif hits based on a specified threshold and generates
+a density plot to show their distribution. The function includes a vertical
+dashed line marking the mode (the most frequent position along the
 promoters).
 
-This function uses example datasets located in the `extdata/` directory for 
+This function uses example datasets located in the `extdata/` directory for
 demonstration purposes only. These files are not part of the core data used
-by the function. They can be accessed using `system.file()` as shown in the 
+by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
 # Note that the generation of the example may take few minutes
 #
-# Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
-# -200 +50 bp in respect to the TSS. 
+# Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
+# -200 +50 bp in respect to the TSS.
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
-# Note: when running this example, you may see a message indicating that 
-# a file is being downloaded. This is expected behavior and not an error — 
+# Note: when running this example, you may see a message indicating that
+# a file is being downloaded. This is expected behavior and not an error —
 # it simply informs you that background data is being retrieved.
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
-                                                    'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background(
+  "Jaspar2020",
+  "hs", c(-200, 50), "hg38"
+)
 
 # Execute the Pscan algorithm and view the result table
-results <- pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::SnowParam(1))
+results <- pscan(prom_seq, J2020_PSBG,
+  BPPARAM = BiocParallel::SnowParam(1)
+)
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
 pfm1 <- results[[1]]

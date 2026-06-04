@@ -4,64 +4,67 @@
 \alias{ps_scan,PSMatrix-method}
 \title{Perform a Scan of DNA Sequences Using a `PSMatrix` Object}
 \usage{
-\S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE, use_full_BG = FALSE, fullBG = FALSE)
+\S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE,
+  use_full_BG = FALSE, fullBG = FALSE)
 }
 \arguments{
-\item{x}{A `PSMatrix` object representing the motif and related statistics 
+\item{x}{A `PSMatrix` object representing the motif and related statistics
 to be used for scanning DNA sequences.}
 
-\item{seqs}{`A DNAstringSet` object representing the sequences to be
+\item{seqs}{A `DNAStringSet` object representing the sequences to be
 scanned for motif occurrences.}
 
-\item{BG}{A logical value indicating whether to calculate background 
+\item{BG}{A logical value indicating whether to calculate background
 statistics.
 Default is set to `FALSE`.}
 
-\item{use_full_BG}{A logical value (default is `FALSE`). 
-If `TRUE`, the method assumes that the PSMatrix represent a special 
-"full-background" set. 
-In this case, the `seqs` parameter should be a vector of sequence names 
-(instead of actual DNA sequences). The function handles this by matching 
+\item{use_full_BG}{A logical value (default is `FALSE`).
+If `TRUE`, the method assumes that the PSMatrix represents a special
+"full-background" set.
+In this case, the `seqs` parameter should be a vector of sequence names
+(instead of actual DNA sequences). The function handles this by matching
 sequence names against precomputed background data in the `PSMatrix`.}
 
-\item{fullBG}{Logical, default is `FALSE`. If `TRUE` it computes a series 
+\item{fullBG}{Logical, default is `FALSE`. If `TRUE` it computes a series
 of computation for the generation of a "full-background", a special case
-of background that retains all the background hits score, position, 
-strand, and oligonucleotide sequence for each regulatory sequence scanned 
+of background that retains all the background hits score, position,
+strand, and oligonucleotide sequence for each regulatory sequence scanned
 with a PWM.}
 }
 \value{
-A `PSMatrix` object, with updated information about the motif hits 
-    in the sequences. This includes the positions, strands, scores, and 
+A `PSMatrix` object, with updated information about the motif hits
+    in the sequences. This includes the positions, strands, scores, and
     oligos (sequence motifs) where the hits occurred.
 }
 \description{
-This method performs a scan of DNA sequences using a `PSMatrix` object 
-to identify potential hits based on the matrix score. The scan is 
-performed on both strands (the direct and reverse complement strands) of the 
+This method performs a scan of DNA sequences using a `PSMatrix` object
+to identify potential hits based on the matrix score. The scan is
+performed on both strands (the direct and reverse complement strands) of the
 sequences to ensure that no potential binding sites are missed.
 }
 \details{
-This method is designed to handle different types of sequence scanning 
-scenarios. It can handle both regular DNA sequences (using a `DNAStringSet`) 
-and specialized background sequence sets (either using a background flag 
-or a full-background flag). 
+This method is designed to handle different types of sequence scanning
+scenarios. It can handle both regular DNA sequences (using a `DNAStringSet`)
+and specialized background sequence sets (either using a background flag
+or a full-background flag).
 
-If `use_full_BG` is set to `TRUE`, the function assumes that `seqs` contains 
-sequence identifiers rather than the sequences themselves. In this case, the 
-method matches the sequence names to those in the `PSMatrix`'s background 
-hit data and retrieves the corresponding binding information (score, strand, 
+If `use_full_BG` is set to `TRUE`, the function assumes that `seqs` contains
+sequence identifiers rather than the sequences themselves. In this case, the
+method matches the sequence names to those in the `PSMatrix`'s background
+hit data and retrieves the corresponding binding information (score, strand,
 position, oligo).
 
-When `use_full_BG` is set to `FALSE`, the function scan both the forward and 
-reverse complement strands of the sequences to ensure all potential binding 
-sites are detected. Optionally, the background statistics 
-(background average and standard deviation) can be computed and used during 
+When `use_full_BG` is set to `FALSE`, the function scans both the forward and
+reverse complement strands of the sequences to ensure all potential binding
+sites are detected. Optionally, the background statistics
+(background average and standard deviation) can be computed and used during
 scanning when `BG` is set to `TRUE`.
 }
 \examples{
-BG_matrices <- generate_psmatrixlist_from_background('Jaspar2020', 'hs', 
-                                                     c(-200,50),'hg38')
+BG_matrices <- generate_psmatrixlist_from_background(
+  "Jaspar2020", "hs",
+  c(-200, 50), "hg38"
+)
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]

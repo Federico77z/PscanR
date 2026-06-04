@@ -9,17 +9,17 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-An integer representing the total number of promoter sequences used 
+An integer representing the total number of promoter sequences used
    as input to Pscan.
 }
 \description{
-Retrieves the number of promoter sequences given as input to the Pscan 
-algorithm in a `PSMatrix` object. This represents the total number of 
+Retrieves the number of promoter sequences given as input to the Pscan
+algorithm in a `PSMatrix` object. This represents the total number of
 sequences analyzed for motif enrichment.
 }
 \examples{

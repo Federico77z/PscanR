@@ -7,7 +7,7 @@
 \S4method{ps_hits_table}{PSMatrix}(x, pos_shift = 0L, withDimnames = TRUE)
 }
 \arguments{
-\item{x}{An object of class `PSMatrix`. Should contain the following 
+\item{x}{An object of class `PSMatrix`. Should contain the following
 slots:
 \itemize{
   \item `ps_hits_score`: a numeric vector of hit scores.
@@ -15,29 +15,31 @@ slots:
   (`-` and `+`).
   \item `ps_hits_oligo`: a character vector of oligo sequences.}}
 
-\item{pos_shift}{Integer. Value for which the position gets shifted in respect
-to the TSS.
-Default is `0`, meaning no shift.}
+\item{pos_shift}{Integer. Value for which the position gets shifted in
+respect
+   to the TSS.
+   Default is `0`, meaning no shift.}
 
-\item{withDimnames}{Logical, whether to include dimension names in the 
+\item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
 Default set to `TRUE`.}
 }
 \value{
-A `data.frame` ordered by decreasing score value, 
+A `data.frame` ordered by decreasing score value,
 with the following columns:
 \itemize{
   \item `SCORE`: the motif hit score
   \item `POS`: the position of the motif hit
   \item `STRAND`: the strand orientation for each hit
-  \item `OLIGO`: the oligo sequence corresponding to each hit} 
-Row names correspond to the sequences name.
+  \item `OLIGO`: the oligo sequence corresponding to each hit (a
+  `DNAStringSet`).}
+Row names correspond to the sequence names.
 }
 \description{
-Creates a data frame summarizing the motif hits from a `PSMatrix` object, 
-including the motif hit score, position, strand, and corresponding oligo 
+Creates a data frame summarizing the motif hits from a `PSMatrix` object,
+including the motif hit score, position, strand, and corresponding oligo
 sequence.
-The resulting table is sorted by motif score (descending). When the score is 
+The resulting table is sorted by motif score (descending). When the score is
 the same between two sequences, they are sorted by ascending position.
 }
 \examples{

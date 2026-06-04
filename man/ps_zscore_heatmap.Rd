@@ -7,72 +7,75 @@
 ps_zscore_heatmap(pfms, FDR = 0.01, ...)
 }
 \arguments{
-\item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated 
-metadata (foreground and background statistics). Typically is the output 
+\item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated
+metadata (foreground and background statistics). Typically the output
 of `pscan()` or `pscan_fullBG()` functions.}
 
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to include in the analysis. The default is `0.01`.}
 
-\item{...}{Additional user defined arguments to customize the heatmap 
-settings, such as color palettes or clustering object.}
+\item{...}{Additional user-defined arguments to customize the heatmap
+settings, such as color palettes or clustering objects.}
 }
 \value{
-A heatmap plot showing Z-score correlations for selected 
-   transcription factors, filtered by FDR values.
+Invisibly returns the Z-score submatrix used for plotting.
+  The heatmap is drawn as a side effect.
 }
 \description{
-This function generates a heatmap that visualizes the correlation of 
-Z-scores for transcription factors (TFs) based on a specified false 
-discovery rate threshold. 
+This function generates a heatmap that visualizes the correlation of
+Z-scores for transcription factors (TFs) based on a specified false
+discovery rate threshold.
 It allows customization of the heatmap's appearance.
 }
 \details{
-The heatmap represents the correlation of motif Z-scores, helping to 
-identify clusters of motifs that show similar enrichment patterns across 
-sequences. 
+The heatmap represents the correlation of motif Z-scores, helping to
+identify clusters of motifs that show similar enrichment patterns across
+sequences.
 The function performs the following steps:
 \itemize{
-  \item Extracts the result table and the z-score table from the pscan 
+  \item Extracts the result table and the z-score table from the pscan
      algorithm result.
   \item Filters the result table based on the given FDR threshold.
-  \item Uses the filtered result table to create the z-table for the 
+  \item Uses the filtered result table to create the z-table for the
      selected TFs.
-  \item Generates the heatmap using the `pheatmap` function, 
+  \item Generates the heatmap using the `pheatmap` function,
      with customizable settings.}
 
- Default settings, that can be changed by the users, are: 
+ Default settings (which can be changed) are:
  \itemize{
    \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
    \item `color`, which uses a blue-white-red palette.
    \item The main `Pscan Score Correlation Heatmap`.
    \item TF names are shown as column labels.
    }
-   
-This function uses example datasets located in the `extdata/` directory for 
+
+This function uses example datasets located in the `extdata/` directory for
 demonstration purposes only. These files are not part of the core data used
-by the function. They can be accessed using `system.file()` as shown in the 
+by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
 # The generation of the example might take few minutes
 #
-# Load the promoter sequences for hg38 (Homo sapiens), promoter regions: 
-# -200 +50 bp in respect to the TSS. 
+# Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
+# -200 +50 bp in respect to the TSS.
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:25]
 
 # Retrieve Background PWMs
-# Note: when running this example, you may see a message indicating that 
-# a file is being downloaded. This is expected behavior and not an error — 
+# Note: when running this example, you may see a message indicating that
+# a file is being downloaded. This is expected behavior and not an error —
 # it simply informs you that background data is being retrieved.
-J2020_PSBG <- generate_psmatrixlist_from_background('Jaspar2020', 
-                                                    'hs', c(-200,50), 'hg38')
+J2020_PSBG <- generate_psmatrixlist_from_background(
+  "Jaspar2020",
+  "hs", c(-200, 50), "hg38"
+)
 
 # Execute the Pscan algorithm and view the result table
-results <- pscan(prom_seq, J2020_PSBG, 
-                 BPPARAM = BiocParallel::SnowParam(1))
+results <- pscan(prom_seq, J2020_PSBG,
+  BPPARAM = BiocParallel::SnowParam(1)
+)
 # Use MulticoreParam() for Unix systems (See BiocParallel package).
 
 ps_zscore_heatmap(results, FDR = 0.05)
