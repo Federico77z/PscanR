@@ -1028,9 +1028,12 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
 # = length(x))])
 # })
 
-.ps_assign_score <- function(S, x, AB, ncolx) {
-  sum(x[ncolx + AB[S]]) # Assign score to oligo
-}
+# .ps_assign_score scored a single window one base at a time. It is no longer
+# used: .ps_scan_s now scores all windows at once via matrix indexing. Kept
+# (commented out) for reference.
+# .ps_assign_score <- function(S, x, AB, ncolx) {
+#   sum(x[ncolx + AB[S]]) # Assign score to oligo
+# }
 
 #' Validate a PSMatrix object
 #'
