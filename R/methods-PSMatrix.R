@@ -949,44 +949,62 @@ setMethod(
 
 #' @importMethodsFrom Biostrings maxScore minScore
 setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB) {
-  subS <- strsplit(
-    substring(
-      Seq, seq_len((nchar(Seq) - length(x) + 1)),
-      length(x):nchar(Seq)
-    ), "",
-    fixed = TRUE
-  )
-  prot <- numeric(1)
-
-  scores <- vapply(subS,
-    FUN = .ps_assign_score, FUN.VALUE = prot,
-    x = numx, AB = AB, ncolx = ncolx
-  )
-  scores_rc <- vapply(subS,
-    FUN = .ps_assign_score, FUN.VALUE = prot,
-    x = numx_rc, AB = AB, ncolx = ncolx
-  )
-
+  W <- length(x)
+  N <- nchar(Seq)
+  if (N < W) {
+    return(list(score = -Inf, strand = "+", pos = 1L, oligo = ""))
+  }
+  
+  s_bytes <- as.integer(charToRaw(Seq))
+  s_num <- rep(NA_integer_, N)
+  s_num[s_bytes == 65 | s_bytes == 97] <- 1L
+  s_num[s_bytes == 67 | s_bytes == 99] <- 2L
+  s_num[s_bytes == 71 | s_bytes == 103] <- 3L
+  s_num[s_bytes == 84 | s_bytes == 116] <- 4L
+  
+  M <- matrix(numx, nrow = 4, ncol = W)
+  M_rc <- matrix(numx_rc, nrow = 4, ncol = W)
+  
+  num_windows <- N - W + 1
+  scores <- numeric(num_windows)
+  scores_rc <- numeric(num_windows)
+  
+  for (j in 1:W) {
+    nucs <- s_num[j:(num_windows + j - 1)]
+    scores <- scores + M[nucs, j]
+    scores_rc <- scores_rc + M_rc[nucs, j]
+  }
+  
   mscore_pos <- which.max(scores)
   mscore_rc_pos <- which.max(scores_rc)
-
+  
+  if (length(mscore_pos) == 0 && length(mscore_rc_pos) == 0) {
+    return(list(score = NA_real_, strand = "+", pos = 1L, oligo = substring(Seq, 1, W)))
+  }
+  
+  val_fwd <- if (length(mscore_pos) > 0) scores[mscore_pos] else -Inf
+  val_rev <- if (length(mscore_rc_pos) > 0) scores_rc[mscore_rc_pos] else -Inf
+  
+  if (is.na(val_fwd)) val_fwd <- -Inf
+  if (is.na(val_rev)) val_rev <- -Inf
+  
   res <- list(
     score = numeric(), strand = character(), pos = integer(),
     oligo = character()
   )
-
-  if (scores[mscore_pos] >= scores_rc[mscore_rc_pos]) {
+  
+  if (val_fwd >= val_rev) {
     res$score <- scores[mscore_pos]
     res$strand <- "+"
     res$pos <- mscore_pos
-    res$oligo <- paste(subS[[mscore_pos]], collapse = "")
+    res$oligo <- substring(Seq, mscore_pos, mscore_pos + W - 1)
   } else {
     res$score <- scores_rc[mscore_rc_pos]
     res$strand <- "-"
     res$pos <- mscore_rc_pos
-    res$oligo <- paste(subS[[mscore_rc_pos]], collapse = "")
+    res$oligo <- substring(Seq, mscore_rc_pos, mscore_rc_pos + W - 1)
   }
-
+  
   return(res)
 })
 
