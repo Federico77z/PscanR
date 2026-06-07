@@ -59,6 +59,15 @@ reverse complement strands of the sequences to ensure all potential binding
 sites are detected. Optionally, the background statistics
 (background average and standard deviation) can be computed and used during
 scanning when `BG` is set to `TRUE`.
+
+Each motif position is scored against every window of the sequence; the
+highest-scoring window on either strand is reported. Bases are matched
+case-insensitively, so soft-masked (lower-case) sequence is scored as its
+upper-case equivalent. Any window containing a character outside A/C/G/T
+(for instance `N` or an IUPAC ambiguity code) is skipped. If a sequence is
+shorter than the motif, or contains no scorable window at all (e.g. a fully
+`N`-masked sequence), its score is reported as `NA` so that it does not
+affect the foreground and background averages.
 }
 \examples{
 BG_matrices <- generate_psmatrixlist_from_background(

@@ -837,11 +837,15 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 
 .ps_scan_standard <- function(x, seqs, BG, use_full_BG, fullBG) {
   rc_x <- reverseComplement(x)
+  nrows <- length(.PS_ALPHABET(x))
+  W <- ncol(Matrix(x))
+  # Build the forward and reverse-complement score matrices once and reuse them
+  # for every sequence in this call: they depend only on the motif, not on the
+  # sequence, so there is no need to rebuild them inside .ps_scan_s.
   Margs <- list(
-    numx = as.numeric(Matrix(x)),
-    numx_rc = as.numeric(Matrix(rc_x)),
-    ncolx = (0:(ncol(Matrix(x)) - 1)) * length(.PS_ALPHABET(x)),
-    AB = .PS_ALPHABET(x)
+    M = matrix(as.numeric(Matrix(x)), nrow = nrows, ncol = W),
+    M_rc = matrix(as.numeric(Matrix(rc_x)), nrow = nrows, ncol = W),
+    W = W
   )
   res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
   x <- .ps_add_hits(x,
@@ -908,6 +912,15 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 #' (background average and standard deviation) can be computed and used during
 #' scanning when `BG` is set to `TRUE`.
 #'
+#' Each motif position is scored against every window of the sequence; the
+#' highest-scoring window on either strand is reported. Bases are matched
+#' case-insensitively, so soft-masked (lower-case) sequence is scored as its
+#' upper-case equivalent. Any window containing a character outside A/C/G/T
+#' (for instance `N` or an IUPAC ambiguity code) is skipped. If a sequence is
+#' shorter than the motif, or contains no scorable window at all (e.g. a fully
+#' `N`-masked sequence), its score is reported as `NA` so that it does not
+#' affect the foreground and background averages.
+#'
 #' @examples
 #' BG_matrices <- generate_psmatrixlist_from_background(
 #'   "Jaspar2020", "hs",
@@ -948,64 +961,63 @@ setMethod(
 
 
 #' @importMethodsFrom Biostrings maxScore minScore
-setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, numx, numx_rc, ncolx, AB) {
-  W <- length(x)
+setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
+  # M and M_rc are the (alphabet x width) log-score matrices for the forward
+  # and reverse-complement strands. They are built once per motif by the
+  # caller (.ps_scan_standard / .ps_filter_promoters) and reused for every
+  # sequence, so the per-sequence cost here is just the score accumulation.
   N <- nchar(Seq)
   if (N < W) {
-    return(list(score = -Inf, strand = "+", pos = 1L, oligo = ""))
+    # Sequence shorter than the motif: no window can be scored. Return NA
+    # (not -Inf) so that it is dropped by the na.rm means used for the
+    # foreground and background averages instead of corrupting them.
+    return(list(score = NA_real_, strand = "+", pos = 1L, oligo = ""))
   }
-  
+
+  # Map the sequence to the row indices of M (A = 1, C = 2, G = 3, T = 4),
+  # matching the A,C,G,T row order of the motif matrix (see .PS_ALPHABET).
+  # Both upper- and lower-case bases are mapped, so soft-masked (lower-case)
+  # sequence is scored as its upper-case equivalent rather than being skipped.
+  # Any other character (e.g. N or an IUPAC ambiguity code) stays NA, which
+  # makes every window overlapping it NA and hence ignored by which.max below.
   s_bytes <- as.integer(charToRaw(Seq))
   s_num <- rep(NA_integer_, N)
-  s_num[s_bytes == 65 | s_bytes == 97] <- 1L
-  s_num[s_bytes == 67 | s_bytes == 99] <- 2L
-  s_num[s_bytes == 71 | s_bytes == 103] <- 3L
-  s_num[s_bytes == 84 | s_bytes == 116] <- 4L
-  
-  M <- matrix(numx, nrow = 4, ncol = W)
-  M_rc <- matrix(numx_rc, nrow = 4, ncol = W)
-  
-  num_windows <- N - W + 1
+  s_num[s_bytes == 65L | s_bytes == 97L] <- 1L
+  s_num[s_bytes == 67L | s_bytes == 99L] <- 2L
+  s_num[s_bytes == 71L | s_bytes == 103L] <- 3L
+  s_num[s_bytes == 84L | s_bytes == 116L] <- 4L
+
+  num_windows <- N - W + 1L
   scores <- numeric(num_windows)
   scores_rc <- numeric(num_windows)
-  
-  for (j in 1:W) {
-    nucs <- s_num[j:(num_windows + j - 1)]
+
+  # Accumulate column by column over the W motif positions (vectorised across
+  # all windows at once) instead of looping over the N - W + 1 windows.
+  for (j in seq_len(W)) {
+    nucs <- s_num[j:(num_windows + j - 1L)]
     scores <- scores + M[nucs, j]
     scores_rc <- scores_rc + M_rc[nucs, j]
   }
-  
+
   mscore_pos <- which.max(scores)
   mscore_rc_pos <- which.max(scores_rc)
-  
-  if (length(mscore_pos) == 0 && length(mscore_rc_pos) == 0) {
-    return(list(score = NA_real_, strand = "+", pos = 1L, oligo = substring(Seq, 1, W)))
+
+  # Every window contained a non-ACGT character (e.g. an all-N sequence): both
+  # strands are entirely NA, so there is no scorable hit. Return NA instead of
+  # indexing with a zero-length which.max() result. The forward and reverse
+  # NA patterns are identical (same characters), so the two are empty together.
+  if (length(mscore_pos) == 0L && length(mscore_rc_pos) == 0L) {
+    return(list(score = NA_real_, strand = "+", pos = 1L,
+                oligo = substring(Seq, 1L, W)))
   }
-  
-  val_fwd <- if (length(mscore_pos) > 0) scores[mscore_pos] else -Inf
-  val_rev <- if (length(mscore_rc_pos) > 0) scores_rc[mscore_rc_pos] else -Inf
-  
-  if (is.na(val_fwd)) val_fwd <- -Inf
-  if (is.na(val_rev)) val_rev <- -Inf
-  
-  res <- list(
-    score = numeric(), strand = character(), pos = integer(),
-    oligo = character()
-  )
-  
-  if (val_fwd >= val_rev) {
-    res$score <- scores[mscore_pos]
-    res$strand <- "+"
-    res$pos <- mscore_pos
-    res$oligo <- substring(Seq, mscore_pos, mscore_pos + W - 1)
+
+  if (scores[mscore_pos] >= scores_rc[mscore_rc_pos]) {
+    list(score = scores[mscore_pos], strand = "+", pos = mscore_pos,
+         oligo = substring(Seq, mscore_pos, mscore_pos + W - 1L))
   } else {
-    res$score <- scores_rc[mscore_rc_pos]
-    res$strand <- "-"
-    res$pos <- mscore_rc_pos
-    res$oligo <- substring(Seq, mscore_rc_pos, mscore_rc_pos + W - 1)
+    list(score = scores_rc[mscore_rc_pos], strand = "-", pos = mscore_rc_pos,
+         oligo = substring(Seq, mscore_rc_pos, mscore_rc_pos + W - 1L))
   }
-  
-  return(res)
 })
 
 

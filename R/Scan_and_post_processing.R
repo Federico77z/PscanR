@@ -235,11 +235,13 @@ pscan_fullBG <- function(ID, full_pfms) {
 .ps_filter_promoters <- function(prom_seq, Jmatrix, n) {
     threshold <- ps_bg_avg(Jmatrix) + n * ps_bg_std_dev(Jmatrix)
     rc_matrix <- reverseComplement(Jmatrix)
+    nrows <- length(.PS_ALPHABET(Jmatrix))
+    W <- ncol(Matrix(Jmatrix))
+    # Build the strand score matrices once and reuse them for every sequence.
     Margs <- list(
-    numx = as.numeric(Matrix(Jmatrix)),
-    numx_rc = as.numeric(Matrix(rc_matrix)),
-    ncolx = (0:(ncol(Matrix(Jmatrix)) - 1)) * length(.PS_ALPHABET(Jmatrix)),
-    AB = .PS_ALPHABET(Jmatrix)
+    M = matrix(as.numeric(Matrix(Jmatrix)), nrow = nrows, ncol = W),
+    M_rc = matrix(as.numeric(Matrix(rc_matrix)), nrow = nrows, ncol = W),
+    W = W
     )
     res <- mapply(.ps_scan_s, list(Jmatrix), as.character(prom_seq),
     MoreArgs = Margs
