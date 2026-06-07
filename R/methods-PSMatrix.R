@@ -835,24 +835,146 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
   x
 }
 
-.ps_scan_standard <- function(x, seqs, BG, use_full_BG, fullBG) {
+# .ps_encode_seqs converts a character vector of EQUAL-LENGTH sequences into an
+# (L x Nseq) integer matrix: A = 1, C = 2, G = 3, T = 4 (upper- or lower-case),
+# every other character (e.g. N or an IUPAC code) -> NA. Column i corresponds to
+# sequence i; row order matches the A,C,G,T rows of the motif matrix.
+# Returns NULL when the sequences are empty or not all the same length, which
+# signals the caller to fall back to the per-sequence kernel .ps_scan_s.
+# Doing the encoding once (in the multi-matrix callers) avoids re-encoding every
+# sequence for every motif.
+.ps_encode_seqs <- function(seqs) {
+  n <- length(seqs)
+  if (n == 0L) {
+    return(NULL)
+  }
+  L <- nchar(seqs)
+  if (L[1L] == 0L || any(L != L[1L])) {
+    return(NULL)
+  }
+  b <- as.integer(charToRaw(paste0(seqs, collapse = "")))
+  code <- rep(NA_integer_, length(b))
+  code[b == 65L | b == 97L] <- 1L
+  code[b == 67L | b == 99L] <- 2L
+  code[b == 71L | b == 103L] <- 3L
+  code[b == 84L | b == 116L] <- 4L
+  matrix(code, nrow = L[1L], ncol = n)
+}
+
+# .ps_scan_batched scores every (equal-length) sequence against one motif in a
+# vectorised way: for each of the W motif positions it adds a whole
+# (windows x sequences) slab of scores at once, then selects the best window per
+# sequence. It reproduces .ps_scan_s exactly -- same column-sum order, same
+# which.max() first-hit tie-breaking, same NA handling -- but without a separate
+# R call per sequence. Sequences are processed in blocks to bound peak memory.
+.ps_scan_batched <- function(seqs, S, M, M_rc, W) {
+  n <- ncol(S)
+  L <- nrow(S)
+
+  if (L < W) {
+    # No window fits: NA score, as in .ps_scan_s for too-short sequences.
+    return(list(
+      score = rep(NA_real_, n), strand = rep("+", n),
+      pos = rep(1L, n), oligo = rep("", n)
+    ))
+  }
+
+  nw <- L - W + 1L
+  score <- numeric(n)
+  pos <- integer(n)
+  strand <- character(n)
+  oligo <- character(n)
+
+  # Block over sequences so the (nw x block) score slabs stay bounded.
+  block <- max(1L, as.integer(2e6 %/% nw))
+  starts <- seq.int(1L, n, by = block)
+
+  for (st in starts) {
+    idx <- st:min(st + block - 1L, n)
+    m <- length(idx)
+    Sb <- S[, idx, drop = FALSE]
+
+    scf <- matrix(0, nrow = nw, ncol = m)
+    scr <- matrix(0, nrow = nw, ncol = m)
+    # Accumulate column by column over the W motif positions; the per-window sum
+    # order (j = 1..W) is identical to .ps_scan_s, so scores match bit for bit.
+    for (j in seq_len(W)) {
+      rows <- Sb[j:(nw + j - 1L), , drop = FALSE] # nw x m base codes (NA ok)
+      scf <- scf + M[, j][rows]
+      scr <- scr + M_rc[, j][rows]
+    }
+
+    # Forward and reverse share the same NA pattern (same characters).
+    na_f <- is.na(scf)
+    all_na <- colSums(!na_f) == 0L
+    scf[na_f] <- -Inf
+    scr[na_f] <- -Inf
+
+    fpos <- max.col(t(scf), ties.method = "first")
+    rpos <- max.col(t(scr), ties.method = "first")
+    fval <- scf[cbind(fpos, seq_len(m))]
+    rval <- scr[cbind(rpos, seq_len(m))]
+
+    # Pick the better strand; ties go to the forward strand, as in .ps_scan_s.
+    pick_fwd <- fval >= rval
+    cpos <- rpos
+    cpos[pick_fwd] <- fpos[pick_fwd]
+    cval <- rval
+    cval[pick_fwd] <- fval[pick_fwd]
+    cstr <- rep("-", m)
+    cstr[pick_fwd] <- "+"
+
+    # Sequences with no scorable window (all NA) -> NA score, "+" strand, pos 1.
+    if (any(all_na)) {
+      cval[all_na] <- NA_real_
+      cstr[all_na] <- "+"
+      cpos[all_na] <- 1L
+    }
+
+    block_seqs <- seqs[idx]
+    score[idx] <- cval
+    pos[idx] <- cpos
+    strand[idx] <- cstr
+    # Oligo is the forward-strand substring at the chosen position (as in
+    # .ps_scan_s, which reports the forward oligo for both strands).
+    oligo[idx] <- substring(block_seqs, cpos, cpos + W - 1L)
+  }
+
+  list(score = score, strand = strand, pos = pos, oligo = oligo)
+}
+
+.ps_scan_standard <- function(x, seqs, BG, use_full_BG, fullBG, encoded = NULL) {
   rc_x <- reverseComplement(x)
   nrows <- length(.PS_ALPHABET(x))
   W <- ncol(Matrix(x))
-  # Build the forward and reverse-complement score matrices once and reuse them
-  # for every sequence in this call: they depend only on the motif, not on the
-  # sequence, so there is no need to rebuild them inside .ps_scan_s.
-  Margs <- list(
-    M = matrix(as.numeric(Matrix(x)), nrow = nrows, ncol = W),
-    M_rc = matrix(as.numeric(Matrix(rc_x)), nrow = nrows, ncol = W),
-    W = W
-  )
-  res <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
+  # Forward and reverse-complement score matrices: built once per motif.
+  M <- matrix(as.numeric(Matrix(x)), nrow = nrows, ncol = W)
+  M_rc <- matrix(as.numeric(Matrix(rc_x)), nrow = nrows, ncol = W)
+
+  if (is.null(encoded)) {
+    encoded <- .ps_encode_seqs(seqs)
+  }
+
+  if (!is.null(encoded)) {
+    # Fast path: all sequences are the same length -> vectorised batched scan.
+    res <- .ps_scan_batched(seqs, encoded, M, M_rc, W)
+  } else {
+    # Fallback: sequences of differing length -> per-sequence kernel.
+    Margs <- list(M = M, M_rc = M_rc, W = W)
+    r <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
+    res <- list(
+      score = as.numeric(r["score", ]),
+      strand = as.character(r["strand", ]),
+      pos = as.integer(r["pos", ]),
+      oligo = as.character(r["oligo", ])
+    )
+  }
+
   x <- .ps_add_hits(x,
-    Score = as.numeric(res["score", ]),
-    Strand = as.character(res["strand", ]),
-    Pos = as.integer(res["pos", ]),
-    Oligo = as.character(res["oligo", ]),
+    Score = res$score,
+    Strand = res$strand,
+    Pos = as.integer(res$pos),
+    Oligo = res$oligo,
     BG = BG,
     use_full_BG = use_full_BG,
     fullBG = fullBG
@@ -888,6 +1010,10 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 #'    of background that retains all the background hits score, position,
 #'    strand, and oligonucleotide sequence for each regulatory sequence scanned
 #'    with a PWM.
+#' @param encoded Internal. An optional pre-encoded integer matrix of the
+#'    sequences (one column per sequence) produced by the calling functions to
+#'    avoid re-encoding the same sequences for every motif. Users should leave
+#'    this as the default `NULL`.
 #'
 #' @return A `PSMatrix` object, with updated information about the motif hits
 #'     in the sequences. This includes the positions, strands, scores, and
@@ -937,11 +1063,12 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 #
 #' @usage
 #' \S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE,
-#'   use_full_BG = FALSE, fullBG = FALSE)
+#'   use_full_BG = FALSE, fullBG = FALSE, encoded = NULL)
 setMethod(
   "ps_scan",
   "PSMatrix",
-  function(x, seqs, BG = FALSE, use_full_BG = FALSE, fullBG = FALSE) {
+  function(x, seqs, BG = FALSE, use_full_BG = FALSE, fullBG = FALSE,
+           encoded = NULL) {
     if (!is(seqs, "DNAStringSet") && !use_full_BG) {
       stop("seqs is not an object of DNAStringSet class")
     }
@@ -952,7 +1079,7 @@ setMethod(
     if (use_full_BG == TRUE) {
       x <- .ps_scan_use_full_bg(x, seqs, BG, use_full_BG)
     } else {
-      x <- .ps_scan_standard(x, seqs, BG, use_full_BG, fullBG)
+      x <- .ps_scan_standard(x, seqs, BG, use_full_BG, fullBG, encoded = encoded)
     }
 
     return(x)

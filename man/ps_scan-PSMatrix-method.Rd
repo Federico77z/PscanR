@@ -5,7 +5,7 @@
 \title{Perform a Scan of DNA Sequences Using a `PSMatrix` Object}
 \usage{
 \S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE,
-  use_full_BG = FALSE, fullBG = FALSE)
+  use_full_BG = FALSE, fullBG = FALSE, encoded = NULL)
 }
 \arguments{
 \item{x}{A `PSMatrix` object representing the motif and related statistics
@@ -30,6 +30,11 @@ of computation for the generation of a "full-background", a special case
 of background that retains all the background hits score, position,
 strand, and oligonucleotide sequence for each regulatory sequence scanned
 with a PWM.}
+
+\item{encoded}{Internal. An optional pre-encoded integer matrix of the
+sequences (one column per sequence) produced by the calling functions to
+avoid re-encoding the same sequences for every motif. Users should leave
+this as the default `NULL`.}
 }
 \value{
 A `PSMatrix` object, with updated information about the motif hits

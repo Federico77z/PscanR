@@ -204,3 +204,49 @@ test_that(".ps_scan_s scans correctly and handles edge cases", {
   alln <- PscanR:::.ps_scan_s(PSM, "NNNNNNNN", M, M_rc, W)
   expect_true(is.na(alln$score))
 })
+
+test_that(".ps_scan_batched matches the per-sequence kernel bitwise", {
+  PFM <- PFMatrix(ID = "CONS", name = "Consensus", matrixClass = "PWM",
+                  profileMatrix = matrix(c(20,  0,  0,  0, 20,  0,
+                                            0, 20,  0,  0,  0, 20,
+                                            0,  0, 20,  0,  0,  0,
+                                            0,  0,  0, 20,  0,  0),
+                                         nrow = 4, byrow = TRUE,
+                                         dimnames = list(c("A", "C", "G", "T"))))
+  PSM <- PSMatrix(PFM, ps_bg_avg = 0.5, ps_fg_avg = 0.5,
+                  ps_bg_std_dev = 0.1, ps_bg_size = 100L)
+  W <- ncol(TFBSTools::Matrix(PSM))
+  nr <- length(PscanR:::.PS_ALPHABET(PSM))
+  M <- matrix(as.numeric(TFBSTools::Matrix(PSM)), nrow = nr, ncol = W)
+  M_rc <- matrix(as.numeric(TFBSTools::Matrix(reverseComplement(PSM))),
+                 nrow = nr, ncol = W)
+
+  # Equal-length sequences covering: forward consensus, reverse-complement
+  # consensus, soft-masked (lower-case), an internal N, and an all-N sequence.
+  seqs <- c(fwd  = "TTTTACGTACTTTT",
+            rev  = "TTTTGTACGTTTTT",
+            lc   = "ttttacgtactttt",
+            nmix = "TTTTACGTACTTNN",
+            alln = "NNNNNNNNNNNNNN")
+  S <- PscanR:::.ps_encode_seqs(unname(seqs))
+  expect_false(is.null(S))                 # all equal length -> fast path
+  batched <- PscanR:::.ps_scan_batched(unname(seqs), S, M, M_rc, W)
+
+  # Reference: the per-sequence kernel, one sequence at a time.
+  ref <- lapply(unname(seqs), function(s) PscanR:::.ps_scan_s(PSM, s, M, M_rc, W))
+  ref_score  <- vapply(ref, function(r) as.numeric(r$score),  numeric(1))
+  ref_pos    <- vapply(ref, function(r) as.integer(r$pos),    integer(1))
+  ref_strand <- vapply(ref, function(r) as.character(r$strand), character(1))
+  ref_oligo  <- vapply(ref, function(r) as.character(r$oligo), character(1))
+
+  expect_identical(batched$score,  ref_score)   # bitwise
+  expect_identical(batched$pos,    ref_pos)
+  expect_identical(batched$strand, ref_strand)
+  expect_identical(batched$oligo,  ref_oligo)
+
+  # Equal-length sequences all shorter than the motif -> NA, matching the kernel.
+  shortseqs <- c(a = "ACG", b = "TGC")
+  Ss <- PscanR:::.ps_encode_seqs(unname(shortseqs))
+  bshort <- PscanR:::.ps_scan_batched(unname(shortseqs), Ss, M, M_rc, W)
+  expect_true(all(is.na(bshort$score)))
+})
