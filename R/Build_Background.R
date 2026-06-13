@@ -119,12 +119,16 @@ ps_build_bg <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions(),
 
     pfms <- as(pfms, "PSMatrixList")
 
+    # Encode the sequences once and reuse the encoding for every motif.
+    encoded <- .ps_encode_seqs(as.character(x_unique))
+
     pfms <- bplapply(
     pfms,
     FUN = ps_scan,
     x_unique,
     BG = TRUE,
     fullBG = fullBG,
+    encoded = encoded,
     BPPARAM = BPPARAM,
     BPOPTIONS = BPOPTIONS
     )

@@ -103,11 +103,15 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
     x <- BiocGenerics::unique(x)
     x <- .clean_sequence(x)
 
+    # Encode the sequences once and reuse the encoding for every motif.
+    encoded <- .ps_encode_seqs(as.character(x))
+
     pfms <- BiocParallel::bplapply(
     pfms,
     FUN = ps_scan,
     x,
     BG = FALSE,
+    encoded = encoded,
     BPPARAM = BPPARAM,
     BPOPTIONS = BPOPTIONS
     )
@@ -235,16 +239,21 @@ pscan_fullBG <- function(ID, full_pfms) {
 .ps_filter_promoters <- function(prom_seq, Jmatrix, n) {
     threshold <- ps_bg_avg(Jmatrix) + n * ps_bg_std_dev(Jmatrix)
     rc_matrix <- reverseComplement(Jmatrix)
-    Margs <- list(
-    numx = as.numeric(Matrix(Jmatrix)),
-    numx_rc = as.numeric(Matrix(rc_matrix)),
-    ncolx = (0:(ncol(Matrix(Jmatrix)) - 1)) * length(.PS_ALPHABET(Jmatrix)),
-    AB = .PS_ALPHABET(Jmatrix)
-    )
-    res <- mapply(.ps_scan_s, list(Jmatrix), as.character(prom_seq),
-    MoreArgs = Margs
+    nrows <- length(.PS_ALPHABET(Jmatrix))
+    W <- ncol(Matrix(Jmatrix))
+    # Build the strand score matrices once and reuse them for every sequence.
+    M <- matrix(as.numeric(Matrix(Jmatrix)), nrow = nrows, ncol = W)
+    M_rc <- matrix(as.numeric(Matrix(rc_matrix)), nrow = nrows, ncol = W)
+    seqs <- as.character(prom_seq)
+    encoded <- .ps_encode_seqs(seqs)
+    if (!is.null(encoded)) {
+    Jmatrix@ps_hits_score <- .ps_scan_batched(seqs, encoded, M, M_rc, W)$score
+    } else {
+    res <- mapply(.ps_scan_s, list(Jmatrix), seqs,
+        MoreArgs = list(M = M, M_rc = M_rc, W = W)
     )
     Jmatrix@ps_hits_score <- as.numeric(res["score", ])
+    }
     Jmatrix@ps_hits_score <- .ps_norm_score(Jmatrix)
     Score <- Jmatrix@ps_hits_score
 

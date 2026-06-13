@@ -5,7 +5,7 @@
 \title{Perform a Scan of DNA Sequences Using a `PSMatrix` Object}
 \usage{
 \S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE,
-  use_full_BG = FALSE, fullBG = FALSE)
+  use_full_BG = FALSE, fullBG = FALSE, encoded = NULL)
 }
 \arguments{
 \item{x}{A `PSMatrix` object representing the motif and related statistics
@@ -30,6 +30,11 @@ of computation for the generation of a "full-background", a special case
 of background that retains all the background hits score, position,
 strand, and oligonucleotide sequence for each regulatory sequence scanned
 with a PWM.}
+
+\item{encoded}{Internal. An optional pre-encoded integer matrix of the
+sequences (one column per sequence) produced by the calling functions to
+avoid re-encoding the same sequences for every motif. Users should leave
+this as the default `NULL`.}
 }
 \value{
 A `PSMatrix` object, with updated information about the motif hits
@@ -59,6 +64,15 @@ reverse complement strands of the sequences to ensure all potential binding
 sites are detected. Optionally, the background statistics
 (background average and standard deviation) can be computed and used during
 scanning when `BG` is set to `TRUE`.
+
+Each motif position is scored against every window of the sequence; the
+highest-scoring window on either strand is reported. Bases are matched
+case-insensitively, so soft-masked (lower-case) sequence is scored as its
+upper-case equivalent. Any window containing a character outside A/C/G/T
+(for instance `N` or an IUPAC ambiguity code) is skipped. If a sequence is
+shorter than the motif, or contains no scorable window at all (e.g. a fully
+`N`-masked sequence), its score is reported as `NA` so that it does not
+affect the foreground and background averages.
 }
 \examples{
 BG_matrices <- generate_psmatrixlist_from_background(
