@@ -230,6 +230,8 @@ test_that(".ps_scan_batched matches the per-sequence kernel bitwise", {
             alln = "NNNNNNNNNNNNNN")
   S <- PscanR:::.ps_encode_seqs(unname(seqs))
   expect_false(is.null(S))                 # all equal length -> fast path
+  expect_identical(dim(S), c(length(seqs), unname(nchar(seqs[1L]))))
+  expect_true(attr(S, "has_ambiguous"))
   batched <- PscanR:::.ps_scan_batched(unname(seqs), S, M, M_rc, W)
 
   # Reference: the per-sequence kernel, one sequence at a time.
@@ -243,6 +245,35 @@ test_that(".ps_scan_batched matches the per-sequence kernel bitwise", {
   expect_identical(batched$pos,    ref_pos)
   expect_identical(batched$strand, ref_strand)
   expect_identical(batched$oligo,  ref_oligo)
+
+  # The no-ambiguity fast path skips NA-mask allocation but remains bitwise
+  # identical to the per-sequence kernel.
+  plain_seqs <- unname(seqs[c("fwd", "rev", "lc")])
+  plain_encoded <- PscanR:::.ps_encode_seqs(plain_seqs)
+  expect_false(attr(plain_encoded, "has_ambiguous"))
+  expect_s4_class(attr(plain_encoded, "subject"), "DNAString")
+  plain_batched <- PscanR:::.ps_scan_batched(
+    plain_seqs, plain_encoded, M, M_rc, W
+  )
+  plain_ref <- lapply(plain_seqs, function(s) {
+    PscanR:::.ps_scan_s(PSM, s, M, M_rc, W)
+  })
+  expect_identical(
+    plain_batched$score,
+    vapply(plain_ref, function(r) as.numeric(r$score), numeric(1))
+  )
+  expect_identical(
+    plain_batched$pos,
+    vapply(plain_ref, function(r) as.integer(r$pos), integer(1))
+  )
+  expect_identical(
+    plain_batched$strand,
+    vapply(plain_ref, function(r) as.character(r$strand), character(1))
+  )
+  expect_identical(
+    plain_batched$oligo,
+    vapply(plain_ref, function(r) as.character(r$oligo), character(1))
+  )
 
   # Equal-length sequences all shorter than the motif -> NA, matching the kernel.
   shortseqs <- c(a = "ACG", b = "TGC")

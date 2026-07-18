@@ -836,9 +836,9 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 }
 
 # .ps_encode_seqs converts a character vector of EQUAL-LENGTH sequences into an
-# (L x Nseq) integer matrix: A = 1, C = 2, G = 3, T = 4 (upper- or lower-case),
-# every other character (e.g. N or an IUPAC code) -> NA. Column i corresponds to
-# sequence i; row order matches the A,C,G,T rows of the motif matrix.
+# (Nseq x L) integer matrix: A = 1, C = 2, G = 3, T = 4 (upper- or lower-case),
+# every other character (e.g. N or an IUPAC code) -> NA. Row i corresponds to
+# sequence i; encoded values match the A,C,G,T rows of the motif matrix.
 # Returns NULL when the sequences are empty or not all the same length, which
 # signals the caller to fall back to the per-sequence kernel .ps_scan_s.
 # Doing the encoding once (in the multi-matrix callers) avoids re-encoding every
@@ -858,7 +858,68 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
   code[b == 67L | b == 99L] <- 2L
   code[b == 71L | b == 103L] <- 3L
   code[b == 84L | b == 116L] <- 4L
-  matrix(code, nrow = L[1L], ncol = n)
+  encoded <- matrix(code, nrow = n, ncol = L[1L], byrow = TRUE)
+  has_ambiguous <- anyNA(code)
+  attr(encoded, "has_ambiguous") <- has_ambiguous
+  if (!has_ambiguous && length(code) <= 2e6) {
+    # PWMscoreStartingAt can score every valid offset in one compiled call per
+    # strand. Keep one concatenated subject with the shared encoding so it is
+    # built once for a multi-motif scan rather than once per motif. Large
+    # background scans retain the bounded-memory R path below.
+    attr(encoded, "subject") <- Biostrings::DNAString(
+      paste0(seqs, collapse = "")
+    )
+  }
+  encoded
+}
+
+# Score unambiguous, equal-length sequences through Biostrings' vectorised PWM
+# primitive. Valid starts are selected within each concatenated sequence, so no
+# window can cross a sequence boundary. Matrix layout and tie handling reproduce
+# .ps_scan_s: first window on each strand, then forward strand on equal scores.
+.ps_scan_biostrings <- function(seqs, subject, M, M_rc, W, n, L) {
+  nw <- L - W + 1L
+  subject_width <- n * L
+  starting_at <- seq_len(subject_width - W + 1L)
+  rownames(M) <- Biostrings::DNA_BASES
+  rownames(M_rc) <- Biostrings::DNA_BASES
+
+  score_fwd <- Biostrings::PWMscoreStartingAt(
+    M, subject, starting.at = starting_at
+  )
+  score_rev <- Biostrings::PWMscoreStartingAt(
+    M_rc, subject, starting.at = starting_at
+  )
+
+  # Pad the final W - 1 positions so each sequence occupies one L-sized column.
+  # Only the first nw rows are valid starts within a sequence.
+  length(score_fwd) <- subject_width
+  length(score_rev) <- subject_width
+  dim(score_fwd) <- c(L, n)
+  dim(score_rev) <- c(L, n)
+  score_fwd <- score_fwd[seq_len(nw), , drop = FALSE]
+  score_rev <- score_rev[seq_len(nw), , drop = FALSE]
+
+  fwd_pos <- max.col(t(score_fwd), ties.method = "first")
+  rev_pos <- max.col(t(score_rev), ties.method = "first")
+  columns <- seq_len(n)
+  fwd_value <- score_fwd[cbind(fwd_pos, columns)]
+  rev_value <- score_rev[cbind(rev_pos, columns)]
+  pick_fwd <- fwd_value >= rev_value
+
+  best_pos <- rev_pos
+  best_pos[pick_fwd] <- fwd_pos[pick_fwd]
+  best_value <- rev_value
+  best_value[pick_fwd] <- fwd_value[pick_fwd]
+  best_strand <- rep("-", n)
+  best_strand[pick_fwd] <- "+"
+
+  list(
+    score = best_value,
+    strand = best_strand,
+    pos = best_pos,
+    oligo = unname(substring(seqs, best_pos, best_pos + W - 1L))
+  )
 }
 
 # .ps_scan_batched scores every (equal-length) sequence against one motif in a
@@ -868,8 +929,8 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 # which.max() first-hit tie-breaking, same NA handling -- but without a separate
 # R call per sequence. Sequences are processed in blocks to bound peak memory.
 .ps_scan_batched <- function(seqs, S, M, M_rc, W) {
-  n <- ncol(S)
-  L <- nrow(S)
+  n <- nrow(S)
+  L <- ncol(S)
 
   if (L < W) {
     # No window fits: NA score, as in .ps_scan_s for too-short sequences.
@@ -879,41 +940,57 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     ))
   }
 
+  has_ambiguous <- attr(S, "has_ambiguous", exact = TRUE)
+  subject <- attr(S, "subject", exact = TRUE)
+  if (identical(has_ambiguous, FALSE) && !is.null(subject)) {
+    return(.ps_scan_biostrings(seqs, subject, M, M_rc, W, n, L))
+  }
+
   nw <- L - W + 1L
   score <- numeric(n)
   pos <- integer(n)
   strand <- character(n)
   oligo <- character(n)
 
-  # Block over sequences so the (nw x block) score slabs stay bounded.
-  block <- max(1L, as.integer(2e6 %/% nw))
+  # Keep the two (block x nw) score slabs small enough to fit comfortably in
+  # cache. This also limits memory-bandwidth pressure when motifs are scanned
+  # by several parallel workers.
+  block <- max(1L, as.integer(256e3 %/% nw))
   starts <- seq.int(1L, n, by = block)
+  if (is.null(has_ambiguous)) {
+    has_ambiguous <- anyNA(S)
+  }
 
   for (st in starts) {
     idx <- st:min(st + block - 1L, n)
     m <- length(idx)
-    Sb <- S[, idx, drop = FALSE]
+    Sb <- S[idx, , drop = FALSE]
 
-    scf <- matrix(0, nrow = nw, ncol = m)
-    scr <- matrix(0, nrow = nw, ncol = m)
+    scf <- matrix(0, nrow = m, ncol = nw)
+    scr <- matrix(0, nrow = m, ncol = nw)
     # Accumulate column by column over the W motif positions; the per-window sum
     # order (j = 1..W) is identical to .ps_scan_s, so scores match bit for bit.
     for (j in seq_len(W)) {
-      rows <- Sb[j:(nw + j - 1L), , drop = FALSE] # nw x m base codes (NA ok)
+      rows <- Sb[, j:(nw + j - 1L), drop = FALSE] # m x nw base codes (NA ok)
       scf <- scf + M[, j][rows]
       scr <- scr + M_rc[, j][rows]
     }
 
-    # Forward and reverse share the same NA pattern (same characters).
-    na_f <- is.na(scf)
-    all_na <- colSums(!na_f) == 0L
-    scf[na_f] <- -Inf
-    scr[na_f] <- -Inf
+    if (has_ambiguous) {
+      # Forward and reverse share the same NA pattern (same characters).
+      na_f <- is.na(scf)
+      all_na <- rowSums(!na_f) == 0L
+      scf[na_f] <- -Inf
+      scr[na_f] <- -Inf
+    } else {
+      all_na <- rep(FALSE, m)
+    }
 
-    fpos <- max.col(t(scf), ties.method = "first")
-    rpos <- max.col(t(scr), ties.method = "first")
-    fval <- scf[cbind(fpos, seq_len(m))]
-    rval <- scr[cbind(rpos, seq_len(m))]
+    fpos <- max.col(scf, ties.method = "first")
+    rpos <- max.col(scr, ties.method = "first")
+    block_rows <- seq_len(m)
+    fval <- scf[cbind(block_rows, fpos)]
+    rval <- scr[cbind(block_rows, rpos)]
 
     # Pick the better strand; ties go to the forward strand, as in .ps_scan_s.
     pick_fwd <- fval >= rval
