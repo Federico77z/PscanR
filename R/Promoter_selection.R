@@ -51,30 +51,10 @@ ps_load_select_transcripts <- function(organism = "hg38", cache = TRUE,
         return(readRDS(cache_file))
     }
 
-    mane <- .ps_ucsc_track_by_chrom("mane")
-    mane <- mane[mane$maneStat == "MANE Select" &
-        !is.na(mane$ncbiId) & mane$ncbiId != "", ]
-    mane_select <- data.frame(
-        refseq_id = mane$ncbiId,
-        refseq_clean = .ps_clean_refseq_id(mane$ncbiId),
-        gene_symbol = mane$geneName2,
-        selection_source = "MANE Select",
-        selection_priority = 1L,
-        stringsAsFactors = FALSE
+    select_transcripts <- rbind(
+        .ps_mane_select_transcripts(),
+        .ps_refseq_select_transcripts()
     )
-
-    refseq <- .ps_ucsc_track_by_chrom("ncbiRefSeqSelect")
-    refseq <- refseq[!is.na(refseq$name) & refseq$name != "", ]
-    refseq_select <- data.frame(
-        refseq_id = refseq$name,
-        refseq_clean = .ps_clean_refseq_id(refseq$name),
-        gene_symbol = refseq$name2,
-        selection_source = "RefSeq Select",
-        selection_priority = 2L,
-        stringsAsFactors = FALSE
-    )
-
-    select_transcripts <- rbind(mane_select, refseq_select)
     select_transcripts <- select_transcripts[order(
         select_transcripts$selection_priority,
         select_transcripts$refseq_clean
@@ -89,6 +69,33 @@ ps_load_select_transcripts <- function(organism = "hg38", cache = TRUE,
         saveRDS(select_transcripts, cache_file)
     }
     select_transcripts
+}
+
+.ps_mane_select_transcripts <- function() {
+    mane <- .ps_ucsc_track_by_chrom("mane")
+    mane <- mane[mane$maneStat == "MANE Select" &
+        !is.na(mane$ncbiId) & mane$ncbiId != "", ]
+    data.frame(
+        refseq_id = mane$ncbiId,
+        refseq_clean = .ps_clean_refseq_id(mane$ncbiId),
+        gene_symbol = mane$geneName2,
+        selection_source = "MANE Select",
+        selection_priority = 1L,
+        stringsAsFactors = FALSE
+    )
+}
+
+.ps_refseq_select_transcripts <- function() {
+    refseq <- .ps_ucsc_track_by_chrom("ncbiRefSeqSelect")
+    refseq <- refseq[!is.na(refseq$name) & refseq$name != "", ]
+    data.frame(
+        refseq_id = refseq$name,
+        refseq_clean = .ps_clean_refseq_id(refseq$name),
+        gene_symbol = refseq$name2,
+        selection_source = "RefSeq Select",
+        selection_priority = 2L,
+        stringsAsFactors = FALSE
+    )
 }
 
 #' Select One Representative Promoter per Gene
@@ -188,21 +195,11 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     return <- match.arg(return)
     sequence_names <- match.arg(sequence_names)
 
-    genes <- .ps_norm_gene_vector(genes)
-    if (length(genes) == 0L) {
-        stop("'genes' must contain at least one non-empty value.")
-    }
-
-    if (!is.null(promoter_sequences)) {
-        if (!inherits(promoter_sequences, "DNAStringSet")) {
-            stop("'promoter_sequences' must be a DNAStringSet object.")
-        }
-        promoter_ids <- names(promoter_sequences)
-        if (is.null(promoter_ids) || any(promoter_ids == "")) {
-            stop("'promoter_sequences' must have RefSeq transcript names.")
-        }
-    }
-
+    input <- .ps_validate_promoter_inputs(
+        genes, promoter_sequences, promoter_ids
+    )
+    genes <- input$genes
+    promoter_ids <- input$promoter_ids
     annotation <- .ps_gene_refseq_annotation(
         genes = genes,
         annotation = annotation,
@@ -224,18 +221,40 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
         mode = mode,
         fallback = fallback
     )
+    .ps_format_promoter_selection(
+        mapping, promoter_sequences, return, sequence_names
+    )
+}
 
+.ps_validate_promoter_inputs <- function(genes, promoter_sequences,
+                                         promoter_ids) {
+    genes <- .ps_norm_gene_vector(genes)
+    if (length(genes) == 0L) {
+        stop("'genes' must contain at least one non-empty value.")
+    }
+    if (is.null(promoter_sequences)) {
+        return(list(genes = genes, promoter_ids = promoter_ids))
+    }
+    if (!inherits(promoter_sequences, "DNAStringSet")) {
+        stop("'promoter_sequences' must be a DNAStringSet object.")
+    }
+    promoter_ids <- names(promoter_sequences)
+    if (is.null(promoter_ids) || any(promoter_ids == "")) {
+        stop("'promoter_sequences' must have RefSeq transcript names.")
+    }
+    list(genes = genes, promoter_ids = promoter_ids)
+}
+
+.ps_format_promoter_selection <- function(mapping, promoter_sequences,
+                                          return, sequence_names) {
     if (return == "mapping") {
         return(mapping)
     }
     if (is.null(promoter_sequences)) {
         stop("'promoter_sequences' is required when return is not 'mapping'.")
     }
-
     selected_sequences <- .ps_subset_promoter_sequences(
-        promoter_sequences,
-        mapping,
-        sequence_names
+        promoter_sequences, mapping, sequence_names
     )
     if (return == "sequences") {
         attr(selected_sequences, "ps_gene_promoter_map") <- mapping
@@ -329,6 +348,21 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
 .ps_rank_gene_promoters <- function(genes, annotation, promoter_ids,
                                     select_transcripts, mode, fallback) {
     annotation <- annotation[annotation$gene %in% genes, ]
+    annotation <- .ps_prepare_promoter_candidates(
+        annotation, promoter_ids, select_transcripts, mode
+    )
+    if (nrow(annotation) == 0L) {
+        return(.ps_empty_promoter_mapping())
+    }
+    annotation <- .ps_assign_promoter_priorities(annotation, mode, fallback)
+    if (nrow(annotation) == 0L) {
+        return(.ps_empty_promoter_mapping())
+    }
+    .ps_finalize_promoter_mapping(annotation, genes, mode)
+}
+
+.ps_prepare_promoter_candidates <- function(annotation, promoter_ids,
+                                            select_transcripts, mode) {
     if (!is.null(promoter_ids)) {
         promoter_lookup <- .ps_promoter_lookup(promoter_ids)
         annotation <- merge(annotation, promoter_lookup,
@@ -337,11 +371,6 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     } else {
         annotation$promoter_id <- annotation$refseq_clean
     }
-
-    if (nrow(annotation) == 0L) {
-        return(.ps_empty_promoter_mapping())
-    }
-
     if (mode == "select") {
         if (is.null(select_transcripts)) {
             select_transcripts <- data.frame()
@@ -355,7 +384,10 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
         annotation$selection_source <- NA_character_
         annotation$selection_priority <- NA_integer_
     }
+    annotation
+}
 
+.ps_assign_promoter_priorities <- function(annotation, mode, fallback) {
     annotation$refseq_type <- .ps_refseq_type(annotation$refseq_clean)
     fallback_priority <- .ps_fallback_priority(annotation$refseq_clean)
     fallback_source <- paste("RefSeq", annotation$refseq_type, "fallback")
@@ -379,11 +411,10 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
         annotation$selection_source[is.na(annotation$selection_source)] <-
             fallback_source[is.na(annotation$selection_source)]
     }
+    annotation
+}
 
-    if (nrow(annotation) == 0L) {
-        return(.ps_empty_promoter_mapping())
-    }
-
+.ps_finalize_promoter_mapping <- function(annotation, genes, mode) {
     annotation$input_order <- match(annotation$gene, genes)
     annotation <- annotation[order(
         annotation$input_order,

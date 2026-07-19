@@ -170,16 +170,6 @@ analysis (can be sourced from public databases such as JASPAR).
         </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
-    <code>ps_score_position_BubbleChart()</code>
-</td>
-        <td style="border-bottom: 1px solid #ddd;">
-        Generates a bubble chart to visualize the relationship between the
-        position and score of identified sites along promoter sequences in a
-        PSMatrix object.
-        </td>
-    </tr>
-    <tr>
         <td><code>ps_density_distances_plot()</code></td>
         <td>
         Visualizes the density plot of distances between identified hit sites

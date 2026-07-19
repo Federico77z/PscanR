@@ -526,31 +526,6 @@ The highest density of NRF1 binding occurs around **position -36 bp** along the
 promoters (marked by the dashed vertical line). Another peak is in the region
 -150/-200 bp.
 
-## Bubble chart
-
-```{r chunk-14}
-PscanR::ps_score_position_BubbleChart(results[['MA0506.1']], shift = -200)
-```
-
-This plot visualizes the distribution of binding scores by position for a given
-transcription factor (e.g., NRF1), allowing to inspect both binding affinity and
-position preferences across all input promoter sequences.
-
--   X-axis: Position relative to the TSS (placed on 0)
-
--   Y-axis: Hit scores. Higher values suggest stronger motif enrichment.
-
--   Bubble size: Indicates the number of binding site hits at a given position
-    range and score.
-
--   Colored horizontal lines:
-
-    -   Background average score (red dashed line)
-
-    -   Standard deviation range (delimited by orange dashed lines)
-
-    -   Foreground average score (green solid line)
-
 ```{r chunk-15}
 # Display session information
 sessionInfo()

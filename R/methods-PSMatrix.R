@@ -843,6 +843,16 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 # signals the caller to fall back to the per-sequence kernel .ps_scan_s.
 # Doing the encoding once (in the multi-matrix callers) avoids re-encoding every
 # sequence for every motif.
+.ps_encode_bases <- function(seqs) {
+  b <- as.integer(charToRaw(paste0(seqs, collapse = "")))
+  code <- rep(NA_integer_, length(b))
+  code[b == 65L | b == 97L] <- 1L
+  code[b == 67L | b == 99L] <- 2L
+  code[b == 71L | b == 103L] <- 3L
+  code[b == 84L | b == 116L] <- 4L
+  code
+}
+
 .ps_encode_seqs <- function(seqs) {
   n <- length(seqs)
   if (n == 0L) {
@@ -852,12 +862,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
   if (L[1L] == 0L || any(L != L[1L])) {
     return(NULL)
   }
-  b <- as.integer(charToRaw(paste0(seqs, collapse = "")))
-  code <- rep(NA_integer_, length(b))
-  code[b == 65L | b == 97L] <- 1L
-  code[b == 67L | b == 99L] <- 2L
-  code[b == 71L | b == 103L] <- 3L
-  code[b == 84L | b == 116L] <- 4L
+  code <- .ps_encode_bases(seqs)
   encoded <- matrix(code, nrow = n, ncol = L[1L], byrow = TRUE)
   has_ambiguous <- anyNA(code)
   attr(encoded, "has_ambiguous") <- has_ambiguous
@@ -924,100 +929,93 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 
 # .ps_scan_batched scores every (equal-length) sequence against one motif in a
 # vectorised way: for each of the W motif positions it adds a whole
-# (windows x sequences) slab of scores at once, then selects the best window per
+# (sequence block x windows) slab of scores, then selects the best window per
 # sequence. It reproduces .ps_scan_s exactly -- same column-sum order, same
 # which.max() first-hit tie-breaking, same NA handling -- but without a separate
 # R call per sequence. Sequences are processed in blocks to bound peak memory.
+.ps_pick_block_hits <- function(score_fwd, score_rev, all_na) {
+  n <- nrow(score_fwd)
+  rows <- seq_len(n)
+  fwd_pos <- max.col(score_fwd, ties.method = "first")
+  rev_pos <- max.col(score_rev, ties.method = "first")
+  fwd_value <- score_fwd[cbind(rows, fwd_pos)]
+  rev_value <- score_rev[cbind(rows, rev_pos)]
+  pick_fwd <- fwd_value >= rev_value
+
+  pos <- rev_pos
+  pos[pick_fwd] <- fwd_pos[pick_fwd]
+  score <- rev_value
+  score[pick_fwd] <- fwd_value[pick_fwd]
+  strand <- rep("-", n)
+  strand[pick_fwd] <- "+"
+  if (any(all_na)) {
+    score[all_na] <- NA_real_
+    strand[all_na] <- "+"
+    pos[all_na] <- 1L
+  }
+  list(score = score, strand = strand, pos = pos)
+}
+
+.ps_score_encoded_block <- function(S, M, M_rc, W, nw, has_ambiguous) {
+  n <- nrow(S)
+  score_fwd <- matrix(0, nrow = n, ncol = nw)
+  score_rev <- matrix(0, nrow = n, ncol = nw)
+  for (j in seq_len(W)) {
+    columns <- seq.int(j, nw + j - 1L)
+    bases <- S[, columns, drop = FALSE]
+    score_fwd <- score_fwd + M[, j][bases]
+    score_rev <- score_rev + M_rc[, j][bases]
+  }
+  if (!has_ambiguous) {
+    return(.ps_pick_block_hits(score_fwd, score_rev, rep(FALSE, n)))
+  }
+  missing <- is.na(score_fwd)
+  all_na <- rowSums(!missing) == 0L
+  score_fwd[missing] <- -Inf
+  score_rev[missing] <- -Inf
+  .ps_pick_block_hits(score_fwd, score_rev, all_na)
+}
+
+.ps_scan_encoded_blocks <- function(seqs, S, M, M_rc, W, has_ambiguous) {
+  n <- nrow(S)
+  nw <- ncol(S) - W + 1L
+  score <- numeric(n)
+  pos <- integer(n)
+  strand <- character(n)
+  oligo <- character(n)
+  block <- max(1L, as.integer(256e3 %/% nw))
+
+  for (start in seq.int(1L, n, by = block)) {
+    idx <- seq.int(start, min(start + block - 1L, n))
+    hit <- .ps_score_encoded_block(
+      S[idx, , drop = FALSE], M, M_rc, W, nw, has_ambiguous
+    )
+    score[idx] <- hit$score
+    pos[idx] <- hit$pos
+    strand[idx] <- hit$strand
+    oligo[idx] <- substring(seqs[idx], hit$pos, hit$pos + W - 1L)
+  }
+  list(score = score, strand = strand, pos = pos, oligo = oligo)
+}
+
 .ps_scan_batched <- function(seqs, S, M, M_rc, W) {
   n <- nrow(S)
   L <- ncol(S)
-
   if (L < W) {
-    # No window fits: NA score, as in .ps_scan_s for too-short sequences.
     return(list(
       score = rep(NA_real_, n), strand = rep("+", n),
       pos = rep(1L, n), oligo = rep("", n)
     ))
   }
-
   has_ambiguous <- attr(S, "has_ambiguous", exact = TRUE)
   subject <- attr(S, "subject", exact = TRUE)
   if (identical(has_ambiguous, FALSE) && !is.null(subject)) {
     return(.ps_scan_biostrings(seqs, subject, M, M_rc, W, n, L))
   }
-
-  nw <- L - W + 1L
-  score <- numeric(n)
-  pos <- integer(n)
-  strand <- character(n)
-  oligo <- character(n)
-
-  # Keep the two (block x nw) score slabs small enough to fit comfortably in
-  # cache. This also limits memory-bandwidth pressure when motifs are scanned
-  # by several parallel workers.
-  block <- max(1L, as.integer(256e3 %/% nw))
-  starts <- seq.int(1L, n, by = block)
   if (is.null(has_ambiguous)) {
     has_ambiguous <- anyNA(S)
   }
-
-  for (st in starts) {
-    idx <- st:min(st + block - 1L, n)
-    m <- length(idx)
-    Sb <- S[idx, , drop = FALSE]
-
-    scf <- matrix(0, nrow = m, ncol = nw)
-    scr <- matrix(0, nrow = m, ncol = nw)
-    # Accumulate column by column over the W motif positions; the per-window sum
-    # order (j = 1..W) is identical to .ps_scan_s, so scores match bit for bit.
-    for (j in seq_len(W)) {
-      rows <- Sb[, j:(nw + j - 1L), drop = FALSE] # m x nw base codes (NA ok)
-      scf <- scf + M[, j][rows]
-      scr <- scr + M_rc[, j][rows]
-    }
-
-    if (has_ambiguous) {
-      # Forward and reverse share the same NA pattern (same characters).
-      na_f <- is.na(scf)
-      all_na <- rowSums(!na_f) == 0L
-      scf[na_f] <- -Inf
-      scr[na_f] <- -Inf
-    } else {
-      all_na <- rep(FALSE, m)
-    }
-
-    fpos <- max.col(scf, ties.method = "first")
-    rpos <- max.col(scr, ties.method = "first")
-    block_rows <- seq_len(m)
-    fval <- scf[cbind(block_rows, fpos)]
-    rval <- scr[cbind(block_rows, rpos)]
-
-    # Pick the better strand; ties go to the forward strand, as in .ps_scan_s.
-    pick_fwd <- fval >= rval
-    cpos <- rpos
-    cpos[pick_fwd] <- fpos[pick_fwd]
-    cval <- rval
-    cval[pick_fwd] <- fval[pick_fwd]
-    cstr <- rep("-", m)
-    cstr[pick_fwd] <- "+"
-
-    # Sequences with no scorable window (all NA) -> NA score, "+" strand, pos 1.
-    if (any(all_na)) {
-      cval[all_na] <- NA_real_
-      cstr[all_na] <- "+"
-      cpos[all_na] <- 1L
-    }
-
-    block_seqs <- seqs[idx]
-    score[idx] <- cval
-    pos[idx] <- cpos
-    strand[idx] <- cstr
-    # Oligo is the forward-strand substring at the chosen position (as in
-    # .ps_scan_s, which reports the forward oligo for both strands).
-    oligo[idx] <- substring(block_seqs, cpos, cpos + W - 1L)
-  }
-
-  list(score = score, strand = strand, pos = pos, oligo = oligo)
+  .ps_scan_encoded_blocks(seqs, S, M, M_rc, W, has_ambiguous)
 }
 
 .ps_scan_standard <- function(x, seqs, BG, use_full_BG, fullBG, encoded = NULL) {
@@ -1165,63 +1163,45 @@ setMethod(
 
 
 #' @importMethodsFrom Biostrings maxScore minScore
+.ps_score_single_windows <- function(code, M, M_rc, W) {
+  nw <- length(code) - W + 1L
+  score_fwd <- numeric(nw)
+  score_rev <- numeric(nw)
+  for (j in seq_len(W)) {
+    bases <- code[seq.int(j, nw + j - 1L)]
+    score_fwd <- score_fwd + M[bases, j]
+    score_rev <- score_rev + M_rc[bases, j]
+  }
+  list(forward = score_fwd, reverse = score_rev)
+}
+
+.ps_pick_single_hit <- function(scores, scores_rc, Seq, W) {
+  fwd_pos <- which.max(scores)
+  rev_pos <- which.max(scores_rc)
+  if (length(fwd_pos) == 0L && length(rev_pos) == 0L) {
+    return(list(
+      score = NA_real_, strand = "+", pos = 1L,
+      oligo = substring(Seq, 1L, W)
+    ))
+  }
+  if (scores[fwd_pos] >= scores_rc[rev_pos]) {
+    return(list(
+      score = scores[fwd_pos], strand = "+", pos = fwd_pos,
+      oligo = substring(Seq, fwd_pos, fwd_pos + W - 1L)
+    ))
+  }
+  list(
+    score = scores_rc[rev_pos], strand = "-", pos = rev_pos,
+    oligo = substring(Seq, rev_pos, rev_pos + W - 1L)
+  )
+}
+
 setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
-  # M and M_rc are the (alphabet x width) log-score matrices for the forward
-  # and reverse-complement strands. They are built once per motif by the
-  # caller (.ps_scan_standard / .ps_filter_promoters) and reused for every
-  # sequence, so the per-sequence cost here is just the score accumulation.
-  N <- nchar(Seq)
-  if (N < W) {
-    # Sequence shorter than the motif: no window can be scored. Return NA
-    # (not -Inf) so that it is dropped by the na.rm means used for the
-    # foreground and background averages instead of corrupting them.
+  if (nchar(Seq) < W) {
     return(list(score = NA_real_, strand = "+", pos = 1L, oligo = ""))
   }
-
-  # Map the sequence to the row indices of M (A = 1, C = 2, G = 3, T = 4),
-  # matching the A,C,G,T row order of the motif matrix (see .PS_ALPHABET).
-  # Both upper- and lower-case bases are mapped, so soft-masked (lower-case)
-  # sequence is scored as its upper-case equivalent rather than being skipped.
-  # Any other character (e.g. N or an IUPAC ambiguity code) stays NA, which
-  # makes every window overlapping it NA and hence ignored by which.max below.
-  s_bytes <- as.integer(charToRaw(Seq))
-  s_num <- rep(NA_integer_, N)
-  s_num[s_bytes == 65L | s_bytes == 97L] <- 1L
-  s_num[s_bytes == 67L | s_bytes == 99L] <- 2L
-  s_num[s_bytes == 71L | s_bytes == 103L] <- 3L
-  s_num[s_bytes == 84L | s_bytes == 116L] <- 4L
-
-  num_windows <- N - W + 1L
-  scores <- numeric(num_windows)
-  scores_rc <- numeric(num_windows)
-
-  # Accumulate column by column over the W motif positions (vectorised across
-  # all windows at once) instead of looping over the N - W + 1 windows.
-  for (j in seq_len(W)) {
-    nucs <- s_num[j:(num_windows + j - 1L)]
-    scores <- scores + M[nucs, j]
-    scores_rc <- scores_rc + M_rc[nucs, j]
-  }
-
-  mscore_pos <- which.max(scores)
-  mscore_rc_pos <- which.max(scores_rc)
-
-  # Every window contained a non-ACGT character (e.g. an all-N sequence): both
-  # strands are entirely NA, so there is no scorable hit. Return NA instead of
-  # indexing with a zero-length which.max() result. The forward and reverse
-  # NA patterns are identical (same characters), so the two are empty together.
-  if (length(mscore_pos) == 0L && length(mscore_rc_pos) == 0L) {
-    return(list(score = NA_real_, strand = "+", pos = 1L,
-                oligo = substring(Seq, 1L, W)))
-  }
-
-  if (scores[mscore_pos] >= scores_rc[mscore_rc_pos]) {
-    list(score = scores[mscore_pos], strand = "+", pos = mscore_pos,
-         oligo = substring(Seq, mscore_pos, mscore_pos + W - 1L))
-  } else {
-    list(score = scores_rc[mscore_rc_pos], strand = "-", pos = mscore_rc_pos,
-         oligo = substring(Seq, mscore_rc_pos, mscore_rc_pos + W - 1L))
-  }
+  scores <- .ps_score_single_windows(.ps_encode_bases(Seq), M, M_rc, W)
+  .ps_pick_single_hit(scores$forward, scores$reverse, Seq, W)
 })
 
 

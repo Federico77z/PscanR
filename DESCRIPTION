@@ -3,13 +3,11 @@ Type: Package
 Title: Motif Enrichment Analysis of Regulatory DNA Sequences
 Version: 0.99.0
 Encoding: UTF-8
-Depends: R (>= 4.5.0), BSDA (>= 1.2)
+Depends: R (>= 4.6.0), BSDA (>= 1.2)
 Imports:
     BiocParallel (>= 1.30),
     BiocGenerics (>= 0.40.0),
     Biostrings (>= 2.64),
-    dplyr,
-    ggplot2,
     graphics,
     grDevices (>= 3.6.2),
     httr,
@@ -26,6 +24,7 @@ Suggests:
     BSgenome.Hsapiens.UCSC.hg38 (>= 1.4),
     BSgenome.Mmusculus.UCSC.mm10 (>= 1.4),
     biomaRt,
+    dplyr,
     GenomicFeatures (>= 1.48),
     GenomeInfoDb,
     JASPAR2016 (>= 1.24),
