@@ -4,16 +4,15 @@ author: "Diana Betelli"
 date: "`r Sys.Date()`"
 output:
     BiocStyle::html_document:
-    toc: true
-    toc_depth: 2
+        toc: true
+        toc_depth: 2
 vignette: >
-    %\VignetteIndexEntry{3. How to Generate a Background Model for
-PscanR algorithm}
+    %\VignetteIndexEntry{3. How to Generate a Background Model for PscanR algorithm}
     %\VignetteEncoding{UTF-8}
     %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
-    markdown: 
-    wrap: 80
+editor_options:
+    markdown:
+        wrap: 80
 ---
 
 ```{r setup, include = FALSE}
@@ -302,7 +301,7 @@ if (!requireNamespace("JASPAR2022", quietly = TRUE))
 library("JASPAR2022")
 ```
 
-```{r chunk-4}
+```{r retrieve-jaspar-2022, eval=FALSE}
 opts <- list()
 opts[["collection"]] <- "CORE"  # The desired collection
 opts[["tax_group"]] <- "vertebrates"  # The taxonomic group
@@ -311,6 +310,16 @@ JASPAR_matrices <- TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts)
 
 By adjusting the collection type or taxonomic group, you can tailor the
 selection to your specific research focus.
+
+To keep this vignette reproducible without accessing an external data cache,
+the executable example uses two matrices from the JASPAR2020 collection bundled
+with PscanR:
+
+```{r local-jaspar-matrices}
+matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+example_matrices <- readRDS(matrix_path)[seq_len(2)]
+example_matrices
+```
 
 ### Retrieving motif matrices from JASPAR 2024
 
@@ -325,10 +334,7 @@ if (!requireNamespace("JASPAR2024", quietly = TRUE))
 library(JASPAR2024)
 ```
 
-```{r chunk-5}
-# Disable SSL verification if necessary
-httr::set_config(httr::config(ssl_verifypeer = 0L))
-
+```{r retrieve-jaspar-2024, eval=FALSE}
 # Connect to the JASPAR 2024 database
 JASPAR2024 <- JASPAR2024::JASPAR2024()
 JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), 
@@ -350,7 +356,7 @@ performance. However, the number of cores used should be adjusted based on the
 available hardware. If running on a local machine with limited computational
 power, it is recommended to use only **one core**.
 
-**Warning**: Using **a single core** (`BPPARAM = BiocParallel::SnowParam(1)`)
+**Warning**: Using **a single core** (`BPPARAM = BiocParallel::SerialParam()`)
 will result in **extremely slow computation**, especially with large datasets.
 On a standard PC, the process may take **days** to complete. To significantly
 reduce computation time, it is strongly recommended to run the analysis on a
@@ -362,21 +368,25 @@ computational time.
 For all the systems:
 
 ```{r echo=TRUE}
-J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], 
-                                    JASPAR_matrices, 
-                                    BPPARAM = BiocParallel::SnowParam(1))
+example_PSBG <- PscanR::ps_build_bg(
+    prom_seq[1:10],
+    example_matrices,
+    BPPARAM = BiocParallel::SerialParam()
+)
 
 # Example for the first matrix
-J2022_PSBG[[1]]
+example_PSBG[[1]]
 ```
 
 For Unix-like systems:
 
 ```{r eval=FALSE, include=TRUE}
 # Build the Pscan background
-J2022_PSBG <- PscanR::ps_build_bg(prom_seq[1:10], 
-                                    JASPAR_matrices, 
-                                    BPPARAM = BiocParallel::MulticoreParam(1))
+example_PSBG <- PscanR::ps_build_bg(
+    prom_seq[1:10],
+    example_matrices,
+    BPPARAM = BiocParallel::MulticoreParam(2)
+)
 ```
 
 Refer to the 'Comparing execution time with varying processors' vignette to go
@@ -389,8 +399,10 @@ background to a file for future use.
 
 ```{r eval=FALSE, include=TRUE}
 # Export the background to a file 
-PscanR::ps_write_bg_to_file(J2022_PSBG, 
-                            "J2022_mm10_450u_50d_UCSC_curated.psbg.txt")
+PscanR::ps_write_bg_to_file(
+    example_PSBG,
+    "example_hg38_200u_50d.psbg.txt"
+)
 ```
 
 # The full background

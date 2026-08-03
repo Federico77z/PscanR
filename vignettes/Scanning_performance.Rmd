@@ -38,6 +38,13 @@ column by column over the motif positions, using matrix indexing. The
 per-motif forward and reverse-complement score matrices are also built once and
 reused across every sequence.
 
+For unambiguous, equal-length inputs of moderate size, the current scanner uses
+`Biostrings::PWMscoreStartingAt()` to score all offsets in one vectorised call
+per strand. Starts that would cross a sequence boundary are discarded before
+selecting each sequence's best hit. Ambiguous, unequal-length, and large inputs
+continue through the bounded-memory R paths. PscanR adds no C or C++ code for
+this optimisation.
+
 This vignette quantifies the resulting speed-up across different numbers of
 cores and verifies that the optimisation does **not** change the results.
 

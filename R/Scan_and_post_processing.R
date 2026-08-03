@@ -877,14 +877,6 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
     )
 }
 
-# Bubble Chart of Motif Score vs Position in Promoters
-#
-# This function and its documentation are intentionally commented out because
-# it is no longer needed.
-#
-# ps_score_position_BubbleChart <- function(...) {}
-
-
 .ps_resolve_threshold <- function(st, M, label) {
     if (!is.character(st)) {
     return(st)

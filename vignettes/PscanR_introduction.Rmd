@@ -119,11 +119,27 @@ acronym, promoter region definition, and genome assembly (the last step only for
 Mus musculus and Homo sapiens). Refer to the previous paragraph for the
 available backgrounds.
 
-```{r chunk-1}
+When internet access is available, the background can be downloaded and
+combined with its matching motif collection directly:
+
+```{r download-background, eval=FALSE}
 J2020_PSBG <- PscanR::generate_psmatrixlist_from_background(
-    'Jaspar2020', 'hs', c(-200, 50), 'hg38'
-) 
-J2020_PSBG[[4]] # An example of Matrix
+    "Jaspar2020", "hs", c(-200, 50), "hg38"
+)
+```
+
+For a reproducible offline example, the package includes the equivalent
+JASPAR2020 matrices and background table:
+
+```{r chunk-1}
+matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+background_path <- system.file(
+    "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+    package = "PscanR"
+)
+J2020 <- readRDS(matrix_path)
+J2020_PSBG <- PscanR::ps_retrieve_bg_from_file(background_path, J2020)
+J2020_PSBG[[4]] # An example matrix
 ```
 
 For more details on function parameters and usage, please refer to the PscanR
@@ -380,8 +396,11 @@ sites are missed.
 To execute the motif scan, use the following function:
 
 ```{r chunk-9}
-results <- PscanR::pscan(prom_seq, J2020_PSBG, 
-                    BPPARAM = BiocParallel::SnowParam(1)) 
+results <- PscanR::pscan(
+    prom_seq,
+    J2020_PSBG,
+    BPPARAM = BiocParallel::SerialParam()
+)
 ```
 
 The method scans each input sequence by extracting all possible **k-mers**
@@ -403,11 +422,13 @@ analyzing large datasets. The function `pscan()` utilizes the **BiocParallel**
 package, which enables users to specify different parallelization strategies via
 the `BPPARAM` argument.
 
+The example above uses `SerialParam()` for deterministic single-process
+execution without starting worker processes.
+
 #### **SnowParam vs. MulticoreParam**
 
--   **SnowParam:** (used in the example above) relies on distributed memory
-    computing, making it compatible with all operating systems, including
-    windows.
+-   **SnowParam:** relies on distributed memory computing, making it compatible
+    with all operating systems, including Windows.
 
 -   **MulticoreParam:** uses **forking**, which is generally faster but is only
     supported on **Unix-based systems (Linux/macOS)**.
@@ -525,31 +546,6 @@ bp after.
 The highest density of NRF1 binding occurs around **position -36 bp** along the
 promoters (marked by the dashed vertical line). Another peak is in the region
 -150/-200 bp.
-
-## Bubble chart
-
-```{r chunk-14}
-PscanR::ps_score_position_BubbleChart(results[['MA0506.1']], shift = -200)
-```
-
-This plot visualizes the distribution of binding scores by position for a given
-transcription factor (e.g., NRF1), allowing to inspect both binding affinity and
-position preferences across all input promoter sequences.
-
--   X-axis: Position relative to the TSS (placed on 0)
-
--   Y-axis: Hit scores. Higher values suggest stronger motif enrichment.
-
--   Bubble size: Indicates the number of binding site hits at a given position
-    range and score.
-
--   Colored horizontal lines:
-
-    -   Background average score (red dashed line)
-
-    -   Standard deviation range (delimited by orange dashed lines)
-
-    -   Foreground average score (green solid line)
 
 ```{r chunk-15}
 # Display session information
