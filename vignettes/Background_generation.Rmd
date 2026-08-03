@@ -7,7 +7,7 @@ output:
         toc: true
         toc_depth: 2
 vignette: >
-    %\VignetteIndexEntry{3. How to Generate a Background Model for PscanR algorithm}
+    %\VignetteIndexEntry{3. Generate a PscanR Background Model}
     %\VignetteEncoding{UTF-8}
     %\VignetteEngine{knitr::rmarkdown}
 editor_options:
@@ -51,12 +51,14 @@ Before using Pscan, ensure that all required packages are installed. If not
 already installed, they can be installed using `BiocManager::install()`.
 
 ```{r eval=FALSE, include=TRUE}
-if (!requireNamespace("BiocManager", quietly = TRUE))
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
     install.packages("BiocManager")
+}
 
-BiocManager::install(c("txdbmaker", "GenomicFeatures", "GenomeInfoDb", 
-                        "Biostrings", "TFBSTools", "BiocParallel"))
-
+BiocManager::install(c(
+    "txdbmaker", "GenomicFeatures", "GenomeInfoDb",
+    "Biostrings", "TFBSTools", "BiocParallel"
+))
 ```
 
 Then, load the necessary libraries:
@@ -160,7 +162,7 @@ sequences of interest, without having to recalculate them. To visualize the
 slots use the View() function on the example PSMatrix below.
 
 ```{r chunk-1}
-PathFullBG <- system.file('extdata', 'full_pfm1.rds', package = 'PscanR')
+PathFullBG <- system.file("extdata", "full_pfm1.rds", package = "PscanR")
 FullBG_PSM1 <- readRDS(PathFullBG)
 FullBG_PSM1
 ```
@@ -192,8 +194,10 @@ the promoter regions.
 Example: Importing Human (hg38) Annotations from UCSC
 
 ```{r eval=FALSE, include=TRUE}
-txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", 
-                                    tablename="ncbiRefSeqCurated")
+txdb <- txdbmaker::makeTxDbFromUCSC(
+    genome = "hg38",
+    tablename = "ncbiRefSeqCurated"
+)
 ```
 
 **Alternative: Import from GFF/GTF Files**
@@ -203,10 +207,11 @@ file** from public repositories like **Ensembl, NCBI, or TAIR**. Example with
 *A. thaliana:*
 
 ```{r eval=FALSE, include=TRUE}
-txdb <- txdbmaker::makeTxDbFromGFF('<path_to_your_file>', 
-                                    format = "gff3", 
-                                    dataSource="TAIR9", 
-                                    organism="Arabidopsis thaliana")
+txdb <- txdbmaker::makeTxDbFromGFF("<path_to_your_file>",
+    format = "gff3",
+    dataSource = "TAIR9",
+    organism = "Arabidopsis thaliana"
+)
 ```
 
 ### Handling the Latest Human Genome Assembly (hs1)
@@ -223,7 +228,7 @@ we can filter them accordingly:
 ```{r eval=FALSE, include=TRUE}
 GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24]
 
-# Adjust [1:N] for your species 
+# Adjust [1:N] for your species
 ```
 
 ## Define Promoter Regions
@@ -244,18 +249,20 @@ region that extends **200 base pairs upstream** and
 ```{r eval=FALSE, include=TRUE}
 # Define promoter regions
 
-prom_rng <- GenomicFeatures::promoters(txdb, 
-                                        upstream = 200, 
-                                        downstream = 50, 
-                                        use.names = TRUE)
+prom_rng <- GenomicFeatures::promoters(txdb,
+    upstream = 200,
+    downstream = 50,
+    use.names = TRUE
+)
 ```
 
 To save time on `TxDb` object creation, we have prepared a file containing the
 promoter regions.
 
 ```{r chunk-2}
-promoters_path <- system.file("extdata", "promoters.rds", 
-                            package = "PscanR")
+promoters_path <- system.file("extdata", "promoters.rds",
+    package = "PscanR"
+)
 prom_rng <- readRDS(promoters_path)
 prom_rng
 ```
@@ -269,8 +276,9 @@ genome version, the corresponding `BSgenome` package
 (`BSgenome.Hsapiens.UCSC.hg38`) should be used to ensure consistency.
 
 ```{r eval=FALSE, include=TRUE}
-if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE))
+if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE)) {
     install.packages("BSgenome.Hsapiens.UCSC.hg38")
+}
 library("BSgenome.Hsapiens.UCSC.hg38")
 ```
 
@@ -296,15 +304,16 @@ experimental data, improving the accuracy of motif prediction.
 Example of retrieving motif matrices from **JASPAR 2022**:
 
 ```{r eval=FALSE, include=TRUE}
-if (!requireNamespace("JASPAR2022", quietly = TRUE))
+if (!requireNamespace("JASPAR2022", quietly = TRUE)) {
     install.packages("JASPAR2022")
+}
 library("JASPAR2022")
 ```
 
 ```{r retrieve-jaspar-2022, eval=FALSE}
 opts <- list()
-opts[["collection"]] <- "CORE"  # The desired collection
-opts[["tax_group"]] <- "vertebrates"  # The taxonomic group
+opts[["collection"]] <- "CORE" # The desired collection
+opts[["tax_group"]] <- "vertebrates" # The taxonomic group
 JASPAR_matrices <- TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts)
 ```
 
@@ -329,16 +338,19 @@ an example of how to retrieve transcription factor binding matrices from JASPAR
 2024:
 
 ```{r eval=FALSE, include=TRUE}
-if (!requireNamespace("JASPAR2024", quietly = TRUE))
+if (!requireNamespace("JASPAR2024", quietly = TRUE)) {
     install.packages("JASPAR2024")
+}
 library(JASPAR2024)
 ```
 
 ```{r retrieve-jaspar-2024, eval=FALSE}
 # Connect to the JASPAR 2024 database
 JASPAR2024 <- JASPAR2024::JASPAR2024()
-JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), 
-                                    JASPAR2024::db(JASPAR2024))
+JASPARConnect <- RSQLite::dbConnect(
+    RSQLite::SQLite(),
+    JASPAR2024::db(JASPAR2024)
+)
 
 # Retrieve transcription factor binding matrices
 J2024 <- TFBSTools::getMatrixSet(JASPARConnect, opts)
@@ -398,7 +410,7 @@ You can either directly use the generated background or save the constructed
 background to a file for future use.
 
 ```{r eval=FALSE, include=TRUE}
-# Export the background to a file 
+# Export the background to a file
 PscanR::ps_write_bg_to_file(
     example_PSBG,
     "example_hg38_200u_50d.psbg.txt"

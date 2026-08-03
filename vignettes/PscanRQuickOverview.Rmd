@@ -75,7 +75,7 @@ analysis (can be sourced from public databases such as JASPAR).
     <tbody>
     <tr>
         <td style="border-bottom: 1px solid #ddd;">
-          <code>ps_build_bg()</code>
+            <code>ps_build_bg()</code>
         </td>
         <td style="border-bottom: 1px solid #ddd;">
     Constructs the background by applying the pscan() algorithm to all annotated
@@ -134,7 +134,7 @@ analysis (can be sourced from public databases such as JASPAR).
     </tr>
     <tr>
         <td style="border-bottom: 1px solid #ddd;">
-          <code>ps_z_table()</code>
+            <code>ps_z_table()</code>
         </td>
         <td style="border-bottom: 1px solid #ddd;">
     Creates a matrix of Z-scores for motif occurrences across multiple
