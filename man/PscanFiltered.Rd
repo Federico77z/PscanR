@@ -96,7 +96,7 @@ JM <- bg[[1]]
 res <- PscanFiltered(prom_seq,
   JM,
   background = bg,
-  BPPARAM = BiocParallel::SnowParam(1)
+  BPPARAM = BiocParallel::SerialParam()
 )
 
 }

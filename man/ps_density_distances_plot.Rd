@@ -54,33 +54,26 @@ by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
-# Note that the generation of the example may take few minutes
-#
 # Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
 # -200 +50 bp in respect to the TSS.
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-prom_seq <- readRDS(file_path)
-prom_seq <- prom_seq[25:50]
+prom_seq <- readRDS(file_path)[1:10]
 
-# Retrieve Background PWMs
-# Note: when running this example, you may see a message indicating that
-# a file is being downloaded. This is expected behavior and not an error —
-# it simply informs you that background data is being retrieved.
-J2020_PSBG <- generate_psmatrixlist_from_background(
-  "Jaspar2020",
-  "hs", c(-200, 50), "hg38"
+# Build a two-motif background from bundled files.
+matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+matrices <- readRDS(matrix_path)
+bg_path <- system.file(
+  "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+  package = "PscanR"
+)
+background <- ps_retrieve_bg_from_file(bg_path, matrices)
+background <- background[c("MA0506.1", "MA0632.2")]
+
+results <- pscan(prom_seq, background,
+  BPPARAM = BiocParallel::SerialParam()
 )
 
-
-# Execute the Pscan algorithm and view the result table
-results <- pscan(prom_seq, J2020_PSBG,
-  BPPARAM = BiocParallel::SnowParam(1)
-)
-# Use MulticoreParam() for Unix systems (See BiocParallel package).
-
-pfm1 <- results[[1]]
-pfm2 <- results[[2]]
-ps_density_distances_plot(pfm1, pfm2, "all", "loose")
+ps_density_distances_plot(results[[1]], results[[2]], "all", "loose")
 }
 \seealso{
 \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}},

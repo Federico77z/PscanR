@@ -32,10 +32,10 @@
 #' select_tx <- ps_load_select_transcripts()
 #' head(select_tx)
 #' }
-ps_load_select_transcripts <- function(organism = "hg38", cache = TRUE,
-                                       cache_dir = tools::R_user_dir(
-                                        "PscanR", "cache"
-                                       )) {
+ps_load_select_transcripts <- function(
+    organism = "hg38", cache = TRUE,
+    cache_dir = tools::R_user_dir("PscanR", "cache")
+) {
     if (!identical(organism, "hg38")) {
         stop("Only organism = 'hg38' is currently supported.")
     }
@@ -185,12 +185,16 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
                                 gene_col = keytype,
                                 refseq_col = "REFSEQ",
                                 select_transcripts = NULL,
-                                mode = c("select", "representative",
-                                         "all_transcripts"),
+                                mode = c(
+                                    "select", "representative",
+                                    "all_transcripts"
+                                ),
                                 fallback = TRUE,
                                 return = c("mapping", "sequences", "both"),
-                                sequence_names = c("gene_refseq",
-                                                   "refseq")) {
+                                sequence_names = c(
+                                    "gene_refseq",
+                                    "refseq"
+                                )) {
     mode <- match.arg(mode)
     return <- match.arg(return)
     sequence_names <- match.arg(sequence_names)
@@ -226,8 +230,9 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     )
 }
 
-.ps_validate_promoter_inputs <- function(genes, promoter_sequences,
-                                         promoter_ids) {
+.ps_validate_promoter_inputs <- function(
+    genes, promoter_sequences, promoter_ids
+) {
     genes <- .ps_norm_gene_vector(genes)
     if (length(genes) == 0L) {
         stop("'genes' must contain at least one non-empty value.")
@@ -245,8 +250,9 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     list(genes = genes, promoter_ids = promoter_ids)
 }
 
-.ps_format_promoter_selection <- function(mapping, promoter_sequences,
-                                          return, sequence_names) {
+.ps_format_promoter_selection <- function(
+    mapping, promoter_sequences, return, sequence_names
+) {
     if (return == "mapping") {
         return(mapping)
     }
@@ -298,8 +304,9 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     do.call(rbind, rows)
 }
 
-.ps_gene_refseq_annotation <- function(genes, annotation, org_db, keytype,
-                                       gene_col, refseq_col) {
+.ps_gene_refseq_annotation <- function(
+    genes, annotation, org_db, keytype, gene_col, refseq_col
+) {
     if (is.null(annotation)) {
         if (!requireNamespace("AnnotationDbi", quietly = TRUE)) {
             stop("Package 'AnnotationDbi' is required when annotation is NULL.")
@@ -511,8 +518,9 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     )
 }
 
-.ps_subset_promoter_sequences <- function(promoter_sequences, mapping,
-                                          sequence_names) {
+.ps_subset_promoter_sequences <- function(
+    promoter_sequences, mapping, sequence_names
+) {
     seqs <- promoter_sequences[mapping$promoter_id]
     if (sequence_names == "gene_refseq") {
         names(seqs) <- paste(mapping$gene, mapping$refseq_clean, sep = "|")

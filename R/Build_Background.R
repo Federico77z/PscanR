@@ -80,30 +80,26 @@
 #' @seealso \code{\link{pscan_fullBG}}, \code{\link{ps_write_bg_to_file}}
 #'
 #' @examples
-#' # Note that the generation of the example may take few minutes
-#' #
 #' # Load the example dataset for promoter sequences (hg38 assembly,
 #' # -200 +50 bp in respect to the TSS).
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:10]
+#' prom_seq <- prom_seq[1:3]
 #'
-#' # Load the example dataset for JASPAR2020 matrices collection for
-#' # vertebrates.
+#' # Use two matrices from the bundled JASPAR2020 collection.
 #' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-#' J2020 <- readRDS(J2020_path)
+#' J2020 <- readRDS(J2020_path)[1:2]
 #'
 #' # Generate the background-scored motif matrices
 #' bg_matrices <- ps_build_bg(prom_seq, J2020,
-#'   BPPARAM = BiocParallel::SnowParam(1)
+#'   BPPARAM = BiocParallel::SerialParam()
 #' )
-#' # Use BiocParallel::MulticoreParam() for Unix like systems.
 #' bg_matrices
 #' bg_matrices[[1]]
 #'
 #' # Example for full-background generation
 #' full_bg_matrices <- ps_build_bg(prom_seq, J2020,
-#'   BPPARAM = BiocParallel::SnowParam(1),
+#'   BPPARAM = BiocParallel::SerialParam(),
 #'   fullBG = TRUE
 #' )
 #'
@@ -562,15 +558,24 @@ ps_write_bg_to_file <- function(pfms, file) {
 #' @export
 #'
 #' @examples
-#' # Note: when running this example, you may see a message indicating that
-#' # a file is being downloaded. This is expected behavior and not an error —
-#' # it simply informs you that background data is being retrieved.
-#' bg_matrices <- generate_psmatrixlist_from_background(
-#'   "Jaspar2020", "hs",
-#'   c(-200, 50), "hg38"
+#' # The online helper downloads its matching background and motif collection.
+#' if (interactive()) {
+#'   bg_matrices <- generate_psmatrixlist_from_background(
+#'     "Jaspar2020", "hs",
+#'     c(-200, 50), "hg38"
+#'   )
+#'   bg_matrices[[4]]
+#' }
+#'
+#' # The equivalent bundled files provide a fast, offline example.
+#' bg_path <- system.file(
+#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'   package = "PscanR"
 #' )
-#' bg_matrices
-#' bg_matrices[[4]]
+#' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' matrices <- readRDS(matrix_path)
+#' local_bg_matrices <- ps_retrieve_bg_from_file(bg_path, matrices)
+#' local_bg_matrices[[4]]
 #'
 #' @import httr
 #' @importFrom TFBSTools getMatrixSet

@@ -92,30 +92,26 @@ by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
-# Note that the generation of the example may take few minutes
-#
 # Load the example dataset for promoter sequences (hg38 assembly,
 # -200 +50 bp in respect to the TSS).
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(file_path)
-prom_seq <- prom_seq[1:10]
+prom_seq <- prom_seq[1:3]
 
-# Load the example dataset for JASPAR2020 matrices collection for
-# vertebrates.
+# Use two matrices from the bundled JASPAR2020 collection.
 J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-J2020 <- readRDS(J2020_path)
+J2020 <- readRDS(J2020_path)[1:2]
 
 # Generate the background-scored motif matrices
 bg_matrices <- ps_build_bg(prom_seq, J2020,
-  BPPARAM = BiocParallel::SnowParam(1)
+  BPPARAM = BiocParallel::SerialParam()
 )
-# Use BiocParallel::MulticoreParam() for Unix like systems.
 bg_matrices
 bg_matrices[[1]]
 
 # Example for full-background generation
 full_bg_matrices <- ps_build_bg(prom_seq, J2020,
-  BPPARAM = BiocParallel::SnowParam(1),
+  BPPARAM = BiocParallel::SerialParam(),
   fullBG = TRUE
 )
 

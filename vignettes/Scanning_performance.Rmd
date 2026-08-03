@@ -62,8 +62,12 @@ distributes the work, it does not alter it.
 ```{r eval=FALSE, include=TRUE}
 # Equivalence check (schematic): run the same analysis with each
 # implementation and compare the results tables.
-res_old <- ps_results_table(pscan(prom_seq, bg, BPPARAM = BiocParallel::SerialParam()))
-res_new <- ps_results_table(pscan(prom_seq, bg, BPPARAM = BiocParallel::SerialParam()))
+res_old <- ps_results_table(pscan(
+    prom_seq, bg, BPPARAM = BiocParallel::SerialParam()
+))
+res_new <- ps_results_table(pscan(
+    prom_seq, bg, BPPARAM = BiocParallel::SerialParam()
+))
 
 all.equal(res_old, res_new, check.attributes = FALSE) # TRUE
 ```
@@ -85,20 +89,28 @@ library(BiocParallel)
 
 # 300 motifs with (placeholder) background statistics, 400 sequences
 pfm <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))[1:300]
-bg  <- do.call(PSMatrixList, lapply(pfm, function(p)
-    PSMatrix(p, ps_bg_avg = 0.85, ps_fg_avg = 0.85,
-             ps_bg_std_dev = 0.05, ps_bg_size = 1000L)))
+bg <- do.call(PSMatrixList, lapply(pfm, function(p) {
+    PSMatrix(p,
+        ps_bg_avg = 0.85, ps_fg_avg = 0.85,
+        ps_bg_std_dev = 0.05, ps_bg_size = 1000L
+    )
+}))
 
 set.seed(123)
-mk   <- function(n, w) vapply(seq_len(n), function(i)
-    paste(sample(c("A", "C", "G", "T"), w, TRUE), collapse = ""), character(1))
+mk <- function(n, w) {
+    vapply(seq_len(n), function(i) {
+        paste(sample(c("A", "C", "G", "T"), w, TRUE), collapse = "")
+    }, character(1))
+}
 seqs <- Biostrings::DNAStringSet(setNames(mk(400, 250), paste0("tx", 1:400)))
 
 cores <- c(1, 2, 4, 8)
 timings <- sapply(cores, function(k) {
     bp <- MulticoreParam(workers = k, tasks = k, RNGseed = 1)
-    median(replicate(3,
-        system.time(pscan(seqs, bg, BPPARAM = bp))[["elapsed"]]))
+    median(replicate(
+        3,
+        system.time(pscan(seqs, bg, BPPARAM = bp))[["elapsed"]]
+    ))
 })
 names(timings) <- cores
 ```
@@ -110,7 +122,7 @@ vectorised scanner over the previous implementation:
 
 ```{r results-table}
 perf <- data.frame(
-    cores    = c(1, 2, 4, 8),
+    cores = c(1, 2, 4, 8),
     original = c(78.70, 41.19, 26.67, 27.90),
     vectorised = c(7.28, 3.96, 2.36, 1.12)
 )
@@ -123,35 +135,42 @@ bp <- barplot(t(as.matrix(perf[, c("original", "vectorised")])),
     beside = TRUE, names.arg = perf$cores, log = "y",
     col = c("grey70", "steelblue"),
     xlab = "Cores", ylab = "Median runtime (s, log scale)",
-    main = "pscan() runtime: original vs vectorised scanner")
-legend("topright", fill = c("grey70", "steelblue"),
-    legend = c("original", "vectorised"), bty = "n")
+    main = "pscan() runtime: original vs vectorised scanner"
+)
+legend("topright",
+    fill = c("grey70", "steelblue"),
+    legend = c("original", "vectorised"), bty = "n"
+)
 ```
 
 ```{r speedup-plot, fig.width = 7, fig.height = 5}
-plot(perf$cores, perf$speedup, type = "b", pch = 19, lwd = 2,
+plot(perf$cores, perf$speedup,
+    type = "b", pch = 19, lwd = 2,
     col = "steelblue", xlab = "Cores", ylab = "Speed-up (x)",
-    main = "Speed-up of the vectorised scanner", ylim = c(0, 26))
-text(perf$cores, perf$speedup, labels = paste0(perf$speedup, "x"),
-    pos = 3, cex = 0.9)
+    main = "Speed-up of the vectorised scanner", ylim = c(0, 26)
+)
+text(perf$cores, perf$speedup,
+    labels = paste0(perf$speedup, "x"),
+    pos = 3, cex = 0.9
+)
 ```
 
 # Considerations
 
 * The vectorised scanner is roughly **10-11x faster per core** at 1, 2 and 4
-  cores. This is the genuine algorithmic gain and is independent of
-  parallelisation.
+    cores. This is the genuine algorithmic gain and is independent of
+    parallelisation.
 * At **8 cores** the advantage widens to about **25x**. The reason is that the
-  original implementation stops scaling beyond 4 cores: its heavy per-window
-  allocation puts increasing pressure on memory and garbage collection as more
-  forked workers run, so additional cores bring no benefit (and occasionally
-  hurt). The vectorised scanner allocates far less and keeps scaling.
-* Both implementations scale sub-linearly because part of the work (assembling
-  the `PSMatrixList` and dispatching it to the workers) is sequential; the gain
-  from extra cores therefore diminishes, consistent with the plateau described
-  in the *Comparing execution time with varying processors* vignette.
+    original implementation stops scaling beyond 4 cores: its heavy per-window
+    allocation puts increasing pressure on memory and garbage collection as more
+    forked workers run, so additional cores bring no benefit (and occasionally
+    hurt). The vectorised scanner allocates far less and keeps scaling.
+* Both implementations scale sub-linearly because part of the work
+    (`PSMatrixList` assembly and worker dispatch) is sequential; the gain from
+    extra cores therefore diminishes, consistent with the plateau described in
+    the *Comparing execution time with varying processors* vignette.
 * The absolute numbers depend on the data size and on the machine; the relative
-  speed-up and the identical results are the portable conclusions.
+    speed-up and the identical results are the portable conclusions.
 
 ```{r session-info}
 sessionInfo()

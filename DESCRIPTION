@@ -43,21 +43,21 @@ Suggests:
     txdbmaker (>= 1.0.1)
 biocViews: SequenceMatching, MotifDiscovery, Transcription,
    Alignment, GeneRegulation, MotifAnnotation
-Date: 2022-12-05
+Date: 2026-08-03
 Authors@R: c(person("Federico", "Zambelli", email = "federico.zambelli@unimi.it", 
     role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3487-4331")),
     person("Giulio", "Pavesi", email = "giulio.pavesi@unimi.it", role = "aut",
     comment = c(ORCID = "0000-0001-5705-6249")))
 Description: R implementation of the 'Pscan' algorithm for motif enrichment 
     analysis in regulatory DNA sequences, based on Zambelli et al. (2009) 
-    doi:10.1093/nar/gkp464.
+    <doi:10.1093/nar/gkp464>.
     'PscanR' scans a set of DNA sequences (e.g., promoters) from co-regulated 
     or co-expressed genes, using transcription factor binding motifs from 
     databases such as JASPAR. It identifies significantly enriched motifs,
     providing thus hints on which transcription factors could be common 
     regulators of the genes studied, together with the location of their 
     candidate binding sites in the sequences.
-License: GPL-3 + file LICENSE
+License: GPL-3
 VignetteBuilder: knitr
 URL: https://github.com/Federico77z/PscanR
 BugReports: https://github.com/Federico77z/PscanR/issues
