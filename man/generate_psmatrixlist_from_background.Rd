@@ -72,14 +72,23 @@ combines it with the specified JASPAR matrix collection to create a
 `PSMatrixList` with background statistics.
 }
 \examples{
-# Note: when running this example, you may see a message indicating that
-# a file is being downloaded. This is expected behavior and not an error —
-# it simply informs you that background data is being retrieved.
-bg_matrices <- generate_psmatrixlist_from_background(
-  "Jaspar2020", "hs",
-  c(-200, 50), "hg38"
+# The online helper downloads its matching background and motif collection.
+if (interactive()) {
+  bg_matrices <- generate_psmatrixlist_from_background(
+    "Jaspar2020", "hs",
+    c(-200, 50), "hg38"
+  )
+  bg_matrices[[4]]
+}
+
+# The equivalent bundled files provide a fast, offline example.
+bg_path <- system.file(
+  "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+  package = "PscanR"
 )
-bg_matrices
-bg_matrices[[4]]
+matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+matrices <- readRDS(matrix_path)
+local_bg_matrices <- ps_retrieve_bg_from_file(bg_path, matrices)
+local_bg_matrices[[4]]
 
 }

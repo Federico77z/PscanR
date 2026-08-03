@@ -10,3 +10,4 @@
 ^\.gitignore$
 ^raw_data$
 ^test_and_scripts$
+^PscanR\.BiocCheck$

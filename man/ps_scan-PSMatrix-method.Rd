@@ -75,15 +75,12 @@ shorter than the motif, or contains no scorable window at all (e.g. a fully
 affect the foreground and background averages.
 }
 \examples{
-BG_matrices <- generate_psmatrixlist_from_background(
-  "Jaspar2020", "hs",
-  c(-200, 50), "hg38"
-)
+matrix_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
+matrix <- readRDS(matrix_path)
 file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-prom_seq <- readRDS(file_path)
-prom_seq <- prom_seq[1:25]
+prom_seq <- readRDS(file_path)[1:5]
 
-scanned_result <- ps_scan(BG_matrices[[3]], prom_seq)
+scanned_result <- ps_scan(matrix, prom_seq)
 scanned_result
 
 }

@@ -72,28 +72,29 @@
 #' @export
 #'
 #' @examples
-#' # Note that the example generation may take few minutes
-#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
 #' # -200 +50 bp in respect to the TSS.
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-#' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:10]
+#' prom_seq <- readRDS(file_path)[1:10]
 #'
-#' # Retrieve Background PWMs
-#' # Note: when running this example, you may see a message indicating that
-#' # a file is being downloaded. This is expected behavior and not an error —
-#' # it simply informs you that background data is being retrieved.
-#' J2020_PSBG <- generate_psmatrixlist_from_background(
-#'   "Jaspar2020",
-#'   "hs", c(-200, 50), "hg38"
+#' # Build a small background from bundled files.
+#' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' matrices <- readRDS(matrix_path)
+#' bg_path <- system.file(
+#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'   package = "PscanR"
 #' )
+#' background <- ps_retrieve_bg_from_file(bg_path, matrices)
+#' motif_ids <- c(
+#'   "MA0506.1", "MA0632.2", "MA0615.1",
+#'   "MA0076.2", "MA0645.1", "MA0838.1"
+#' )
+#' background <- background[motif_ids]
 #'
 #' # Execute the PScan algorithm
-#' results <- pscan(prom_seq, J2020_PSBG,
-#'   BPPARAM = BiocParallel::SnowParam(1)
+#' results <- pscan(prom_seq, background,
+#'   BPPARAM = BiocParallel::SerialParam()
 #' )
-#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #'
 #' ps_results_table(results)
 #'
@@ -350,7 +351,7 @@ pscan_fullBG <- function(ID, full_pfms) {
 #' res <- PscanFiltered(prom_seq,
 #'   JM,
 #'   background = bg,
-#'   BPPARAM = BiocParallel::SnowParam(1)
+#'   BPPARAM = BiocParallel::SerialParam()
 #' )
 #'
 #' @export
@@ -427,28 +428,29 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #' examples.
 #'
 #' @examples
-#' # Note that the example generation may take few minutes
-#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
 #' # -200 +50 bp in respect to the TSS.
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-#' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:10]
+#' prom_seq <- readRDS(file_path)[1:10]
 #'
-#' # Retrieve Background PWMs
-#' # Note: when running this example, you may see a message indicating that
-#' # a file is being downloaded. This is expected behavior and not an error —
-#' # it simply informs you that background data is being retrieved.
-#' J2020_PSBG <- generate_psmatrixlist_from_background(
-#'   "Jaspar2020",
-#'   "hs", c(-200, 50), "hg38"
+#' # Build a small background from bundled files.
+#' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' matrices <- readRDS(matrix_path)
+#' bg_path <- system.file(
+#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'   package = "PscanR"
 #' )
+#' background <- ps_retrieve_bg_from_file(bg_path, matrices)
+#' motif_ids <- c(
+#'   "MA0506.1", "MA0632.2", "MA0615.1",
+#'   "MA0076.2", "MA0645.1", "MA0838.1"
+#' )
+#' background <- background[motif_ids]
 #'
 #' # Execute the PScan algorithm and view the result table
-#' results <- pscan(prom_seq, J2020_PSBG,
-#'   BPPARAM = BiocParallel::SnowParam(1)
+#' results <- pscan(prom_seq, background,
+#'   BPPARAM = BiocParallel::SerialParam()
 #' )
-#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #'
 #' ps_results_table(results, FDR = 0.1)
 #'
@@ -510,28 +512,29 @@ ps_results_table <- function(pfms, FDR = 1) {
 #' Higher Z-score values represent stronger motif enrichment.
 #'
 #' @examples
-#' # The generation of the example may take a few minutes
-#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
 #' # -200 +50 bp in respect to the TSS.
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-#' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:10]
+#' prom_seq <- readRDS(file_path)[1:10]
 #'
-#' # Retrieve Background PWMs
-#' # Note: when running this example, you may see a message indicating that
-#' # a file is being downloaded. This is expected behavior and not an error —
-#' # it simply informs you that background data is being retrieved.
-#' J2020_PSBG <- generate_psmatrixlist_from_background(
-#'   "Jaspar2020",
-#'   "hs", c(-200, 50), "hg38"
+#' # Build a small background from bundled files.
+#' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' matrices <- readRDS(matrix_path)
+#' bg_path <- system.file(
+#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'   package = "PscanR"
 #' )
+#' background <- ps_retrieve_bg_from_file(bg_path, matrices)
+#' motif_ids <- c(
+#'   "MA0506.1", "MA0632.2", "MA0615.1",
+#'   "MA0076.2", "MA0645.1", "MA0838.1"
+#' )
+#' background <- background[motif_ids]
 #'
 #' # Execute the Pscan algorithm and view the result table
-#' results <- pscan(prom_seq, J2020_PSBG,
-#'   BPPARAM = BiocParallel::SnowParam(1)
+#' results <- pscan(prom_seq, background,
+#'   BPPARAM = BiocParallel::SerialParam()
 #' )
-#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #'
 #' ps_z_table(results)
 #'
@@ -592,28 +595,29 @@ ps_z_table <- function(pfms) {
 #'   The heatmap is drawn as a side effect.
 #'
 #' @examples
-#' # The generation of the example might take few minutes
-#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
 #' # -200 +50 bp in respect to the TSS.
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-#' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:25]
+#' prom_seq <- readRDS(file_path)[1:10]
 #'
-#' # Retrieve Background PWMs
-#' # Note: when running this example, you may see a message indicating that
-#' # a file is being downloaded. This is expected behavior and not an error —
-#' # it simply informs you that background data is being retrieved.
-#' J2020_PSBG <- generate_psmatrixlist_from_background(
-#'   "Jaspar2020",
-#'   "hs", c(-200, 50), "hg38"
+#' # Build a small background from bundled files.
+#' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' matrices <- readRDS(matrix_path)
+#' bg_path <- system.file(
+#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'   package = "PscanR"
 #' )
+#' background <- ps_retrieve_bg_from_file(bg_path, matrices)
+#' motif_ids <- c(
+#'   "MA0506.1", "MA0632.2", "MA0615.1",
+#'   "MA0076.2", "MA0645.1", "MA0838.1"
+#' )
+#' background <- background[motif_ids]
 #'
 #' # Execute the Pscan algorithm and view the result table
-#' results <- pscan(prom_seq, J2020_PSBG,
-#'   BPPARAM = BiocParallel::SnowParam(1)
+#' results <- pscan(prom_seq, background,
+#'   BPPARAM = BiocParallel::SerialParam()
 #' )
-#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #'
 #' ps_zscore_heatmap(results, FDR = 0.05)
 #'
@@ -697,28 +701,29 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
 #'   The heatmap is drawn as a side effect.
 #'
 #' @examples
-#' # Note that the generation of the example may take few minutes
-#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
 #' # -200 +50 bp in respect to the TSS.
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-#' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:25]
+#' prom_seq <- readRDS(file_path)[1:10]
 #'
-#' # Retrieve Background PWMs
-#' # Note: when running this example, you may see a message indicating that
-#' # a file is being downloaded. This is expected behavior and not an error —
-#' # it simply informs you that background data is being retrieved.
-#' J2020_PSBG <- generate_psmatrixlist_from_background(
-#'   "Jaspar2020",
-#'   "hs", c(-200, 50), "hg38"
+#' # Build a small background from bundled files.
+#' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' matrices <- readRDS(matrix_path)
+#' bg_path <- system.file(
+#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'   package = "PscanR"
 #' )
+#' background <- ps_retrieve_bg_from_file(bg_path, matrices)
+#' motif_ids <- c(
+#'   "MA0506.1", "MA0632.2", "MA0615.1",
+#'   "MA0076.2", "MA0645.1", "MA0838.1"
+#' )
+#' background <- background[motif_ids]
 #'
 #' # Execute the Pscan algorithm and view the result table
-#' results <- pscan(prom_seq, J2020_PSBG,
-#'   BPPARAM = BiocParallel::SnowParam(1)
+#' results <- pscan(prom_seq, background,
+#'   BPPARAM = BiocParallel::SerialParam()
 #' )
-#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
 #'
 #' ps_hitpos_map(results, shift = -200)
 #'
@@ -803,31 +808,9 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 #' examples.
 #'
 #' @examples
-#' # Note that the generation of the example may take few minutes
-#' #
-#' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
-#' # -200 +50 bp in respect to the TSS.
-#' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-#' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[1:25]
-#'
-#' # Retrieve Background PWMs
-#' # Note: when running this example, you may see a message indicating that
-#' # a file is being downloaded. This is expected behavior and not an error —
-#' # it simply informs you that background data is being retrieved.
-#' J2020_PSBG <- generate_psmatrixlist_from_background(
-#'   "Jaspar2020",
-#'   "hs", c(-200, 50), "hg38"
-#' )
-#'
-#' # Execute the Pscan algorithm and view the result table
-#' results <- pscan(prom_seq, J2020_PSBG,
-#'   BPPARAM = BiocParallel::SnowParam(1)
-#' )
-#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
-#'
-#' pfm1 <- results[[1]]
-#' ps_density_plot(pfm1, shift = -200)
+#' matrix_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
+#' matrix <- readRDS(matrix_path)
+#' ps_density_plot(matrix, shift = -200)
 #'
 #' @export
 #' @importFrom grDevices rgb
@@ -955,33 +938,26 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
 #' examples.
 #'
 #' @examples
-#' # Note that the generation of the example may take few minutes
-#' #
 #' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
 #' # -200 +50 bp in respect to the TSS.
 #' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-#' prom_seq <- readRDS(file_path)
-#' prom_seq <- prom_seq[25:50]
+#' prom_seq <- readRDS(file_path)[1:10]
 #'
-#' # Retrieve Background PWMs
-#' # Note: when running this example, you may see a message indicating that
-#' # a file is being downloaded. This is expected behavior and not an error —
-#' # it simply informs you that background data is being retrieved.
-#' J2020_PSBG <- generate_psmatrixlist_from_background(
-#'   "Jaspar2020",
-#'   "hs", c(-200, 50), "hg38"
+#' # Build a two-motif background from bundled files.
+#' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' matrices <- readRDS(matrix_path)
+#' bg_path <- system.file(
+#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'   package = "PscanR"
+#' )
+#' background <- ps_retrieve_bg_from_file(bg_path, matrices)
+#' background <- background[c("MA0506.1", "MA0632.2")]
+#'
+#' results <- pscan(prom_seq, background,
+#'   BPPARAM = BiocParallel::SerialParam()
 #' )
 #'
-#'
-#' # Execute the Pscan algorithm and view the result table
-#' results <- pscan(prom_seq, J2020_PSBG,
-#'   BPPARAM = BiocParallel::SnowParam(1)
-#' )
-#' # Use MulticoreParam() for Unix systems (See BiocParallel package).
-#'
-#' pfm1 <- results[[1]]
-#' pfm2 <- results[[2]]
-#' ps_density_distances_plot(pfm1, pfm2, "all", "loose")
+#' ps_density_distances_plot(results[[1]], results[[2]], "all", "loose")
 #' @export
 ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
                                         st2 = ps_bg_avg(M2)) {

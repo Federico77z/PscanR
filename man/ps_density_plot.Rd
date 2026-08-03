@@ -45,30 +45,8 @@ by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
 \examples{
-# Note that the generation of the example may take few minutes
-#
-# Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
-# -200 +50 bp in respect to the TSS.
-file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-prom_seq <- readRDS(file_path)
-prom_seq <- prom_seq[1:25]
-
-# Retrieve Background PWMs
-# Note: when running this example, you may see a message indicating that
-# a file is being downloaded. This is expected behavior and not an error —
-# it simply informs you that background data is being retrieved.
-J2020_PSBG <- generate_psmatrixlist_from_background(
-  "Jaspar2020",
-  "hs", c(-200, 50), "hg38"
-)
-
-# Execute the Pscan algorithm and view the result table
-results <- pscan(prom_seq, J2020_PSBG,
-  BPPARAM = BiocParallel::SnowParam(1)
-)
-# Use MulticoreParam() for Unix systems (See BiocParallel package).
-
-pfm1 <- results[[1]]
-ps_density_plot(pfm1, shift = -200)
+matrix_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
+matrix <- readRDS(matrix_path)
+ps_density_plot(matrix, shift = -200)
 
 }
