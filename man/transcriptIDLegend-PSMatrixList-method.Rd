@@ -21,8 +21,8 @@ a `PSMatrixList` object.
 }
 \examples{
 full_pfms_path <- system.file("extdata",
-  "full_pfms.rds",
-  package = "PscanR"
+    "full_pfms.rds",
+    package = "PscanR"
 )
 full_pfms <- readRDS(full_pfms_path)
 head(transcriptIDLegend(full_pfms))
