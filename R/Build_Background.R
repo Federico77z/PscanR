@@ -179,7 +179,7 @@ ps_build_bg <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions(),
 #'
 #' Other background datasets are available at the public repository
 #' PscanR_background on GitHub:
-#' \url{https://github.com/dianabetelli/PscanR_backgrounds}
+#' \url{https://github.com/Federico77z/PscanR_backgrounds}
 #' See vignettes for further details on the type of background available.
 #'
 #' @seealso \code{\link{ps_build_bg}}, \code{\link{ps_write_bg_to_file}},
@@ -455,32 +455,7 @@ ps_write_bg_to_file <- function(pfms, file) {
     )
 }
 
-# .ps_bg_filename and .ps_load_jaspar_collection are internal helpers used by
-# generate_psmatrixlist_from_background.
-.ps_bg_filename <- function(JASPAR_matrix, org, prom_reg, assembly, version) {
-    organism_map <- c(
-    "hs" = assembly, "mm" = assembly, "at" = "TAIR9",
-    "sc" = "sacCer3", "dm" = "dm6"
-    )
-    org_assembly <- if (org %in% names(organism_map)) {
-    organism_map[[org]]
-    } else {
-    NULL
-    }
-    Jversion <- substr(JASPAR_matrix, 7, 10)
-    p_up <- abs(prom_reg[1])
-    p_down <- abs(prom_reg[2])
-    file_suffix <- ifelse(
-    org_assembly == "TAIR9",
-    sprintf("TAIR.psbg%s.txt", version),
-    sprintf("UCSC.psbg%s.txt", version)
-    )
-    paste0(
-    "J", Jversion, "_", org_assembly, "_", p_up, "u_", p_down,
-    "d_", file_suffix
-    )
-}
-
+# Internal JASPAR loader used by generate_psmatrixlist_from_background.
 .ps_load_jaspar_collection <- function(JASPAR_matrix, org) {
     tax_map <- c(
     "hs" = "vertebrates", "mm" = "vertebrates", "at" = "plants",
@@ -492,14 +467,18 @@ ps_write_bg_to_file <- function(pfms, file) {
     "JASPAR2020" = TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts),
     "JASPAR2022" = TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts),
     "JASPAR2024" = {
-        httr::set_config(httr::config(ssl_verifypeer = 0L))
         JASPAR2024 <- JASPAR2024::JASPAR2024()
         JASPARConnect <- RSQLite::dbConnect(
         RSQLite::SQLite(),
         JASPAR2024::db(JASPAR2024)
         )
+        on.exit(RSQLite::dbDisconnect(JASPARConnect), add = TRUE)
         TFBSTools::getMatrixSet(JASPARConnect, opts)
-    }
+    },
+    stop(
+        "JASPAR_matrix must be one of JASPAR2020, JASPAR2022, or JASPAR2024",
+        call. = FALSE
+    )
     )
 }
 
@@ -534,11 +513,10 @@ ps_write_bg_to_file <- function(pfms, file) {
 #'   mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
 #'   For `"mm"` you can specify `"mm10"` or `"mm39"`. Required for `"hs"` and
 #'   `"mm"`; ignored for other organisms.
-#' @param version A string indicating the version number of the desired
-#'   background. Since annotations may evolve over time, multiple versions
-#'   of the same background could exist. Default is '1', corresponding
-#'   to the first set of backgrounds generated between late 2024 and early
-#'   2025. Currently, only this initial version is available.
+#' @param version A string indicating the desired immutable background version,
+#'   or `"latest"` to retrieve the latest validated version in the background
+#'   catalog. The default is `"latest"`. Use an explicit positive integer such
+#'   as `"1"` when an analysis must remain pinned to a specific background.
 #' @param destfile A string indicating the path where the downloaded background
 #'   .txt file should be saved. This tab-separated file contains the matrix
 #'   identifiers, background size, average background score, and standard
@@ -548,10 +526,11 @@ ps_write_bg_to_file <- function(pfms, file) {
 #'
 #' @details
 #' The background files are downloaded from the GitHub repository:
-#' \url{https://github.com/dianabetelli/PscanR_backgrounds}
+#' \url{https://github.com/Federico77z/PscanR_backgrounds}
 #' This function automatically fetches the appropriate background file and
 #' combines it with the specified JASPAR matrix collection to create a
-#' `PSMatrixList` with background statistics.
+#' `PSMatrixList` with background statistics. Downloads are checked against
+#' the SHA-256 value recorded in the repository catalog.
 #'
 #' @return A `PSMatrixList` object with background-scored motif matrices.
 #'
@@ -577,29 +556,30 @@ ps_write_bg_to_file <- function(pfms, file) {
 #' local_bg_matrices <- ps_retrieve_bg_from_file(bg_path, matrices)
 #' local_bg_matrices[[4]]
 #'
-#' @import httr
 #' @importFrom TFBSTools getMatrixSet
 generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
                                                     assembly = character(),
-                                                    version = "1",
+                                                    version = "latest",
                                                     destfile = NULL) {
-    file_name <- .ps_bg_filename(
-    JASPAR_matrix,
-    org,
-    prom_reg,
-    assembly,
-    version
+    catalog <- .ps_read_bg_catalog()
+    entry <- .ps_resolve_bg_catalog(
+        catalog, JASPAR_matrix, org, prom_reg, assembly, version
     )
-    AvailableBG <- get_availableBG()
-    if (!(file_name %in% AvailableBG)) {
-    stop(sprintf(
-        "Invalid file name: '%s'\\n\\nPlease run 'get_availableBG()' %s",
-        file_name,
-        "to see the list of available background files"
-    ))
-    }
-    BG_path <- .download_background(file = file_name, destfile = destfile)
+    BG_path <- .download_background(
+        file = entry$artifact[[1]], destfile = destfile,
+        sha256 = entry$artifact_sha256[[1]]
+    )
     J_matrix <- .ps_load_jaspar_collection(JASPAR_matrix, org)
+    background_ids <- row.names(utils::read.table(
+        BG_path, header = FALSE, row.names = 1, skip = 1
+    ))
+    matrix_ids <- TFBSTools::ID(J_matrix)
+    if (!setequal(background_ids, matrix_ids)) {
+    stop(
+        "Background motif IDs do not match the installed JASPAR collection",
+        call. = FALSE
+    )
+    }
     ps_retrieve_bg_from_file(BG_path, J_matrix)
 }
 
@@ -613,7 +593,11 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #' details paragraph for further information.
 #'
 #' @param keyword A string to filter the file names. Default is NULL, so the
-#'    complete list of available file names is printed
+#'    complete list of available file names is returned.
+#' @param details Logical. If `FALSE` (the default), return the filename vector
+#'    used by earlier PscanR versions. If `TRUE`, return matching rows from the
+#'    background catalog, including versions, latest status, provenance, and
+#'    checksums.
 #'
 #' @details
 #' Some information for the filtering:
@@ -630,40 +614,32 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #' @seealso \code{\link{generate_psmatrixlist_from_background}},
 #' \code{\link{ps_retrieve_bg_from_file}}
 #'
-#' @return A character vector containing the names of the available background
-#' files
+#' @return A character vector containing available background filenames, or a
+#' catalog `data.frame` when `details = TRUE`.
 #'
 #' @examples
-#' head(get_availableBG())
-#' get_availableBG("mm10")
-#' get_availableBG("hs1.*450u_50d")
+#' if (interactive()) {
+#'   head(get_availableBG())
+#'   get_availableBG("mm10")
+#'   get_availableBG("hs1.*450u_50d", details = TRUE)
+#' }
 #'
-#' @import httr
 #' @export
-get_availableBG <- function(keyword = NULL) {
-    url <- paste0(
-    "https://api.github.com/repos/",
-    "dianabetelli/PscanR_backgrounds/contents/BG_files"
-    )
-
-    response <- httr::GET(url)
-
-    httr::stop_for_status(response)
-
-    files_info <- content(response)
-    file_names <- vapply(files_info, function(file) file$name, character(1))
-
+get_availableBG <- function(keyword = NULL, details = FALSE) {
+    if (!is.logical(details) || length(details) != 1L || is.na(details)) {
+    stop("details must be TRUE or FALSE", call. = FALSE)
+    }
+    catalog <- .ps_read_bg_catalog()
+    catalog <- catalog[catalog$status == "validated", , drop = FALSE]
+    file_names <- basename(catalog$artifact)
     if (!is.null(keyword)) {
-    if (!is.character(keyword)) {
-        stop("Keyword parameter must be a string")
+    if (!is.character(keyword) || length(keyword) != 1L || is.na(keyword)) {
+        stop("keyword must be a single string", call. = FALSE)
     }
-    filtered_file_names <- file_names[grep(keyword, file_names)]
-    if (length(filtered_file_names) != 0) {
-        return(filtered_file_names)
-    } else {
-        stop("Found 0 match with: ", keyword)
+    keep <- grep(keyword, file_names)
+    if (!length(keep)) stop("Found 0 matches for: ", keyword, call. = FALSE)
+    catalog <- catalog[keep, , drop = FALSE]
+    file_names <- file_names[keep]
     }
-    } else {
-    return(file_names)
-    }
+    if (details) catalog else file_names
 }

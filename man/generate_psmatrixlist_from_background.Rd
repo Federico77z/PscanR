@@ -9,7 +9,7 @@ generate_psmatrixlist_from_background(
   org,
   prom_reg,
   assembly = character(),
-  version = "1",
+  version = "latest",
   destfile = NULL
 )
 }
@@ -42,11 +42,10 @@ mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
 For `"mm"` you can specify `"mm10"` or `"mm39"`. Required for `"hs"` and
 `"mm"`; ignored for other organisms.}
 
-\item{version}{A string indicating the version number of the desired
-background. Since annotations may evolve over time, multiple versions
-of the same background could exist. Default is '1', corresponding
-to the first set of backgrounds generated between late 2024 and early
-2025. Currently, only this initial version is available.}
+\item{version}{A string indicating the desired immutable background version,
+or `"latest"` to retrieve the latest validated version in the background
+catalog. The default is `"latest"`. Use an explicit positive integer such
+as `"1"` when an analysis must remain pinned to a specific background.}
 
 \item{destfile}{A string indicating the path where the downloaded background
 .txt file should be saved. This tab-separated file contains the matrix
@@ -66,10 +65,11 @@ It returns a `PSMatrixList` object with background statistics.
 }
 \details{
 The background files are downloaded from the GitHub repository:
-\url{https://github.com/dianabetelli/PscanR_backgrounds}
+\url{https://github.com/Federico77z/PscanR_backgrounds}
 This function automatically fetches the appropriate background file and
 combines it with the specified JASPAR matrix collection to create a
-`PSMatrixList` with background statistics.
+`PSMatrixList` with background statistics. Downloads are checked against
+the SHA-256 value recorded in the repository catalog.
 }
 \examples{
 # The online helper downloads its matching background and motif collection.

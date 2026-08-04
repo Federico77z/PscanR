@@ -26,7 +26,7 @@ test_that("PscanR works", {
                                     "NM_000756.8", "NM_001094.2"))
   pfms <- PSMatrixList(PSM1, PSM2)
   
-  result <- pscan(x, pfms, BPPARAM = BiocParallel::SnowParam(1))
+  result <- pscan(x, pfms, BPPARAM = BiocParallel::SerialParam())
   
   # The result is of PSMatrixList class
   
@@ -38,7 +38,7 @@ test_that("PscanR works", {
   
   # Invalid input 
   err_pfms <- c(5,6,89,4)
-  expect_error(pscan(x, err_pfms, BPPARAM = BiocParallel::SnowParam(1)), 
+  expect_error(pscan(x, err_pfms, BPPARAM = BiocParallel::SerialParam()),
                "pfms is not an object of PSMatrixList class")
   
   
@@ -72,7 +72,7 @@ test_that("ps_result_table works", {
                                     "NM_000756.8", "NM_001094.2"))
   pfms <- PSMatrixList(PSM1, PSM2)
   
-  result <- pscan(x, pfms, BPPARAM = BiocParallel::SnowParam(1))
+  result <- pscan(x, pfms, BPPARAM = BiocParallel::SerialParam())
   
   table <- ps_results_table(result)
   filtered_table <- ps_results_table(result, FDR = max(table$FDR))
@@ -133,7 +133,7 @@ test_that("ps_z_table works",{
                                     "NM_000756.8", "NM_001094.2"))
   pfms <- PSMatrixList(PSM1, PSM2)
   
-  result <- pscan(x, pfms, BPPARAM = BiocParallel::SnowParam(1))
+  result <- pscan(x, pfms, BPPARAM = BiocParallel::SerialParam())
   z_table <- ps_z_table(result)
   
   # Expect a valid output

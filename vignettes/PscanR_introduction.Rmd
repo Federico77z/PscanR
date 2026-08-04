@@ -80,7 +80,7 @@ outcomes.
 
 For convenience, several background models have already been computed and
 optimized to meet common research needs. Precomputed backgrounds are stored in a
-public repository at <https://github.com/dianabetelli/PscanR_backgrounds> for
+public repository at <https://github.com/Federico77z/PscanR_backgrounds> for
 the following species:
 
 -   *Homo sapiens* (both hg38 and hs1 assembly)
@@ -127,6 +127,12 @@ J2020_PSBG <- PscanR::generate_psmatrixlist_from_background(
     "Jaspar2020", "hs", c(-200, 50), "hg38"
 )
 ```
+
+By default, the helper resolves the latest validated background in the
+repository catalog and verifies its SHA-256 checksum. For a reproducible
+analysis that must remain tied to an older annotation snapshot, set an explicit
+immutable version, for example `version = "1"`. Use
+`get_availableBG(details = TRUE)` to inspect versions and provenance.
 
 For a reproducible offline example, the package includes the equivalent
 JASPAR2020 matrices and background table:

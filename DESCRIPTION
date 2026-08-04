@@ -10,7 +10,6 @@ Imports:
     Biostrings (>= 2.64),
     graphics,
     grDevices (>= 3.6.2),
-    httr,
     methods,
     pheatmap,
     RSQLite,
