@@ -1,3 +1,33 @@
+test_that("ps_load_select_transcripts returns cached metadata offline", {
+  cache_dir <- tempfile("pscanr-select-")
+  dir.create(cache_dir)
+  on.exit(unlink(cache_dir, recursive = TRUE), add = TRUE)
+
+  cache_file <- file.path(
+    cache_dir,
+    "hg38_mane_refseq_select_transcripts.rds"
+  )
+  cached_tx <- data.frame(
+    refseq_id = c("NM_000546.6", "NM_000492.4"),
+    refseq_clean = c("NM_000546", "NM_000492"),
+    gene_symbol = c("TP53", "CFTR"),
+    selection_source = c("MANE Select", "RefSeq Select"),
+    selection_priority = c(1L, 2L)
+  )
+  saveRDS(cached_tx, cache_file)
+
+  local_mocked_bindings(
+    .ps_mane_select_transcripts = function() stop("Unexpected network call"),
+    .ps_refseq_select_transcripts = function() stop("Unexpected network call"),
+    .package = "PscanR"
+  )
+
+  expect_identical(
+    ps_load_select_transcripts(cache_dir = cache_dir),
+    cached_tx
+  )
+})
+
 test_that("ps_select_promoters ranks select transcripts before fallback", {
   annotation <- data.frame(
     SYMBOL = c(

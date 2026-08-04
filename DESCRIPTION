@@ -61,5 +61,6 @@ License: GPL-3
 VignetteBuilder: knitr
 URL: https://github.com/Federico77z/PscanR
 BugReports: https://github.com/Federico77z/PscanR/issues
-RoxygenNote: 7.3.3
+RoxygenNote: 8.0.0
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0

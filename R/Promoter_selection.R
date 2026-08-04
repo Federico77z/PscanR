@@ -28,9 +28,28 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' select_tx <- ps_load_select_transcripts()
+#' cache_dir <- tempfile("pscanr-select-")
+#' dir.create(cache_dir)
+#' cache_file <- file.path(
+#'     cache_dir,
+#'     "hg38_mane_refseq_select_transcripts.rds"
+#' )
+#' example_tx <- data.frame(
+#'     refseq_id = c("NM_000546.6", "NM_000492.4"),
+#'     refseq_clean = c("NM_000546", "NM_000492"),
+#'     gene_symbol = c("TP53", "CFTR"),
+#'     selection_source = c("MANE Select", "RefSeq Select"),
+#'     selection_priority = c(1L, 2L)
+#' )
+#' saveRDS(example_tx, cache_file)
+#'
+#' select_tx <- ps_load_select_transcripts(cache_dir = cache_dir)
 #' head(select_tx)
+#' unlink(cache_dir, recursive = TRUE)
+#'
+#' if (interactive()) {
+#'     current_select_tx <- ps_load_select_transcripts()
+#'     head(current_select_tx)
 #' }
 ps_load_select_transcripts <- function(
     organism = "hg38", cache = TRUE,
@@ -39,9 +58,6 @@ ps_load_select_transcripts <- function(
     if (!identical(organism, "hg38")) {
         stop("Only organism = 'hg38' is currently supported.")
     }
-    if (!requireNamespace("jsonlite", quietly = TRUE)) {
-        stop("Package 'jsonlite' is required to download select transcripts.")
-    }
 
     cache_file <- file.path(
         cache_dir,
@@ -49,6 +65,9 @@ ps_load_select_transcripts <- function(
     )
     if (cache && file.exists(cache_file)) {
         return(readRDS(cache_file))
+    }
+    if (!requireNamespace("jsonlite", quietly = TRUE)) {
+        stop("Package 'jsonlite' is required to download select transcripts.")
     }
 
     select_transcripts <- rbind(

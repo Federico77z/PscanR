@@ -1170,7 +1170,7 @@ setMethod(
 )
 
 
-#' @importMethodsFrom Biostrings maxScore minScore
+#' @importMethodsFrom Biostrings maxScore minScore reverseComplement
 .ps_score_single_windows <- function(code, M, M_rc, W) {
     nw <- length(code) - W + 1L
     score_fwd <- numeric(nw)
@@ -1211,9 +1211,6 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
     scores <- .ps_score_single_windows(.ps_encode_bases(Seq), M, M_rc, W)
     .ps_pick_single_hit(scores$forward, scores$reverse, Seq, W)
 })
-
-
-#' @importMethodsFrom Biostrings reverseComplement
 
 # setMethod(".ps_assign_score", "PSMatrix", function(x, S){
 # sum(Matrix(x)[matrix(data = c(.PS_ALPHABET(x)[S], 1:length(x)), ncol = 2, nrow
