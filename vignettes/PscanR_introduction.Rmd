@@ -79,9 +79,11 @@ outcomes.
 ## Pre-computed background models
 
 For convenience, several background models have already been computed and
-optimized to meet common research needs. Precomputed backgrounds are stored in a
-public repository at <https://github.com/Federico77z/PscanR_backgrounds> for
-the following species:
+optimized to meet common research needs. Version-2 backgrounds are archived in
+the immutable Zenodo record <https://doi.org/10.5281/zenodo.21821764> and are
+distributed through ExperimentHub. The generation framework and legacy files
+remain available from
+<https://github.com/Federico77z/PscanR_backgrounds>. Supported species are:
 
 -   *Homo sapiens* (both hg38 and hs1 assembly)
 
@@ -113,11 +115,10 @@ in the analysis.
 ### Loading a Pre-Computed Background
 
 To load a pre-computed background model, PscanR provides a dedicated function to
-retrieve the .txt files stored in the PscanR_backgrounds repository and generate
-the required PSMatrixList. This requires specifying the JASPAR release, species
-acronym, promoter region definition, and genome assembly (the last step only for
-Mus musculus and Homo sapiens). Refer to the previous paragraph for the
-available backgrounds.
+retrieve the required background and generate the `PSMatrixList`. This requires
+specifying the JASPAR release, species acronym, promoter region definition, and
+genome assembly (the last argument only for *Mus musculus* and *Homo sapiens*).
+Refer to the previous paragraph for the available backgrounds.
 
 When internet access is available, the background can be downloaded and
 combined with its matching motif collection directly:
@@ -128,11 +129,14 @@ J2020_PSBG <- PscanR::generate_psmatrixlist_from_background(
 )
 ```
 
-By default, the helper resolves the latest validated background in the
-repository catalog and verifies its SHA-256 checksum. For a reproducible
-analysis that must remain tied to an older annotation snapshot, set an explicit
-immutable version, for example `version = "1"`. Use
-`get_availableBG(details = TRUE)` to inspect versions and provenance.
+By default, the helper resolves the latest validated background through
+ExperimentHub. If Hub retrieval is unavailable, it uses the same immutable
+Zenodo archive and emits a warning. Archives and selected background files are
+verified by SHA-256. Use `source = "zenodo"` to select Zenodo directly. Legacy
+version 1 remains available only with `source = "github"`, which must be chosen
+explicitly. Use `get_availableBG(details = TRUE)` to inspect the version-2
+catalog or `get_availableBG(details = TRUE, source = "github")` to include
+legacy resources.
 
 For a reproducible offline example, the package includes the equivalent
 JASPAR2020 matrices and background table:

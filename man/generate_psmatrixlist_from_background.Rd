@@ -10,7 +10,8 @@ generate_psmatrixlist_from_background(
   prom_reg,
   assembly = character(),
   version = "latest",
-  destfile = NULL
+  destfile = NULL,
+  source = c("experimenthub", "zenodo", "github")
 )
 }
 \arguments{
@@ -53,6 +54,12 @@ identifiers, background size, average background score, and standard
 deviation. See \code{\link{ps_retrieve_bg_from_file}} for details on how
 to use this file. Default is NULL, so the file is not saved in the user's
 working environment.}
+
+\item{source}{Background retrieval backend. The default, `"experimenthub"`,
+retrieves the version-2 archive through ExperimentHub and automatically
+uses the same immutable Zenodo record if Hub retrieval is unavailable.
+Use `"zenodo"` to access that record directly or `"github"` for the
+explicit legacy backend, including version 1.}
 }
 \value{
 A `PSMatrixList` object with background-scored motif matrices.
@@ -64,12 +71,12 @@ specified JASPAR version.
 It returns a `PSMatrixList` object with background statistics.
 }
 \details{
-The background files are downloaded from the GitHub repository:
-\url{https://github.com/Federico77z/PscanR_backgrounds}
-This function automatically fetches the appropriate background file and
-combines it with the specified JASPAR matrix collection to create a
-`PSMatrixList` with background statistics. Downloads are checked against
-the SHA-256 value recorded in the repository catalog.
+Version-2 backgrounds are distributed as an immutable archive through
+ExperimentHub and Zenodo (\doi{10.5281/zenodo.21821764}). GitHub remains an
+explicit legacy backend. This function fetches the appropriate background
+and combines it with the specified JASPAR matrix collection to create a
+`PSMatrixList` with background statistics. Archives and selected background
+files are checked against their recorded SHA-256 values.
 }
 \examples{
 # The online helper downloads its matching background and motif collection.

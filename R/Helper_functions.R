@@ -152,6 +152,23 @@
 #' @keywords internal
 #' @importFrom utils download.file
 .ps_background_repository <- "Federico77z/PscanR_backgrounds"
+.ps_background_sources <- c("experimenthub", "zenodo", "github")
+.ps_experimenthub_package <- "PscanRBackgrounds"
+.ps_experimenthub_title <- "PscanR_backgrounds_v2"
+.ps_zenodo_record_id <- "21821764"
+.ps_zenodo_archive_name <- "PscanR_backgrounds_v2.zip"
+.ps_zenodo_archive_sha256 <-
+    "668b80839f2b81c7f48d11d0640a06fd58774c6cc9702ec73f4f54ebe9d0b625"
+
+.ps_match_background_source <- function(source) {
+    if (!is.character(source) || !length(source) || anyNA(source)) {
+        stop(
+            "source must be one of: ",
+            paste(.ps_background_sources, collapse = ", "), call. = FALSE
+        )
+    }
+    match.arg(tolower(source), .ps_background_sources)
+}
 
 .ps_background_raw_url <- function(path) {
     base <- getOption(
@@ -170,6 +187,33 @@
         "PscanR.background.catalog",
         .ps_background_raw_url("catalog.tsv")
     )
+}
+
+.ps_hub_catalog_source <- function() {
+    source <- getOption("PscanR.background.hub_catalog", NULL)
+    if (is.null(source)) {
+        source <- system.file(
+            "extdata", "PscanR_background_catalog_v2.tsv",
+            package = "PscanR"
+        )
+    }
+    if (!length(source) || !nzchar(source)) {
+        stop(
+            "Bundled ExperimentHub background catalog is missing",
+            call. = FALSE
+        )
+    }
+    source
+}
+
+.ps_background_catalog <- function(source) {
+    source <- .ps_match_background_source(source)
+    catalog_source <- if (source == "github") {
+        .ps_catalog_source()
+    } else {
+        .ps_hub_catalog_source()
+    }
+    .ps_read_bg_catalog(catalog_source)
 }
 
 .ps_read_bg_catalog <- function(source = .ps_catalog_source()) {
@@ -293,23 +337,181 @@
     candidates[1L, , drop = FALSE]
 }
 
+.ps_verify_sha256 <- function(
+    path, sha256, remove_on_failure = FALSE, label = basename(path)
+) {
+    if (is.null(sha256) || !nzchar(sha256)) return(invisible(path))
+    actual <- unname(tools::sha256sum(path))
+    if (!identical(tolower(actual), tolower(sha256))) {
+        if (remove_on_failure) unlink(path)
+        stop(label, " failed SHA-256 validation", call. = FALSE)
+    }
+    invisible(path)
+}
+
 .download_background <- function(file, destfile = NULL, sha256 = NULL) {
     if (is.null(destfile)) {
         destfile <- file.path(tempdir(), basename(file))
     }
     URL <- .ps_background_raw_url(file)
     utils::download.file(URL, destfile, mode = "wb", quiet = TRUE)
-    if (!is.null(sha256) && nzchar(sha256)) {
-        actual <- unname(tools::sha256sum(destfile))
-        if (!identical(tolower(actual), tolower(sha256))) {
-            unlink(destfile)
-            stop(
-                "Downloaded background failed SHA-256 validation: ",
-                basename(file), call. = FALSE
-            )
-        }
-    }
+    .ps_verify_sha256(
+        destfile, sha256, remove_on_failure = TRUE,
+        label = paste("Downloaded background", basename(file))
+    )
     return(destfile)
+}
+
+.ps_zenodo_archive_url <- function() {
+    getOption(
+        "PscanR.background.zenodo_url",
+        paste0(
+            "https://zenodo.org/api/records/", .ps_zenodo_record_id,
+            "/files/", .ps_zenodo_archive_name, "/content"
+        )
+    )
+}
+
+.ps_expected_archive_sha256 <- function() {
+    getOption(
+        "PscanR.background.archive_sha256", .ps_zenodo_archive_sha256
+    )
+}
+
+.ps_background_cache <- function() {
+    path <- getOption(
+        "PscanR.background.cache",
+        tools::R_user_dir("PscanR", which = "cache")
+    )
+    dir.create(path, recursive = TRUE, showWarnings = FALSE)
+    normalizePath(path, mustWork = TRUE)
+}
+
+.ps_open_experimenthub <- function() {
+    ExperimentHub::ExperimentHub()
+}
+
+.ps_fetch_experimenthub_archive <- function() {
+    hub <- .ps_open_experimenthub()
+    keep <- as.character(hub$preparerclass) == .ps_experimenthub_package &
+        as.character(hub$title) == .ps_experimenthub_title
+    if (sum(keep) != 1L) {
+        stop(
+            "ExperimentHub does not contain one unique ",
+            .ps_experimenthub_title, " resource", call. = FALSE
+        )
+    }
+    archive <- hub[[names(hub)[keep]]]
+    if (!is.character(archive) || length(archive) != 1L ||
+        !file.exists(archive)) {
+        stop(
+            "ExperimentHub returned an invalid background archive",
+            call. = FALSE
+        )
+    }
+    .ps_verify_sha256(
+        archive, .ps_expected_archive_sha256(),
+        label = "ExperimentHub background archive"
+    )
+    archive
+}
+
+.ps_fetch_zenodo_archive <- function() {
+    cache <- BiocFileCache::BiocFileCache(
+        cache = .ps_background_cache(), ask = FALSE
+    )
+    URL <- .ps_zenodo_archive_url()
+    archive <- unname(BiocFileCache::bfcrpath(
+        cache, rnames = URL, exact = TRUE
+    ))
+    if (length(archive) != 1L || !file.exists(archive)) {
+        stop("Zenodo did not return a background archive", call. = FALSE)
+    }
+    tryCatch(
+        .ps_verify_sha256(
+            archive, .ps_expected_archive_sha256(),
+            label = "Zenodo background archive"
+        ),
+        error = function(error) {
+            record <- BiocFileCache::bfcquery(
+                cache, URL, field = "rname", exact = TRUE
+            )
+            if (nrow(record)) BiocFileCache::bfcremove(cache, record$rid)
+            stop(conditionMessage(error), call. = FALSE)
+        }
+    )
+    archive
+}
+
+.ps_fetch_background_archive <- function(source) {
+    source <- .ps_match_background_source(source)
+    if (source == "zenodo") return(.ps_fetch_zenodo_archive())
+    if (source == "github") {
+        stop(
+            "GitHub backgrounds are not stored in the Zenodo archive",
+            call. = FALSE
+        )
+    }
+    tryCatch(
+        .ps_fetch_experimenthub_archive(),
+        error = function(error) {
+            warning(
+                "ExperimentHub background retrieval failed: ",
+                conditionMessage(error),
+                ". Using the immutable Zenodo fallback.", call. = FALSE
+            )
+            .ps_fetch_zenodo_archive()
+        }
+    )
+}
+
+.ps_extract_background <- function(archive, entry, destfile = NULL) {
+    version <- entry$background_version[[1]]
+    member <- paste0(
+        "PscanR_backgrounds_v", version, "/",
+        sub("^/", "", entry$artifact[[1]])
+    )
+    members <- utils::unzip(archive, list = TRUE)$Name
+    if (sum(members == member) != 1L) {
+        stop(
+            "Background archive does not contain one unique ", member,
+            call. = FALSE
+        )
+    }
+    staging <- tempfile("PscanR-background-")
+    dir.create(staging)
+    on.exit(unlink(staging, recursive = TRUE), add = TRUE)
+    utils::unzip(archive, files = member, exdir = staging)
+    extracted <- do.call(
+        file.path,
+        as.list(c(staging, strsplit(member, "/", fixed = TRUE)[[1]]))
+    )
+    if (is.null(destfile)) {
+        destfile <- tempfile(fileext = ".txt")
+    }
+    if (!file.copy(extracted, destfile, overwrite = TRUE)) {
+        stop(
+            "Could not save the selected background to ", destfile,
+            call. = FALSE
+        )
+    }
+    .ps_verify_sha256(
+        destfile, entry$artifact_sha256[[1]], remove_on_failure = TRUE,
+        label = paste("Background", basename(entry$artifact[[1]]))
+    )
+    destfile
+}
+
+.ps_retrieve_background <- function(entry, source, destfile = NULL) {
+    source <- .ps_match_background_source(source)
+    if (source == "github") {
+        return(.download_background(
+            file = entry$artifact[[1]], destfile = destfile,
+            sha256 = entry$artifact_sha256[[1]]
+        ))
+    }
+    archive <- .ps_fetch_background_archive(source)
+    .ps_extract_background(archive, entry, destfile)
 }
 
 .check_seq_duplicated <- function(x) {

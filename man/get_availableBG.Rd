@@ -4,7 +4,11 @@
 \alias{get_availableBG}
 \title{Get Available Pre-Computed Background Files}
 \usage{
-get_availableBG(keyword = NULL, details = FALSE)
+get_availableBG(
+  keyword = NULL,
+  details = FALSE,
+  source = c("experimenthub", "zenodo", "github")
+)
 }
 \arguments{
 \item{keyword}{A string to filter the file names. Default is NULL, so the
@@ -14,6 +18,10 @@ complete list of available file names is returned.}
 used by earlier PscanR versions. If `TRUE`, return matching rows from the
 background catalog, including versions, latest status, provenance, and
 checksums.}
+
+\item{source}{Background catalog backend. The default, `"experimenthub"`,
+lists version-2 resources distributed through ExperimentHub and Zenodo.
+Use `"github"` to include legacy version-1 resources.}
 }
 \value{
 A character vector containing available background filenames, or a
