@@ -1,5 +1,6 @@
 ^.*\.Rproj$
 ^\.git$
+^\.github$
 ^\.Rproj\.user$
 ^example_file_nfkb100\.txt$
 ^doc$
@@ -8,6 +9,9 @@
 ^\.Renviron\.bioc$
 ^\.Rhistory$
 ^\.gitignore$
+^\.deps\.rds$
 ^raw_data$
 ^test_and_scripts$
-^PscanR\.BiocCheck$
+^SUBMISSION\.md$
+^.*\.BiocCheck$
+^.*\.Rcheck$

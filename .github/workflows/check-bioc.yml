@@ -1,0 +1,58 @@
+## Continuous integration for a Bioconductor package, mirroring the checks run
+## by the Bioconductor Single Package Builder: R CMD check + BiocCheck on the
+## current Bioconductor devel image. Adapted from the biocthis template.
+name: check-bioc
+
+on:
+  push:
+    branches: [main, master, devel]
+  pull_request:
+    branches: [main, master, devel]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    container: bioconductor/bioconductor_docker:devel
+    name: ubuntu-bioc-devel
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Query dependencies
+        run: |
+          install.packages('remotes')
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE), '.deps.rds')
+        shell: Rscript {0}
+
+      - name: Cache R packages
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/R/site-library
+          key: ${{ runner.os }}-bioc-devel-${{ hashFiles('.deps.rds') }}
+          restore-keys: ${{ runner.os }}-bioc-devel-
+
+      - name: Install dependencies
+        run: |
+          remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories())
+          remotes::install_cran(c('rcmdcheck', 'BiocCheck'))
+        shell: Rscript {0}
+
+      - name: R CMD check
+        run: |
+          rcmdcheck::rcmdcheck(
+            args = c('--no-manual', '--as-cran'),
+            error_on = 'warning',
+            check_dir = 'check')
+        shell: Rscript {0}
+
+      - name: BiocCheck
+        run: |
+          BiocCheck::BiocCheck(
+            '.',
+            `quit-with-status` = TRUE,
+            `no-check-bioc-views` = FALSE)
+        shell: Rscript {0}

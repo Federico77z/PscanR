@@ -107,6 +107,33 @@ test_that("archive extraction validates member checksums and destfile", {
         "SHA-256"
     )
     expect_false(file.exists(bad_destination))
+
+    # A destfile that already exists must survive a checksum failure intact.
+    preserved <- tempfile(fileext = ".txt")
+    writeLines("existing user content", preserved)
+    expect_error(
+        PscanR:::.ps_extract_background(archive, entry, preserved), "SHA-256"
+    )
+    expect_true(file.exists(preserved))
+    expect_identical(readLines(preserved), "existing user content")
+})
+
+test_that("archive extraction rejects versions the archive does not carry", {
+    background <- system.file(
+        "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+        package = "PscanR"
+    )
+    archive <- make_background_archive_fixture(background)
+    entry <- data.frame(
+        background_version = 1L,
+        artifact = file.path("backgrounds", basename(background)),
+        artifact_sha256 = unname(tools::sha256sum(background)),
+        stringsAsFactors = FALSE
+    )
+    expect_error(
+        PscanR:::.ps_extract_background(archive, entry),
+        "is not distributed in the"
+    )
 })
 
 test_that("version 1 is available only through the explicit GitHub catalog", {

@@ -19,7 +19,7 @@
     }
     first_line <- readLines(path, n = 1)
     if (first_line != "[SHORT TFBS MATRIX]") {
-    stop(sprintf(path, "%s does not look like a Pscan .short_matrix file"))
+    stop(sprintf("%s does not look like a Pscan .short_matrix file", path))
     }
 }
 
@@ -154,9 +154,16 @@
 .ps_background_repository <- "Federico77z/PscanR_backgrounds"
 .ps_background_sources <- c("experimenthub", "zenodo", "github")
 .ps_experimenthub_package <- "PscanRBackgrounds"
-.ps_experimenthub_title <- "PscanR_backgrounds_v2"
+# The archive backends distribute exactly one background version. The Hub
+# title, the Zenodo file name, the checksum and the directory prefix inside
+# the archive all describe that same release, so they are derived from a
+# single constant and cross-checked in .ps_extract_background().
+.ps_background_archive_version <- 2L
+.ps_experimenthub_title <- paste0(
+    "PscanR_backgrounds_v", .ps_background_archive_version
+)
 .ps_zenodo_record_id <- "21821764"
-.ps_zenodo_archive_name <- "PscanR_backgrounds_v2.zip"
+.ps_zenodo_archive_name <- paste0(.ps_experimenthub_title, ".zip")
 .ps_zenodo_archive_sha256 <-
     "668b80839f2b81c7f48d11d0640a06fd58774c6cc9702ec73f4f54ebe9d0b625"
 
@@ -337,13 +344,12 @@
     candidates[1L, , drop = FALSE]
 }
 
-.ps_verify_sha256 <- function(
-    path, sha256, remove_on_failure = FALSE, label = basename(path)
-) {
-    if (is.null(sha256) || !nzchar(sha256)) return(invisible(path))
+.ps_verify_sha256 <- function(path, sha256, label = basename(path)) {
+    if (is.null(sha256) || anyNA(sha256) || !nzchar(sha256)) {
+        return(invisible(path))
+    }
     actual <- unname(tools::sha256sum(path))
     if (!identical(tolower(actual), tolower(sha256))) {
-        if (remove_on_failure) unlink(path)
         stop(label, " failed SHA-256 validation", call. = FALSE)
     }
     invisible(path)
@@ -354,11 +360,21 @@
         destfile <- file.path(tempdir(), basename(file))
     }
     URL <- .ps_background_raw_url(file)
-    utils::download.file(URL, destfile, mode = "wb", quiet = TRUE)
+    # Download to a staging file so that a failed transfer or a checksum
+    # mismatch never overwrites or removes an existing destfile.
+    staged <- tempfile("PscanR-background-")
+    on.exit(unlink(staged), add = TRUE)
+    utils::download.file(URL, staged, mode = "wb", quiet = TRUE)
     .ps_verify_sha256(
-        destfile, sha256, remove_on_failure = TRUE,
+        staged, sha256,
         label = paste("Downloaded background", basename(file))
     )
+    if (!file.copy(staged, destfile, overwrite = TRUE)) {
+        stop(
+            "Could not save the downloaded background to ", destfile,
+            call. = FALSE
+        )
+    }
     return(destfile)
 }
 
@@ -466,10 +482,17 @@
 }
 
 .ps_extract_background <- function(archive, entry, destfile = NULL) {
-    version <- entry$background_version[[1]]
+    version <- as.integer(entry$background_version[[1]])
+    if (!identical(version, .ps_background_archive_version)) {
+        stop(
+            "Background version ", version, " is not distributed in the ",
+            .ps_zenodo_archive_name, " archive, which holds version ",
+            .ps_background_archive_version,
+            ". Use source = \"github\" for other versions.", call. = FALSE
+        )
+    }
     member <- paste0(
-        "PscanR_backgrounds_v", version, "/",
-        sub("^/", "", entry$artifact[[1]])
+        .ps_experimenthub_title, "/", sub("^/", "", entry$artifact[[1]])
     )
     members <- utils::unzip(archive, list = TRUE)$Name
     if (sum(members == member) != 1L) {
@@ -486,6 +509,12 @@
         file.path,
         as.list(c(staging, strsplit(member, "/", fixed = TRUE)[[1]]))
     )
+    # Validate in the staging directory: destfile may be an existing user file,
+    # which must not be overwritten or removed on account of a bad member.
+    .ps_verify_sha256(
+        extracted, entry$artifact_sha256[[1]],
+        label = paste("Background", basename(entry$artifact[[1]]))
+    )
     if (is.null(destfile)) {
         destfile <- tempfile(fileext = ".txt")
     }
@@ -495,10 +524,6 @@
             call. = FALSE
         )
     }
-    .ps_verify_sha256(
-        destfile, entry$artifact_sha256[[1]], remove_on_failure = TRUE,
-        label = paste("Background", basename(entry$artifact[[1]]))
-    )
     destfile
 }
 
@@ -523,17 +548,6 @@
         ))
     }
     }
-}
-
-.download_available_backgrounds <- function(destfile = NULL) {
-    if (is.null(destfile)) {
-    destfile <- file.path(tempdir(), "AvailableBG.txt")
-    }
-    utils::download.file(
-        .ps_background_raw_url("AvailableBG.txt"), destfile,
-        mode = "wb", quiet = TRUE
-    )
-    return(destfile)
 }
 
 # .ps_required_packages <- function()
