@@ -455,6 +455,18 @@ ps_write_bg_to_file <- function(pfms, file) {
     )
 }
 
+# The JASPAR collections are suggested, not required: report a missing one
+# with an actionable message instead of a bare "no package called" error.
+.ps_require_jaspar <- function(pkg) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+    stop(
+        "Package '", pkg, "' is required for JASPAR_matrix = \"", pkg,
+        "\". Install it with BiocManager::install(\"", pkg, "\").",
+        call. = FALSE
+    )
+    }
+}
+
 # Internal JASPAR loader used by generate_psmatrixlist_from_background.
 .ps_load_jaspar_collection <- function(JASPAR_matrix, org) {
     tax_map <- c(
@@ -464,9 +476,16 @@ ps_write_bg_to_file <- function(pfms, file) {
     opts <- list("collection" = "CORE", "tax_group" = tax_map[[org]])
     J_name <- toupper(JASPAR_matrix)
     switch(J_name,
-    "JASPAR2020" = TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts),
-    "JASPAR2022" = TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts),
+    "JASPAR2020" = {
+        .ps_require_jaspar("JASPAR2020")
+        TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts)
+    },
+    "JASPAR2022" = {
+        .ps_require_jaspar("JASPAR2022")
+        TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts)
+    },
     "JASPAR2024" = {
+        .ps_require_jaspar("JASPAR2024")
         JASPAR2024 <- JASPAR2024::JASPAR2024()
         JASPARConnect <- RSQLite::dbConnect(
         RSQLite::SQLite(),

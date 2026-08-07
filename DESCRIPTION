@@ -28,8 +28,6 @@ Suggests:
     dplyr,
     GenomicFeatures (>= 1.48),
     GenomeInfoDb,
-    JASPAR2016 (>= 1.24),
-    JASPAR2018 (>= 1.1.1),
     JASPAR2020 (>= 0.99),
     JASPAR2022 (>= 0.99), 
     JASPAR2024 (>= 0.99),

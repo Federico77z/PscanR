@@ -105,6 +105,25 @@ test_that("background downloads enforce catalog checksums", {
         "SHA-256"
     )
     expect_false(file.exists(corrupt_destination))
+
+    # A destfile that already exists must survive a checksum failure intact.
+    preserved <- tempfile(fileext = ".txt")
+    writeLines("existing user content", preserved)
+    expect_error(
+        PscanR:::.download_background(
+            "BG_files/fixture.txt", preserved, bad_checksum
+        ),
+        "SHA-256"
+    )
+    expect_true(file.exists(preserved))
+    expect_identical(readLines(preserved), "existing user content")
+})
+
+test_that("missing JASPAR collections are reported with install guidance", {
+    expect_error(
+        PscanR:::.ps_require_jaspar("PscanRNoSuchJasparPackage"),
+        "BiocManager::install"
+    )
 })
 
 test_that("malformed catalogs fail before network or matrix loading", {
