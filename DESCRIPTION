@@ -5,12 +5,13 @@ Version: 0.99.0
 Encoding: UTF-8
 Depends: R (>= 4.6.0), BSDA (>= 1.2)
 Imports:
+    BiocFileCache,
     BiocParallel (>= 1.30),
     BiocGenerics (>= 0.40.0),
     Biostrings (>= 2.64),
+    ExperimentHub,
     graphics,
     grDevices (>= 3.6.2),
-    httr,
     methods,
     pheatmap,
     RSQLite,

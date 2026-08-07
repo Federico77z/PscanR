@@ -9,8 +9,9 @@ generate_psmatrixlist_from_background(
   org,
   prom_reg,
   assembly = character(),
-  version = "1",
-  destfile = NULL
+  version = "latest",
+  destfile = NULL,
+  source = c("experimenthub", "zenodo", "github")
 )
 }
 \arguments{
@@ -42,11 +43,10 @@ mouse. For `"hs"` you can choose between `"hg38"` or the latest `"hs1"`.
 For `"mm"` you can specify `"mm10"` or `"mm39"`. Required for `"hs"` and
 `"mm"`; ignored for other organisms.}
 
-\item{version}{A string indicating the version number of the desired
-background. Since annotations may evolve over time, multiple versions
-of the same background could exist. Default is '1', corresponding
-to the first set of backgrounds generated between late 2024 and early
-2025. Currently, only this initial version is available.}
+\item{version}{A string indicating the desired immutable background version,
+or `"latest"` to retrieve the latest validated version in the background
+catalog. The default is `"latest"`. Use an explicit positive integer such
+as `"1"` when an analysis must remain pinned to a specific background.}
 
 \item{destfile}{A string indicating the path where the downloaded background
 .txt file should be saved. This tab-separated file contains the matrix
@@ -54,6 +54,12 @@ identifiers, background size, average background score, and standard
 deviation. See \code{\link{ps_retrieve_bg_from_file}} for details on how
 to use this file. Default is NULL, so the file is not saved in the user's
 working environment.}
+
+\item{source}{Background retrieval backend. The default, `"experimenthub"`,
+retrieves the version-2 archive through ExperimentHub and automatically
+uses the same immutable Zenodo record if Hub retrieval is unavailable.
+Use `"zenodo"` to access that record directly or `"github"` for the
+explicit legacy backend, including version 1.}
 }
 \value{
 A `PSMatrixList` object with background-scored motif matrices.
@@ -65,11 +71,12 @@ specified JASPAR version.
 It returns a `PSMatrixList` object with background statistics.
 }
 \details{
-The background files are downloaded from the GitHub repository:
-\url{https://github.com/dianabetelli/PscanR_backgrounds}
-This function automatically fetches the appropriate background file and
-combines it with the specified JASPAR matrix collection to create a
-`PSMatrixList` with background statistics.
+Version-2 backgrounds are distributed as an immutable archive through
+ExperimentHub and Zenodo (\doi{10.5281/zenodo.21821764}). GitHub remains an
+explicit legacy backend. This function fetches the appropriate background
+and combines it with the specified JASPAR matrix collection to create a
+`PSMatrixList` with background statistics. Archives and selected background
+files are checked against their recorded SHA-256 values.
 }
 \examples{
 # The online helper downloads its matching background and motif collection.

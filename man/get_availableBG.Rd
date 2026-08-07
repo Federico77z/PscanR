@@ -4,15 +4,28 @@
 \alias{get_availableBG}
 \title{Get Available Pre-Computed Background Files}
 \usage{
-get_availableBG(keyword = NULL)
+get_availableBG(
+  keyword = NULL,
+  details = FALSE,
+  source = c("experimenthub", "zenodo", "github")
+)
 }
 \arguments{
 \item{keyword}{A string to filter the file names. Default is NULL, so the
-complete list of available file names is printed}
+complete list of available file names is returned.}
+
+\item{details}{Logical. If `FALSE` (the default), return the filename vector
+used by earlier PscanR versions. If `TRUE`, return matching rows from the
+background catalog, including versions, latest status, provenance, and
+checksums.}
+
+\item{source}{Background catalog backend. The default, `"experimenthub"`,
+lists version-2 resources distributed through ExperimentHub and Zenodo.
+Use `"github"` to include legacy version-1 resources.}
 }
 \value{
-A character vector containing the names of the available background
-files
+A character vector containing available background filenames, or a
+catalog `data.frame` when `details = TRUE`.
 }
 \description{
 This function retrieves the names of all available .txt files containing
@@ -35,9 +48,11 @@ Some information for the filtering:
    \item Multiple keywords can be combined (e.g., 'hs1.*450u_50d').}
 }
 \examples{
-head(get_availableBG())
-get_availableBG("mm10")
-get_availableBG("hs1.*450u_50d")
+if (interactive()) {
+  head(get_availableBG())
+  get_availableBG("mm10")
+  get_availableBG("hs1.*450u_50d", details = TRUE)
+}
 
 }
 \seealso{
