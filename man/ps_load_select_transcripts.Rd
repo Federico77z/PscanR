@@ -19,8 +19,9 @@ ps_load_select_transcripts(
 \item{cache_dir}{Directory used for cached transcript metadata.}
 }
 \value{
-A \code{data.frame} with RefSeq transcript IDs, versionless RefSeq
-  IDs, gene symbols, selection source, and selection priority.
+A \code{data.frame} with columns \code{transcript_id},
+  \code{transcript_base} (the versionless accession), \code{gene_symbol},
+  \code{selection_source}, and \code{selection_priority}.
 }
 \description{
 Downloads and caches the human MANE Select and RefSeq Select transcript
@@ -33,12 +34,12 @@ MANE Select is preferred over RefSeq Select. This helper is intentionally
   separated from \code{\link{ps_select_promoters}} so callers can cache or
   inspect the selection table once and reuse it in multiple analyses.
 
-The automatic metadata download provided by this function is human-specific.
-  It currently uses UCSC hg38 MANE and RefSeq Select tracks. For mouse,
-  Drosophila melanogaster, Saccharomyces cerevisiae, or other organisms,
-  users should either call \code{\link{ps_select_promoters}} with
-  \code{mode = "representative"} or provide a species-specific
-  \code{select_transcripts} table to \code{\link{ps_select_promoters}}.
+The automatic metadata download provided by this function is human-specific
+  and applies only to the RefSeq transcript scheme. It currently uses UCSC
+  hg38 MANE and RefSeq Select tracks. For every other reference, call
+  \code{\link{ps_select_promoters}} with \code{mode = "representative"},
+  which applies the ranking rule appropriate to the detected transcript
+  scheme, or supply your own \code{select_transcripts} table.
 }
 \examples{
 cache_dir <- tempfile("pscanr-select-")
@@ -48,8 +49,8 @@ cache_file <- file.path(
     "hg38_mane_refseq_select_transcripts.rds"
 )
 example_tx <- data.frame(
-    refseq_id = c("NM_000546.6", "NM_000492.4"),
-    refseq_clean = c("NM_000546", "NM_000492"),
+    transcript_id = c("NM_000546.6", "NM_000492.4"),
+    transcript_base = c("NM_000546", "NM_000492"),
     gene_symbol = c("TP53", "CFTR"),
     selection_source = c("MANE Select", "RefSeq Select"),
     selection_priority = c(1L, 2L)
@@ -64,4 +65,7 @@ if (interactive()) {
     current_select_tx <- ps_load_select_transcripts()
     head(current_select_tx)
 }
+}
+\seealso{
+\code{\link{ps_select_promoters}}
 }

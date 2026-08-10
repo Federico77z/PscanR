@@ -330,3 +330,62 @@ test_that("p-values use the exact upper tail and do not underflow", {
     stats::pnorm(unname(ps_zscore(probed[[1]])), lower.tail = FALSE)
   )
 })
+
+test_that("pscan_fullBG resolves the requested splice variant, not its gene", {
+  # Two splice variants of one Arabidopsis gene with *different* promoter
+  # sequences. Before transcript resolution became scheme-aware, both
+  # identifiers were stripped to "AT1G01110" and match() returned whichever
+  # came first, so the caller could silently receive the other variant's hits.
+  variants <- Biostrings::DNAStringSet(c(
+    AT1G01110.1 = "ATGCTGCAATCGATTTTTTTTTT",
+    AT1G01110.2 = "GGGGGGGGGGCATGCTAAGCTAT",
+    AT1G01160.1 = "GTACTACTAAATGCCCCCCCCCC",
+    AT1G01200.1 = "TCAGACCATTAAAGGGGGGGGGG"
+  ))
+  PFM1 <- PFMatrix(
+    ID = "PSM1", name = "Example1", matrixClass = "PWM",
+    profileMatrix = matrix(
+      c(4, 19, 0, 0, 0, 0,
+        16, 0, 20, 0, 0, 0,
+        0, 1, 0, 20, 0, 20,
+        0, 0, 0, 0, 20, 0),
+      nrow = 4, byrow = TRUE, dimnames = list(c("A", "C", "G", "T"))
+    )
+  )
+  pfms <- PFMatrixList(PFM1)
+
+  full_bg <- ps_build_bg(
+    variants, pfms, BPPARAM = BiocParallel::SerialParam(), fullBG = TRUE
+  )
+
+  bg_scores <- ps_hits_score_bg(full_bg[[1]])
+  # The test is only meaningful if the two variants score differently.
+  expect_false(identical(
+    unname(bg_scores[["AT1G01110.1"]]), unname(bg_scores[["AT1G01110.2"]])
+  ))
+
+  # Ask for .2 and deliberately not .1. (Three identifiers are the minimum the
+  # z-test accepts.)
+  wanted <- c("AT1G01110.2", "AT1G01160.1", "AT1G01200.1")
+  retrieved <- pscan_fullBG(wanted, full_bg, quiet = TRUE)
+
+  expect_identical(ps_seq_names(retrieved[[1]]), wanted)
+  expect_identical(
+    unname(ps_hits_score(retrieved[[1]])), unname(bg_scores[wanted])
+  )
+  # Specifically: the score returned for .2 is .2's, not .1's.
+  expect_identical(
+    unname(ps_hits_score(retrieved[[1]])[[1L]]),
+    unname(bg_scores[["AT1G01110.2"]])
+  )
+
+  # The bare gene identifier is not a transcript here, so it must be reported
+  # as absent rather than silently resolving to one of its variants.
+  expect_warning(
+    gene_query <- pscan_fullBG(
+      c("AT1G01110", wanted), full_bg, quiet = TRUE
+    ),
+    "absent from the background"
+  )
+  expect_identical(ps_seq_names(gene_query[[1]]), wanted)
+})

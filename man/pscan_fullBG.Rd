@@ -4,7 +4,7 @@
 \alias{pscan_fullBG}
 \title{Extract Pre-Computed Metrics from a PSMatrixList Object}
 \usage{
-pscan_fullBG(ID, full_pfms)
+pscan_fullBG(ID, full_pfms, scheme = "auto", quiet = FALSE)
 }
 \arguments{
 \item{ID}{A character vector containing sequence identifiers (transcript
@@ -16,6 +16,12 @@ those used when the background was originally computed
 \code{\link{ps_build_bg}} with the `fullBG = TRUE` flag. This object
 must contain a complete set of pre-computed scores and metadata for all
 promoter sequences of the reference organism.}
+
+\item{scheme}{Transcript identifier scheme. `"auto"` (the default) detects
+it from the background's transcript identifiers. See
+\code{\link{ps_select_promoters}} for the available schemes.}
+
+\item{quiet}{Logical. Suppress the scheme-detection message.}
 }
 \value{
 A `PSMatrixList` object in which the alignment scores and related
@@ -42,10 +48,20 @@ Since in this case only one representative sequence name is retained,
 the mapping vector ensures that if a user provides a transcript ID
 corresponding to a removed duplicate, it can still be correctly associated
 with the retained sequence used in the background.
-Transcript versions (e.g., ".1", ".2") are ignored for matching purposes.
 
-Sequences that were excluded during preprocessing (e.g., due to high 'N'
-content or length mismatch) will be excluded with a warning printed.
+Matching is scheme-aware. Under the RefSeq scheme a trailing version
+(`".1"`, `".2"`) is a release of the same transcript and is normalised away,
+so `NM_000546.6` matches a background built from `NM_000546.4`. Under the
+TAIR scheme the same punctuation denotes a splice variant, so
+`AT1G01110.2` is a different transcript from `AT1G01110.1` and the suffix is
+preserved. Requesting an identifier that is ambiguous within the background
+raises a warning naming the identifier rather than silently returning the
+first match.
+
+Identifiers absent from the background are dropped with a warning. That
+normally means the promoter was excluded during background construction
+(high 'N' content or a length mismatch), but it also covers identifiers that
+were never part of this background.
 }
 \examples{
 # load a full background PSMatrixList

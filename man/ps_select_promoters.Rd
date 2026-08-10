@@ -12,12 +12,14 @@ ps_select_promoters(
   org_db = NULL,
   keytype = "SYMBOL",
   gene_col = keytype,
-  refseq_col = "REFSEQ",
+  transcript_col = "REFSEQ",
   select_transcripts = NULL,
+  scheme = "auto",
   mode = c("select", "representative", "all_transcripts"),
   fallback = TRUE,
   return = c("mapping", "sequences", "both"),
-  sequence_names = c("gene_refseq", "refseq")
+  sequence_names = c("gene_transcript", "transcript"),
+  quiet = FALSE
 )
 }
 \arguments{
@@ -25,14 +27,14 @@ ps_select_promoters(
 if \code{annotation} is not supplied.}
 
 \item{promoter_sequences}{Optional \code{DNAStringSet} of promoter
-sequences. Names must be RefSeq transcript IDs, with or without versions.}
+sequences, named by transcript identifier.}
 
 \item{promoter_ids}{Optional character vector of available promoter
 transcript IDs. Ignored when \code{promoter_sequences} is supplied.}
 
-\item{annotation}{Optional \code{data.frame} containing gene-to-RefSeq
-transcript mappings. If omitted, \code{AnnotationDbi::select()} is used
-with \code{org_db}.}
+\item{annotation}{Optional \code{data.frame} containing gene-to-transcript
+mappings. If omitted, \code{AnnotationDbi::select()} is used with
+\code{org_db}.}
 
 \item{org_db}{Optional organism annotation package object. If omitted and
 \code{annotation} is omitted, \code{org.Hs.eg.db::org.Hs.eg.db} is used.}
@@ -42,58 +44,90 @@ with \code{org_db}.}
 
 \item{gene_col}{Column in \code{annotation} containing gene identifiers.}
 
-\item{refseq_col}{Column in \code{annotation} containing RefSeq IDs.}
+\item{transcript_col}{Column in \code{annotation} containing transcript
+identifiers.}
 
 \item{select_transcripts}{Optional table from
 \code{\link{ps_load_select_transcripts}}. If omitted and
 \code{mode = "select"}, the table is downloaded or loaded from cache.}
 
-\item{mode}{Character. \code{"select"} uses MANE Select, RefSeq Select,
-then RefSeq fallback. \code{"representative"} ignores MANE/RefSeq Select
-and uses the deterministic RefSeq fallback. \code{"all_transcripts"}
-returns every mapped transcript instead of one per gene.}
+\item{scheme}{Transcript identifier scheme. \code{"auto"} (the default)
+detects it from the promoter identifiers and reports what it found. Use
+\code{"refseq"}, \code{"tair"}, \code{"sgd"} or \code{"generic"} to
+override. See Details.}
+
+\item{mode}{Character. \code{"select"} uses MANE Select, then RefSeq Select,
+then the scheme's own ranking; it requires the RefSeq scheme.
+\code{"representative"} uses only the scheme's own ranking.
+\code{"all_transcripts"} returns every mapped transcript instead of one
+per gene.}
 
 \item{fallback}{Logical. If \code{TRUE}, genes without MANE/RefSeq Select
-transcripts can use the deterministic RefSeq fallback.}
+transcripts fall back to the scheme's own ranking.}
 
 \item{return}{Character. \code{"mapping"} returns a mapping table,
 \code{"sequences"} returns selected promoter sequences, and
 \code{"both"} returns a list with both.}
 
 \item{sequence_names}{Character. How returned sequences should be named:
-\code{"gene_refseq"} uses \code{GENE|REFSEQ}; \code{"refseq"} uses the
-selected transcript ID.}
+\code{"gene_transcript"} uses \code{GENE|TRANSCRIPT}; \code{"transcript"}
+uses the selected promoter identifier alone.}
+
+\item{quiet}{Logical. Suppress the scheme-detection message.}
 }
 \value{
 A \code{data.frame}, \code{DNAStringSet}, or list depending on
-  \code{return}. The mapping table includes the selected RefSeq ID, promoter
-  ID, selection source, and selection priority.
+  \code{return}. The mapping table has one row per selected promoter with
+  columns \code{gene}, \code{transcript_id}, \code{transcript_base},
+  \code{promoter_id}, \code{scheme}, \code{suffix_role},
+  \code{transcript_class}, \code{selection_source},
+  \code{selection_priority}, \code{n_candidates}, \code{decided_by} and
+  \code{input_order}. Genes that could not be mapped are recorded in
+  \code{attr(mapping, "ps_unmapped_genes")}; see
+  \code{\link{ps_selection_summary}}.
 }
 \description{
-Maps gene symbols to RefSeq transcript promoters and selects one promoter
-per gene by preferring MANE Select, then RefSeq Select, then a deterministic
-RefSeq fallback.
+Maps genes to transcript promoters and selects one promoter per gene using a
+rule appropriate to the transcript identifier scheme in use. The scheme is
+detected automatically and reported, so the choice is always auditable.
 }
 \details{
-The deterministic fallback prefers \code{NM_} transcripts, then
-  \code{NR_} transcripts, then any other RefSeq IDs; ties are resolved by
-  lexicographic transcript ID. This mirrors PscanR workflows where promoter
-  sequence names are RefSeq transcript IDs and keeps one promoter per gene
-  unless \code{mode = "all_transcripts"} is requested.
+Transcript identifiers do not all mean the same thing, and the difference
+  matters. In RefSeq, \code{NM_000546.6} carries a release \emph{version}:
+  two versions name the same transcript, so the suffix is normalised away
+  before matching. In TAIR, \code{AT1G01110.2} carries a \emph{splice
+  variant}: the suffix is part of the transcript's identity and is never
+  stripped, because variants of the same gene frequently have different
+  transcription start sites. SGD systematic names such as \code{YAL068W-A}
+  carry no suffix at all.
 
-Automatic MANE Select and RefSeq Select metadata are currently available
-  only for human hg38 through \code{\link{ps_load_select_transcripts}}.
-  For non-human organisms supported by PscanR, such as mouse,
-  Drosophila melanogaster, and Saccharomyces cerevisiae, the function can
-  still be used in two ways. First, users can set
-  \code{mode = "representative"} and provide organism-appropriate
-  \code{annotation} and promoter IDs or sequences; this uses only the
-  deterministic transcript-ID fallback and is most meaningful for RefSeq-like
-  transcript IDs. Second, users can provide their own species-specific
-  \code{select_transcripts} table with \code{refseq_id} or
-  \code{refseq_clean}, \code{selection_source}, and
-  \code{selection_priority} columns. This is the recommended route for
-  Ensembl, FlyBase, SGD, or other non-RefSeq transcript naming schemes.
+Detected schemes and their ranking rules:
+  \describe{
+    \item{\code{"refseq"}}{Human, mouse and Drosophila backgrounds. Prefers
+      \code{NM_}, then \code{NR_}, then \code{XM_}, then \code{XR_}, then
+      anything else. Protein accessions (\code{NP_}, \code{XP_}) are not
+      transcripts and are excluded.}
+    \item{\code{"tair"}}{Arabidopsis. Prefers the lowest splice-variant
+      number, which is the primary gene model.}
+    \item{\code{"sgd"}}{Saccharomyces cerevisiae, which has one transcript
+      per ORF.}
+    \item{\code{"generic"}}{Anything unrecognised. Identifiers are matched
+      whole, nothing is stripped, and all transcripts rank equally. This is
+      the safe fallback and is chosen with a warning.}
+  }
+
+Ties are broken by a natural ordering of the promoter identifier, in which
+  embedded numbers compare numerically, so \code{.10} follows \code{.9}.
+  Because promoter identifiers are unique this is a total order, and the
+  result therefore does not depend on the order in which promoters were
+  supplied.
+
+Automatic MANE Select and RefSeq Select metadata are available only for
+  human hg38, so \code{mode = "select"} requires the RefSeq scheme and is an
+  error otherwise. Use \code{mode = "representative"} elsewhere, or supply a
+  species-specific \code{select_transcripts} table with
+  \code{transcript_id} or \code{transcript_base}, \code{selection_source}
+  and \code{selection_priority} columns.
 }
 \examples{
 annotation <- data.frame(
@@ -101,8 +135,8 @@ annotation <- data.frame(
     REFSEQ = c("NM_000001.1", "NM_000002.1", "NM_000003.1")
 )
 select_tx <- data.frame(
-    refseq_id = "NM_000002.1",
-    refseq_clean = "NM_000002",
+    transcript_id = "NM_000002.1",
+    transcript_base = "NM_000002",
     gene_symbol = "GENE1",
     selection_source = "MANE Select",
     selection_priority = 1L
@@ -112,4 +146,21 @@ ps_select_promoters(
     annotation = annotation,
     select_transcripts = select_tx
 )
+
+# Arabidopsis splice variants are preserved, and the primary model wins.
+at_annotation <- data.frame(
+    GENE = c("AT1G01110", "AT1G01110"),
+    TX = c("AT1G01110.2", "AT1G01110.1")
+)
+ps_select_promoters(
+    "AT1G01110",
+    promoter_ids = c("AT1G01110.2", "AT1G01110.1"),
+    annotation = at_annotation,
+    gene_col = "GENE", transcript_col = "TX",
+    mode = "representative"
+)
+}
+\seealso{
+\code{\link{ps_selection_summary}},
+  \code{\link{ps_load_select_transcripts}}
 }

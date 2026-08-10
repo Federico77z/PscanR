@@ -830,7 +830,10 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 }
 
 .ps_scan_use_full_bg <- function(x, seqs, BG, use_full_BG) {
-    indices <- match(seqs, sub("\\..*$", "", names(x@ps_hits_score_bg)))
+    # `seqs` are retained background sequence names resolved by pscan_fullBG(),
+    # which are already exactly the names carried here. Matching them verbatim
+    # avoids collapsing distinct transcripts that differ only after a dot.
+    indices <- match(seqs, names(x@ps_hits_score_bg))
     res <- list(
         score = x@ps_hits_score_bg[indices],
         strand = x@ps_hits_strand_bg[indices],

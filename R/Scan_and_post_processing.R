@@ -139,6 +139,10 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
 #'    \code{\link{ps_build_bg}} with the `fullBG = TRUE` flag. This object
 #'    must contain a complete set of pre-computed scores and metadata for all
 #'    promoter sequences of the reference organism.
+#' @param scheme Transcript identifier scheme. `"auto"` (the default) detects
+#'    it from the background's transcript identifiers. See
+#'    \code{\link{ps_select_promoters}} for the available schemes.
+#' @param quiet Logical. Suppress the scheme-detection message.
 #'
 #' @details
 #' Internally, the function matches the provided `ID` values against the
@@ -149,10 +153,20 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
 #' the mapping vector ensures that if a user provides a transcript ID
 #' corresponding to a removed duplicate, it can still be correctly associated
 #' with the retained sequence used in the background.
-#' Transcript versions (e.g., ".1", ".2") are ignored for matching purposes.
 #'
-#' Sequences that were excluded during preprocessing (e.g., due to high 'N'
-#' content or length mismatch) will be excluded with a warning printed.
+#' Matching is scheme-aware. Under the RefSeq scheme a trailing version
+#' (`".1"`, `".2"`) is a release of the same transcript and is normalised away,
+#' so `NM_000546.6` matches a background built from `NM_000546.4`. Under the
+#' TAIR scheme the same punctuation denotes a splice variant, so
+#' `AT1G01110.2` is a different transcript from `AT1G01110.1` and the suffix is
+#' preserved. Requesting an identifier that is ambiguous within the background
+#' raises a warning naming the identifier rather than silently returning the
+#' first match.
+#'
+#' Identifiers absent from the background are dropped with a warning. That
+#' normally means the promoter was excluded during background construction
+#' (high 'N' content or a length mismatch), but it also covers identifiers that
+#' were never part of this background.
 #'
 #' @return A `PSMatrixList` object in which the alignment scores and related
 #'    metrics have been retrieved from `full_pfms` for each sequence in `ID`,
@@ -173,7 +187,7 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
 #' ps_results_table(results)
 #'
 #' @export
-pscan_fullBG <- function(ID, full_pfms) {
+pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     if (!is.character(ID)) {
     stop("ID must be a character vector containing transcript identifiers")
     }
@@ -183,23 +197,45 @@ pscan_fullBG <- function(ID, full_pfms) {
 
     all_seq_ID <- full_pfms@transcriptIDLegend
 
-    # Remove transcript extension for any name
-    names(all_seq_ID) <- sub("\\..*$", "", names(all_seq_ID))
-    all_seq_ID <- sub("\\..*$", "", all_seq_ID)
-    ID <- sub("\\..*$", "", ID)
+    # Reduce both sides to the transcript key the scheme defines. For RefSeq
+    # that removes a version; for TAIR it removes nothing, because there the
+    # suffix distinguishes splice variants with different TSSs. The legend
+    # *values* are left untouched: they already name sequences in the
+    # background exactly.
+    scheme <- .ps_resolve_scheme(
+        scheme = scheme, promoter_ids = names(all_seq_ID),
+        annotation_ids = ID, quiet = quiet
+    )
+    legend_key <- .ps_transcript_base(names(all_seq_ID), scheme)
+    query_key <- .ps_transcript_base(ID, scheme)
+
+    # A key that names more than one background transcript cannot be resolved.
+    # Taking the first silently is how the wrong promoter used to be returned.
+    duplicated_keys <- unique(legend_key[duplicated(legend_key)])
+    ambiguous <- intersect(query_key, duplicated_keys)
+    if (length(ambiguous) > 0) {
+    warning(
+        "Ambiguous transcript identifier(s) under scheme \"", scheme,
+        "\": ", paste(utils::head(ambiguous, 10), collapse = ", "),
+        if (length(ambiguous) > 10) ", ..." else "",
+        ". Each matches more than one background transcript; the first was ",
+        "used. Supply fully qualified identifiers to disambiguate.",
+        call. = FALSE
+    )
+    }
 
     # Use of all_seq_ID (mapping vector) to extract sequences name retained
     # in full BG that have the same sequence to those inserted by the user.
-    x <- all_seq_ID[ID]
+    x <- stats::setNames(unname(all_seq_ID)[match(query_key, legend_key)], ID)
 
     # NA removal
     rem_names <- names(x[is.na(x)])
 
     if (length(rem_names) > 0) {
     warning(paste(
-        "Found", length(rem_names), "sequences with more than 50% of
-                    N content or with a length different from the reference.
-                    Removing the following sequences:",
+        "Found", length(rem_names), "identifier(s) absent from the background",
+        "(excluded during background construction for high N content or a",
+        "length mismatch, or never part of it). Removing:",
         paste(rem_names, collapse = ", ")
     ))
     }
