@@ -281,3 +281,52 @@ test_that(".ps_scan_batched matches the per-sequence kernel bitwise", {
   bshort <- PscanR:::.ps_scan_batched(unname(shortseqs), Ss, M, M_rc, W)
   expect_true(all(is.na(bshort$score)))
 })
+
+test_that("p-values use the exact upper tail and do not underflow", {
+  x <- Biostrings::DNAStringSet(c("ATGCTGCAATCGA", "CATGCTAAGCTAT",
+                                  "GTACTACTAAATG", "TCAGACCATTAAA"))
+  names(x) <- c("NM_001078.4", "NM_000639.3", "NM_000756.8", "NM_001094.2")
+  PFM1 <- PFMatrix(ID = "PSM1", name = "Example1", matrixClass = "PWM",
+                   profileMatrix = matrix(c(4, 19, 0, 0, 0, 0,
+                                            16, 0, 20, 0, 0, 0,
+                                            0, 1, 0, 20, 0, 20,
+                                            0, 0, 0, 0, 20, 0),
+                                          nrow = 4, byrow = TRUE,
+                                          dimnames = list(c("A", "C", "G", "T"))))
+  probe <- PSMatrix(PFM1, ps_bg_avg = 0.5, ps_fg_avg = NA_real_,
+                    ps_bg_std_dev = 0.05, ps_bg_size = 250L,
+                    ps_seq_names = names(x))
+  probed <- pscan(x, PSMatrixList(probe), BPPARAM = BiocParallel::SerialParam())
+  fg <- ps_fg_avg(probed[[1]])
+  n <- length(ps_hits_score(probed[[1]]))
+
+  # Choose a background so the z-score lands past the point where the old
+  # 1 - pnorm(z) formulation collapses to exactly zero (z > 8.3), but well
+  # short of where the true upper tail itself underflows (z ~ 37).
+  target_z <- 12
+  bg_avg <- fg - 0.05
+  bg_sd <- (fg - bg_avg) * sqrt(n) / target_z
+  enriched <- PSMatrix(PFM1, ps_bg_avg = bg_avg, ps_fg_avg = NA_real_,
+                       ps_bg_std_dev = bg_sd, ps_bg_size = 250L,
+                       ps_seq_names = names(x))
+  result <- pscan(x, PSMatrixList(enriched),
+                  BPPARAM = BiocParallel::SerialParam())
+  z <- ps_zscore(result[[1]])
+  p <- ps_pvalue(result[[1]])
+
+  expect_equal(unname(z), target_z, tolerance = 1e-8)
+  # The bug this guards against: 1 - pnorm(z) is exactly 0 here.
+  expect_identical(1 - stats::pnorm(unname(z)), 0)
+  expect_gt(p, 0)
+  expect_identical(p, stats::pnorm(unname(z), lower.tail = FALSE))
+
+  # The z statistic keeps its historical "z" name.
+  expect_identical(names(z), "z")
+
+  # The invariant holds for an ordinary, non-extreme motif too.
+  ordinary <- ps_pvalue(probed[[1]])
+  expect_identical(
+    ordinary,
+    stats::pnorm(unname(ps_zscore(probed[[1]])), lower.tail = FALSE)
+  )
+})

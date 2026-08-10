@@ -41,10 +41,9 @@
 #' Maintainer: Federico Zambelli <federico.zambelli@unimi.it>
 #'
 #' @importFrom methods as callNextMethod is new validObject
-#' @importFrom stats sd setNames
+#' @importFrom stats pnorm sd setNames
 #' @importFrom utils read.table write.table
 #' @importFrom BiocParallel bplapply bpoptions bpparam
-#' @importFrom BSDA z.test
 #' @importFrom Biostrings DNAStringSet
 #' @keywords internal
 "_PACKAGE"

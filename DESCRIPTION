@@ -3,7 +3,7 @@ Type: Package
 Title: Motif Enrichment Analysis of Regulatory DNA Sequences
 Version: 0.99.0
 Encoding: UTF-8
-Depends: R (>= 4.6.0), BSDA (>= 1.2)
+Depends: R (>= 4.6.0)
 Imports:
     BiocFileCache,
     BiocParallel (>= 1.30),

@@ -1,5 +1,6 @@
 # PscanR 0.99.0
 
+- Compute the motif enrichment p-value as an exact upper normal tail with `pnorm(z, lower.tail = FALSE)` instead of `1 - pnorm(z)`. The previous formulation saturated at 1.11e-16 and returned exactly 0 for z-scores above roughly 8.3, so the most strongly enriched motifs could not be ranked and their FDR values collapsed to 0. Z-scores, hit scores, positions, strands and oligos are unchanged. This removes the package's only use of `BSDA`, which is no longer a dependency.
 - Optimize internal sequence scanning function `.ps_scan_s` using raw byte conversion and vectorized matrix-based scoring.
 - Hoist the per-motif forward/reverse-complement score matrices out of `.ps_scan_s` so they are built once per motif and reused across all sequences.
 - Add a batched, encode-once scanning fast path: sequences are encoded to integer codes once per analysis (reused across all motifs) and all equal-length sequences are scored against each motif with vectorised matrix operations, with the per-sequence `.ps_scan_s` kept as a fallback for unequal-length input. Results are bitwise identical to the previous implementation.

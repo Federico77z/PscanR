@@ -746,14 +746,21 @@ setMethod(
             x@ps_hits_score <- numeric()
         } else {
             if (!is.na(x@ps_bg_avg) && !is.na(x@ps_bg_std_dev)) {
-                ztest <- z.test(x@ps_hits_score,
-                    mu = x@ps_bg_avg,
-                    sigma.x = x@ps_bg_std_dev,
-                    alternative = "greater"
-                )
+                # One-sample upper-tail z-test against the background mean.
+                # The upper tail is evaluated directly with
+                # pnorm(lower.tail = FALSE): computing it as 1 - pnorm(z)
+                # saturates at 1.11e-16 and returns exactly 0 for z > ~8.3,
+                # which silently discards the most enriched motifs.
+                scores <- x@ps_hits_score[!is.na(x@ps_hits_score)]
+                if (length(scores) <= 2L) {
+                    stop("not enough foreground observations for the z-test",
+                        call. = FALSE)
+                }
+                std_err <- x@ps_bg_std_dev / sqrt(length(scores))
+                zscore <- (mean(scores) - x@ps_bg_avg) / std_err
 
-                x@ps_zscore <- ztest$statistic["z"]
-                x@ps_pvalue <- as.numeric(ztest$p.value)
+                x@ps_zscore <- c(z = zscore)
+                x@ps_pvalue <- pnorm(zscore, lower.tail = FALSE)
                 x@ps_fg_avg <- mean(x@ps_hits_score, na.rm = TRUE)
                 x@ps_fg_size <- length(x@ps_hits_pos)
                 x@ps_hits_oligo <- Oligo
