@@ -812,6 +812,21 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
     invisible(pos_mat)
 }
 
+# Shared styling for the ggplot2 plotters, so that figures produced by
+# different functions in this file read as one family.
+#
+# Categorical fill colours, chosen so that adjacent pairs stay distinguishable
+# under the common forms of colour-vision deficiency. Beyond this many groups
+# ps_motif_barplot() uses the ggplot2 default instead, since no fixed order
+# stays separable.
+.PS_GROUP_PALETTE <- c(
+    "#2a78d6", "#eb6834", "#1baf7a", "#eda100",
+    "#e87ba4", "#008300", "#4a3aa7", "#e34948"
+)
+
+# Single-series colour for the density figures, taken from the same palette.
+.PS_DENSITY_COLOUR <- .PS_GROUP_PALETTE[[1L]]
+
 #' Density Plot of Motif Hits Along Promoter Regions
 #'
 #' This function creates a density plot representing the distribution of hits
@@ -833,14 +848,15 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 #'      background standard deviation as threshold.}
 #'    Default is `loose` (background average).
 #'
-#' @return Invisibly returns `NULL`. The density plot of hit positions along
-#'    the promoter region is drawn as a side effect.
+#' @return A `ggplot` object showing the density of hit positions along the
+#'    promoter region. Nothing is drawn until the object is printed, so it can
+#'    be modified with further `ggplot2` layers first.
 #'
 #' @details
 #' The function filters motif hits based on a specified threshold and generates
 #' a density plot to show their distribution. The function includes a vertical
 #' dashed line marking the mode (the most frequent position along the
-#' promoters).
+#' promoters). The title reports how many promoters passed the threshold.
 #'
 #' This function uses example datasets located in the `extdata/` directory for
 #' demonstration purposes only. These files are not part of the core data used
@@ -852,28 +868,16 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 #' matrix <- readRDS(matrix_path)
 #' ps_density_plot(matrix, shift = -200)
 #'
+#' # The result is a ggplot object, so it can be restyled before drawing.
+#' ps_density_plot(matrix, shift = -200) +
+#'     ggplot2::labs(subtitle = "-200 to +50 around the TSS")
+#'
 #' @export
-#' @importFrom grDevices rgb
-#' @importFrom graphics abline
-#' @importFrom graphics polygon
-#' @importFrom graphics text
 #' @importFrom stats density
 ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
     # st = score threshold. It can be passed as a numeric value
     # or as one of three characters "all", "loose", "strict".
-
-    if (is.character(st)) {
-    if (st == "all") {
-        st <- 0
-    } else if (st == "loose") {
-        st <- ps_bg_avg(pfm)
-    } else if (st == "strict") {
-        st <- ps_bg_avg(pfm) + ps_bg_std_dev(pfm)
-    } else {
-        warning("Invalid value for st, reverting to loose")
-        st <- ps_bg_avg(pfm)
-    }
-    }
+    st <- .ps_resolve_threshold(st, pfm, "st")
 
     scores <- ps_hits_score(pfm)
     g_scores <- scores >= st
@@ -881,25 +885,13 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
 
     density_hits <- density(ps_hits_pos(pfm, pos_shift = shift)[g_scores])
 
-    plot(density_hits,
-    main = paste(
+    .ps_density_ggplot(
+    density_hits,
+    title = paste(
         name(pfm), "binding site density across", sum_g, "promoter regions"
     ),
-    xlab = "Position along promoters",
-    ylab = "Density",
-    col = "blue",
-    lwd = 2
+    xlab = "Position along promoters"
     )
-
-    polygon(density_hits, col = rgb(0, 0, 1, 0.1), border = NA)
-
-    peak <- density_hits$x[which.max(density_hits$y)]
-    abline(v = peak, col = "gray", lty = 2, lwd = 2)
-    text(peak, max(density_hits$y),
-    labels = paste("\tMode:", round(peak)), pos = 4
-    )
-
-    invisible(NULL)
 }
 
 .ps_resolve_threshold <- function(st, M, label) {
@@ -914,6 +906,56 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
         warning(sprintf("Invalid value for %s, reverting to loose", label))
         ps_bg_avg(M)
     }
+    )
+}
+
+#' Draw a density object as a filled curve with its mode marked
+#'
+#' Both density plotters draw exactly this figure and differ only in their
+#' labels. The curve is built from the evaluation grid of an existing
+#' \code{stats::density} object rather than with \code{geom_density()}, so the
+#' plotted curve is the one already computed -- same bandwidth, same grid -- and
+#' the mode is read off the same object.
+#'
+#' @param d A \code{stats::density} object.
+#' @param title,xlab Plot title and x axis label.
+#'
+#' @return A `ggplot` object.
+#'
+#' @noRd
+#' @importFrom ggplot2 .data
+.ps_density_ggplot <- function(d, title, xlab) {
+    curve <- data.frame(x = d$x, y = d$y)
+    peak <- d$x[which.max(d$y)]
+
+    # Keep the mode label inside the panel: the base-graphics original always
+    # wrote it to the right of the line, which clipped whenever the mode fell
+    # near the end of the range.
+    past_middle <- peak > mean(range(d$x))
+
+    ggplot2::ggplot(curve, ggplot2::aes(x = .data$x, y = .data$y)) +
+    ggplot2::geom_area(fill = .PS_DENSITY_COLOUR, alpha = 0.15) +
+    ggplot2::geom_line(colour = .PS_DENSITY_COLOUR, linewidth = 0.8) +
+    ggplot2::geom_vline(
+        xintercept = peak, colour = "grey50", linetype = "dashed",
+        linewidth = 0.6
+    ) +
+    ggplot2::annotate(
+        "text",
+        x = peak, y = max(d$y), label = paste("Mode:", round(peak)),
+        hjust = if (past_middle) 1.1 else -0.1, vjust = -0.6, size = 3.5,
+        colour = "grey30"
+    ) +
+    # The label sits just above the peak, so the panel needs headroom that the
+    # default expansion does not leave.
+    ggplot2::scale_y_continuous(
+        expand = ggplot2::expansion(mult = c(0, 0.12))
+    ) +
+    ggplot2::labs(title = title, x = xlab, y = "Density") +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+        panel.grid.minor = ggplot2::element_blank(),
+        plot.title = ggplot2::element_text(size = 11)
     )
 }
 
@@ -959,17 +1001,20 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
 #'    for st1.
 #'    Default is set to `loose`.
 #'
-#' @return A density plot showing the distribution of distances between
-#'    identified motif hits in \code{M1} and \code{M2}. The x-axis represents
-#'    the distances between corresponding hits: positive values indicate that M1
-#'    is positioned upstream in respect to M2, whereas negative values
-#'    indicate that it is downstream to M2.
-#'    The y-axis represents the density of those distances.
+#' @return A `ggplot` object showing the distribution of distances between
+#'    identified motif hits in \code{M1} and \code{M2}. Nothing is drawn until
+#'    the object is printed, so it can be modified with further `ggplot2`
+#'    layers first.
 #'
 #' @seealso \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}},
 #' \code{\link{ps_hits_score}}, \code{\link{ps_hits_pos}}
 #'
 #' @details
+#' The x-axis represents the distances between corresponding hits: positive
+#' values indicate that M1 is positioned upstream in respect to M2, whereas
+#' negative values indicate that it is downstream to M2. The y-axis represents
+#' the density of those distances, and a dashed line marks the mode.
+#'
 #' Hit positions are shifted by half of the motif length (i.e., `ncol(M1)/2`
 #' and `ncol(M2)/2`) before distances are computed, so distances are centered
 #' on the motif midpoint.
@@ -1012,21 +1057,12 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
     distances <- .ps_hit_distances(M1, M2, st1, st2)
     density_distances <- density(distances)
 
-    plot(density_distances,
-    main = paste(
+    .ps_density_ggplot(
+    density_distances,
+    title = paste(
         M1@name, "Binding Site Distance Distribution Relative to", M2@name
     ),
-    xlab = "Distances between the identified sites",
-    ylab = "Density",
-    col = "blue",
-    lwd = 2
-    )
-    polygon(density_distances, col = rgb(0, 0, 1, 0.1), border = NA)
-
-    peak <- density_distances$x[which.max(density_distances$y)]
-    abline(v = peak, col = "gray", lty = 2, lwd = 2)
-    text(peak, max(density_distances$y),
-    labels = paste("\tMode:", round(peak)), pos = 4
+    xlab = "Distances between the identified sites"
     )
 }
 
@@ -1081,14 +1117,6 @@ ps_motif_class <- function(pfms) {
 
     stats::setNames(out, ID(pfms))
 }
-
-# Categorical fill colours, chosen so that adjacent pairs stay distinguishable
-# under the common forms of colour-vision deficiency. Beyond this many groups
-# the ggplot2 default is used instead, since no fixed order stays separable.
-.PS_GROUP_PALETTE <- c(
-    "#2a78d6", "#eb6834", "#1baf7a", "#eda100",
-    "#e87ba4", "#008300", "#4a3aa7", "#e34948"
-)
 
 #' Bar Plot of the Most Enriched Motifs
 #'

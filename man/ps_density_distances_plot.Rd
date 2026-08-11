@@ -29,12 +29,10 @@ for st1.
 Default is set to `loose`.}
 }
 \value{
-A density plot showing the distribution of distances between
-   identified motif hits in \code{M1} and \code{M2}. The x-axis represents
-   the distances between corresponding hits: positive values indicate that M1
-   is positioned upstream in respect to M2, whereas negative values
-   indicate that it is downstream to M2.
-   The y-axis represents the density of those distances.
+A `ggplot` object showing the distribution of distances between
+   identified motif hits in \code{M1} and \code{M2}. Nothing is drawn until
+   the object is printed, so it can be modified with further `ggplot2`
+   layers first.
 }
 \description{
 This function visualizes the density plot of distances between identified
@@ -44,6 +42,11 @@ It allows filtering the identified sites based on a specified threshold
 value.
 }
 \details{
+The x-axis represents the distances between corresponding hits: positive
+values indicate that M1 is positioned upstream in respect to M2, whereas
+negative values indicate that it is downstream to M2. The y-axis represents
+the density of those distances, and a dashed line marks the mode.
+
 Hit positions are shifted by half of the motif length (i.e., `ncol(M1)/2`
 and `ncol(M2)/2`) before distances are computed, so distances are centered
 on the motif midpoint.

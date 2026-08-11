@@ -528,3 +528,73 @@ test_that("ps_motif_barplot accepts a results table when told the grouping", {
   )
   expect_error(ps_motif_barplot(list(1, 2)), "PSMatrixList or a data.frame")
 })
+
+# ---------------------------------------------------------------------------
+# Density plots
+# ---------------------------------------------------------------------------
+
+test_that("ps_density_plot returns a composable ggplot over the density grid", {
+  pfm <- readRDS(system.file("extdata", "pfm1.rds", package = "PscanR"))
+  plot <- ps_density_plot(pfm, shift = -200)
+
+  expect_s3_class(plot, "ggplot")
+  # The curve is the grid of the density object, not a recomputed geom_density.
+  expected <- stats::density(
+    ps_hits_pos(pfm, pos_shift = -200)[ps_hits_score(pfm) >= ps_bg_avg(pfm)]
+  )
+  expect_identical(nrow(plot$data), length(expected$x))
+  expect_equal(plot$data$x, expected$x)
+  expect_equal(plot$data$y, expected$y)
+
+  # Nothing is drawn until printing, so further layers can still be added.
+  expect_s3_class(plot + ggplot2::labs(title = "t"), "ggplot")
+})
+
+test_that("ps_density_plot shifts positions relative to the TSS", {
+  pfm <- readRDS(system.file("extdata", "pfm1.rds", package = "PscanR"))
+
+  unshifted <- ps_density_plot(pfm)
+  shifted <- ps_density_plot(pfm, shift = -200)
+
+  expect_equal(shifted$data$x, unshifted$data$x - 200)
+})
+
+test_that("ps_density_plot honours the score threshold", {
+  pfm <- readRDS(system.file("extdata", "pfm1.rds", package = "PscanR"))
+
+  # The promoter count is reported in the title, so the threshold is visible
+  # in the returned object without having to render it.
+  promoters <- function(plot) {
+    as.integer(sub("^.* across ([0-9]+) promoter.*$", "\\1", plot$labels$title))
+  }
+  all_hits <- promoters(ps_density_plot(pfm, st = "all"))
+  loose <- promoters(ps_density_plot(pfm, st = "loose"))
+  strict <- promoters(ps_density_plot(pfm, st = "strict"))
+
+  expect_identical(all_hits, length(ps_hits_score(pfm)))
+  expect_gt(all_hits, loose)
+  expect_gt(loose, strict)
+
+  # An unrecognised threshold falls back to "loose" rather than failing.
+  expect_warning(
+    fallback <- ps_density_plot(pfm, st = "nonsense"),
+    "reverting to loose"
+  )
+  expect_equal(fallback$data, ps_density_plot(pfm, st = "loose")$data)
+})
+
+test_that("ps_density_distances_plot returns a ggplot and checks its inputs", {
+  results <- scan_bundled_motifs()
+  plot <- ps_density_distances_plot(
+    results[["MA0506.1"]], results[["MA0632.2"]], "all", "loose"
+  )
+
+  expect_s3_class(plot, "ggplot")
+  expect_s3_class(plot + ggplot2::labs(title = "t"), "ggplot")
+  expect_match(plot$labels$x, "Distances between")
+
+  expect_error(
+    ps_density_distances_plot(results[["MA0506.1"]], "not a matrix"),
+    "Both object must be of class PSMatrix"
+  )
+})

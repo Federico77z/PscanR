@@ -24,8 +24,9 @@ the threshold directly, or a character:
 Default is `loose` (background average).}
 }
 \value{
-Invisibly returns `NULL`. The density plot of hit positions along
-   the promoter region is drawn as a side effect.
+A `ggplot` object showing the density of hit positions along the
+   promoter region. Nothing is drawn until the object is printed, so it can
+   be modified with further `ggplot2` layers first.
 }
 \description{
 This function creates a density plot representing the distribution of hits
@@ -37,7 +38,7 @@ It helps visualize where motif occurrences are concentrated.
 The function filters motif hits based on a specified threshold and generates
 a density plot to show their distribution. The function includes a vertical
 dashed line marking the mode (the most frequent position along the
-promoters).
+promoters). The title reports how many promoters passed the threshold.
 
 This function uses example datasets located in the `extdata/` directory for
 demonstration purposes only. These files are not part of the core data used
@@ -48,5 +49,9 @@ examples.
 matrix_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 matrix <- readRDS(matrix_path)
 ps_density_plot(matrix, shift = -200)
+
+# The result is a ggplot object, so it can be restyled before drawing.
+ps_density_plot(matrix, shift = -200) +
+    ggplot2::labs(subtitle = "-200 to +50 around the TSS")
 
 }
