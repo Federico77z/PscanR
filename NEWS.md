@@ -1,3 +1,13 @@
+# PscanR 1.0.0
+
+- Add `ps_motif_barplot()`, which draws the highest ranking motifs of a scan as horizontal bars. Ranking direction and scale follow from the chosen statistic: `ZSCORE`, `FG_AVG` and `BG_AVG` rank downwards and are plotted as they are, while `P.VALUE` and `FDR` rank upwards and are plotted as -log10. Bars can be coloured by any grouping, and `group = "class"` derives the structural class of the factor without further input.
+- Add `ps_motif_class()`, which reports the structural class of each motif. The class is read from the `matrixClass` slot that `PSMatrix` inherits from `PFMatrix`, so it survives scanning and is available from a scan result without consulting JASPAR again. This is not reachable through `tags(x)$class`, which is `NULL` for every JASPAR matrix in every release.
+- Redraw `ps_density_plot()` and `ps_density_distances_plot()` with `ggplot2`. Both now return a `ggplot` object instead of drawing as a side effect, so figures can be restyled, faceted or saved by the caller, and all the plotting functions except the two `pheatmap` heatmaps now behave the same way. The curves themselves are unchanged: the plotted grid is the one `stats::density()` already computed, not a recomputed `geom_density()`. Code that wrapped these calls in a graphics device must now use `ggplot2::ggsave()` or print the returned object.
+- Keep the mode label of both density plots inside the panel. It was previously always written to the right of the mode line, and clipped whenever the mode fell near the end of the range.
+- Correct the documented return value of `ps_density_plot()`, which claimed to return a plot while returning `NULL`.
+- Fix `ps_hitpos_map()` indexing the columns of the position matrix with a vector of result-table row numbers. The two coincide only while the FDR-filtered rows happen to be the leading ones, which is true of a Benjamini-Hochberg ordering but is not a property to rely on.
+- `ggplot2` is now a hard dependency, and `graphics` is no longer used.
+
 # PscanR 0.99.0
 
 - Resolve transcript identifiers according to the scheme they belong to, instead of assuming RefSeq. A trailing `.N` is a release *version* in RefSeq (`NM_000546.6`) but a *splice variant* in TAIR (`AT1G01110.2`), and treating the second like the first merged distinct Arabidopsis transcripts onto their shared gene. The new registry recognises `refseq` (human, mouse, Drosophila), `sgd` (yeast) and `tair` (Arabidopsis), detects the scheme automatically, reports what it detected, and falls back to a lossless `generic` scheme with a warning when identifiers are unrecognised or mixed.
