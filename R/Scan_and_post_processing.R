@@ -794,8 +794,12 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
     ncol = length(topn)
     )
 
-    for (v in topn) {
-    pos_mat[, v] <- ps_hits_pos(pfms[[row.names(res_table)[v]]],
+    # `topn` indexes rows of res_table; the matrix columns are 1..length(topn).
+    # Conflating the two only works while `topn` happens to be 1..k, which is
+    # true today because BH-adjusted FDR is monotone in the p-value ordering
+    # ps_results_table() sorts by, but it is not a property to rely on.
+    for (i in seq_along(topn)) {
+    pos_mat[, i] <- ps_hits_pos(pfms[[row.names(res_table)[topn[i]]]],
         pos_shift = shift
     )
     }
@@ -829,8 +833,8 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 #'      background standard deviation as threshold.}
 #'    Default is `loose` (background average).
 #'
-#' @return A density plot showing the distribution of hits along the promoter
-#'    region.
+#' @return Invisibly returns `NULL`. The density plot of hit positions along
+#'    the promoter region is drawn as a side effect.
 #'
 #' @details
 #' The function filters motif hits based on a specified threshold and generates
@@ -894,6 +898,8 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
     text(peak, max(density_hits$y),
     labels = paste("\tMode:", round(peak)), pos = 4
     )
+
+    invisible(NULL)
 }
 
 .ps_resolve_threshold <- function(st, M, label) {
@@ -1022,4 +1028,294 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
     text(peak, max(density_distances$y),
     labels = paste("\tMode:", round(peak)), pos = 4
     )
+}
+
+#' Structural Class of Each Motif
+#'
+#' Returns the structural class of the transcription factor behind each motif,
+#' for example `"Basic leucine zipper factors (bZIP)"` or `"WRKY"`.
+#'
+#' @param pfms A `PSMatrixList` object, or any `PFMatrixList`.
+#'
+#' @return A character vector of class labels, named by JASPAR matrix
+#'    identifier. Motifs with no class in JASPAR are reported as
+#'    `"Unclassified"`.
+#'
+#' @details
+#' The class is read from the `matrixClass` slot with
+#' \code{TFBSTools::matrixClass()}. It is worth knowing where it lives, because
+#' `tags(x)$class` is `NULL` for every JASPAR matrix in every release:
+#' `TFBSTools` moves the class out of the tag list and into its own slot when
+#' the matrix is built. Since `PSMatrix` extends `PFMatrix`, the slot survives
+#' scanning, so the class is available from a scan result without consulting
+#' JASPAR again.
+#'
+#' A small number of JASPAR matrices carry two classes separated by `|`; only
+#' the first is reported, so the result is always one label per motif and is
+#' safe to use as a grouping variable.
+#'
+#' Class is preferred over the `family` tag for grouping. Family coverage is
+#' incomplete in some collections, and its vocabulary changes between JASPAR
+#' releases, so it does not give a stable grouping across analyses.
+#'
+#' @seealso \code{\link{ps_motif_barplot}}
+#'
+#' @export
+#'
+#' @examples
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
+#' head(ps_motif_class(J2020))
+ps_motif_class <- function(pfms) {
+    if (!is(pfms, "PFMatrixList")) {
+    stop("pfms must be a PSMatrixList or PFMatrixList object", call. = FALSE)
+    }
+
+    out <- vapply(pfms, function(x) {
+    value <- matrixClass(x)
+    if (length(value) == 0L || is.na(value[[1L]]) || !nzchar(value[[1L]])) {
+        return("Unclassified")
+    }
+    value[[1L]]
+    }, character(1L))
+
+    stats::setNames(out, ID(pfms))
+}
+
+# Categorical fill colours, chosen so that adjacent pairs stay distinguishable
+# under the common forms of colour-vision deficiency. Beyond this many groups
+# the ggplot2 default is used instead, since no fixed order stays separable.
+.PS_GROUP_PALETTE <- c(
+    "#2a78d6", "#eb6834", "#1baf7a", "#eda100",
+    "#e87ba4", "#008300", "#4a3aa7", "#e34948"
+)
+
+#' Bar Plot of the Most Enriched Motifs
+#'
+#' Plots the highest ranking motifs of a scan as horizontal bars, optionally
+#' coloured by a grouping such as the structural class of the factor.
+#'
+#' @param pfms A `PSMatrixList` returned by \code{\link{pscan}}, or a
+#'    `data.frame` produced by \code{\link{ps_results_table}}. A results table
+#'    carries no motif metadata, so `group` must be supplied explicitly when
+#'    one is used.
+#' @param n Number of motifs to show. If the collection holds fewer than `n`
+#'    motifs, all of them are shown.
+#' @param statistic Column to rank and plot. One of `"ZSCORE"` (the default),
+#'    `"P.VALUE"`, `"FDR"`, `"FG_AVG"` or `"BG_AVG"`.
+#' @param group Optional grouping mapped to bar colour. `NULL` (the default)
+#'    draws every bar in one colour. `"class"` derives the structural class
+#'    with \code{\link{ps_motif_class}}. Alternatively supply a character or
+#'    factor vector, either one entry per motif or named by matrix identifier.
+#' @param FDR Optional significance cutoff applied before ranking. `NULL`, the
+#'    default, keeps every motif.
+#'
+#' @return A `ggplot` object. Nothing is drawn until the object is printed, so
+#'    it can be modified with further `ggplot2` layers first.
+#'
+#' @details
+#' Ranking follows from `statistic` rather than being controlled separately.
+#' `"ZSCORE"`, `"FG_AVG"` and `"BG_AVG"` rank from the largest value down.
+#' `"P.VALUE"` and `"FDR"` rank from the smallest up, and are plotted as
+#' \eqn{-\log_{10}}, since a bar chart of raw p-values spanning many orders of
+#' magnitude is unreadable.
+#'
+#' Bars start at zero, which is meaningful for a z-score and for the
+#' \eqn{-\log_{10}} transforms alike.
+#'
+#' Up to eight groups are drawn from a fixed palette chosen so that adjacent
+#' colours remain distinguishable under the common forms of colour-vision
+#' deficiency; beyond eight the `ggplot2` default applies. Motif names are
+#' always shown on the axis, so the grouping is never carried by colour alone.
+#'
+#' @seealso \code{\link{ps_motif_class}}, \code{\link{ps_results_table}}
+#'
+#' @export
+#'
+#' @importFrom stats setNames
+#' @importFrom ggplot2 .data
+#'
+#' @examples
+#' prom_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+#' prom_seq <- readRDS(prom_path)[1:10]
+#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(J2020_path)
+#' bg_path <- system.file("extdata",
+#'     "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'     package = "PscanR"
+#' )
+#' bg <- ps_retrieve_bg_from_file(bg_path, J2020)
+#' bg <- bg[c(
+#'     "MA0506.1", "MA0632.2", "MA0611.1",
+#'     "MA0685.1", "MA0698.1", "MA0699.1"
+#' )]
+#' results <- pscan(prom_seq, bg, BPPARAM = BiocParallel::SerialParam())
+#'
+#' ps_motif_barplot(results, n = 6)
+#'
+#' # Colour by the structural class of the factor.
+#' ps_motif_barplot(results, n = 6, group = "class")
+ps_motif_barplot <- function(pfms, n = 20, statistic = c(
+                                 "ZSCORE", "P.VALUE", "FDR",
+                                 "FG_AVG", "BG_AVG"
+                             ),
+                             group = NULL, FDR = NULL) {
+    statistic <- match.arg(statistic)
+
+    parts <- .ps_barplot_inputs(pfms, group)
+    res_table <- parts$table
+    grouping <- parts$grouping
+
+    if (!is.null(FDR)) {
+    if (!is.numeric(FDR) || length(FDR) != 1L || is.na(FDR)) {
+        stop("FDR must be a single numeric value", call. = FALSE)
+    }
+    keep <- res_table$FDR <= FDR
+    res_table <- res_table[keep, , drop = FALSE]
+    grouping <- grouping[keep]
+    }
+    if (nrow(res_table) == 0L) {
+    stop("No motifs left to plot after filtering", call. = FALSE)
+    }
+
+    if (!is.numeric(n) || length(n) != 1L || is.na(n) || n < 1) {
+    stop("n must be a single positive number", call. = FALSE)
+    }
+
+    # Smaller is better for the two p-value columns, and they are plotted on a
+    # log scale; everything else is read directly and ranked downwards.
+    ascending <- statistic %in% c("P.VALUE", "FDR")
+    value <- res_table[[statistic]]
+    ord <- order(value, decreasing = !ascending)
+    keep <- utils::head(ord, min(as.integer(n), nrow(res_table)))
+
+    plot_data <- data.frame(
+    motif = res_table$NAME[keep],
+    motif_id = row.names(res_table)[keep],
+    value = if (ascending) -log10(value[keep]) else value[keep],
+    stringsAsFactors = FALSE
+    )
+    # Ties on NAME would collapse bars, so order the factor on the identifier.
+    plot_data$label <- factor(
+    plot_data$motif_id,
+    levels = rev(plot_data$motif_id),
+    labels = rev(plot_data$motif)
+    )
+    axis_label <- if (ascending) {
+    paste0("-log10(", statistic, ")")
+    } else {
+    statistic
+    }
+
+    if (is.null(grouping)) {
+    plot <- ggplot2::ggplot(
+        plot_data, ggplot2::aes(x = .data$value, y = .data$label)
+    ) +
+        ggplot2::geom_col(width = 0.72, fill = "grey35")
+    } else {
+    plot_data$group <- grouping[keep]
+    n_groups <- length(unique(plot_data$group))
+    plot <- ggplot2::ggplot(
+        plot_data,
+        ggplot2::aes(x = .data$value, y = .data$label, fill = .data$group)
+    ) +
+        ggplot2::geom_col(width = 0.72) +
+        ggplot2::labs(fill = NULL) +
+        # Class labels are long, so let the legend wrap rather than clip.
+        ggplot2::guides(fill = ggplot2::guide_legend(ncol = 2))
+    if (n_groups <= length(.PS_GROUP_PALETTE)) {
+        plot <- plot + ggplot2::scale_fill_manual(
+        values = utils::head(.PS_GROUP_PALETTE, n_groups)
+        )
+    }
+    }
+
+    plot +
+    ggplot2::scale_x_continuous(
+        expand = ggplot2::expansion(mult = c(0, 0.05))
+    ) +
+    ggplot2::labs(x = axis_label, y = NULL) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+        panel.grid.major.y = ggplot2::element_blank(),
+        panel.grid.minor = ggplot2::element_blank(),
+        legend.position = "top",
+        legend.justification = "left"
+    )
+}
+
+# Accepts either a scan result or a results table, and resolves `group` to a
+# character vector aligned with the table rows (or NULL).
+.ps_barplot_inputs <- function(pfms, group) {
+    if (is(pfms, "PFMatrixList")) {
+    res_table <- ps_results_table(pfms)
+    grouping <- .ps_resolve_group(group, pfms, row.names(res_table))
+    return(list(table = res_table, grouping = grouping))
+    }
+    if (is.data.frame(pfms)) {
+    required <- c("NAME", "ZSCORE", "P.VALUE", "FDR")
+    missing_cols <- setdiff(required, names(pfms))
+    if (length(missing_cols) > 0L) {
+        stop(
+        "'pfms' looks like a data.frame but is missing column(s): ",
+        paste(missing_cols, collapse = ", "),
+        ". Pass a PSMatrixList or the output of ps_results_table().",
+        call. = FALSE
+        )
+    }
+    if (is.character(group) && length(group) == 1L) {
+        stop(
+        "group = \"", group, "\" needs motif metadata, which a results ",
+        "table does not carry. Pass the PSMatrixList instead, or supply ",
+        "'group' as a vector.",
+        call. = FALSE
+        )
+    }
+    grouping <- .ps_resolve_group(group, NULL, row.names(pfms))
+    return(list(table = pfms, grouping = grouping))
+    }
+    stop(
+    "pfms must be a PSMatrixList or a data.frame from ps_results_table()",
+    call. = FALSE
+    )
+}
+
+.ps_resolve_group <- function(group, pfms, motif_ids) {
+    if (is.null(group)) {
+    return(NULL)
+    }
+    if (is.character(group) && length(group) == 1L &&
+        group %in% c("class", "family")) {
+    if (identical(group, "class")) {
+        return(unname(ps_motif_class(pfms)[motif_ids]))
+    }
+    families <- vapply(pfms, function(x) {
+        value <- tags(x)$family
+        if (is.null(value) || !nzchar(value[[1L]])) {
+        return("Unclassified")
+        }
+        as.character(value)[[1L]]
+    }, character(1L))
+    return(unname(stats::setNames(families, ID(pfms))[motif_ids]))
+    }
+    if (!is.character(group) && !is.factor(group)) {
+    stop(
+        "group must be NULL, \"class\", \"family\", or a character or ",
+        "factor vector",
+        call. = FALSE
+    )
+    }
+    group <- as.character(group)
+    if (!is.null(names(group))) {
+    return(unname(group[motif_ids]))
+    }
+    if (length(group) != length(motif_ids)) {
+    stop(
+        "group has ", length(group), " entries but there are ",
+        length(motif_ids), " motifs. Supply one entry per motif, or name ",
+        "the vector by matrix identifier.",
+        call. = FALSE
+    )
+    }
+    group
 }

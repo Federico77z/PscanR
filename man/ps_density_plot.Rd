@@ -24,8 +24,8 @@ the threshold directly, or a character:
 Default is `loose` (background average).}
 }
 \value{
-A density plot showing the distribution of hits along the promoter
-   region.
+Invisibly returns `NULL`. The density plot of hit positions along
+   the promoter region is drawn as a side effect.
 }
 \description{
 This function creates a density plot representing the distribution of hits

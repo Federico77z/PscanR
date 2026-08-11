@@ -10,6 +10,7 @@ Imports:
     BiocGenerics (>= 0.40.0),
     Biostrings (>= 2.64),
     ExperimentHub,
+    ggplot2,
     graphics,
     grDevices (>= 3.6.2),
     methods,

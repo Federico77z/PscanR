@@ -389,3 +389,142 @@ test_that("pscan_fullBG resolves the requested splice variant, not its gene", {
   )
   expect_identical(ps_seq_names(gene_query[[1]]), wanted)
 })
+
+# ---------------------------------------------------------------------------
+# Motif class and the ranked bar plot
+# ---------------------------------------------------------------------------
+
+scan_bundled_motifs <- function() {
+  prom_seq <- readRDS(
+    system.file("extdata", "prom_seq.rds", package = "PscanR")
+  )[1:10]
+  J2020 <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
+  bg <- ps_retrieve_bg_from_file(
+    system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+                package = "PscanR"),
+    J2020
+  )
+  bg <- bg[c("MA0506.1", "MA0632.2", "MA0611.1",
+             "MA0685.1", "MA0698.1", "MA0699.1")]
+  pscan(prom_seq, bg, BPPARAM = BiocParallel::SerialParam())
+}
+
+test_that("ps_motif_class reads the class off the matrices", {
+  results <- scan_bundled_motifs()
+  classes <- ps_motif_class(results)
+
+  expect_length(classes, length(results))
+  # ID() is itself a named vector, so compare against its values.
+  expect_identical(names(classes), unname(TFBSTools::ID(results)))
+  expect_type(classes, "character")
+  expect_identical(
+    unname(classes[c("MA0506.1", "MA0632.2")]),
+    c("Basic leucine zipper factors (bZIP)",
+      "Basic helix-loop-helix factors (bHLH)")
+  )
+  # Every motif gets exactly one label, so it is safe as a grouping variable.
+  expect_false(any(is.na(classes)))
+  expect_true(all(nzchar(classes)))
+
+  expect_error(ps_motif_class(data.frame(a = 1)), "PSMatrixList")
+})
+
+test_that("ps_motif_class reports missing and multiple classes usefully", {
+  J2020 <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
+  one <- J2020[["MA0506.1"]]
+
+  # The JASPAR sentinel for "no class" is the empty string, not NA.
+  blank <- one
+  blank@matrixClass <- ""
+  expect_identical(unname(ps_motif_class(PFMatrixList(blank))), "Unclassified")
+
+  # A few JASPAR matrices carry two classes; only the first is reported so the
+  # result stays one label per motif.
+  paired <- one
+  paired@matrixClass <- c("First class", "Second class")
+  expect_identical(unname(ps_motif_class(PFMatrixList(paired))), "First class")
+})
+
+test_that("ps_motif_barplot returns a composable ggplot", {
+  results <- scan_bundled_motifs()
+  plot <- ps_motif_barplot(results, n = 4)
+
+  expect_s3_class(plot, "ggplot")
+  expect_identical(nrow(plot$data), 4L)
+  # Nothing is drawn until printing, so further layers can still be added.
+  expect_s3_class(plot + ggplot2::labs(title = "t"), "ggplot")
+})
+
+test_that("ps_motif_barplot ranks according to the statistic", {
+  results <- scan_bundled_motifs()
+  res_table <- ps_results_table(results)
+
+  by_z <- ps_motif_barplot(results, n = 6, statistic = "ZSCORE")
+  expect_identical(
+    as.character(by_z$data$motif[1]),
+    res_table$NAME[which.max(res_table$ZSCORE)]
+  )
+
+  # P-values rank the other way and are plotted on a log scale, because a bar
+  # chart of raw p-values spanning many orders of magnitude is unreadable.
+  by_p <- ps_motif_barplot(results, n = 6, statistic = "P.VALUE")
+  expect_identical(
+    as.character(by_p$data$motif[1]),
+    res_table$NAME[which.min(res_table$P.VALUE)]
+  )
+  expect_equal(by_p$data$value[1], -log10(min(res_table$P.VALUE)))
+  expect_identical(by_p$labels$x, "-log10(P.VALUE)")
+
+  expect_error(ps_motif_barplot(results, statistic = "NOPE"), "arg")
+})
+
+test_that("ps_motif_barplot groups by class or by a supplied vector", {
+  results <- scan_bundled_motifs()
+
+  by_class <- ps_motif_barplot(results, n = 6, group = "class")
+  expect_identical(
+    sort(unique(as.character(by_class$data$group))),
+    sort(unique(unname(ps_motif_class(results))))
+  )
+
+  supplied <- rep(c("a", "b"), length.out = length(results))
+  by_vector <- ps_motif_barplot(results, n = 6, group = supplied)
+  expect_setequal(unique(as.character(by_vector$data$group)), c("a", "b"))
+
+  # A named vector is matched by identifier rather than by position.
+  named <- stats::setNames(supplied, TFBSTools::ID(results))
+  expect_s3_class(ps_motif_barplot(results, n = 6, group = named), "ggplot")
+
+  expect_error(
+    ps_motif_barplot(results, group = c("only", "two")),
+    "one entry per motif"
+  )
+  expect_error(ps_motif_barplot(results, group = 1:6), "character or")
+})
+
+test_that("ps_motif_barplot clamps n and honours the FDR filter", {
+  results <- scan_bundled_motifs()
+
+  expect_identical(
+    nrow(ps_motif_barplot(results, n = 99)$data), length(results)
+  )
+  expect_error(ps_motif_barplot(results, n = 0), "positive")
+
+  res_table <- ps_results_table(results)
+  cutoff <- stats::median(res_table$FDR)
+  filtered <- ps_motif_barplot(results, n = 99, FDR = cutoff)
+  expect_identical(nrow(filtered$data), sum(res_table$FDR <= cutoff))
+  expect_error(ps_motif_barplot(results, FDR = 0), "No motifs left")
+})
+
+test_that("ps_motif_barplot accepts a results table when told the grouping", {
+  results <- scan_bundled_motifs()
+  res_table <- ps_results_table(results)
+
+  expect_s3_class(ps_motif_barplot(res_table, n = 4), "ggplot")
+  # A table carries no motif metadata, so "class" cannot be derived from it.
+  expect_error(
+    ps_motif_barplot(res_table, group = "class"), "results table does not"
+  )
+  expect_error(ps_motif_barplot(list(1, 2)), "PSMatrixList or a data.frame")
+})
