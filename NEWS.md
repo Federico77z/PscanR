@@ -1,4 +1,4 @@
-# PscanR 1.0.0
+# PscanR 0.99.0
 
 - Add `ps_motif_barplot()`, which draws the highest ranking motifs of a scan as horizontal bars. Ranking direction and scale follow from the chosen statistic: `ZSCORE`, `FG_AVG` and `BG_AVG` rank downwards and are plotted as they are, while `P.VALUE` and `FDR` rank upwards and are plotted as -log10. Bars can be coloured by any grouping, and `group = "class"` derives the structural class of the factor without further input.
 - Add `ps_motif_class()`, which reports the structural class of each motif. The class is read from the `matrixClass` slot that `PSMatrix` inherits from `PFMatrix`, so it survives scanning and is available from a scan result without consulting JASPAR again. This is not reachable through `tags(x)$class`, which is `NULL` for every JASPAR matrix in every release.
@@ -7,9 +7,6 @@
 - Correct the documented return value of `ps_density_plot()`, which claimed to return a plot while returning `NULL`.
 - Fix `ps_hitpos_map()` indexing the columns of the position matrix with a vector of result-table row numbers. The two coincide only while the FDR-filtered rows happen to be the leading ones, which is true of a Benjamini-Hochberg ordering but is not a property to rely on.
 - `ggplot2` is now a hard dependency, and `graphics` is no longer used.
-
-# PscanR 0.99.0
-
 - Resolve transcript identifiers according to the scheme they belong to, instead of assuming RefSeq. A trailing `.N` is a release *version* in RefSeq (`NM_000546.6`) but a *splice variant* in TAIR (`AT1G01110.2`), and treating the second like the first merged distinct Arabidopsis transcripts onto their shared gene. The new registry recognises `refseq` (human, mouse, Drosophila), `sgd` (yeast) and `tair` (Arabidopsis), detects the scheme automatically, reports what it detected, and falls back to a lossless `generic` scheme with a warning when identifiers are unrecognised or mixed.
 - Fix `pscan_fullBG()` returning the wrong transcript. It stripped both the query and the background legend before matching, so on Arabidopsis a request for `AT1G01110.2` could silently return the hits stored for `AT1G01110.1`, which usually has a different TSS. Matching is now scheme-aware, and an identifier that is ambiguous within the background raises a warning naming it instead of resolving to the first match.
 - Make `ps_select_promoters()` deterministic. Candidate promoters are no longer discarded before ranking — on the TAIR9 background that silently dropped 9.1% of promoters — and selection now uses a total order, so the result no longer depends on the order promoters were supplied. Reversing the Arabidopsis promoter set previously changed the chosen transcript for 263 of 2238 genes; it now changes none, and the primary `.1` gene model is selected for every gene that has one. RefSeq selections are unchanged.

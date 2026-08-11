@@ -1,7 +1,7 @@
 Package: PscanR
 Type: Package
 Title: Motif Enrichment Analysis of Regulatory DNA Sequences
-Version: 1.0.0
+Version: 0.99.0
 Encoding: UTF-8
 Depends: R (>= 4.6.0)
 Imports:
