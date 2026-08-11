@@ -741,7 +741,11 @@ ps_selection_summary <- function(mapping) {
         excluded <- NA_integer_
     }
     overall <- data.frame(
-        scheme = if (nrow(mapping) > 0L) mapping$scheme[[1L]] else NA_character_,
+        scheme = if (nrow(mapping) > 0L) {
+            mapping$scheme[[1L]]
+        } else {
+            NA_character_
+        },
         genes_requested = length(unique(mapping$gene)) + length(unmapped),
         genes_mapped = length(unique(mapping$gene)),
         genes_unmapped = length(unmapped),

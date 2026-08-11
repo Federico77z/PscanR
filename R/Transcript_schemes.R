@@ -112,7 +112,12 @@
 
 .ps_tair_variant <- function(x) {
     suffix <- sub("^.*\\.", "", as.character(x))
-    suppressWarnings(as.integer(suffix))
+    # Only convert what is actually a number, so no warning is raised for
+    # identifiers that carry no numeric variant.
+    numeric_suffix <- grepl("^[0-9]+$", suffix)
+    out <- rep(NA_integer_, length(suffix))
+    out[numeric_suffix] <- as.integer(suffix[numeric_suffix])
+    out
 }
 
 #' Rank candidate transcripts within a gene
@@ -279,23 +284,30 @@
     } else if (!quiet) {
         candidates <- reference[!is.na(reference) &
             grepl(.ps_scheme_pattern(resolved), reference)]
-        example <- if (length(candidates) > 0L) candidates[[1L]] else NA_character_
+        example <- if (length(candidates) > 0L) {
+            candidates[[1L]]
+        } else {
+            NA_character_
+        }
         role <- .ps_scheme_suffix_role(resolved)
+        suffix_note <- switch(role,
+            version = paste0(
+                "the trailing .N is a VERSION and is normalised away ",
+                "for matching"
+            ),
+            variant = paste0(
+                "the trailing .N is a SPLICE VARIANT and is preserved, ",
+                "not stripped"
+            ),
+            "these identifiers carry no version or variant suffix"
+        )
+        template <- paste0(
+            "Detected transcript scheme: \"%s\" (%d/%d identifiers ",
+            "matched)\n  %s -> transcript %s\n  %s"
+        )
         message(sprintf(
-            "Detected transcript scheme: \"%s\" (%d/%d identifiers matched)\n  %s -> transcript %s\n  %s",
-            resolved, detected$matched, detected$total,
-            example, .ps_transcript_base(example, resolved),
-            switch(role,
-                version = paste(
-                    "the trailing .N is a VERSION and is normalised away",
-                    "for matching"
-                ),
-                variant = paste(
-                    "the trailing .N is a SPLICE VARIANT and is preserved,",
-                    "not stripped"
-                ),
-                "these identifiers carry no version or variant suffix"
-            )
+            template, resolved, detected$matched, detected$total,
+            example, .ps_transcript_base(example, resolved), suffix_note
         ))
     }
 
