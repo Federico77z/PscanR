@@ -21,9 +21,25 @@ A character vector containing the sequences of motif matches
 Retrieves the oligonucleotide sequences that match the motif in the
 foreground sequences, returning a character vector.
 }
+\section{Strand}{
+
+The sequence returned is always the **forward strand** of the promoter,
+whatever strand the motif matched on, following the original Pscan
+implementation. Use \code{\link{ps_hits_strand}} to find which hits matched
+on \code{"-"} and reverse-complement those before comparing them with the
+motif consensus.
+}
+
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 pfm1 <- readRDS(pfm1_path)
 ps_hits_oligo(pfm1)
 
+# A reverse-strand hit reads as the motif only after flipping it.
+table(ps_hits_strand(pfm1))
+
+}
+\seealso{
+\code{\link{ps_hits_strand}}, \code{\link{ps_hits_pos}},
+  \code{\link{ps_hits_table}}
 }

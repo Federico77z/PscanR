@@ -148,10 +148,23 @@ setMethod("ps_pvalue", "PSMatrix", function(x, withDimnames = TRUE) {
 #' @return A character vector containing the sequences of motif matches
 #'     (oligonucleotides) in the foreground set.
 #'
+#' @section Strand:
+#' The sequence returned is always the **forward strand** of the promoter,
+#' whatever strand the motif matched on, following the original Pscan
+#' implementation. Use \code{\link{ps_hits_strand}} to find which hits matched
+#' on \code{"-"} and reverse-complement those before comparing them with the
+#' motif consensus.
+#'
+#' @seealso \code{\link{ps_hits_strand}}, \code{\link{ps_hits_pos}},
+#'   \code{\link{ps_hits_table}}
+#'
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 #' pfm1 <- readRDS(pfm1_path)
 #' ps_hits_oligo(pfm1)
+#'
+#' # A reverse-strand hit reads as the motif only after flipping it.
+#' table(ps_hits_strand(pfm1))
 #'
 #' @export
 setMethod("ps_hits_oligo", "PSMatrix", function(x, withDimnames = TRUE) {
@@ -691,6 +704,11 @@ setMethod("all_sequences_ID", "PSMatrix", function(x, withDimnames = TRUE) {
 #'   \item `OLIGO`: the oligo sequence corresponding to each hit (a
 #'   `DNAStringSet`).}
 #' Row names correspond to the sequence names.
+#'
+#' @section Strand:
+#' `OLIGO` is the forward strand of the promoter whatever `STRAND` says, as in
+#' the original Pscan. A row with `STRAND == "-"` matches the motif only after
+#' its oligo is reverse-complemented. See \code{\link{ps_hits_oligo}}.
 #'
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
