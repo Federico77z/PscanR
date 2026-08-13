@@ -827,6 +827,15 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 # Single-series colour for the density figures, taken from the same palette.
 .PS_DENSITY_COLOUR <- .PS_GROUP_PALETTE[[1L]]
 
+# The three score bands the two background thresholds cut a scan into, weakest
+# first. Named in the vocabulary the `st` argument uses elsewhere, so a reader
+# can carry the legend straight across to ps_density_plot().
+.PS_SCORE_BANDS <- c(
+    "below background mean",
+    "above mean (loose)",
+    "above mean + SD (strict)"
+)
+
 #' Density Plot of Motif Hits Along Promoter Regions
 #'
 #' This function creates a density plot representing the distribution of hits
@@ -847,6 +856,17 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 #'      \item `strict`: uses the background average score together with the
 #'      background standard deviation as threshold.}
 #'    Default is `loose` (background average).
+#' @param window Optional length-2 numeric giving the promoter window, on the
+#'    same scale as `shift` -- for promoters extracted 1000 bp upstream of the
+#'    TSS and plotted with `shift = -1000`, that is `c(-1000, 0)`. Supplying it
+#'    corrects the estimate at the edges by reflection; leaving it `NULL` only
+#'    clips the curve to the observed range. The reflecting bounds are the
+#'    positions a hit can be *reported* at, which stop `ncol(pfm) - 1` short of
+#'    the end of the window, since a hit is recorded at the start of the motif.
+#' @param bins Optional number of bins for a binned profile of the same
+#'    positions, drawn behind the curve. Bars are on the density scale, so they
+#'    share the curve's y axis directly. Carrying no bandwidth and no boundary
+#'    assumption, they show what the smoothing is doing.
 #'
 #' @return A `ggplot` object showing the density of hit positions along the
 #'    promoter region. Nothing is drawn until the object is printed, so it can
@@ -874,7 +894,8 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 #'
 #' @export
 #' @importFrom stats density
-ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
+ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
+                            window = NULL, bins = NULL) {
     # st = score threshold. It can be passed as a numeric value
     # or as one of three characters "all", "loose", "strict".
     st <- .ps_resolve_threshold(st, pfm, "st")
@@ -883,14 +904,22 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
     g_scores <- scores >= st
     sum_g <- sum(g_scores)
 
-    density_hits <- density(ps_hits_pos(pfm, pos_shift = shift)[g_scores])
+    positions <- ps_hits_pos(pfm, pos_shift = shift)[g_scores]
+    # A hit is reported at the start of its window, so the last position a
+    # motif of width w can start at is w - 1 short of the end of the promoter.
+    # Reflecting at the end of the promoter itself would place the boundary
+    # where no hit can be observed and flatten the estimate short of it.
+    density_hits <- .ps_bounded_density(
+    positions, .ps_hit_support(window, ncol(pfm))
+    )
 
     .ps_density_ggplot(
     density_hits,
     title = paste(
         name(pfm), "binding site density across", sum_g, "promoter regions"
     ),
-    xlab = "Position along promoters"
+    xlab = "Position along promoters",
+    values = positions, bins = bins
     )
 }
 
@@ -909,6 +938,152 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
     )
 }
 
+#' Bin values into a profile on the density scale
+#'
+#' Heights are counts divided by the total and by the bin width, which is the
+#' same scale a kernel density is on. Both can then share one y axis, with no
+#' secondary axis and no arbitrary rescaling, and the comparison between them is
+#' meaningful rather than merely visual.
+#'
+#' The bars carry no bandwidth and no boundary assumption, so they also serve as
+#' a check on the smoothed curve: where the two disagree, it is the curve that
+#' is imposing something.
+#'
+#' @param values Numeric vector, or `NULL`.
+#' @param bins Number of bins, or `NULL`.
+#' @param limits Length-2 numeric spanning the bins.
+#'
+#' @return A data frame of `mid`, `density` and `width`, or `NULL`.
+#'
+#' @noRd
+.ps_binned_profile <- function(values, bins, limits) {
+    if (is.null(bins) || is.null(values)) {
+    return(NULL)
+    }
+    if (!is.numeric(bins) || length(bins) != 1L || is.na(bins) || bins < 1) {
+    stop("bins must be a single positive number", call. = FALSE)
+    }
+    breaks <- seq(limits[[1L]], limits[[2L]], length.out = as.integer(bins) + 1L)
+    width <- diff(breaks)[[1L]]
+    counts <- tabulate(
+    cut(values, breaks = breaks, include.lowest = TRUE, labels = FALSE),
+    nbins = as.integer(bins)
+    )
+    data.frame(
+    mid = breaks[-length(breaks)] + width / 2,
+    density = counts / (sum(counts) * width),
+    width = width
+    )
+}
+
+#' Positions a hit of a given width can be reported at within a window
+#'
+#' A hit is recorded at the start of the matching window, so a motif of width
+#' `w` can never be reported in the final `w - 1` bases of the promoter.
+#' Reflecting at the end of the promoter itself would put the boundary where no
+#' hit can be observed.
+#'
+#' @param window Promoter window, or `NULL`.
+#' @param width Motif width, `ncol()` of the matrix.
+#'
+#' @return Length-2 numeric, or `NULL` when `window` is `NULL`.
+#'
+#' @noRd
+.ps_hit_support <- function(window, width) {
+    if (is.null(window)) {
+    return(NULL)
+    }
+    if (length(window) != 2L || !all(is.finite(window)) ||
+        window[[1L]] == window[[2L]]) {
+    stop(
+        "'window' must be two finite, distinct values giving the promoter ",
+        "window the positions were taken from",
+        call. = FALSE
+    )
+    }
+    window <- sort(as.numeric(window))
+    support <- c(window[[1L]] + 1, window[[2L]] - width + 1)
+    if (support[[1L]] >= support[[2L]]) {
+    stop(
+        "'window' spans ", diff(window), " bases, which is too short to ",
+        "report a hit for a motif of width ", width,
+        call. = FALSE
+    )
+    }
+    support
+}
+
+#' Estimate a density on a bounded interval
+#'
+#' \code{stats::density()} assumes the quantity is unbounded. It evaluates over
+#' \code{cut = 3} bandwidths beyond the data, so the curve runs outside the
+#' interval the values can occupy, and it lets kernel mass escape across the
+#' boundary, so the estimate is depressed at both ends. For hit positions the
+#' interval is the scanned window, and both artefacts land exactly where
+#' positional signal is usually read.
+#'
+#' With `window` supplied the estimate is corrected by reflection: the sample is
+#' mirrored across both bounds before estimation, which returns the escaped mass
+#' to the interval and makes the result integrate to one over it.
+#'
+#' Reflection is only meaningful at a real boundary. Without `window` the
+#' support is unknown -- the sample minimum and maximum are not boundaries, they
+#' are just the smallest and largest values seen -- so no correction is applied
+#' and the grid is merely clipped to the observed range.
+#'
+#' Reflection constrains the estimate to have zero derivative at each bound. On
+#' a distribution still changing at the edge this flattens the last bandwidth or
+#' so, which is visible when the bandwidth is large relative to the structure.
+#'
+#' @param x Numeric vector.
+#' @param window Optional length-2 numeric giving the interval `x` is confined
+#'   to.
+#'
+#' @return A \code{stats::density} object.
+#'
+#' @noRd
+#' @importFrom stats density
+.ps_bounded_density <- function(x, window = NULL) {
+    if (is.null(window)) {
+    limits <- range(x)
+    if (!all(is.finite(limits)) || limits[[1L]] == limits[[2L]]) {
+        return(density(x))
+    }
+    return(density(x, from = limits[[1L]], to = limits[[2L]]))
+    }
+
+    window <- sort(as.numeric(window))
+    if (length(window) != 2L || !all(is.finite(window)) ||
+        window[[1L]] == window[[2L]]) {
+    stop(
+        "'window' must be two finite, distinct values giving the interval ",
+        "the positions are confined to",
+        call. = FALSE
+    )
+    }
+    outside <- x < window[[1L]] | x > window[[2L]]
+    if (any(outside)) {
+    stop(
+        sum(outside), " value(s) fall outside 'window' [",
+        window[[1L]], ", ", window[[2L]], "]",
+        call. = FALSE
+    )
+    }
+
+    # Estimate on the sample mirrored across both bounds, then keep the middle
+    # copy's worth of density. bw is taken from the original sample, since the
+    # mirrored one is three times the size and would be over-smoothed.
+    bw <- density(x)$bw
+    mirrored <- c(x, 2 * window[[1L]] - x, 2 * window[[2L]] - x)
+    out <- density(
+    mirrored,
+    bw = bw, from = window[[1L]], to = window[[2L]]
+    )
+    out$y <- out$y * 3
+    out$n <- length(x)
+    out
+}
+
 #' Draw a density object as a filled curve with its mode marked
 #'
 #' Both density plotters draw exactly this figure and differ only in their
@@ -919,22 +1094,39 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
 #'
 #' @param d A \code{stats::density} object.
 #' @param title,xlab Plot title and x axis label.
+#' @param values The values `d` was estimated from, needed only for `bins`.
+#' @param bins Number of bins for a binned profile drawn behind the curve, or
+#'   `NULL` for none.
 #'
 #' @return A `ggplot` object.
 #'
 #' @noRd
 #' @importFrom ggplot2 .data
-.ps_density_ggplot <- function(d, title, xlab) {
+.ps_density_ggplot <- function(d, title, xlab, values = NULL, bins = NULL) {
     curve <- data.frame(x = d$x, y = d$y)
     peak <- d$x[which.max(d$y)]
+    bars <- .ps_binned_profile(values, bins, range(d$x))
 
     # Keep the mode label inside the panel: the base-graphics original always
     # wrote it to the right of the line, which clipped whenever the mode fell
     # near the end of the range.
     past_middle <- peak > mean(range(d$x))
 
-    ggplot2::ggplot(curve, ggplot2::aes(x = .data$x, y = .data$y)) +
-    ggplot2::geom_area(fill = .PS_DENSITY_COLOUR, alpha = 0.15) +
+    plot <- ggplot2::ggplot(curve, ggplot2::aes(x = .data$x, y = .data$y))
+    plot <- if (is.null(bars)) {
+    # Without bars the filled area gives the curve some weight.
+    plot + ggplot2::geom_area(fill = .PS_DENSITY_COLOUR, alpha = 0.15)
+    } else {
+    # With bars it would only muddy them, so the curve is drawn on its own.
+    plot + ggplot2::geom_col(
+        data = bars,
+        mapping = ggplot2::aes(x = .data$mid, y = .data$density),
+        width = bars$width[[1L]], fill = "grey82", colour = "white",
+        linewidth = 0.25
+    )
+    }
+
+    plot +
     ggplot2::geom_line(colour = .PS_DENSITY_COLOUR, linewidth = 0.8) +
     ggplot2::geom_vline(
         xintercept = peak, colour = "grey50", linetype = "dashed",
@@ -1000,6 +1192,11 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
 #'    Can be a numeric value to set the threshold directly, or a character, as
 #'    for st1.
 #'    Default is set to `loose`.
+#' @param window Optional length-2 numeric giving the interval the distances
+#'    can occupy. Supplying it corrects the estimate at the edges by
+#'    reflection; leaving it `NULL` only clips the curve to the observed range.
+#' @param bins Optional number of bins for a binned profile of the same
+#'    distances, drawn behind the curve on the density scale.
 #'
 #' @return A `ggplot` object showing the distribution of distances between
 #'    identified motif hits in \code{M1} and \code{M2}. Nothing is drawn until
@@ -1047,7 +1244,8 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm)) {
 #' ps_density_distances_plot(results[[1]], results[[2]], "all", "loose")
 #' @export
 ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
-                                        st2 = ps_bg_avg(M2)) {
+                                        st2 = ps_bg_avg(M2),
+                                        window = NULL, bins = NULL) {
     if (!is(M1, "PSMatrix") || !is(M2, "PSMatrix")) {
     stop("Both object must be of class PSMatrix")
     }
@@ -1055,14 +1253,19 @@ ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
     st1 <- .ps_resolve_threshold(st1, M1, "st1")
     st2 <- .ps_resolve_threshold(st2, M2, "st2")
     distances <- .ps_hit_distances(M1, M2, st1, st2)
-    density_distances <- density(distances)
+    density_distances <- .ps_bounded_density(distances, window)
 
+    # The count is the point of the title as much as the names are: a distance
+    # needs a retained hit for both motifs, so raising either threshold can
+    # leave the plot resting on far fewer promoters than were scanned.
     .ps_density_ggplot(
     density_distances,
     title = paste(
-        M1@name, "Binding Site Distance Distribution Relative to", M2@name
+        M1@name, "binding site distance relative to", M2@name,
+        "across", length(distances), "promoter regions"
     ),
-    xlab = "Distances between the identified sites"
+    xlab = "Distances between the identified sites",
+    values = distances, bins = bins
     )
 }
 
@@ -1346,4 +1549,131 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
     )
     }
     group
+}
+
+#' Hit Position Against Hit Score
+#'
+#' Plots every promoter's best hit as a point positioned by where the site sits
+#' and by how well it scores, so that position and strength are read together.
+#' A positional profile alone cannot show whether a concentration is made of
+#' strong sites or weak ones.
+#'
+#' @param x A `PSMatrix`, or a `PSMatrixList` in which case the motifs are
+#'    drawn as panels sharing both axes.
+#' @param shift Integer positional shift applied to hit positions, to place
+#'    them relative to the TSS. Default `0`.
+#'
+#'
+#' @return A `ggplot` object.
+#'
+#' @details
+#' Two horizontal references are drawn per motif: the background mean, and one
+#' standard deviation above it. They are the same thresholds `st` names
+#' elsewhere in the package, and they split the points into three bands, each
+#' drawn in its own colour: below the mean, between the mean and one standard
+#' deviation above it, and beyond that. A point in the top band is a site that
+#' `st = "strict"` keeps; the top two bands together are what `"loose"` keeps.
+#' Colouring the middle band separately rather than lumping it with the weak
+#' hits shows how much of a positional pattern rests on marginal sites.
+#'
+#' Because each promoter contributes exactly one point, vertical structure is
+#' the score distribution and horizontal structure is the positional one. A
+#' motif whose strong sites are positionally constrained shows points banking
+#' into one region above the upper line while the weak sites stay spread out.
+#'
+#' @seealso \code{\link{ps_density_plot}}, \code{\link{ps_hitpos_map}}
+#'
+#' @export
+#'
+#' @importFrom ggplot2 .data
+#'
+#' @examples
+#' prom_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
+#' prom_seq <- readRDS(prom_path)[1:10]
+#' J2020 <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
+#' bg_path <- system.file("extdata",
+#'     "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'     package = "PscanR"
+#' )
+#' bg <- ps_retrieve_bg_from_file(bg_path, J2020)
+#' bg <- bg[c("MA0506.1", "MA0632.2")]
+#' results <- pscan(prom_seq, bg, BPPARAM = BiocParallel::SerialParam())
+#'
+#' ps_hit_score_plot(results, shift = -200)
+ps_hit_score_plot <- function(x, shift = 0) {
+    motifs <- if (is(x, "PFMatrixList")) {
+    as.list(x)
+    } else if (is(x, "PSMatrix")) {
+    list(x)
+    } else {
+    stop("x must be a PSMatrix or a PSMatrixList", call. = FALSE)
+    }
+
+    points <- do.call(rbind, lapply(motifs, function(m) {
+    loose <- ps_bg_avg(m)
+    strict <- loose + ps_bg_std_dev(m)
+    scores <- ps_hits_score(m)
+    keep <- !is.na(scores)
+    scores <- scores[keep]
+    data.frame(
+        motif = name(m),
+        position = ps_hits_pos(m, pos_shift = shift)[keep],
+        score = scores,
+        band = .PS_SCORE_BANDS[
+        1L + (scores >= loose) + (scores >= strict)
+        ],
+        stringsAsFactors = FALSE
+    )
+    }))
+    points$band <- factor(points$band, levels = rev(.PS_SCORE_BANDS))
+    # Panels follow the order the motifs were given, not the alphabet.
+    motif_names <- vapply(motifs, name, character(1L))
+    points$motif <- factor(points$motif, levels = unique(motif_names))
+
+    references <- data.frame(
+    motif = factor(motif_names, levels = unique(motif_names)),
+    loose = vapply(motifs, ps_bg_avg, numeric(1L)),
+    strict = vapply(motifs, function(m) {
+        ps_bg_avg(m) + ps_bg_std_dev(m)
+    }, numeric(1L))
+    )
+
+    plot <- ggplot2::ggplot(
+    points, ggplot2::aes(x = .data$position, y = .data$score)
+    ) +
+    ggplot2::geom_hline(
+        data = references, ggplot2::aes(yintercept = .data$loose),
+        colour = "grey65", linetype = "dashed", linewidth = 0.4
+    ) +
+    ggplot2::geom_hline(
+        data = references, ggplot2::aes(yintercept = .data$strict),
+        colour = "grey40", linetype = "dashed", linewidth = 0.4
+    ) +
+    ggplot2::geom_point(
+        ggplot2::aes(colour = .data$band),
+        size = 0.9, alpha = 0.55
+    ) +
+    ggplot2::scale_colour_manual(
+        values = stats::setNames(
+        c(.PS_DENSITY_COLOUR, .PS_GROUP_PALETTE[[2L]], "grey72"),
+        rev(.PS_SCORE_BANDS)
+        )
+    ) +
+    ggplot2::labs(
+        x = "Position along promoters", y = "Hit score", colour = NULL
+    ) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+        panel.grid.minor = ggplot2::element_blank(),
+        legend.position = "top",
+        legend.justification = "left",
+        strip.text = ggplot2::element_text(face = "bold")
+    )
+
+    if (nlevels(points$motif) > 1L) {
+    plot <- plot + ggplot2::facet_wrap(~motif)
+    } else {
+    plot <- plot + ggplot2::labs(title = levels(points$motif)[[1L]])
+    }
+    plot
 }

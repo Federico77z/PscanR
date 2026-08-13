@@ -539,8 +539,12 @@ test_that("ps_density_plot returns a composable ggplot over the density grid", {
 
   expect_s3_class(plot, "ggplot")
   # The curve is the grid of the density object, not a recomputed geom_density.
+  positions <- ps_hits_pos(pfm, pos_shift = -200)[
+    ps_hits_score(pfm) >= ps_bg_avg(pfm)
+  ]
   expected <- stats::density(
-    ps_hits_pos(pfm, pos_shift = -200)[ps_hits_score(pfm) >= ps_bg_avg(pfm)]
+    positions,
+    from = min(positions), to = max(positions)
   )
   expect_identical(nrow(plot$data), length(expected$x))
   expect_equal(plot$data$x, expected$x)
@@ -548,6 +552,65 @@ test_that("ps_density_plot returns a composable ggplot over the density grid", {
 
   # Nothing is drawn until printing, so further layers can still be added.
   expect_s3_class(plot + ggplot2::labs(title = "t"), "ggplot")
+})
+
+test_that("ps_density_plot does not draw beyond the promoter", {
+  pfm <- readRDS(system.file("extdata", "pfm1.rds", package = "PscanR"))
+  plot <- ps_density_plot(pfm, shift = -200)
+  positions <- ps_hits_pos(pfm, pos_shift = -200)[
+    ps_hits_score(pfm) >= ps_bg_avg(pfm)
+  ]
+
+  # stats::density() evaluates three bandwidths past the data by default, which
+  # would draw hits outside the window that was scanned.
+  expect_equal(min(plot$data$x), min(positions))
+  expect_equal(max(plot$data$x), max(positions))
+
+  # ... and the default would have: it runs past the data at both ends.
+  unbounded <- stats::density(positions)
+  expect_lt(min(unbounded$x), min(positions))
+  expect_gt(max(unbounded$x), max(positions))
+})
+
+test_that("ps_density_plot corrects the estimate when given a window", {
+  pfm <- readRDS(system.file("extdata", "pfm1.rds", package = "PscanR"))
+  win <- c(-200, 50)
+
+  clipped <- ps_density_plot(pfm, shift = -200)
+  reflected <- ps_density_plot(pfm, shift = -200, window = win)
+
+  # The corrected curve spans every position a hit could be reported at, which
+  # stops one motif width short of the end of the window.
+  expect_equal(
+    range(reflected$data$x), c(win[[1]] + 1, win[[2]] - ncol(pfm) + 1)
+  )
+
+  # Reflection returns the mass that a naive estimate lets escape, so it
+  # integrates to one over the window while the clipped one falls short.
+  area <- function(p) sum(diff(p$data$x)[[1]] * p$data$y)
+  expect_lt(area(clipped), 0.99)
+  expect_equal(area(reflected), 1, tolerance = 0.01)
+
+  # ... and it is higher at the edges, which is where the mass went.
+  expect_gt(reflected$data$y[[1]], clipped$data$y[[1]])
+})
+
+test_that("ps_density_plot validates the window", {
+  pfm <- readRDS(system.file("extdata", "pfm1.rds", package = "PscanR"))
+
+  expect_error(
+    ps_density_plot(pfm, shift = -200, window = c(-100, 0)),
+    "fall outside"
+  )
+  expect_error(
+    ps_density_plot(pfm, shift = -200, window = c(0, 0)),
+    "two finite, distinct values"
+  )
+  # Narrower than the motif, so no hit could be reported in it at all.
+  expect_error(
+    ps_density_plot(pfm, shift = -200, window = c(-200, -197)),
+    "too short to report a hit"
+  )
 })
 
 test_that("ps_density_plot shifts positions relative to the TSS", {
@@ -597,4 +660,91 @@ test_that("ps_density_distances_plot returns a ggplot and checks its inputs", {
     ps_density_distances_plot(results[["MA0506.1"]], "not a matrix"),
     "Both object must be of class PSMatrix"
   )
+})
+
+test_that("ps_density_plot can draw a binned profile on the density scale", {
+  pfm <- readRDS(system.file("extdata", "pfm1.rds", package = "PscanR"))
+  plot <- ps_density_plot(pfm, shift = -200, window = c(-200, 50), bins = 12)
+
+  bars <- ggplot2::layer_data(plot, 1)
+  expect_identical(nrow(bars), 12L)
+
+  # Bars and curve share one axis because both integrate to one -- no
+  # secondary axis and no rescaling factor.
+  expect_equal(sum(bars$y * (bars$xmax - bars$xmin)), 1, tolerance = 1e-6)
+  expect_equal(
+    sum(diff(plot$data$x)[[1]] * plot$data$y), 1,
+    tolerance = 0.01
+  )
+
+  # The bars span the same support the curve does.
+  expect_equal(min(bars$xmin), min(plot$data$x))
+  expect_equal(max(bars$xmax), max(plot$data$x))
+
+  # Without bins the first layer is the filled area, not bars.
+  plain <- ps_density_plot(pfm, shift = -200, window = c(-200, 50))
+  expect_lt(nrow(ggplot2::layer_data(plain, 1)), 512 + 12)
+  expect_error(ps_density_plot(pfm, bins = 0), "positive")
+})
+
+test_that("the binned profile counts every value exactly once", {
+  set.seed(1)
+  x <- runif(500, -100, 0)
+  bars <- PscanR:::.ps_binned_profile(x, bins = 10, limits = c(-100, 0))
+
+  # Recovering counts from density heights must return the whole sample.
+  counts <- bars$density * length(x) * bars$width
+  expect_equal(sum(counts), length(x))
+  expect_true(all(counts >= 0))
+})
+
+test_that("ps_hit_score_plot pairs each promoter's position with its score", {
+  results <- scan_bundled_motifs()
+  one <- results[["MA0506.1"]]
+  plot <- ps_hit_score_plot(one, shift = -200)
+
+  expect_s3_class(plot, "ggplot")
+  # One point per promoter, carrying both coordinates.
+  expect_identical(nrow(plot$data), length(ps_hits_score(one)))
+  expect_equal(plot$data$score, unname(ps_hits_score(one)))
+  expect_equal(plot$data$position, unname(ps_hits_pos(one, pos_shift = -200)))
+
+  # The bands are cut by the two thresholds `st` names elsewhere, so the
+  # counts must agree with what those thresholds keep.
+  loose <- ps_bg_avg(one)
+  strict <- loose + ps_bg_std_dev(one)
+  counts <- table(plot$data$band)
+  expect_identical(
+    unname(counts[["above mean + SD (strict)"]]),
+    sum(ps_hits_score(one) >= strict)
+  )
+  expect_identical(
+    unname(counts[["above mean (loose)"]]),
+    sum(ps_hits_score(one) >= loose & ps_hits_score(one) < strict)
+  )
+  expect_identical(
+    unname(counts[["below background mean"]]),
+    sum(ps_hits_score(one) < loose)
+  )
+  # Every promoter lands in exactly one band.
+  expect_identical(sum(counts), nrow(plot$data))
+  expect_false(any(is.na(plot$data$band)))
+})
+
+test_that("ps_hit_score_plot panels a PSMatrixList in the given order", {
+  results <- scan_bundled_motifs()
+  ids <- c("MA0632.2", "MA0506.1")
+  pair <- results[match(ids, TFBSTools::ID(results))]
+  pair <- BiocGenerics::do.call(PSMatrixList, as.list(pair))
+
+  plot <- ps_hit_score_plot(pair, shift = -200)
+  expect_identical(
+    levels(plot$data$motif), unname(TFBSTools::name(pair))
+  )
+  expect_identical(
+    nrow(plot$data),
+    sum(vapply(as.list(pair), function(m) length(ps_hits_score(m)), integer(1)))
+  )
+
+  expect_error(ps_hit_score_plot(data.frame(a = 1)), "PSMatrix")
 })

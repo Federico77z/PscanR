@@ -5,7 +5,14 @@
 \title{Density Plot of Distances between Identified Motif Hits in two PSMatrix
 Objects}
 \usage{
-ps_density_distances_plot(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
+ps_density_distances_plot(
+  M1,
+  M2,
+  st1 = ps_bg_avg(M1),
+  st2 = ps_bg_avg(M2),
+  window = NULL,
+  bins = NULL
+)
 }
 \arguments{
 \item{M1}{A `PSMatrix` object. It must be processed by the PscanR
@@ -27,6 +34,13 @@ Default is set to `loose`.}
 Can be a numeric value to set the threshold directly, or a character, as
 for st1.
 Default is set to `loose`.}
+
+\item{window}{Optional length-2 numeric giving the interval the distances
+can occupy. Supplying it corrects the estimate at the edges by
+reflection; leaving it `NULL` only clips the curve to the observed range.}
+
+\item{bins}{Optional number of bins for a binned profile of the same
+distances, drawn behind the curve on the density scale.}
 }
 \value{
 A `ggplot` object showing the distribution of distances between
