@@ -445,6 +445,31 @@ test_that("ps_motif_class reports missing and multiple classes usefully", {
   expect_identical(unname(ps_motif_class(PFMatrixList(paired))), "First class")
 })
 
+test_that("ps_motif_class strips the stray whitespace JASPAR ships", {
+  J2020 <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
+  one <- J2020[["MA0506.1"]]
+
+  # JASPAR 2020 gives IRF3, IRF4 and IRF5 a trailing space, which used to split
+  # "Tryptophan cluster factors" into two grouping levels that plot as two
+  # legend entries with the same label.
+  clean <- one
+  clean@matrixClass <- "Tryptophan cluster factors"
+  padded <- one
+  padded@matrixClass <- "Tryptophan cluster factors "
+
+  expect_identical(
+    unname(ps_motif_class(PFMatrixList(clean, padded))),
+    rep("Tryptophan cluster factors", 2L)
+  )
+
+  # Whitespace-only is as classless as the empty string.
+  whitespace <- one
+  whitespace@matrixClass <- "   "
+  expect_identical(
+    unname(ps_motif_class(PFMatrixList(whitespace))), "Unclassified"
+  )
+})
+
 test_that("ps_motif_barplot returns a composable ggplot", {
   results <- scan_bundled_motifs()
   plot <- ps_motif_barplot(results, n = 4)

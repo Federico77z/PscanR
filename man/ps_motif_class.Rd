@@ -27,9 +27,13 @@ the matrix is built. Since `PSMatrix` extends `PFMatrix`, the slot survives
 scanning, so the class is available from a scan result without consulting
 JASPAR again.
 
-A small number of JASPAR matrices carry two classes separated by `|`; only
-the first is reported, so the result is always one label per motif and is
-safe to use as a grouping variable.
+A small number of JASPAR matrices carry two classes; only the first is
+reported, so the result is always one label per motif and is safe to use as
+a grouping variable. Surrounding whitespace is stripped, because JASPAR
+ships a handful of classes with a trailing space — in JASPAR 2020 the IRF3,
+IRF4 and IRF5 matrices carry `"Tryptophan cluster factors "`, which would
+otherwise group and colour separately from the other 38 members of that
+class.
 
 Class is preferred over the `family` tag for grouping. Family coverage is
 incomplete in some collections, and its vocabulary changes between JASPAR
