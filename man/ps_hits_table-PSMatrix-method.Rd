@@ -42,6 +42,13 @@ sequence.
 The resulting table is sorted by motif score (descending). When the score is
 the same between two sequences, they are sorted by ascending position.
 }
+\section{Strand}{
+
+`OLIGO` is the forward strand of the promoter whatever `STRAND` says, as in
+the original Pscan. A row with `STRAND == "-"` matches the motif only after
+its oligo is reverse-complemented. See \code{\link{ps_hits_oligo}}.
+}
+
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 pfm1 <- readRDS(pfm1_path)

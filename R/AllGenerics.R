@@ -525,10 +525,34 @@ setGeneric("ps_hits_pos_bg", function(x, ...) standardGeneric("ps_hits_pos_bg"))
 #'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
+#' @section Strand:
+#' The sequence returned is always the **forward strand** of the promoter, as
+#' it appears in the input, whatever strand the motif matched on. Reading it
+#' against the matrix consensus is therefore misleading for a reverse-strand
+#' hit: pair it with \code{\link{ps_hits_strand}} and reverse-complement the
+#' oligo where that reports \code{"-"}.
+#'
+#' This is the behaviour of the original Pscan implementation and is kept for
+#' consistency with it. It is also the more useful convention for sequence
+#' context, since oligos from different motifs are then all in the same frame
+#' of reference and can be compared to each other and to the promoter.
+#'
+#' @seealso \code{\link{ps_hits_strand}}, \code{\link{ps_hits_pos}},
+#'   \code{\link{ps_hits_table}}
+#'
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 #' pfm1 <- readRDS(pfm1_path)
 #' ps_hits_oligo(pfm1)
+#'
+#' # Oligos are forward-strand, so reverse-strand hits must be flipped before
+#' # they are compared with the motif consensus.
+#' oligos <- ps_hits_oligo(pfm1)
+#' reverse <- ps_hits_strand(pfm1) == "-"
+#' oligos[reverse] <- as.character(Biostrings::reverseComplement(
+#'     Biostrings::DNAStringSet(oligos[reverse])
+#' ))
+#' head(oligos)
 #'
 #' @export
 setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))

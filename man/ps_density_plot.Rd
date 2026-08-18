@@ -4,7 +4,13 @@
 \alias{ps_density_plot}
 \title{Density Plot of Motif Hits Along Promoter Regions}
 \usage{
-ps_density_plot(pfm, shift = 0, st = ps_bg_avg(pfm))
+ps_density_plot(
+  pfm,
+  shift = 0,
+  st = ps_bg_avg(pfm),
+  window = NULL,
+  bins = NULL
+)
 }
 \arguments{
 \item{pfm}{A `PSMatrix` object. It is a selected matrix from the
@@ -22,10 +28,24 @@ the threshold directly, or a character:
   \item `strict`: uses the background average score together with the
   background standard deviation as threshold.}
 Default is `loose` (background average).}
+
+\item{window}{Optional length-2 numeric giving the promoter window, on the
+same scale as `shift` -- for promoters extracted 1000 bp upstream of the
+TSS and plotted with `shift = -1000`, that is `c(-1000, 0)`. Supplying it
+corrects the estimate at the edges by reflection; leaving it `NULL` only
+clips the curve to the observed range. The reflecting bounds are the
+positions a hit can be *reported* at, which stop `ncol(pfm) - 1` short of
+the end of the window, since a hit is recorded at the start of the motif.}
+
+\item{bins}{Optional number of bins for a binned profile of the same
+positions, drawn behind the curve. Bars are on the density scale, so they
+share the curve's y axis directly. Carrying no bandwidth and no boundary
+assumption, they show what the smoothing is doing.}
 }
 \value{
-A density plot showing the distribution of hits along the promoter
-   region.
+A `ggplot` object showing the density of hit positions along the
+   promoter region. Nothing is drawn until the object is printed, so it can
+   be modified with further `ggplot2` layers first.
 }
 \description{
 This function creates a density plot representing the distribution of hits
@@ -37,7 +57,7 @@ It helps visualize where motif occurrences are concentrated.
 The function filters motif hits based on a specified threshold and generates
 a density plot to show their distribution. The function includes a vertical
 dashed line marking the mode (the most frequent position along the
-promoters).
+promoters). The title reports how many promoters passed the threshold.
 
 This function uses example datasets located in the `extdata/` directory for
 demonstration purposes only. These files are not part of the core data used
@@ -48,5 +68,9 @@ examples.
 matrix_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 matrix <- readRDS(matrix_path)
 ps_density_plot(matrix, shift = -200)
+
+# The result is a ggplot object, so it can be restyled before drawing.
+ps_density_plot(matrix, shift = -200) +
+    ggplot2::labs(subtitle = "-200 to +50 around the TSS")
 
 }

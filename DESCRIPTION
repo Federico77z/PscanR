@@ -3,14 +3,14 @@ Type: Package
 Title: Motif Enrichment Analysis of Regulatory DNA Sequences
 Version: 0.99.0
 Encoding: UTF-8
-Depends: R (>= 4.6.0), BSDA (>= 1.2)
+Depends: R (>= 4.6.0)
 Imports:
     BiocFileCache,
     BiocParallel (>= 1.30),
     BiocGenerics (>= 0.40.0),
     Biostrings (>= 2.64),
     ExperimentHub,
-    graphics,
+    ggplot2 (>= 3.4),
     grDevices (>= 3.6.2),
     methods,
     pheatmap,
@@ -42,7 +42,7 @@ Suggests:
     txdbmaker (>= 1.0.1)
 biocViews: SequenceMatching, MotifDiscovery, Transcription,
    Alignment, GeneRegulation, MotifAnnotation
-Date: 2026-08-03
+Date: 2026-08-11
 Authors@R: c(person("Federico", "Zambelli", email = "federico.zambelli@unimi.it", 
     role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3487-4331")),
     person("Giulio", "Pavesi", email = "giulio.pavesi@unimi.it", role = "aut",

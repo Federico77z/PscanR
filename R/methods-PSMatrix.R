@@ -148,10 +148,23 @@ setMethod("ps_pvalue", "PSMatrix", function(x, withDimnames = TRUE) {
 #' @return A character vector containing the sequences of motif matches
 #'     (oligonucleotides) in the foreground set.
 #'
+#' @section Strand:
+#' The sequence returned is always the **forward strand** of the promoter,
+#' whatever strand the motif matched on, following the original Pscan
+#' implementation. Use \code{\link{ps_hits_strand}} to find which hits matched
+#' on \code{"-"} and reverse-complement those before comparing them with the
+#' motif consensus.
+#'
+#' @seealso \code{\link{ps_hits_strand}}, \code{\link{ps_hits_pos}},
+#'   \code{\link{ps_hits_table}}
+#'
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 #' pfm1 <- readRDS(pfm1_path)
 #' ps_hits_oligo(pfm1)
+#'
+#' # A reverse-strand hit reads as the motif only after flipping it.
+#' table(ps_hits_strand(pfm1))
 #'
 #' @export
 setMethod("ps_hits_oligo", "PSMatrix", function(x, withDimnames = TRUE) {
@@ -692,6 +705,11 @@ setMethod("all_sequences_ID", "PSMatrix", function(x, withDimnames = TRUE) {
 #'   `DNAStringSet`).}
 #' Row names correspond to the sequence names.
 #'
+#' @section Strand:
+#' `OLIGO` is the forward strand of the promoter whatever `STRAND` says, as in
+#' the original Pscan. A row with `STRAND == "-"` matches the motif only after
+#' its oligo is reverse-complemented. See \code{\link{ps_hits_oligo}}.
+#'
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
 #' pfm1 <- readRDS(pfm1_path)
@@ -746,14 +764,21 @@ setMethod(
             x@ps_hits_score <- numeric()
         } else {
             if (!is.na(x@ps_bg_avg) && !is.na(x@ps_bg_std_dev)) {
-                ztest <- z.test(x@ps_hits_score,
-                    mu = x@ps_bg_avg,
-                    sigma.x = x@ps_bg_std_dev,
-                    alternative = "greater"
-                )
+                # One-sample upper-tail z-test against the background mean.
+                # The upper tail is evaluated directly with
+                # pnorm(lower.tail = FALSE): computing it as 1 - pnorm(z)
+                # saturates at 1.11e-16 and returns exactly 0 for z > ~8.3,
+                # which silently discards the most enriched motifs.
+                scores <- x@ps_hits_score[!is.na(x@ps_hits_score)]
+                if (length(scores) <= 2L) {
+                    stop("not enough foreground observations for the z-test",
+                        call. = FALSE)
+                }
+                std_err <- x@ps_bg_std_dev / sqrt(length(scores))
+                zscore <- (mean(scores) - x@ps_bg_avg) / std_err
 
-                x@ps_zscore <- ztest$statistic["z"]
-                x@ps_pvalue <- as.numeric(ztest$p.value)
+                x@ps_zscore <- c(z = zscore)
+                x@ps_pvalue <- pnorm(zscore, lower.tail = FALSE)
                 x@ps_fg_avg <- mean(x@ps_hits_score, na.rm = TRUE)
                 x@ps_fg_size <- length(x@ps_hits_pos)
                 x@ps_hits_oligo <- Oligo
@@ -823,7 +848,10 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 }
 
 .ps_scan_use_full_bg <- function(x, seqs, BG, use_full_BG) {
-    indices <- match(seqs, sub("\\..*$", "", names(x@ps_hits_score_bg)))
+    # `seqs` are retained background sequence names resolved by pscan_fullBG(),
+    # which are already exactly the names carried here. Matching them verbatim
+    # avoids collapsing distinct transcripts that differ only after a dot.
+    indices <- match(seqs, names(x@ps_hits_score_bg))
     res <- list(
         score = x@ps_hits_score_bg[indices],
         strand = x@ps_hits_strand_bg[indices],

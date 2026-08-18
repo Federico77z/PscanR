@@ -5,7 +5,14 @@
 \title{Density Plot of Distances between Identified Motif Hits in two PSMatrix
 Objects}
 \usage{
-ps_density_distances_plot(M1, M2, st1 = ps_bg_avg(M1), st2 = ps_bg_avg(M2))
+ps_density_distances_plot(
+  M1,
+  M2,
+  st1 = ps_bg_avg(M1),
+  st2 = ps_bg_avg(M2),
+  window = NULL,
+  bins = NULL
+)
 }
 \arguments{
 \item{M1}{A `PSMatrix` object. It must be processed by the PscanR
@@ -27,14 +34,19 @@ Default is set to `loose`.}
 Can be a numeric value to set the threshold directly, or a character, as
 for st1.
 Default is set to `loose`.}
+
+\item{window}{Optional length-2 numeric giving the interval the distances
+can occupy. Supplying it corrects the estimate at the edges by
+reflection; leaving it `NULL` only clips the curve to the observed range.}
+
+\item{bins}{Optional number of bins for a binned profile of the same
+distances, drawn behind the curve on the density scale.}
 }
 \value{
-A density plot showing the distribution of distances between
-   identified motif hits in \code{M1} and \code{M2}. The x-axis represents
-   the distances between corresponding hits: positive values indicate that M1
-   is positioned upstream in respect to M2, whereas negative values
-   indicate that it is downstream to M2.
-   The y-axis represents the density of those distances.
+A `ggplot` object showing the distribution of distances between
+   identified motif hits in \code{M1} and \code{M2}. Nothing is drawn until
+   the object is printed, so it can be modified with further `ggplot2`
+   layers first.
 }
 \description{
 This function visualizes the density plot of distances between identified
@@ -44,6 +56,11 @@ It allows filtering the identified sites based on a specified threshold
 value.
 }
 \details{
+The x-axis represents the distances between corresponding hits: positive
+values indicate that M1 is positioned upstream in respect to M2, whereas
+negative values indicate that it is downstream to M2. The y-axis represents
+the density of those distances, and a dashed line marks the mode.
+
 Hit positions are shifted by half of the motif length (i.e., `ncol(M1)/2`
 and `ncol(M2)/2`) before distances are computed, so distances are centered
 on the motif midpoint.

@@ -20,7 +20,16 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+
+      # The workspace is bind-mounted from the runner host, where it belongs to
+      # the runner user, while steps in the container run as root. libgit2 --
+      # which gert, and through it BiocCheck's large-file check, is built on --
+      # refuses to open a repository it sees as owned by someone else, and dies
+      # on the very first check. actions/checkout does set this, but under a
+      # temporary HOME that it reverts once the step ends.
+      - name: Mark the workspace as a safe git directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Query dependencies
         run: |
@@ -29,7 +38,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Cache R packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /usr/local/lib/R/site-library
           key: ${{ runner.os }}-bioc-devel-${{ hashFiles('.deps.rds') }}
@@ -38,7 +47,12 @@ jobs:
       - name: Install dependencies
         run: |
           remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories())
-          remotes::install_cran(c('rcmdcheck', 'BiocCheck'))
+          # BiocCheck is a Bioconductor package, so it cannot come from
+          # install_cran(): that only sees CRAN, warns "not available for this
+          # version of R", and leaves the BiocCheck step to die on a missing
+          # namespace. BiocManager::repositories() covers CRAN and Bioconductor
+          # alike, so one call installs both.
+          BiocManager::install(c('rcmdcheck', 'BiocCheck'), ask = FALSE, update = FALSE)
         shell: Rscript {0}
 
       - name: R CMD check
