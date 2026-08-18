@@ -22,6 +22,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The workspace is bind-mounted from the runner host, where it belongs to
+      # the runner user, while steps in the container run as root. libgit2 --
+      # which gert, and through it BiocCheck's large-file check, is built on --
+      # refuses to open a repository it sees as owned by someone else, and dies
+      # on the very first check. actions/checkout does set this, but under a
+      # temporary HOME that it reverts once the step ends.
+      - name: Mark the workspace as a safe git directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Query dependencies
         run: |
           install.packages('remotes')
