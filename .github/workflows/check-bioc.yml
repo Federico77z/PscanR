@@ -38,7 +38,12 @@ jobs:
       - name: Install dependencies
         run: |
           remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories())
-          remotes::install_cran(c('rcmdcheck', 'BiocCheck'))
+          # BiocCheck is a Bioconductor package, so it cannot come from
+          # install_cran(): that only sees CRAN, warns "not available for this
+          # version of R", and leaves the BiocCheck step to die on a missing
+          # namespace. BiocManager::repositories() covers CRAN and Bioconductor
+          # alike, so one call installs both.
+          BiocManager::install(c('rcmdcheck', 'BiocCheck'), ask = FALSE, update = FALSE)
         shell: Rscript {0}
 
       - name: R CMD check
