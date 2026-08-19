@@ -1207,10 +1207,13 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
 #' \code{\link{ps_hits_score}}, \code{\link{ps_hits_pos}}
 #'
 #' @details
-#' The x-axis represents the distances between corresponding hits: positive
-#' values indicate that M1 is positioned upstream in respect to M2, whereas
-#' negative values indicate that it is downstream to M2. The y-axis represents
-#' the density of those distances, and a dashed line marks the mode.
+#' The x-axis represents the distances between corresponding hits, computed as
+#' the position of the hit in M1 minus the position of the hit in M2. Positions
+#' run along the promoter in the direction of transcription, so a positive
+#' value places M1 at the larger coordinate: downstream of M2, on the side of
+#' the transcription start site. A negative value places M1 upstream of M2.
+#' The y-axis represents the density of those distances, and a dashed line
+#' marks the mode.
 #'
 #' Hit positions are shifted by half of the motif length (i.e., `ncol(M1)/2`
 #' and `ncol(M2)/2`) before distances are computed, so distances are centered
