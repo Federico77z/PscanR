@@ -1481,7 +1481,9 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 #'    drawn as panels sharing both axes.
 #' @param shift Integer positional shift applied to hit positions, to place
 #'    them relative to the TSS. Default `0`.
-#'
+#' @param alpha,size Point opacity and point size. Left `NULL`, both are scaled
+#'    from the number of promoters so that a large scan stays readable; supply
+#'    either to override that.
 #'
 #' @return A `ggplot` object.
 #'
@@ -1499,6 +1501,14 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 #' the score distribution and horizontal structure is the positional one. A
 #' motif whose strong sites are positionally constrained shows points banking
 #' into one region above the upper line while the weak sites stay spread out.
+#'
+#' Every promoter is drawn, whatever the size of the scan: nothing is
+#' subsampled and nothing is binned, so the figure keeps meaning one point per
+#' promoter. Opacity and point size are instead scaled from the number of
+#' promoters, interpolated between the values that suit a few hundred points
+#' and ones that survive tens of thousands, so that a large scan reads as
+#' density rather than as solid blocks of colour. `alpha` and `size` override
+#' that scaling.
 #'
 #' @seealso \code{\link{ps_density_plot}}, \code{\link{ps_hitpos_map}}
 #'
@@ -1519,7 +1529,7 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 #' results <- pscan(prom_seq, bg, BPPARAM = BiocParallel::SerialParam())
 #'
 #' ps_hit_score_plot(results, shift = -200)
-ps_hit_score_plot <- function(x, shift = 0) {
+ps_hit_score_plot <- function(x, shift = 0, alpha = NULL, size = NULL) {
     motifs <- if (is(x, "PFMatrixList")) {
     as.list(x)
     } else if (is(x, "PSMatrix")) {
@@ -1549,6 +1559,18 @@ ps_hit_score_plot <- function(x, shift = 0) {
     motif_names <- vapply(motifs, name, character(1L))
     points$motif <- factor(points$motif, levels = unique(motif_names))
 
+    # Panels share one aesthetic, so the busiest panel sets it. The scale runs
+    # from the values that suit a few hundred points to ones that survive tens
+    # of thousands, interpolated on a log scale between 1e3 and 2e4 promoters.
+    busiest <- max(table(points$motif))
+    crowding <- min(1, max(0, log10(busiest / 1e3) / log10(2e4 / 1e3)))
+    if (is.null(alpha)) {
+    alpha <- 0.55 * (1 - crowding) + 0.06 * crowding
+    }
+    if (is.null(size)) {
+    size <- 0.9 * (1 - crowding) + 0.35 * crowding
+    }
+
     references <- data.frame(
     motif = factor(motif_names, levels = unique(motif_names)),
     loose = vapply(motifs, ps_bg_avg, numeric(1L)),
@@ -1570,7 +1592,7 @@ ps_hit_score_plot <- function(x, shift = 0) {
     ) +
     ggplot2::geom_point(
         ggplot2::aes(colour = .data$band),
-        size = 0.9, alpha = 0.55
+        size = size, alpha = alpha
     ) +
     ggplot2::scale_colour_manual(
         values = stats::setNames(
