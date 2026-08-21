@@ -38,7 +38,7 @@ Suggests:
     org.Dm.eg.db,
     RMariaDB, 
     rmarkdown, 
-    testthat (>= 3.0.0),
+    testthat (>= 3.1.5),
     txdbmaker (>= 1.0.1)
 biocViews: SequenceMatching, MotifDiscovery, Transcription,
    Alignment, GeneRegulation, MotifAnnotation

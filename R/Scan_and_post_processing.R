@@ -104,6 +104,12 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
     x <- BiocGenerics::unique(x)
     x <- .clean_sequence(x)
 
+    # After cleaning, so the count is the one the statistic will actually use,
+    # and before the scan, so the user hears it while it is still cheap to act.
+    .ps_warn_foreground_fraction(
+    length(x), vapply(pfms, ps_bg_size, integer(1L)), "scan"
+    )
+
     # Encode the sequences once and reuse the encoding for every motif.
     encoded <- .ps_encode_seqs(as.character(x))
 
@@ -183,8 +189,15 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
 #'   "NR_148960.1", "NM_001130413.4"
 #' )
 #'
+#' # The bundled background is a 36-promoter toy, so retrieving ten of them is
+#' # a large enough share of it to trip the foreground-fraction warning. A real
+#' # background is tens of thousands of promoters and would not.
+#' old <- options(PscanR.foreground.max_fraction = Inf)
+#'
 #' results <- pscan_fullBG(IDs, full_pfms)
 #' ps_results_table(results)
+#'
+#' options(old)
 #'
 #' @export
 pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
@@ -245,6 +258,10 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     .check_seq_duplicated(x)
 
     x <- unique(x)
+
+    .ps_warn_foreground_fraction(
+    length(x), vapply(full_pfms, ps_bg_size, integer(1L)), "scan"
+    )
 
     # See ps_scan for details
 
@@ -400,6 +417,11 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
     return(NULL)
     }
 
+    .ps_warn_foreground_fraction(
+    length(filtered_prom_seq),
+    vapply(background, ps_bg_size, integer(1L)), "scan"
+    )
+
     pfms <- BiocParallel::bplapply(
     background,
     FUN = ps_scan,
@@ -499,6 +521,11 @@ ps_results_table <- function(pfms, FDR = 1) {
         FDR < 0 || FDR > 1) {
     stop("FDR must be a single numeric value between 0 and 1")
     }
+
+    .ps_warn_foreground_fraction(
+    stats::median(vapply(pfms, ps_fg_size, integer(1L)), na.rm = TRUE),
+    vapply(pfms, ps_bg_size, integer(1L)), "results"
+    )
 
     bg_v <- vapply(pfms, ps_bg_avg, numeric(length = 1L))
     std_v <- vapply(pfms, ps_bg_std_dev, numeric(length = 1L))

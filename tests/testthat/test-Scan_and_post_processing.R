@@ -364,6 +364,12 @@ test_that("pscan_fullBG resolves the requested splice variant, not its gene", {
     unname(bg_scores[["AT1G01110.1"]]), unname(bg_scores[["AT1G01110.2"]])
   ))
 
+  # This fixture is four promoters, so every retrieval from it is most of the
+  # background. That is deliberate here and has nothing to do with what this
+  # test checks, so the foreground-fraction warning is switched off for it.
+  old_option <- options(PscanR.foreground.max_fraction = Inf)
+  on.exit(options(old_option), add = TRUE)
+
   # Ask for .2 and deliberately not .1. (Three identifiers are the minimum the
   # z-test accepts.)
   wanted <- c("AT1G01110.2", "AT1G01160.1", "AT1G01200.1")
@@ -756,4 +762,89 @@ test_that("ps_hit_score_plot panels a PSMatrixList in the given order", {
   )
 
   expect_error(ps_hit_score_plot(data.frame(a = 1)), "PSMatrix")
+})
+
+# The z-score is sqrt(n) times a standardised difference, and the background
+# contains the foreground, so a foreground that is a large share of the
+# background distorts the statistic in two directions at once. These cover the
+# warning that says so.
+
+foreground_fixture <- function(bg_size = 250L) {
+  x <- Biostrings::DNAStringSet(c("ATGCTGCAATCGA", "CATGCTAAGCTAT",
+                                  "GTACTACTAAATG", "TCAGACCATTAAA"))
+  names(x) <- c("NM_001078.4", "NM_000639.3", "NM_000756.8", "NM_001094.2")
+  pfm <- PFMatrix(ID = "PSM1", name = "Example1", matrixClass = "PWM",
+                  profileMatrix = matrix(c(4, 19, 0, 0, 0, 0,
+                                           16, 0, 20, 0, 0, 0,
+                                           0, 1, 0, 20, 0, 20,
+                                           0, 0, 0, 0, 20, 0),
+                                         nrow = 4, byrow = TRUE,
+                                         dimnames = list(c("A", "C", "G", "T"))))
+  psm <- PSMatrix(pfm, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478,
+                  ps_bg_std_dev = 0.07493493, ps_bg_size = bg_size,
+                  ps_seq_names = names(x))
+  list(x = x, pfms = PSMatrixList(psm))
+}
+
+test_that("pscan warns when the foreground is a large share of the background", {
+  # Four sequences against a background of 20 is f = 0.2, twice the default.
+  fixture <- foreground_fixture(bg_size = 20L)
+
+  expect_warning(
+    result <- pscan(fixture$x, fixture$pfms,
+                    BPPARAM = BiocParallel::SerialParam()),
+    "becomes increasingly less reliable"
+  )
+  expect_s4_class(result, "PFMatrixList")
+
+  # The message has to carry the numbers, not just the complaint.
+  expect_warning(
+    pscan(fixture$x, fixture$pfms, BPPARAM = BiocParallel::SerialParam()),
+    "4 sequences against a background of 20"
+  )
+})
+
+test_that("the foreground warning respects its threshold and its option", {
+  small <- foreground_fixture(bg_size = 250L)
+  expect_no_warning(
+    pscan(small$x, small$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+
+  large <- foreground_fixture(bg_size = 20L)
+  old <- options(PscanR.foreground.max_fraction = Inf)
+  on.exit(options(old), add = TRUE)
+  expect_no_warning(
+    pscan(large$x, large$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+
+  options(PscanR.foreground.max_fraction = 0.5)
+  expect_no_warning(
+    pscan(large$x, large$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+})
+
+test_that("the foreground warning is silent when no background size is known", {
+  # ps_bg_size is a per-motif slot and is NA for a motif absent from the
+  # background table, so the check has to degrade rather than fail.
+  unknown <- foreground_fixture(bg_size = NA_integer_)
+  expect_no_warning(
+    PscanR:::.ps_warn_foreground_fraction(
+      4L, vapply(unknown$pfms, ps_bg_size, integer(1L)), "scan"
+    )
+  )
+  expect_null(PscanR:::.ps_warn_foreground_fraction(NA_integer_, 20L, "scan"))
+  expect_null(PscanR:::.ps_warn_foreground_fraction(4L, integer(0), "scan"))
+})
+
+test_that("ps_results_table warns about the foreground it was computed on", {
+  fixture <- foreground_fixture(bg_size = 20L)
+  result <- suppressWarnings(
+    pscan(fixture$x, fixture$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+
+  expect_warning(
+    table <- ps_results_table(result),
+    "These results come from a foreground"
+  )
+  expect_s3_class(table, "data.frame")
 })

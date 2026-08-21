@@ -74,7 +74,14 @@ IDs <- c(
   "NR_148960.1", "NM_001130413.4"
 )
 
+# The bundled background is a 36-promoter toy, so retrieving ten of them is
+# a large enough share of it to trip the foreground-fraction warning. A real
+# background is tens of thousands of promoters and would not.
+old <- options(PscanR.foreground.max_fraction = Inf)
+
 results <- pscan_fullBG(IDs, full_pfms)
 ps_results_table(results)
+
+options(old)
 
 }

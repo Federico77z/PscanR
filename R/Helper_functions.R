@@ -13,6 +13,65 @@
     }
 }
 
+#' Warn when the foreground is a large share of the background
+#'
+#' The Pscan z-score is `sqrt(n)` times the standardised difference between the
+#' foreground and background mean scores, so it grows with the size of the
+#' foreground rather than only with the strength of the signal. And since the
+#' background is every promoter, a foreground of `n` out of `N` is compared
+#' against a set that largely consists of itself: the difference the statistic
+#' measures is the foreground-against-the-rest difference shrunk by `1 - f`,
+#' with `f = n / N`. Both effects are invisible in the reported number, which is
+#' why this is a warning rather than something left to the reader.
+#'
+#' `ps_bg_size()` is a per-motif slot rather than a run constant. It is
+#' `NA_integer_` for any motif absent from the background table, and a
+#' hand-built table can legitimately give different sizes per motif, so the
+#' median of the usable values is taken and nothing is reported when none are.
+#'
+#' @param n Number of foreground sequences.
+#' @param bg_sizes Integer vector of per-motif background sizes.
+#' @param when Either `"scan"` or `"results"`, selecting the opening clause so
+#'    that the two call sites do not read as the same sentence twice.
+#'
+#' @return `NULL`, invisibly. Called for the warning.
+#'
+#' @noRd
+#'
+.ps_warn_foreground_fraction <- function(n, bg_sizes, when = "scan") {
+    threshold <- getOption("PscanR.foreground.max_fraction", 0.1)
+    if (!is.numeric(threshold) || length(threshold) != 1L || is.na(threshold)) {
+    threshold <- 0.1
+    }
+    sizes <- bg_sizes[!is.na(bg_sizes) & bg_sizes > 0]
+    if (length(n) != 1L || is.na(n) || n <= 0 || length(sizes) == 0L) {
+    return(invisible(NULL))
+    }
+
+    N <- stats::median(sizes)
+    fraction <- n / N
+    if (!is.finite(fraction) || fraction <= threshold) {
+    return(invisible(NULL))
+    }
+
+    opening <- if (identical(when, "results")) {
+    "These results come from a foreground of"
+    } else {
+    "Scanning a foreground of"
+    }
+    warning(
+    opening, " ", n, " sequences against a background of ", N,
+    " promoters (f = ", format(round(fraction, 3), nsmall = 2), "). ",
+    "When the foreground size exceeds ", round(100 * threshold), "% of the ",
+    "background (here ", max(1, round(threshold * N)), " sequences), the ",
+    "z-score statistic Pscan relies on becomes increasingly less reliable. ",
+    "Set options(PscanR.foreground.max_fraction = ) to change this ",
+    "threshold, or Inf to silence it.",
+    call. = FALSE
+    )
+    invisible(NULL)
+}
+
 .ps_check_short_matrix_file <- function(path) {
     if (file.access(path, mode = 4) != 0) {
     stop(sprintf("Cannot access file path: %s", path))
