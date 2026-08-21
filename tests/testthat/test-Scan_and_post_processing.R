@@ -671,22 +671,6 @@ test_that("ps_density_plot honours the score threshold", {
   expect_equal(fallback$data, ps_density_plot(pfm, st = "loose")$data)
 })
 
-test_that("ps_density_distances_plot returns a ggplot and checks its inputs", {
-  results <- scan_bundled_motifs()
-  plot <- ps_density_distances_plot(
-    results[["MA0506.1"]], results[["MA0632.2"]], "all", "loose"
-  )
-
-  expect_s3_class(plot, "ggplot")
-  expect_s3_class(plot + ggplot2::labs(title = "t"), "ggplot")
-  expect_match(plot$labels$x, "Distances between")
-
-  expect_error(
-    ps_density_distances_plot(results[["MA0506.1"]], "not a matrix"),
-    "Both object must be of class PSMatrix"
-  )
-})
-
 test_that("ps_density_plot can draw a binned profile on the density scale", {
   pfm <- readRDS(system.file("extdata", "pfm1.rds", package = "PscanR"))
   plot <- ps_density_plot(pfm, shift = -200, window = c(-200, 50), bins = 12)

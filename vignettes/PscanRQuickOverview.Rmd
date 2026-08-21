@@ -160,21 +160,13 @@ analysis (can be sourced from public databases such as JASPAR).
         </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     <code>ps_density_plot()</code>
 </td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
         Creates a density plot representing the distribution of hits along
         promoter sequences, based on their position and score for a specific
         position weight matrix (PWM).
-        </td>
-    </tr>
-    <tr>
-        <td><code>ps_density_distances_plot()</code></td>
-        <td>
-        Visualizes the density plot of distances between identified hit sites
-        in two PSMatrix objects, calculating distances for each sequence
-        present in both matrices.
         </td>
     </tr>
     </tbody>
