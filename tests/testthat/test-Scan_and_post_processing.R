@@ -848,3 +848,84 @@ test_that("ps_results_table warns about the foreground it was computed on", {
   )
   expect_s3_class(table, "data.frame")
 })
+
+test_that("the plotters do not repeat the foreground warning", {
+  # The bundled background records 39438 promoters, so ten of them are nowhere
+  # near the threshold; shrinking the recorded size is the smallest way to make
+  # the same scan warn. ps_bg_size does not enter the z-score, so nothing else
+  # about the result changes.
+  prom_seq <- readRDS(
+    system.file("extdata", "prom_seq.rds", package = "PscanR")
+  )[1:10]
+  J2020 <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
+  bg <- ps_retrieve_bg_from_file(
+    system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+                package = "PscanR"),
+    J2020
+  )
+  bg <- bg[c("MA0506.1", "MA0632.2", "MA0611.1",
+             "MA0685.1", "MA0698.1", "MA0699.1")]
+  for (i in seq_along(bg)) {
+    ps_bg_size(bg[[i]]) <- 20L
+  }
+
+  expect_warning(
+    results <- pscan(prom_seq, bg, BPPARAM = BiocParallel::SerialParam()),
+    "becomes increasingly less reliable"
+  )
+  # The two entry points still say it: a user who loads a cached PSMatrixList
+  # and goes straight to the table would otherwise never hear it.
+  expect_warning(ps_results_table(results), "These results come from")
+
+  # pheatmap draws as a side effect; keep the figures out of the test directory.
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+
+  expect_no_warning(ps_zscore_heatmap(results, FDR = 1))
+  expect_no_warning(ps_hitpos_map(results, FDR = 1))
+  expect_no_warning(ps_motif_barplot(results, n = 4))
+})
+
+test_that("a malformed size slot does not stop ps_results_table", {
+  # ps_fg_size and ps_bg_size are declared "integer", which constrains the type
+  # but not the length, so a hand-built or previously serialised PSMatrix can
+  # carry integer(0) or a double. The check is a diagnostic and must not be the
+  # thing that fails.
+  fixture <- foreground_fixture(bg_size = 250L)
+  result <- pscan(fixture$x, fixture$pfms,
+                  BPPARAM = BiocParallel::SerialParam())
+
+  empty <- result
+  empty[[1]]@ps_fg_size <- integer(0)
+  expect_no_warning(table <- ps_results_table(empty))
+  expect_s3_class(table, "data.frame")
+  expect_identical(nrow(table), 1L)
+
+  # The slot assignment operator enforces the declared type, so a double can
+  # only reach the check from an object built outside it. Read rather than
+  # rejected, so that the check still fires on one.
+  expect_identical(PscanR:::.ps_sizes(list(4), function(m) m), 4L)
+  expect_identical(
+    PscanR:::.ps_sizes(
+      list(1L, integer(0), NA_integer_, -1L, NaN, "20"), function(m) m
+    ),
+    c(1L, rep(NA_integer_, 5L))
+  )
+})
+
+test_that("a non-positive threshold falls back to the default", {
+  # At a threshold of zero or less `fraction <= threshold` is false for every
+  # real input, which makes the warning unconditional rather than stricter.
+  small <- foreground_fixture(bg_size = 250L)
+
+  old <- options(PscanR.foreground.max_fraction = 0)
+  on.exit(options(old), add = TRUE)
+  expect_no_warning(
+    pscan(small$x, small$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+
+  options(PscanR.foreground.max_fraction = -1)
+  expect_no_warning(
+    pscan(small$x, small$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+})

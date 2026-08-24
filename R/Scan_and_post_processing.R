@@ -64,6 +64,26 @@
 #' by the function. They can be accessed using `system.file()` as shown in the
 #' examples.
 #'
+#' @section Foreground size:
+#'
+#' The Pscan z-score is `sqrt(n)` times the standardised difference between the
+#' foreground and background mean scores, so it grows with the size of the
+#' foreground rather than only with the strength of the signal. And since the
+#' background is every promoter, a foreground of `n` out of `N` is compared
+#' against a set that largely consists of itself: the difference the statistic
+#' measures is the foreground-against-the-rest difference shrunk by `1 - f`,
+#' with `f = n / N`. Both effects are invisible in the reported number, which is
+#' why a foreground above a tenth of the background raises a warning rather than
+#' being left to the reader.
+#'
+#' The threshold is `getOption("PscanR.foreground.max_fraction", 0.1)`; set it
+#' to `Inf` to silence the check, or to a smaller fraction to tighten it.
+#'
+#' `ps_bg_size()` is a per-motif slot rather than a run constant. It is
+#' `NA_integer_` for any motif absent from the background table, and a
+#' hand-built table can legitimately give different sizes per motif, so `N` is
+#' the median of the usable values and nothing is reported when none are.
+#'
 #' @return
 #' Enriched PSMatrixList object where each matrix includes
 #' \code{ps_hits_score}, \code{ps_hits_pos}, \code{ps_hits_strand},
@@ -107,7 +127,7 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
     # After cleaning, so the count is the one the statistic will actually use,
     # and before the scan, so the user hears it while it is still cheap to act.
     .ps_warn_foreground_fraction(
-    length(x), vapply(pfms, ps_bg_size, integer(1L)), "scan"
+    length(x), .ps_sizes(pfms, ps_bg_size), "scan"
     )
 
     # Encode the sequences once and reuse the encoding for every motif.
@@ -199,6 +219,9 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
 #'
 #' options(old)
 #'
+#' @seealso \code{\link{pscan}}, whose "Foreground size" section explains why a
+#'    foreground that is a large share of the background weakens the statistic.
+#'
 #' @export
 pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     if (!is.character(ID)) {
@@ -260,7 +283,7 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     x <- unique(x)
 
     .ps_warn_foreground_fraction(
-    length(x), vapply(full_pfms, ps_bg_size, integer(1L)), "scan"
+    length(x), .ps_sizes(full_pfms, ps_bg_size), "scan"
     )
 
     # See ps_scan for details
@@ -376,7 +399,9 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #'       \item scans the filtered sequences across the background PWMs.
 #'    }
 #'
-#' @seealso \code{\link{pscan}}
+#' @seealso \code{\link{pscan}}, whose "Foreground size" section explains why
+#'    a foreground that is a large share of the background weakens the
+#'    statistic.
 #'
 #' @return A `PSMatrixList` object in which the foreground values
 #' (the alignment scores) have been computed for each sequence in `prom_seq`,
@@ -419,7 +444,7 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 
     .ps_warn_foreground_fraction(
     length(filtered_prom_seq),
-    vapply(background, ps_bg_size, integer(1L)), "scan"
+    .ps_sizes(background, ps_bg_size), "scan"
     )
 
     pfms <- BiocParallel::bplapply(
@@ -512,20 +537,36 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #'
 #' ps_results_table(results, FDR = 0.1)
 #'
+#' @seealso \code{\link{pscan}}, whose "Foreground size" section explains why a
+#'    foreground that is a large share of the background weakens the statistic.
+#'
 #' @export
 #' @importFrom stats p.adjust
 ps_results_table <- function(pfms, FDR = 1) {
+    tbl <- .ps_results_table_core(pfms, FDR)
+
+    # After the core call, so that invalid input still errors before anything
+    # is said about the foreground.
+    .ps_warn_foreground_fraction(
+    stats::median(.ps_sizes(pfms, ps_fg_size), na.rm = TRUE),
+    .ps_sizes(pfms, ps_bg_size), "results"
+    )
+
+    tbl
+}
+
+# The table itself, without the foreground-fraction warning. The functions in
+# this file that need a results table on their way to a figure call this one:
+# the user is making no decision about foreground size there, and having every
+# plot repeat the warning that pscan() and ps_results_table() already gave
+# would put one on every figure chunk of a vignette.
+.ps_results_table_core <- function(pfms, FDR = 1) {
     .ps_checks2(pfms)
 
     if (!is.numeric(FDR) || length(FDR) != 1L || is.na(FDR) ||
         FDR < 0 || FDR > 1) {
     stop("FDR must be a single numeric value between 0 and 1")
     }
-
-    .ps_warn_foreground_fraction(
-    stats::median(vapply(pfms, ps_fg_size, integer(1L)), na.rm = TRUE),
-    vapply(pfms, ps_bg_size, integer(1L)), "results"
-    )
 
     bg_v <- vapply(pfms, ps_bg_avg, numeric(length = 1L))
     std_v <- vapply(pfms, ps_bg_std_dev, numeric(length = 1L))
@@ -689,7 +730,7 @@ ps_z_table <- function(pfms) {
 #' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
 ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
-    res_table <- ps_results_table(pfms)
+    res_table <- .ps_results_table_core(pfms)
     z_table <- ps_z_table(pfms)
     topn <- which(res_table$FDR <= FDR)
 
@@ -795,7 +836,7 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
 #' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
 ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
-    res_table <- ps_results_table(pfms)
+    res_table <- .ps_results_table_core(pfms)
 
     topn <- which(res_table$FDR <= FDR)
 
@@ -1398,7 +1439,7 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 # character vector aligned with the table rows (or NULL).
 .ps_barplot_inputs <- function(pfms, group) {
     if (is(pfms, "PFMatrixList")) {
-    res_table <- ps_results_table(pfms)
+    res_table <- .ps_results_table_core(pfms)
     grouping <- .ps_resolve_group(group, pfms, row.names(res_table))
     return(list(table = res_table, grouping = grouping))
     }

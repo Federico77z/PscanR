@@ -85,3 +85,7 @@ ps_results_table(results)
 options(old)
 
 }
+\seealso{
+\code{\link{pscan}}, whose "Foreground size" section explains why a
+   foreground that is a large share of the background weakens the statistic.
+}

@@ -101,5 +101,7 @@ res <- PscanFiltered(prom_seq,
 
 }
 \seealso{
-\code{\link{pscan}}
+\code{\link{pscan}}, whose "Foreground size" section explains why
+   a foreground that is a large share of the background weakens the
+   statistic.
 }

@@ -77,6 +77,28 @@ demonstration purposes only. These files are not part of the core data used
 by the function. They can be accessed using `system.file()` as shown in the
 examples.
 }
+\section{Foreground size}{
+
+
+The Pscan z-score is `sqrt(n)` times the standardised difference between the
+foreground and background mean scores, so it grows with the size of the
+foreground rather than only with the strength of the signal. And since the
+background is every promoter, a foreground of `n` out of `N` is compared
+against a set that largely consists of itself: the difference the statistic
+measures is the foreground-against-the-rest difference shrunk by `1 - f`,
+with `f = n / N`. Both effects are invisible in the reported number, which is
+why a foreground above a tenth of the background raises a warning rather than
+being left to the reader.
+
+The threshold is `getOption("PscanR.foreground.max_fraction", 0.1)`; set it
+to `Inf` to silence the check, or to a smaller fraction to tighten it.
+
+`ps_bg_size()` is a per-motif slot rather than a run constant. It is
+`NA_integer_` for any motif absent from the background table, and a
+hand-built table can legitimately give different sizes per motif, so `N` is
+the median of the usable values and nothing is reported when none are.
+}
+
 \examples{
 # Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
 # -200 +50 bp in respect to the TSS.
