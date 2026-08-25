@@ -194,6 +194,24 @@
     return(x)
 }
 
+# The legend is a slot of the list, not of its matrices, so every
+# do.call(PSMatrixList, ...) rebuild loses it unless it is carried across by
+# hand. Returns character() for a PFMatrixList, which has no such slot.
+#' @keywords internal
+.ps_legend_of <- function(x) {
+    if (is(x, "PSMatrixList")) x@transcriptIDLegend else character()
+}
+
+# A full background stores the hits of every promoter in the universe. An
+# ordinary background stores only their summary statistics, and a scan result
+# stores foreground hits, so neither can serve a retrieval request.
+#' @keywords internal
+.ps_has_bg_scan <- function(pfms) {
+    length(pfms) > 0 && all(vapply(
+    pfms, function(m) length(ps_hits_score_bg(m)) > 0, logical(1)
+    ))
+}
+
 #' @keywords internal
 .mapping_unique_names <- function(x, pfms) {
     original_names <- names(x)

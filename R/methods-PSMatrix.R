@@ -1493,5 +1493,8 @@ setAs("PFMatrix", "PSMatrix", function(from) {
 setAs("PFMatrixList", "PSMatrixList", function(from) {
     to <- lapply(from, as, "PSMatrix")
 
-    do.call(PSMatrixList, to)
+    # A PFMatrixList has no legend, but a PSMatrixList coerced through here
+    # does, and dropping it would lose a full background at the first step of
+    # ps_build_bg().
+    do.call(PSMatrixList, c(to, list(transcriptIDLegend = .ps_legend_of(from))))
 })

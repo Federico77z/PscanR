@@ -49,17 +49,21 @@
 #' with an N content above 50%.
 #' The motif matrices are background scored by the `ps_scan` function in
 #' parallel.
-#' The output of this function can be stored in a .txt file by the
-#' `ps_write_bg_to_file()` function. In this case, only information about the
-#' background mean and standard deviation are stored for each matrix. These
-#' metrics will be later used for the computation of z-score by the pscan
-#' function.
 #'
-#' If a full background PSMatrixList is required (including all background
-#' hit scores along with their positions, strands, and oligonucleotide
-#' sequences), store the output using `save()` and set the `fullBG` flag to
-#' `TRUE`. Note that this process can generate a very large file (several
-#' gigabytes).
+#' `ps_write_bg_to_file()` writes a text file carrying three numbers per
+#' matrix — background size, mean and standard deviation — which is all
+#' `pscan()` needs to compute a z-score. It carries nothing else: not the
+#' per-promoter hits a full background stores, and not the
+#' `transcriptIDLegend` that `pscan_fullBG()` resolves identifiers against. A
+#' background read back with `ps_retrieve_bg_from_file()` therefore supports a
+#' full-background retrieval only when the matrices it is applied to already
+#' carry that scan.
+#'
+#' To persist a full background, use `saveRDS()` / `readRDS()` (or
+#' `save()` / `load()`), which preserve the object whole — hits, positions,
+#' strands, oligonucleotides and legend included. Expect a large file: the
+#' object holds one hit per promoter per matrix, so it grows with the product
+#' of the two.
 #'
 #' Note: this function assumes transcript identifiers can be safely matched
 #' without version suffixes (e.g., NM_30287 instead of NM_30287.1).
@@ -129,6 +133,11 @@ ps_build_bg <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions(),
     BPOPTIONS = BPOPTIONS
     )
 
+    # The output's legend must describe `x`, so an incoming legend on `pfms`
+    # is deliberately not carried here: it would name the promoter universe of
+    # whatever object the matrices came from. With fullBG = TRUE the legend for
+    # `x` is built below; with fullBG = FALSE there are no per-promoter hits
+    # for it to index into and it stays empty.
     pfms <- do.call(PSMatrixList, pfms)
 
     if (fullBG == TRUE) {
@@ -285,6 +294,10 @@ ps_retrieve_bg_from_file <- function(file, pfms) {
 ps_build_bg_from_table <- function(x, pfms) {
     .ps_checks(x, pfms, type = 3)
 
+    # Only the three summary statistics are replaced, so the promoter universe
+    # `pfms` describes is unchanged and its legend still applies.
+    legend <- .ps_legend_of(pfms)
+
     pfms <- lapply(pfms, FUN = as, "PSMatrix")
 
     if (length(pfms) != nrow(x)) {
@@ -296,7 +309,7 @@ ps_build_bg_from_table <- function(x, pfms) {
 
     pfms <- lapply(pfms, FUN = .ps_bg_from_table, x)
 
-    do.call(PSMatrixList, pfms)
+    do.call(PSMatrixList, c(pfms, list(transcriptIDLegend = legend)))
 }
 
 #' Extract background statistics from a `PSMatrixList` object
@@ -438,6 +451,13 @@ ps_get_bg_table <- function(pfms) {
 #'
 #' @export
 ps_write_bg_to_file <- function(pfms, file) {
+    # write.table() emits ~15 significant digits, so BG_MEAN and BG_STDEV do
+    # not round-trip a double exactly and z-scores derived from a file-read
+    # background differ from RDS-read ones at around 1e-14. Writing 17
+    # significant digits would fix that permanently, but it would change the
+    # bytes of every published background and invalidate every catalogued
+    # artifact_sha256, so it is deliberately deferred until the artefacts are
+    # rebuilt anyway.
     .ps_checks2(pfms, file)
 
     tab <- ps_get_bg_table(pfms)

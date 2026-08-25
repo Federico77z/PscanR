@@ -121,6 +121,10 @@
 pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
     .ps_checks(x, pfms, type = 4)
 
+    # Carried, not derived: the legend describes the background's promoter
+    # universe, which the scan does not change.
+    legend <- .ps_legend_of(pfms)
+
     x <- BiocGenerics::unique(x)
     x <- .clean_sequence(x)
 
@@ -143,7 +147,9 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
     BPOPTIONS = BPOPTIONS
     )
 
-    BiocGenerics::do.call(PSMatrixList, pfms)
+    BiocGenerics::do.call(
+    PSMatrixList, c(pfms, list(transcriptIDLegend = legend))
+    )
 }
 
 #' Extract Pre-Computed Metrics from a PSMatrixList Object
@@ -189,6 +195,12 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
 #' raises a warning naming the identifier rather than silently returning the
 #' first match.
 #'
+#' A full background is a whole `PSMatrixList`, hits included, so `saveRDS()`
+#' / `readRDS()` is the way to keep one between sessions. The `.txt` format
+#' `ps_write_bg_to_file()` produces carries only the background size, mean and
+#' standard deviation of each matrix, which is enough for `pscan()` and not
+#' enough for this function.
+#'
 #' Identifiers absent from the background are dropped with a warning. That
 #' normally means the promoter was excluded during background construction
 #' (high 'N' content or a length mismatch), but it also covers identifiers that
@@ -227,8 +239,25 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     if (!is.character(ID)) {
     stop("ID must be a character vector containing transcript identifiers")
     }
+    if (!is(full_pfms, "PSMatrixList")) {
+    stop("'full_pfms' must be a PSMatrixList")
+    }
+    # Every PSMatrixList now carries whatever legend its input had, so a
+    # non-empty legend no longer means "this object holds a background scan".
+    # Testing for the scan itself is what stops a pscan() result from being
+    # read as a background, which would answer with foreground hits over a
+    # subset instead of background hits over the universe.
+    if (!.ps_has_bg_scan(full_pfms)) {
+    stop(
+        "'full_pfms' carries no per-promoter background scan, so there is ",
+        "nothing to retrieve. Build it with ps_build_bg(..., fullBG = TRUE)."
+    )
+    }
     if (length(full_pfms@transcriptIDLegend) == 0) {
-    stop("The background PSMatrixList must be a full background")
+    stop(
+        "'full_pfms' has an empty transcriptIDLegend, so transcript ",
+        "identifiers cannot be resolved against the background."
+    )
     }
 
     all_seq_ID <- full_pfms@transcriptIDLegend
@@ -296,7 +325,9 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     use_full_BG = TRUE
     )
 
-    BiocGenerics::do.call(PSMatrixList, pfms)
+    BiocGenerics::do.call(
+    PSMatrixList, c(pfms, list(transcriptIDLegend = all_seq_ID))
+    )
 }
 
 # .ps_check_filtered_inputs and .ps_filter_promoters are internal helpers used
@@ -437,6 +468,10 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
                             BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
     .ps_check_filtered_inputs(prom_seq, Jmatrix, background)
 
+    # From `background`, not `Jmatrix`: the legend belongs to the promoter
+    # universe, and `Jmatrix` is a single matrix with no such slot.
+    legend <- .ps_legend_of(background)
+
     filtered_prom_seq <- .ps_filter_promoters(prom_seq, Jmatrix, n)
     if (is.null(filtered_prom_seq)) {
     return(NULL)
@@ -456,7 +491,9 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
     BPOPTIONS = BPOPTIONS
     )
 
-    BiocGenerics::do.call(PSMatrixList, pfms)
+    BiocGenerics::do.call(
+    PSMatrixList, c(pfms, list(transcriptIDLegend = legend))
+    )
 }
 
 #' Create a Summary Table of PscanR Results

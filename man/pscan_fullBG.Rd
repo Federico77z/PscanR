@@ -58,6 +58,12 @@ preserved. Requesting an identifier that is ambiguous within the background
 raises a warning naming the identifier rather than silently returning the
 first match.
 
+A full background is a whole `PSMatrixList`, hits included, so `saveRDS()`
+/ `readRDS()` is the way to keep one between sessions. The `.txt` format
+`ps_write_bg_to_file()` produces carries only the background size, mean and
+standard deviation of each matrix, which is enough for `pscan()` and not
+enough for this function.
+
 Identifiers absent from the background are dropped with a warning. That
 normally means the promoter was excluded during background construction
 (high 'N' content or a length mismatch), but it also covers identifiers that
