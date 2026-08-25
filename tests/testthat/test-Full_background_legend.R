@@ -57,6 +57,38 @@ test_that("a full background survives the text round trip with its legend", {
     expect_identical(
         ps_hits_score(from_back[[1]]), ps_hits_score(from_full[[1]])
     )
+
+    # Its own file describes its own promoters, so the size check is silent.
+    expect_no_warning(ps_retrieve_bg_from_file(f, full))
+})
+
+test_that("a table from a different promoter set is refused", {
+    full <- full_pfms()
+
+    # The bundled hg38 background: real statistics over 39,438 promoters, for
+    # matrices whose stored scan covers 36. Applying it would leave the object
+    # with statistics from one promoter universe and hits from another, which
+    # pscan_fullBG() would read as a background and answer from.
+    foreign <- system.file(
+        "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", package = "PscanR"
+    )
+    skip_if_not(nzchar(foreign), "bundled background file not installed")
+
+    expect_error(
+        suppressWarnings(ps_retrieve_bg_from_file(foreign, full)),
+        "disagrees with the stored background scan"
+    )
+    # The message names both counts, so the caller can see which is which.
+    expect_error(
+        suppressWarnings(ps_retrieve_bg_from_file(foreign, full)),
+        "the table says 39438 promoters, the stored scan holds 36"
+    )
+
+    # An ordinary PFMatrixList carries no scan, so nothing is compared.
+    J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+    skip_if_not(nzchar(J2020_path), "J2020.rds example data not installed")
+    ordinary <- ps_retrieve_bg_from_file(foreign, readRDS(J2020_path))
+    expect_identical(ps_bg_size(ordinary[[1]]), 39438L)
 })
 
 test_that("pscan, pscan_fullBG and PscanFiltered preserve the legend", {

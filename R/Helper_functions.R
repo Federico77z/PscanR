@@ -212,6 +212,51 @@
     ))
 }
 
+# ps_bg_size() is set to the number of hits retained when a background is
+# scanned (.ps_add_hits(), under `if (BG)`), and fullBG copies those same
+# vectors into the _bg slots, so length(ps_hits_score_bg(x)) == ps_bg_size(x)
+# by construction. A table that disagrees was computed on a different set of
+# promoters, and applying it would leave the object with statistics from one
+# universe and hits from another -- which pscan_fullBG() would then read as a
+# background and answer from, silently.
+#
+# The slot is read directly rather than through ps_hits_score_bg(), which
+# attaches the sequence names to every score on the way out: that is a copy per
+# matrix for a length, and it would raise a names<- error of its own on an
+# object already malformed enough to reach this check.
+#' @keywords internal
+.ps_check_bg_scan_size <- function(x, pfms) {
+    ids <- vapply(pfms, ID, character(1L))
+    stored <- vapply(pfms, function(m) length(m@ps_hits_score_bg), integer(1L))
+
+    # Only matrices the table actually names, as .ps_bg_from_table() does, and
+    # only those carrying a scan -- an ordinary PFMatrixList has none.
+    compare <- ids %in% row.names(x) & stored > 0L
+    if (!any(compare)) {
+    return(invisible(NULL))
+    }
+
+    ids <- ids[compare]
+    stored <- stored[compare]
+    tabled <- as.integer(x[ids, "BG_SIZE"])
+
+    bad <- which(!is.na(tabled) & tabled != stored)
+    if (length(bad) == 0L) {
+    return(invisible(NULL))
+    }
+
+    first <- bad[1L]
+    stop(
+    "Background table disagrees with the stored background scan for ",
+    length(bad), " of ", length(ids), " matrices (e.g. ", ids[first],
+    ": the table says ", tabled[first], " promoters, the stored scan holds ",
+    stored[first], "). The two are equal for a background built by ",
+    "ps_build_bg(), so this table was computed on a different set of ",
+    "promoters from the one these matrices were scanned against.",
+    call. = FALSE
+    )
+}
+
 #' @keywords internal
 .mapping_unique_names <- function(x, pfms) {
     original_names <- names(x)
