@@ -461,11 +461,20 @@ ps_get_bg_table <- function(pfms) {
 ps_write_bg_to_file <- function(pfms, file) {
     # write.table() emits ~15 significant digits, so BG_MEAN and BG_STDEV do
     # not round-trip a double exactly and z-scores derived from a file-read
-    # background differ from RDS-read ones at around 1e-14. Writing 17
-    # significant digits would fix that permanently, but it would change the
-    # bytes of every published background and invalidate every catalogued
-    # artifact_sha256, so it is deliberately deferred until the artefacts are
-    # rebuilt anyway.
+    # background differ from RDS-read ones at around 1e-14.
+    #
+    # Widening this to 17 significant digits has been considered and rejected,
+    # not merely deferred. It would change the bytes of every published
+    # background and invalidate every catalogued artifact_sha256, which is the
+    # obvious cost; the less obvious one is that it would make matters worse.
+    # A background rebuilt on another platform does not produce the same
+    # doubles: ps_build_bg() reaches log-odds through colSums() and log(), and
+    # the long double accumulator is 64-bit on x86-64 and 53-bit on Apple
+    # Silicon, with two libm implementations rounding log() differently in the
+    # last place. Seventeen digits would round-trip that platform-dependent
+    # double faithfully; fifteen discards most of the disagreement. Neither
+    # precision buys cross-platform byte-identity, because that is not the
+    # text format's to give.
     .ps_checks2(pfms, file)
 
     tab <- ps_get_bg_table(pfms)
