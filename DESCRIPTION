@@ -18,27 +18,33 @@ Imports:
     stats,
     TFBSTools (>= 1.34),
     utils
-Suggests: 
+Suggests:
     AnnotationDbi,
     BiocStyle,
     BSgenome (>= 1.64),
+    BSgenome.Athaliana.TAIR.TAIR9,
     BSgenome.Hsapiens.UCSC.hg38 (>= 1.4),
     BSgenome.Mmusculus.UCSC.mm10 (>= 1.4),
+    BSgenome.Scerevisiae.UCSC.sacCer3,
     biomaRt,
     dplyr,
     GenomicFeatures (>= 1.48),
+    GenomicRanges,
     GenomeInfoDb,
+    IRanges,
     JASPAR2020 (>= 0.99),
-    JASPAR2022 (>= 0.99), 
+    JASPAR2022 (>= 0.99),
     JASPAR2024 (>= 0.99),
     jsonlite,
     knitr,
     org.Hs.eg.db,
+    org.Mm.eg.db,
     org.Sc.sgd.db,
     org.Dm.eg.db,
-    RMariaDB, 
-    rmarkdown, 
+    rmarkdown,
+    rtracklayer,
     testthat (>= 3.1.5),
+    TxDb.Scerevisiae.UCSC.sacCer3.sgdGene,
     txdbmaker (>= 1.0.1)
 biocViews: SequenceMatching, MotifDiscovery, Transcription,
    Alignment, GeneRegulation, MotifAnnotation
@@ -46,7 +52,8 @@ Date: 2026-08-11
 Authors@R: c(person("Federico", "Zambelli", email = "federico.zambelli@unimi.it", 
     role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3487-4331")),
     person("Giulio", "Pavesi", email = "giulio.pavesi@unimi.it", role = "aut",
-    comment = c(ORCID = "0000-0001-5705-6249")))
+    comment = c(ORCID = "0000-0001-5705-6249")),
+    person("Diana", "Betelli", role = "ctb"))
 Description: R implementation of the 'Pscan' algorithm for motif enrichment 
     analysis in regulatory DNA sequences, based on Zambelli et al. (2009) 
     <doi:10.1093/nar/gkp464>.

@@ -1,0 +1,856 @@
+---
+title: "Motif enrichment analysis with PscanR: mouse retinal promoters"
+author:
+  - Federico Zambelli
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{3. Motif enrichment analysis with PscanR: mouse retinal promoters}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options:
+  markdown:
+    wrap: 80
+---
+
+```{r setup, include=FALSE}
+library(PscanR)
+
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>",
+    fig.align = "center",
+    warning = FALSE,
+    message = FALSE
+)
+
+fixture <- function(...) {
+    system.file(
+        "extdata", "vignettes", "mouse_hd_retina", ...,
+        package = "PscanR", mustWork = TRUE
+    )
+}
+```
+
+# Overview
+
+PscanR looks for transcription factor binding motifs that are over-represented
+in the regulatory regions of a set of genes. The idea in brief: take the
+promoters of genes that behave alike (co-expressed, co-regulated, differentially
+expressed in the same contrast), scan them with a collection of position
+frequency matrices, and ask which motifs score higher there than they do across
+all promoters of the organism, that is the universe background set.
+
+The package ships a collection of precomputed background sets for five model
+organisms: human, mouse and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR
+annotation), and yeast (SGD annotation). The package also provides functions to
+compute and use custom backgrounds, for those or for different organisms (not
+covered in this vignette).
+
+This vignette works through a PscanR analysis on mouse promoters and through
+several of the functions the package provides for inspecting the result. 
+
+## The data
+
+The example uses gene expression data from a study of the R6/1 mouse model of
+Huntington's disease, which profiled retina and striatum from the same animals.
+
+> Cano-Cano F, Martín-Loro F, Gallardo-Orihuela A, González-Montelongo MC,
+> Ortuño-Miquel S, Hervás-Corpión I, de la Villa P, Ramón-Marco L,
+> Navarro-Calvo J, Gómez-Jaramillo L, Arroba AI, Valor LM. *Retinal dysfunction
+> in Huntington's disease mouse models concurs with local gliosis and microglia
+> activation.* Scientific Reports 14:4176 (2024).
+> doi:10.1038/s41598-024-54347-8
+
+Differential expression was computed separately in the two tissues, and the
+resulting genes split by tissue and direction into six sets. The input is a
+two-column table: a gene identifier and the set it belongs to.
+
+Every fixture this vignette reads was produced by `run_uc2_pscan.R`, which
+performs the scan, followed by `build_uc2_vignette_data_v3.R`, which condenses
+its output into the single object loaded below. Both are kept in
+`UseCase/UC2_Mouse_HD_Retina/` of the PscanR source repository rather than
+shipped with the package, because they require network access and the full mouse
+annotation.
+
+```{r read-gene-sets}
+membership <- read.delim(
+    fixture("paper_subset_membership.tsv"),
+    stringsAsFactors = FALSE
+)
+str(membership)
+gene_sets <- split(membership$ensembl_gene_id, membership$subset)
+lengths(gene_sets)
+```
+
+```{r subset-key, echo=FALSE}
+subset_labels <- c(
+    a = "retina-only down", b = "shared down", c = "striatum-only down",
+    d = "retina-only up", e = "shared up", f = "striatum-only up"
+)
+knitr::kable(
+    data.frame(
+        set = names(subset_labels),
+        definition = unname(subset_labels),
+        genes = lengths(gene_sets)[names(subset_labels)],
+        row.names = NULL
+    ),
+    caption = "The six gene sets, by tissue and direction of change."
+)
+```
+
+The rest of this vignette follows set `d`, the
+`r length(gene_sets$d)` genes upregulated in retina and not in striatum, and
+uses set `f`, the `r length(gene_sets$f)` genes upregulated in striatum and not
+in retina, as the comparison.
+
+# The background
+
+PscanR precomputed backgrounds are indexed by organism, genome assembly,
+promoter window and motif collection. `get_availableBG()` lists what is
+available in the catalog bundled with the package:
+
+```{r discover-background}
+catalog <- get_availableBG("J2020_mm10_950u_50d", details = TRUE)
+knitr::kable(
+    catalog[c(
+        "organism", "assembly", "upstream", "downstream",
+        "jaspar_release", "motif_count", "promoter_count"
+    )],
+    row.names = FALSE,
+    caption = "The matching precomputed background."
+)
+```
+
+`generate_psmatrixlist_from_background()` retrieves a background and attaches it
+to the matching JASPAR collection, returning a `PSMatrixList`, that is the
+object PscanR works with throughout.
+
+```{r retrieve-background, eval=FALSE}
+background <- generate_psmatrixlist_from_background(
+    JASPAR_matrix = "Jaspar2020",
+    org = "mm",
+    prom_reg = c(-950, 50),
+    assembly = "mm10",
+    version = 2
+)
+length(background)
+#> [1] 746
+```
+
+That returns the JASPAR 2020 CORE *vertebrates* non-redundant collection, 746
+matrices, each carrying three metrics: how many promoters its background was
+computed over, and the mean and standard deviation of its score across them.
+
+Take notice, the promoter window selected, 950 bp upstream to 50 bp downstream
+of the transcription start site here, is important: **to be comparable, the
+foreground promoters must be extracted with the same promoter window the
+background was built from**. 
+
+# From genes to promoters
+
+The `pscan()` function of PscanR takes as input a `DNAStringSet` object
+containing a set of promoters from co-regulated or co-expressed genes. The user
+needs to take care to match the promoter window of the selected background.
+
+> The ideal workflow would require knowing which transcripts are co-regulated or
+> co-expressed, in order to retrieve the exact set of promoters regulating their
+> expression. Usually, though, the output of a differential expression analysis
+> is a list of genes rather than transcripts.
+>
+> Since a gene may have several transcription start sites and therefore
+> different promoters, when working at the gene level the choice of which
+> promoter to use for each gene is necessarily arbitrary. This is not ideal, but
+> it removes the barrier of having to work at the transcript level, which
+> remains the preferred option.
+
+The `ps_select_promoters()` function is a utility function that can be used to
+pass from gene or transcript identifiers to their promoter sequences for the
+supported organisms and annotations, deterministically resolving a gene list to
+one promoter per gene.
+
+Before it can do that it has to work out what the identifiers mean, because the
+same punctuation carries different meanings in different references. In RefSeq,
+`NM_000546.6` ends in a release **version**, so that two versions name one
+transcript. In TAIR, `AT1G01110.2` ends in a **splice variant**, which is a
+different transcript, often with a different start site. PscanR detects the convention and reports it.
+
+The gene identifiers in this experiment are Ensembl, so they have to be 
+translated to RefSeq through `org.Mm.eg.db`, and the RefSeq version 
+`org.Mm.eg.db` may not be the version the UCSC promoter track carries. 
+Under the RefSeq rule the two still match, because the version is normalised away.
+
+The following example uses ten real multi-transcript genes from this dataset,
+shipped with the example as a small fixture:
+
+```{r promoter-scheme, message=TRUE}
+example <- readRDS(fixture("promoter_selection_example.rds"))
+
+selection <- ps_select_promoters(
+    genes = example$genes,
+    promoter_sequences = example$promoter_sequences,
+    annotation = example$annotation,
+    gene_col = "ENSEMBL", transcript_col = "REFSEQ",
+    mode = "representative",
+    return = "mapping",
+    sequence_names = "gene_transcript"
+)
+```
+
+The returned mapping records the reason for the choice:
+
+```{r promoter-scheme-table, echo=FALSE}
+knitr::kable(
+    selection[, c(
+        "gene", "promoter_id", "scheme", "suffix_role",
+        "transcript_class", "selection_source", "n_candidates", "decided_by"
+    )],
+    row.names = FALSE,
+    caption = "One promoter per gene, and why each was chosen."
+)
+```
+
+For RefSeq the rule is to prefer an `NM_` messenger transcript over an `NR_`
+non-coding one, and to break any remaining tie by accession order. Protein
+accessions (`NP_`, `XP_`) are excluded before ranking.
+
+For our dataset we need promoter sequences matching the background selected
+above: mm10 assembly, the UCSC `ncbiRefSeqCurated` track, 950 bp upstream to 50
+bp downstream of the TSS.
+
+The following chunk shows how to do it but is not evaluated during the vignette
+build, since it requires external annotation and genome packages. Please notice
+it needs the `AnnotationDbi`, `Biostrings`, `GenomicRanges`, `IRanges`,
+`org.Mm.eg.db` and `BSgenome.Mmusculus.UCSC.mm10` packages.
+
+`mm10_950u_50d_refseq_snapshot.rds` is shipped with this example and records the
+transcript identifiers and TSS coordinates of the promoter universe the
+background was computed over.
+
+
+```{r select-real, eval=FALSE}
+
+retina_up_genes <- gene_sets$d
+
+# The transcripts and start sites the background was built from.
+snapshot <- readRDS(fixture("mm10_950u_50d_refseq_snapshot.rds"))
+transcripts <- snapshot$transcripts
+
+transcript_tss <- GenomicRanges::GRanges(
+    seqnames = transcripts$seqname,
+    ranges = IRanges::IRanges(start = transcripts$tss, width = 1L),
+    strand = transcripts$strand
+)
+names(transcript_tss) <- transcripts$transcript_id
+
+# promoters() takes the region around each 5' end, so it is strand-aware and
+# anchored on the transcription start site.
+ranges <- GenomicRanges::promoters(
+    transcript_tss,
+    upstream = snapshot$upstream,
+    downstream = snapshot$downstream
+)
+
+genome <- BSgenome.Mmusculus.UCSC.mm10::BSgenome.Mmusculus.UCSC.mm10
+promoters_mm10 <- Biostrings::getSeq(genome, ranges)
+names(promoters_mm10) <- names(ranges)
+
+# Ensembl gene identifiers to RefSeq transcripts. This returns several rows per
+# gene, including the protein accessions ps_select_promoters() discards.
+annotation <- AnnotationDbi::select(
+    org.Mm.eg.db::org.Mm.eg.db,
+    keys = retina_up_genes,
+    keytype = "ENSEMBL",
+    columns = c("REFSEQ", "SYMBOL")
+)
+
+retina_mapping <- ps_select_promoters(
+    genes = retina_up_genes,
+    promoter_sequences = promoters_mm10,
+    annotation = annotation,
+    gene_col = "ENSEMBL", transcript_col = "REFSEQ",
+    mode = "representative",
+    return = "mapping",
+    sequence_names = "gene_transcript"
+)
+
+retina_up_promoters <- promoters_mm10[retina_mapping$promoter_id]
+```
+
+That mapping was saved along with the scan it fed, so the rest of this vignette
+can read it directly from the precomputed object.
+
+```{r load-precomputed}
+precomputed <- readRDS(fixture("uc2_vignette_data.rds"))
+retina_mapping <- precomputed$retina_mapping
+```
+
+`ps_selection_summary()` reports how many genes were asked for, how many were placed, and how often
+there was a real choice to make.
+
+```{r selection-summary}
+ps_selection_summary(retina_mapping)$overall
+```
+
+Nearly half the genes had more than one candidate promoter, and most of those
+were settled by the tie-break rule: for a gene with several curated 
+messenger transcripts there is no principled way to pick one, 
+only a deterministic one.
+
+The genes that go unmapped are those with no curated RefSeq transcript to map
+to: most have no RefSeq accession at all in `org.Mm.eg.db`, three are
+mitochondrial genes that carry only a protein accession and are outside the
+nuclear promoter set anyway, and one has only predicted `XM_` models, which the
+curated track does not include. They are listed on the mapping rather than
+dropped silently:
+
+```{r unmapped}
+head(attr(retina_mapping, "ps_unmapped_genes"), 4)
+```
+
+`selection_source` names the rule that decided each promoter:
+
+```{r selection-by-source}
+ps_selection_summary(retina_mapping)$by_source
+```
+
+# Running the scan
+
+`pscan()` takes the foreground promoter sequences and the background
+`PSMatrixList`, and returns the updated `PSMatrixList` carrying the
+per-sequence results for every motif.
+
+The BPPARAM from `BiocParallel` can be used to set the level of parallelism:
+
+- `SerialParam()` uses one R process and is the safest choice for package checks
+  and reproducible debugging.
+
+- `SnowParam()` starts independent socket-based R workers; it is the portable
+  parallel choice on Windows and Unix-like systems, but has greater worker
+  startup and memory overhead.
+
+- `MulticoreParam()` uses lower-overhead forked workers and is generally
+  preferable for local parallel execution on Linux or other supported Unix-like
+  systems; it should not be used on Windows.
+
+The next chunk is not evaluated by default to limit the vignette's build time,
+but the user can run it. Scanning the two sets used here took
+`r round(sum(precomputed$timings$elapsed_seconds[precomputed$timings$subset %in% c("d", "f")]), 0)`
+seconds with `BPPARAM` set to
+`BiocParallel::MulticoreParam(workers = 8)`.
+
+```{r scan, eval=FALSE}
+
+BPPARAM <- BiocParallel::SerialParam() # Serial - Compatible but slower
+
+# Cross-platform parallel execution with four independent R workers:
+# BPPARAM <- BiocParallel::SnowParam(workers = 4, type = "SOCK") #Use this on Windows
+
+# Lower-overhead forked execution on supported Unix-like systems: #Use this on Linux and MacOS
+# BPPARAM <- BiocParallel::MulticoreParam(workers = 4)
+
+results <- pscan(
+    retina_up_promoters, background,
+    BPPARAM = BPPARAM
+)
+```
+
+`ps_results_table()` turns that object into the enrichment table.
+
+```{r results-table, eval=FALSE}
+enrichment <- ps_results_table(results)
+```
+
+To shorten the vignette's build time the scan was saved into the same RDS file
+the mapping came from. The objects below are that saved result; everything from
+here on is computed from them.
+
+```{r load-results}
+# Exactly what ps_results_table() returned for the retina-only upregulated
+# promoters, and for the striatum-only comparison.
+enrichment <- precomputed$enrichment_d
+dim(enrichment)
+
+# The same scan kept as a PSMatrixList rather than a table, so the
+# per-promoter detail survives, restricted to a few motifs to keep it small.
+results_subset <- precomputed$results_subset_d
+results_subset
+```
+
+Those motifs were chosen to span what the scan reports: the interferon
+regulatory factors and STATs the original study is about, the GC-rich motifs
+that turn out to top the table, and one depleted motif for contrast.
+
+```{r subset-names}
+TFBSTools::name(results_subset)
+```
+
+The enrichment table is one row per motif, keyed by JASPAR matrix identifier:
+
+```{r results-table-shown}
+head(enrichment[order(-enrichment$ZSCORE), ], 8)
+```
+
+The top of the full table is occupied not by the interferon factors but by
+GC-rich motifs: KLF15, ZBTB14, the SP and EGR zinc fingers. IRF3, the strongest
+member of the family the study reported, ranks
+`r which(rownames(enrichment[order(-enrichment$ZSCORE), ]) == "MA1418.1")`th
+with a z-score of
+`r sprintf("%.2f", enrichment["MA1418.1", "ZSCORE"])`. 
+
+The background parameters travel with the result, so they can be read back from
+it at any point with `ps_get_bg_table()`:
+
+```{r bg-table}
+ps_get_bg_table(results_subset)
+```
+
+`BG_SIZE` is the number of mouse promoters the background was computed over;
+`BG_MEAN` and `BG_STDEV` describe how that motif scores across them.
+
+Each row of the enrichment table compares the foreground mean score against the
+background mean, turns the difference into a z-score, and reports the
+corresponding p-value with a Benjamini–Hochberg FDR across the collection.
+
+`ps_motif_barplot()` ranks the motifs and draws them; the `n` argument limits
+the plot to the top of the list (default to at most 20). `group = "class"`
+colours each bar by the structural class of the factor, which
+`ps_motif_class()` reads off the JASPAR matrices.
+
+```{r top-motifs, fig.width=8, fig.height=5, dpi=120}
+
+table(ps_motif_class(results_subset))
+
+ps_motif_barplot(results_subset, group = "class")
+```
+
+Within the subset the C2H2 zinc fingers rank above the interferon factors, as
+they do in the full table above. NEUROD2 is there as a reminder that the
+z-score is signed: a motif can score well *below* background across a set of
+promoters, which can be biologically informative in its own right. The
+*P*-value will not report it, because it is a one-sided upper tail. NEUROD2's
+z-score of
+`r sprintf("%.1f", enrichment["MA0668.1", "ZSCORE"])`
+comes with *P* ≈ 1, thus the depletion is visible in the z-score alone.
+
+The function returns a `ggplot` object rather than drawing immediately, so a
+title, a different theme or any other layer can be added afterwards:
+
+```{r barplot-composable, eval=FALSE}
+ps_motif_barplot(results_subset, group = "class") +
+    ggplot2::labs(title = "Retina-only upregulated promoters")
+```
+
+# Checking the result against a second gene set
+
+Two very different blocks share the top of that table: the GC-rich zinc fingers,
+and the interferon factors the study was about. Nothing in the table tells them
+apart. Both are strongly enriched, both are significant by any threshold, and
+sorting by z-score puts the zinc fingers first.
+
+The table cannot separate them, because it only ever asks one question. A
+z-score says a motif scores higher in this promoter set than across all
+promoters of the genome. It does not say whether the motif has anything to do
+with the contrast that produced the gene list, and a motif can score high for
+reasons that have nothing to do with the tissue or the condition under study.
+
+Scanning a second gene set puts that question directly. Set `f` comes from the
+same  same differential expression pipeline; only the tissue differs. 
+A motif whose enrichment tracks the contrast should fall away in `f`; 
+a motif enriched for any reason the two sets share should not.
+
+```{r second-set-table}
+enrichment_f <- precomputed$enrichment_f
+
+data.frame(
+    set = c("d", "f"),
+    definition = unname(subset_labels[c("d", "f")]),
+    promoters = precomputed$subset_qc$scan_eligible_sequences[
+        match(c("d", "f"), precomputed$subset_qc$subset)
+    ],
+    nominal = c(sum(enrichment$P.VALUE < 0.05), sum(enrichment_f$P.VALUE < 0.05)),
+    fdr = c(sum(enrichment$FDR < 0.05), sum(enrichment_f$FDR < 0.05))
+)
+```
+
+Running the same motifs through the striatum set makes the split visible
+directly:
+
+```{r second-set-barplot, fig.width=8, fig.height=5, dpi=120}
+ps_motif_barplot(precomputed$results_subset_f, group = "class")
+```
+
+The GC-rich zinc fingers survive the change of tissue: KLF15 goes from
+`r sprintf("%.2f", enrichment["MA1513.1", "ZSCORE"])` to
+`r sprintf("%.2f", enrichment_f["MA1513.1", "ZSCORE"])`, still comfortably significant.
+The interferon factors do not: IRF3 goes from
+`r sprintf("%.2f", enrichment["MA1418.1", "ZSCORE"])` to
+`r sprintf("%.2f", enrichment_f["MA1418.1", "ZSCORE"])`, and every IRF and STAT motif
+in the panel crosses to the depleted side.
+
+That answers the question the first table could not. The interferon signal
+tracks the tissue, and is the result the study reported; the zinc-finger signal
+does not, and is shared by upregulated promoters in both tissues. Neither could
+have been told from the other by its p-value, however small.
+
+What the comparison does *not* say is why the shared signal is shared. Motifs
+common to two gene sets from related tissues can reflect regulators genuinely
+active in both, or properties of the promoters that any differential expression
+analysis tends to return, and telling those apart takes more than two sets. The
+useful conclusion here is the narrower one: only part of this result moves with
+the condition, and it is not the part at the top of the table.
+
+## Reproducing the published figure
+
+The published analysis makes the same comparison over all six sets and all
+eighteen IRF and STAT matrices, as its Supplementary Figure S2C. 
+
+`ps_results_table()` returns an ordinary `data.frame`, so the six tables stack
+into one long frame and anything that draws a heatmap can take it from there.
+
+```{r irf-stat-data}
+irf_stat <- precomputed$irf_stat
+str(irf_stat[c("subset", "motif", "ZSCORE", "significance")])
+```
+
+`motif` is ordered as the published figure orders it, and `significance` marks
+the paper's nominal thresholds rather than the FDR, so the two panels can be
+laid beside each other.
+
+```{r irf-stat-heatmap, fig.width=10, fig.height=6.7, dpi=120}
+ggplot2::ggplot(
+    irf_stat,
+    ggplot2::aes(x = subset, y = motif, fill = ZSCORE)
+) +
+    ggplot2::geom_tile(color = "white", linewidth = 0.25) +
+    ggplot2::geom_text(ggplot2::aes(label = significance), size = 2.5) +
+    ggplot2::scale_fill_gradient2(
+        low = "#2166ac", mid = "white", high = "#b2182b",
+        midpoint = 0, name = "Z-score"
+    ) +
+    ggplot2::labs(
+        x = NULL, y = NULL,
+        title = "IRF and STAT motif enrichment across the six gene sets",
+        subtitle = "* nominal P < 0.05; ** nominal P < 0.005"
+    ) +
+    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::theme(
+        panel.grid = ggplot2::element_blank(),
+        axis.text.x = ggplot2::element_text(angle = 35, hjust = 1),
+        plot.title.position = "plot"
+    )
+```
+
+In the retina-only upregulated set 17 of the 18 matrices have a positive z-score 
+and 12 pass FDR; in the three downregulated sets the family is *depleted* 
+on average, most strongly in the striatum-only one. 
+That is a stronger statement than the `d`-against-`f`
+comparison above, because it shows the signal is absent not just from the other
+tissue but from the other direction of change as well.
+
+```{r irf-stat-counts, echo=FALSE}
+counts <- do.call(rbind, lapply(split(irf_stat, irf_stat$subset), function(x) {
+    data.frame(
+        set = as.character(x$subset[[1]]),
+        `nominal P < 0.05` = sum(x$P.VALUE < 0.05),
+        `FDR < 0.05` = sum(x$FDR < 0.05),
+        `mean Z` = round(mean(x$ZSCORE), 2),
+        check.names = FALSE
+    )
+}))
+knitr::kable(
+    counts, row.names = FALSE,
+    caption = paste(
+        "The eighteen IRF and STAT matrices, counted in each set."
+    )
+)
+```
+
+Set `e` is the exception in both columns, but it rests on
+`r precomputed$subset_qc$scan_eligible_sequences[precomputed$subset_qc$subset == "e"]`
+promoters, too few to read in either direction, which is why the paper's own
+contrast is `d` against `f`.
+
+# What a result object contains
+
+`ps_results_table()` summarises across promoters, but the `PSMatrixList` keeps
+the per-promoter detail and can be explored with the accessors.
+
+A `PSMatrixList` is indexed by JASPAR matrix identifier, so `MA1418.1` pulls out
+the entry for IRF3:
+
+```{r accessors}
+irf3 <- results_subset[["MA1418.1"]]
+TFBSTools::name(irf3)
+
+ps_zscore(irf3)
+ps_pvalue(irf3)
+c(background = ps_bg_avg(irf3), foreground = ps_fg_avg(irf3))
+ps_hits_size(irf3)
+```
+
+Note how small the difference in mean score is that produces a z-score of
+`r sprintf("%.2f", ps_zscore(irf3))`. The z-score is a statement about a *mean* over
+`r ps_hits_size(irf3)` promoters, not about the size of the effect in any one of
+them.
+
+`ps_hits_table()` returns the best hit in every promoter: its score, position,
+strand, and the matched oligonucleotide.
+
+```{r hits-table}
+head(ps_hits_table(irf3, pos_shift = -950L), 5)
+```
+
+The oligo is always the **forward** strand of the promoter, 
+whatever strand the motif matched on. The IRF3 matrix is a tandem `GAAAC`
+repeat, an interferon-stimulated response element:
+
+```{r consensus}
+pfm <- TFBSTools::Matrix(irf3)
+paste(rownames(pfm)[apply(pfm, 2, which.max)], collapse = "")
+```
+
+
+# Structure across promoters
+
+`ps_z_table()` gives the per-promoter z-scores as a matrix.
+
+```{r z-table}
+z <- ps_z_table(results_subset)
+dim(z)
+round(z[1:4, 1:5], 2)
+```
+
+`ps_zscore_heatmap()` clusters that matrix, which exposes how motifs group
+across the promoter set.
+
+```{r zscore-heatmap, fig.width=9, fig.height=7, dpi=110}
+ps_zscore_heatmap(
+    results_subset, FDR = 1,
+    show_rownames = FALSE, treeheight_row = 0
+)
+```
+
+`FDR = 1` displays every motif supplied. The motifs here were already chosen
+from the full 746-motif scan, so there is nothing left to filter.
+
+The column dendrogram recovers the same split, this time from the per-promoter
+scores alone and without reference to the second gene set:
+the three C2H2 zinc fingers cluster on one branch, everything else on the other.
+Promoters scoring high across the zinc-finger columns are largely not the ones
+scoring high across the interferon columns. The enrichment table reports both
+blocks as significant; only the per-promoter view shows that they are carried by
+different promoters.
+
+# Where the sites are
+
+`ps_hitpos_map()` plots the position of the best hit in each promoter.
+
+```{r hitpos-map, fig.width=9, fig.height=7, dpi=110}
+ps_hitpos_map(
+    results_subset, FDR = 1, shift = -950,
+    show_rownames = FALSE, treeheight_row = 0
+)
+```
+
+`shift = -950` relabels the axis so that coordinates are relative to the
+transcription start site, matching how the promoters were extracted. The
+zinc fingers separate from the rest again, and here the difference between the
+branches is plainly positional: their columns are dominated by hits within a
+couple of hundred bases of the start site, where the interferon columns run
+through the whole window.
+
+For a single motif, `ps_density_plot()` shows the distribution of hit positions
+directly.
+
+```{r density-plot, fig.width=7.5, fig.height=4.6, dpi=120}
+ps_density_plot(
+    irf3,
+    shift = -950, st = "strict",
+    window = c(-950, 50), bins = 20
+)
+```
+
+Strong IRF3 sites rise towards the transcription start site rather than being
+spread evenly over the kilobase scanned, though the rise is gradual and the
+distribution keeps substantial weight far upstream.
+
+`window` defines the promoter window the positions came from. Given the window,
+the kernel density estimate is corrected by reflection. The reflecting bounds
+are the positions a hit can be *reported* at: a hit is recorded at the start of
+the motif, so it can never fall in the last few bases of the window. IRF3 is
+`r ncol(irf3)` bp wide, so its curve stops `r ncol(irf3) - 1` bp short of the
+downstream end.
+
+`bins` adds the same positions as a binned profile. Bars are on the density
+scale, so they share the curve's axis directly, and they carry no bandwidth and
+no boundary assumption, which is what makes them worth drawing next to the
+curve. Here the last bin reaches about 1.6 times the height of the smoothed
+curve beneath it: the default bandwidth is wide enough to flatten a peak that
+occupies only the final fiftieth of the window.
+
+The `st` argument sets which hits are used: `"all"` uses every promoter,
+`"loose"` those scoring above the motif's background mean, and `"strict"` those
+a standard deviation above it. Restricting to strong sites is usually what makes
+positional structure visible.
+
+```{r density-counts, include=FALSE}
+irf3_scores <- ps_hits_score(irf3)
+loose_n <- sum(irf3_scores >= ps_bg_avg(irf3))
+strict_n <- sum(irf3_scores >= ps_bg_avg(irf3) + ps_bg_std_dev(irf3))
+```
+
+For IRF3 the loose threshold keeps `r loose_n` of the `r ps_hits_size(irf3)`
+promoters and the strict one keeps `r strict_n`. That choice is made *after* the
+scan and does not touch the enrichment statistic, which is computed over all of
+them.
+
+`ps_hit_score_plot()` puts one point per promoter at its hit position and its
+hit score, with the two thresholds `st` names drawn as references.
+
+```{r hit-score-plot, fig.width=9.5, fig.height=4.6, dpi=115}
+ps_hit_score_plot(
+    results_subset[c("MA1418.1", "MA1513.1")],
+    shift = -950
+)
+```
+
+This separates the two things a density plot confounds. Both motifs lean towards
+the transcription start site, but KLF15's retained hits also pile up against the
+ceiling of the score range in the last two hundred bases, many of them at or
+near a perfect match. IRF3's retained hits lean the same way far more weakly and
+stay close to the threshold throughout, which is what a modest signal spread
+over many promoters looks like. A density plot would have made the two look
+alike; position and score together do not.
+
+# Narrowing the question with a filter
+
+The scan so far asked what is enriched across the whole set of retina-only
+upregulated promoters. A narrower question is what is enriched *in the subset of
+those promoters that carry a strong match for a particular factor*.
+
+`PscanFiltered()` scans the promoters with one chosen matrix, keeps those
+scoring at least `n` standard deviations above that motif's background mean, and
+rescans the survivors against the whole collection.
+
+The following chunk is not evaluated, to limit the vignette's build time, but it
+can be run as it stands.
+
+```{r pscan-filtered, eval=FALSE}
+irf3_matrix <- background[[which(TFBSTools::ID(background) == "MA1418.1")]]
+
+filtered <- PscanFiltered(
+    retina_up_promoters, irf3_matrix, n = 1,
+    background = background,
+    BPPARAM = BiocParallel::SerialParam()
+)
+ps_results_table(filtered)
+```
+
+Anchoring on IRF3 keeps `r precomputed$filtered_irf3$n_retained` of the
+`r precomputed$filtered_irf3$n_input` retina-only upregulated promoters.
+
+```{r filtered-table, echo=FALSE}
+ft <- precomputed$filtered_irf3$table
+ft <- head(ft[order(-ft$ZSCORE), ], 12)
+knitr::kable(
+    data.frame(
+        motif_id = ft$motif_id, NAME = ft$NAME,
+        ZSCORE = round(ft$ZSCORE, 2),
+        P.VALUE = format(ft$P.VALUE, scientific = TRUE, digits = 3)
+    ),
+    row.names = FALSE, align = c("l", "l", "r", "r"),
+    caption = paste(
+        "Enrichment within the", precomputed$filtered_irf3$n_retained,
+        "promoters carrying a strong IRF3 site."
+    )
+)
+```
+
+The whole interferon family now sits far above everything else, which is the
+expected consequence of selecting on one of its members. 
+What is informative is the rest of the list: the GC-rich
+zinc fingers that dominated the unfiltered scan have dropped out of the top
+entirely.
+
+```{r filtered-contrast, echo=FALSE}
+zinc <- c("MA1513.1", "MA1650.1", "MA0162.4")
+full <- precomputed$filtered_irf3$table
+knitr::kable(
+    data.frame(
+        NAME = enrichment[zinc, "NAME"],
+        `Z all promoters` = round(enrichment[zinc, "ZSCORE"], 2),
+        `Z IRF3-positive` = round(
+            full$ZSCORE[match(zinc, full$motif_id)], 2
+        ),
+        check.names = FALSE
+    ),
+    row.names = FALSE,
+    caption = "The GC-rich block, before and after anchoring on IRF3."
+)
+```
+
+Apparently the promoters carrying a strong IRF3 site are a different population
+from the ones driving the GC-rich signal. This is the same conclusion the
+score heatmap and the position map pointed at, arrived at independently.
+
+That is the point of the filter: it separates a mixed foreground into
+subpopulations that a single scan reports only in aggregate.
+
+# Summary
+
+A complete PscanR analysis is four steps: choose a background, resolve genes to
+promoters with a matching window, scan, and read the table.
+
+```{r workflow, eval=FALSE}
+background <- generate_psmatrixlist_from_background(
+    "Jaspar2020", "mm", c(-950, 50), "mm10", version = 2
+)
+retina_up_promoters <- ps_select_promoters(
+    genes = retina_up_genes, promoter_sequences = promoters_mm10,
+    annotation = annotation, gene_col = "ENSEMBL", transcript_col = "REFSEQ",
+    mode = "representative", return = "sequences"
+)
+results <- pscan(retina_up_promoters, background)
+ps_results_table(results)
+```
+
+Everything after that is interpretation: per-promoter scores (`ps_z_table()`),
+hit positions and sequences (`ps_hits_table()`, `ps_hitpos_map()`,
+`ps_density_plot()`, `ps_hit_score_plot()`), and the ability to restrict the
+foreground to promoters carrying a particular site (`PscanFiltered()`).
+
+# Appendix: how this compares with the published analysis
+
+The study used here ran the original Pscan implementation itself, 
+so the two analyses can be compared. The motif-level agreement is shown above, 
+in the reproduction of Supplementary Figure S2C: all nine IRF matrices in 
+JASPAR 2020 pass FDR 0.05 in the retina-only upregulated set, together
+with `STAT1::STAT2`, `Stat2` and `Stat4`, and none passes FDR anywhere else. 
+
+Two differences in setup are worth naming.
+
+```{r selection-counts, include=FALSE}
+retina_selection <- ps_selection_summary(retina_mapping)$overall
+```
+
+**Transcript selection.** The published analysis does not document which
+transcript was used for a gene with several. `ps_select_promoters()` makes that
+choice explicit and deterministic, and records it: of the
+`r retina_selection$genes_mapped` genes placed here,
+`r retina_selection$genes_with_choice` had more than one candidate. Exact motif
+ranks may therefore differ from the original web-server run.
+
+**Multiple testing.** PscanR reports the raw *P*-value alongside a
+Benjamini–Hochberg FDR; the published figure marks nominal thresholds. Since the
+raw *P*-value travels with the result table, any correction can be applied to it
+afterwards.
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```

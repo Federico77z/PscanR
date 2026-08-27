@@ -1,9 +1,13 @@
 ---
 title: "PscanR Quick Overview"
-author: "Diana Betelli"
+author:
+    - Diana Betelli
+    - Federico Zambelli
+date: "`r Sys.Date()`"
 output:
     BiocStyle::html_document:
-    toc: true
+        toc: true
+        toc_depth: 2
 vignette: >
     %\VignetteIndexEntry{1. PscanR Quick Overview}
     %\VignetteEngine{knitr::rmarkdown}
@@ -46,11 +50,29 @@ For a comprehensive reference, please consult the `PscanR` Reference Manual.
 </td>
     </tr>
     <tr>
-        <td><code>PscanFiltered()</code></td>
-        <td>
+        <td style="border-bottom: 1px solid #ddd;"><code>PscanFiltered()</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
     Applies the Pscan algorithm to sequences filtered based on their affinity
     with a specific motif matrix, allowing focused analysis on relevant
     sequences.
+</td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #ddd;"><code>ps_select_promoters()</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
+    Maps genes to transcript promoters and selects one representative promoter per gene, using a rule appropriate to the transcript identifier scheme in use. The scheme is detected automatically and reported, so the choice remains auditable.
+</td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #ddd;"><code>ps_selection_summary()</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
+    Reports how a mapping produced by <code>ps_select_promoters()</code> was arrived at: which scheme was used, which rule selected each promoter, how many genes offered a real choice, and how many were decided by the tie-break rather than by the ranking.
+</td>
+    </tr>
+    <tr>
+        <td><code>ps_load_select_transcripts()</code></td>
+        <td>
+    Downloads and caches the human MANE Select and RefSeq Select transcript tables from UCSC hg38, for use as the ranking passed to <code>ps_select_promoters()</code>. This metadata is hg38-specific; for other organisms a species-specific table is supplied instead.
 </td>
     </tr>
     </tbody>
@@ -100,11 +122,47 @@ analysis (can be sourced from public databases such as JASPAR).
 </td>
     </tr>
     <tr>
-        <td><code>ps_retrieve_bg_from_file()</code></td>
-        <td>
+        <td style="border-bottom: 1px solid #ddd;"><code>ps_retrieve_bg_from_file()</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
     Generates a background from a text file containing background information
     for each matrix, including ID, background size, average score, and standard
     deviation.
+</td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #ddd;"><code>ps_build_bg_from_table()</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
+    Associates background parameters held in a <code>data.frame</code> with a list of position frequency matrices and returns the result as a <code>PSMatrixList</code>.
+</td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #ddd;"><code>ps_get_bg_table()</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
+    Extracts the background statistics (size, mean and standard deviation) from a <code>PSMatrixList</code> as a <code>data.frame</code>, which is the inverse of <code>ps_build_bg_from_table()</code>.
+</td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #ddd;"><code>ps_write_bg_to_file()</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
+    Writes the background statistics of a <code>PSMatrixList</code> to a text file, in the format <code>ps_retrieve_bg_from_file()</code> reads back.
+</td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #ddd;"><code>ps_build_bg(fullBG = TRUE)</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
+    Builds a <em>full</em> background instead of the three summary statistics per matrix. A full background retains, for every promoter and every matrix, the hit score, position, strand and matched oligonucleotide. It is far larger than a standard background, so none is shipped with the package.
+</td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #ddd;"><code>pscan_fullBG()</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
+    The reason to build a full background. It scans a foreground given only <em>transcript identifiers</em>, retrieving hits already stored in the full background rather than rescanning DNA, which makes repeated foreground scans against one background very fast.
+</td>
+    </tr>
+    <tr>
+        <td><code>transcriptIDLegend()</code></td>
+        <td>
+    Retrieves the legend of a full background: the mapping from every original sequence name to the representative kept after de-duplication. It is what lets <code>pscan_fullBG()</code> resolve an identifier that was not itself retained.
 </td>
     </tr>
     </tbody>
@@ -160,21 +218,40 @@ analysis (can be sourced from public databases such as JASPAR).
         </td>
     </tr>
     <tr>
-        <td>
+        <td style="border-bottom: 1px solid #ddd;">
     <code>ps_density_plot()</code>
 </td>
-        <td>
+        <td style="border-bottom: 1px solid #ddd;">
         Creates a density plot representing the distribution of hits along
         promoter sequences, based on their position and score for a specific
         position weight matrix (PWM).
         </td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #ddd;"><code>ps_hit_score_plot()</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
+    Plots every promoter's best hit as a point positioned by where the site sits and by how well it scores, so that position and strength are read together. A positional profile alone cannot show whether a concentration is made of strong sites or of weak ones.
+</td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #ddd;"><code>ps_motif_barplot()</code></td>
+        <td style="border-bottom: 1px solid #ddd;">
+    Plots the highest ranking motifs of a scan as horizontal bars, optionally coloured by a grouping such as the structural class of the factor.
+</td>
+    </tr>
+    <tr>
+        <td><code>ps_motif_class()</code></td>
+        <td>
+    Returns the structural class of the transcription factor behind each motif, for example <code>"Basic leucine zipper factors (bZIP)"</code>. It supplies the grouping <code>ps_motif_barplot()</code> colours by.
+</td>
     </tr>
     </tbody>
 </table>
 
 <hr />
 
-```{r chunk-1}
-# Display session information
+# Session information
+
+```{r session-info}
 sessionInfo()
 ```
