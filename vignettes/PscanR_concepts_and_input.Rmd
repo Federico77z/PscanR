@@ -144,43 +144,37 @@ a background for PscanR* covers that case.
 
 # The Input Transcript For `pscan()`
 
-**`pscan()`** accepts as input a DNAStringSet object containing the DNA
-sequences of co-regulated or co-expressed genes. This object can be built from a
-list of gene/transcript identifiers.
+**`pscan()`** takes two arguments: a `DNAStringSet` of promoter sequences, and
+the background `PSMatrixList` obtained above. The sections below build the
+first of them, starting from the case where it is almost immediate and moving
+to the one that arises in practice.
 
 For humans, mice, and Drosophila, the available background models are based on
 RefSeq identifiers, for Arabidopsis on TAIR, and for yeast on SGD IDs. Other
 types of gene identifiers can also be used if the corresponding background model
 is created; the *Building a background for PscanR* vignette covers that case.
 
-Below is an example dataset containing **human NRF1 target transcripts**
-(RefSeq), curated from the literature. Since PscanR works at the transcript
-level, gene identifiers must be converted to their corresponding transcript IDs
-before analysis. The number **100** indicates that 100% transcripts in the list
-correspond to known NRF1 target.
+## Scanning from a list of transcripts
+
+PscanR works at the promoter level, and a transcript identifier is an
+unambiguous match for one promoter within a given assembly and annotation. A
+list of transcripts therefore determines a promoter set outright, and nothing
+has to be decided.
+
+The package ships such a list: human NRF1 target transcripts in RefSeq,
+curated from the literature.
 
 ```{r chunk-2}
-file_path <- system.file("extdata", "nrf1100.txt", 
-                            package = "PscanR")
+file_path <- system.file("extdata", "nrf1100.txt", package = "PscanR")
 target <- read.csv(file_path, header = FALSE)
 head(target)
 ```
 
-## From Transcript IDs to promoter sequences
+Every transcript in this set is a known NRF1 target, which is what makes it
+useful here: a scan that works should find NRF1.
 
-PscanR analysis works at the promoter level, and Transcript IDs provide a 
-univoque match for the corresponding promoter within the same assembly and gene 
-annotation system. 
-
-However, since it is more common to obtain from standard bioinformatic workflows
-lists of co-regulated or co-expressed genes rather than transcripts , we provide 
-a way  to help users in the reproducible conversion from Gene IDs to Transcript 
-IDs for use with PscanR.
-
-`ps_select_promoters()` performs that task.
-
-The promoters shipped with the package are human, 200 bp upstream and 50 bp
-downstream of the TSS, which is the window of the background loaded earlier:
+It also ships the matching promoters, human, 200 bp upstream and 50 bp
+downstream of the TSS, which is the window of the background loaded above:
 
 ```{r load-promoters}
 library(Biostrings)
@@ -192,52 +186,102 @@ unique(width(prom_seq)) # 200 upstream + 50 downstream
 head(names(prom_seq), 3)
 ```
 
-`ps_select_promoters()` is given the genes of interest, the promoters to choose
-from, and a table relating one to the other. The NRF1 targets read above are
-RefSeq transcripts, so `org.Hs.eg.db` supplies the gene symbol behind each of
-them and the table is built from the result:
+The two cannot be matched by name as they stand. The promoters are named
+`NM_006559.3` and the target list holds `NM_006559`, because in RefSeq the
+trailing number is a release version rather than part of the transcript's
+identity. Stripping it is one substitution:
+
+```{r match-by-suffix}
+base <- sub("\\..*$", "", names(prom_seq))
+foreground <- prom_seq[base %in% target[[1]]]
+length(foreground)
+```
+
+That is the foreground. Scanning it against the background is the whole of the
+analysis:
+
+```{r run-pscan}
+res <- pscan(foreground, J2020_PSBG, BPPARAM = BiocParallel::SerialParam())
+head(ps_results_table(res))
+```
+
+`ps_results_table()` orders motifs by increasing p-value. NRF1 comes first, by a
+wide margin over the second motif, which is the expected result for a set of
+curated NRF1 targets and a reasonable check that the foreground and the
+background were paired correctly.
+
+## When the list is of genes
+
+A list of transcripts is not what most analyses produce. A differential
+expression experiment returns **genes**, and a gene list does not determine a
+promoter set: a gene may have several transcription start sites, and therefore
+several promoters, whose sequences differ.
+
+One promoter per gene has to be chosen. That choice cannot be avoided, only
+made explicitly or left implicit, and leaving it implicit means the result
+depends on how finely each gene happens to be annotated.
+`ps_select_promoters()` makes it explicitly, by a stated rule, and records for
+every gene which transcript was chosen and why.
+
+It is given the genes of interest, the promoters to choose from, and a table
+relating one to the other. The package ships no gene list, so a few of the genes
+behind the NRF1 targets stand in for what a differential expression analysis
+would return:
+
+```{r gene-list}
+genes <- c(
+    "ALAS1", "ARPC1A", "CAPNS1", "CHMP2A",
+    "EIF2S1", "GTF2F1", "LONP1", "POLR2A"
+)
+```
+
+`org.Hs.eg.db` supplies the transcripts of each, which is the relating table.
+Note how many there are: eight genes give far more than eight candidates, and
+that is the whole difficulty.
 
 ```{r build-annotation}
 library(org.Hs.eg.db)
 annotation <- AnnotationDbi::select(
     org.Hs.eg.db,
-    keys = target[[1]], keytype = "REFSEQ", columns = "SYMBOL"
+    keys = genes, keytype = "SYMBOL", columns = "REFSEQ"
 )
-annotation <- annotation[!is.na(annotation$SYMBOL), ]
-genes <- unique(annotation$SYMBOL)
-length(genes)
+annotation <- annotation[!is.na(annotation$REFSEQ), ]
+nrow(annotation)
+table(annotation$SYMBOL)
 ```
 
-Note that the identifiers in this table carry no version, whereas the promoters
-are named `NM_006559.3` and do. This mismatch is the reason the function
-inspects the identifiers before matching them rather than comparing them as
-strings. It recognises the RefSeq convention, in which the trailing number is a
-release version and two versions name the same transcript, and normalises the
-suffix away. It does not do so for TAIR identifiers such as `AT1G01110.2`,
-where the same punctuation marks a splice variant that is a different
-transcript, frequently with a different start site.
+Note also that the identifiers in this table carry no version, whereas the
+promoters are named `NM_006559.3` and do. This mismatch is the reason the
+function inspects the identifiers before matching them rather than comparing
+them as strings. It recognises the RefSeq convention, in which the trailing
+number is a release version and two versions name the same transcript, and
+normalises the suffix away. It does not do so for TAIR identifiers such as
+`AT1G01110.2`, where the same punctuation marks a splice variant that is a
+different transcript, frequently with a different start site.
+
+The substitution used in the previous section is therefore correct for RefSeq
+and wrong in general, which is what this function exists to get right.
 
 ```{r select-promoters}
 selection <- ps_select_promoters(
     genes = genes,
     promoter_sequences = prom_seq,
     annotation = annotation,
+    gene_col = "SYMBOL", transcript_col = "REFSEQ",
     mode = "representative",
     return = "both"
 )
 ```
 
 The mapping records how each promoter was arrived at, which keeps the choice
-auditable rather than implicit:
+auditable rather than implicit. Protein accessions such as `NP_` are discarded
+along the way, since they are not transcripts:
 
 ```{r selection-mapping}
-head(
-    selection$mapping[, c(
-        "gene", "transcript_id", "promoter_id",
-        "scheme", "suffix_role", "n_candidates", "decided_by"
-    )],
-    3
-)
+selection$mapping[, c(
+    "gene", "transcript_id", "promoter_id",
+    "scheme", "suffix_role", "n_candidates", "decided_by"
+)]
 ```
 
 `ps_selection_summary()` reports the same thing over the whole set, including
@@ -248,13 +292,19 @@ rather than by the ranking:
 ps_selection_summary(selection$mapping)
 ```
 
-One gene is unmapped because its transcript is absent from this small promoter
-set. The remaining 90 are returned as a `DNAStringSet`, named by gene and
-transcript so that a result can be traced back to both:
+```{r selection-counts, include=FALSE}
+unmapped <- attr(selection$mapping, "ps_unmapped_genes")
+n_selected <- length(selection$sequences)
+```
+
+Of the `r length(genes)` genes, `r length(unmapped)` is unmapped
+(`r paste(unmapped, collapse = ", ")`), because none of its transcripts has a
+promoter in this small set. The remaining `r n_selected` are returned as a
+`DNAStringSet`, named by gene and transcript so that a result can be traced
+back to both:
 
 ```{r selected-sequences}
-foreground <- selection$sequences
-foreground
+selection$sequences
 ```
 
 `mode = "representative"` ranks transcripts by the scheme's own rule, which for
@@ -274,24 +324,22 @@ selection <- ps_select_promoters(
 )
 ```
 
-That chunk is not run when this vignette is built, because
-`ps_load_select_transcripts()` downloads the table from UCSC and caches it. The
-metadata it retrieves is specific to human hg38, so for other organisms either
+That chunk is deliberately not run when this vignette is built.
+`ps_load_select_transcripts()` retrieves the two tracks from the UCSC API, which
+takes around a minute and requires a third-party service to be reachable;
+neither belongs in a package build. Run once, the table is cached under
+`tools::R_user_dir("PscanR", "cache")` and later calls read it from there. The
+metadata is specific to human hg38, so for other organisms either
 `mode = "representative"` applies, or a species-specific table is supplied
 through `select_transcripts`.
 
-The foreground is now what `pscan()` takes, together with the background from
-the earlier section:
-
-```{r ready-for-pscan, eval=FALSE}
-res <- pscan(foreground, J2020_PSBG)
-```
-
-Both arguments describe the same 200-up, 50-down window, which is what makes
-their scores comparable. Had the background been a `950u_50d` one, these
-promoters would have had to be extracted again over 950 bp upstream rather than
-200, because a longer window gives a motif more places to match and raises its
-best score whether or not anything is enriched.
+Either way the result is a `DNAStringSet` of one promoter per gene, which is
+passed to `pscan()` exactly as the foreground of the previous section was. Both
+it and the background must describe the same window, here 200 bp upstream and
+50 bp downstream. Had the background been a `950u_50d` one, these promoters
+would have had to be extracted again over 950 bp upstream rather than 200,
+because a longer window gives a motif more places to match and raises its best
+score whether or not anything is enriched.
 
 # Choosing a `BPPARAM`
 

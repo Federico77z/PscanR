@@ -67,7 +67,10 @@ ps_load_select_transcripts <- function(
         "hg38_mane_refseq_select_transcripts.rds"
     )
     if (cache && file.exists(cache_file)) {
-        return(readRDS(cache_file))
+        cached <- .ps_read_select_cache(cache_file)
+        if (!is.null(cached)) {
+            return(cached)
+        }
     }
     if (!requireNamespace("jsonlite", quietly = TRUE)) {
         stop("Package 'jsonlite' is required to download select transcripts.")
@@ -93,8 +96,39 @@ ps_load_select_transcripts <- function(
     select_transcripts
 }
 
+# Read a cached select-transcript table, returning NULL rather than the object
+# whenever it cannot be used. Column names changed when transcript identifiers
+# stopped being assumed to be RefSeq, so a cache written by an earlier version
+# of the package carries `refseq_id`/`refseq_clean` and is rejected far
+# downstream, inside ps_select_promoters(), with no hint of where it came from.
+# Refetching is always safe here: the file is a download cache, not data.
+.ps_read_select_cache <- function(cache_file) {
+    cached <- tryCatch(readRDS(cache_file), error = function(e) e)
+    reason <- if (inherits(cached, "error")) {
+        conditionMessage(cached)
+    } else if (!is.data.frame(cached)) {
+        sprintf("expected a data.frame, found %s", class(cached)[[1]])
+    } else if (!any(c("transcript_id", "transcript_base") %in% names(cached))) {
+        paste(
+            "no 'transcript_id' or 'transcript_base' column;",
+            "the file predates the switch to scheme-aware identifiers"
+        )
+    } else {
+        return(cached)
+    }
+
+    warning(
+        "Ignoring unusable cached select transcripts (", reason, "): ",
+        cache_file, ". Downloading them again.",
+        call. = FALSE
+    )
+    NULL
+}
+
 .ps_mane_select_transcripts <- function() {
-    mane <- .ps_ucsc_track_by_chrom("mane")
+    mane <- .ps_ucsc_track_by_chrom(
+        "mane", c("maneStat", "ncbiId", "geneName2")
+    )
     mane <- mane[mane$maneStat == "MANE Select" &
         !is.na(mane$ncbiId) & mane$ncbiId != "", ]
     data.frame(
@@ -108,7 +142,9 @@ ps_load_select_transcripts <- function(
 }
 
 .ps_refseq_select_transcripts <- function() {
-    refseq <- .ps_ucsc_track_by_chrom("ncbiRefSeqSelect")
+    refseq <- .ps_ucsc_track_by_chrom(
+        "ncbiRefSeqSelect", c("name", "name2")
+    )
     refseq <- refseq[!is.na(refseq$name) & refseq$name != "", ]
     data.frame(
         transcript_id = refseq$name,
@@ -332,7 +368,13 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     unique(genes)
 }
 
-.ps_ucsc_track_by_chrom <- function(track) {
+# Fetch a UCSC track chromosome by chromosome. `columns` names the fields the
+# caller reads: they are checked here, where the track and chromosome are still
+# known, rather than left to fail as a missing column much later. A request
+# that fails, or a response that carries no usable table, is an error for the
+# same reason -- silently dropping a chromosome would return a table that looks
+# complete and is not.
+.ps_ucsc_track_by_chrom <- function(track, columns = character()) {
     canonical <- paste0("chr", c(seq_len(22), "X", "Y"))
     rows <- lapply(canonical, function(chrom) {
         url <- sprintf(
@@ -343,18 +385,58 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
             track,
             chrom
         )
-        response <- jsonlite::fromJSON(url)
+        response <- tryCatch(jsonlite::fromJSON(url), error = function(e) {
+            stop(
+                sprintf(
+                    "Could not retrieve UCSC track '%s' for %s: %s",
+                    track, chrom, conditionMessage(e)
+                ),
+                call. = FALSE
+            )
+        })
         tbl <- response[[track]]
-        if (is.null(tbl) || nrow(tbl) == 0L) {
+        if (is.null(tbl) || !is.data.frame(tbl)) {
+            detail <- if (is.null(response$error)) {
+                ""
+            } else {
+                sprintf(": %s", response$error)
+            }
+            stop(
+                sprintf(
+                    "UCSC returned no '%s' table for %s%s.",
+                    track, chrom, detail
+                ),
+                call. = FALSE
+            )
+        }
+        if (nrow(tbl) == 0L) {
             return(NULL)
         }
-        as.data.frame(tbl, stringsAsFactors = FALSE)
+        tbl <- as.data.frame(tbl, stringsAsFactors = FALSE)
+        missing <- setdiff(columns, names(tbl))
+        if (length(missing) > 0L) {
+            named <- toString(sQuote(missing))
+            plural <- if (length(missing) > 1L) "s" else ""
+            fmt <- paste0(
+                "UCSC track '%s' is missing the column%s %s for %s. ",
+                "The track schema has probably changed."
+            )
+            stop(sprintf(fmt, track, plural, named, chrom), call. = FALSE)
+        }
+        tbl
     })
     rows <- rows[!vapply(rows, is.null, logical(1))]
     if (length(rows) == 0L) {
-        return(data.frame())
+        stop(
+            sprintf("UCSC track '%s' returned no rows for any chromosome.",
+                track),
+            call. = FALSE
+        )
     }
-    do.call(rbind, rows)
+    # Chromosomes whose payload omits an all-empty field come back with fewer
+    # columns, which rbind reports only as a count mismatch.
+    keep <- Reduce(intersect, lapply(rows, names))
+    do.call(rbind, lapply(rows, function(x) x[, keep, drop = FALSE]))
 }
 
 .ps_validate_promoter_inputs <- function(

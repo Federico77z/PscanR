@@ -26,8 +26,6 @@ Suggests:
     BSgenome.Hsapiens.UCSC.hg38 (>= 1.4),
     BSgenome.Mmusculus.UCSC.mm10 (>= 1.4),
     BSgenome.Scerevisiae.UCSC.sacCer3,
-    biomaRt,
-    dplyr,
     GenomicFeatures (>= 1.48),
     GenomicRanges,
     GenomeInfoDb,
@@ -40,9 +38,7 @@ Suggests:
     org.Hs.eg.db,
     org.Mm.eg.db,
     org.Sc.sgd.db,
-    org.Dm.eg.db,
     rmarkdown,
-    rtracklayer,
     testthat (>= 3.1.5),
     TxDb.Scerevisiae.UCSC.sacCer3.sgdGene,
     txdbmaker (>= 1.0.1)
