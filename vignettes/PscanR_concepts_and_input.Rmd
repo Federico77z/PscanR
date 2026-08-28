@@ -71,13 +71,15 @@ therefore be extracted with exactly the window the background was built on, and
 each shipped background records that window in its name, as in `950u_50d`.
 
 The next section shows how to use one of the pre-computed backgrounds available
-for PscanR. Please refer to the the vignette *Building a background for PscanR* 
+for PscanR. Please refer to the vignette *Building a background for PscanR* 
 for a walkthrough on how to build and use a custom background.
 
 ## Obtaining a Pre-Computed Background
 
-Most analyses do not need a background to be built, because one has been
-computed already. `get_availableBG()` lists what is available, and
+PscanR ships with precomputed backgrounds for five model organisms: *H. sapiens,
+M. musculus, D. melanogaster, A. thaliana and S. cerevisiae.*
+
+`get_availableBG()` lists what is available, and
 `generate_psmatrixlist_from_background()` retrieves one and returns it as the
 `PSMatrixList` that `pscan()` takes:
 
@@ -113,14 +115,11 @@ with promoter windows of 200 bp upstream and 50 bp downstream, 450 upstream and
 and 1000 upstream and 0 downstream, for the JASPAR 2020, 2022 and 2024
 releases. Only JASPAR **core** motifs are used.
 
-The call above needs no argument naming where the data comes from, because the
-retrieval is arranged so that it does not have to. It resolves the resource
-through ExperimentHub, and falls back to the immutable Zenodo record
+`generate_psmatrixlist_from_background()` resolves the resource through 
+ExperimentHub, and falls back to the immutable Zenodo record
 <https://doi.org/10.5281/zenodo.21821764> with a warning if the Hub cannot be
-reached, so a temporary Hub outage does not stop an analysis. Both routes serve
-the same archive and every file is verified by SHA-256 on arrival. Pass
-`source = "zenodo"` to go to Zenodo directly, or `source = "github"` to reach
-the legacy version-1 resources, which no other backend exposes.
+reached. Both routes serve the same archive and every file is verified by SHA-256 
+on arrival. Pass `source = "zenodo"` to go to Zenodo directly.
 
 For a self-contained example, the package ships the JASPAR2020 core matrices
 and the matching human 200-up, 50-down background as a table, which
@@ -137,17 +136,16 @@ J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 J2020_PSBG[[4]] # one matrix, with its background statistics
 ```
 
-This is the background the worked example at the end of this vignette scans
-against. When no shipped background matches the species, window or motif
-collection an analysis needs, one can be built instead; the vignette *Building
-a background for PscanR* covers that case.
+When no shipped background matches the species, window or motif collection an 
+analysis needs, one can be built instead; the vignette *Building a background for 
+PscanR* covers that case.
 
 # The Input Transcript For `pscan()`
 
 **`pscan()`** takes two arguments: a `DNAStringSet` of promoter sequences, and
-the background `PSMatrixList` obtained above. The sections below build the
-first of them, starting from the case where it is almost immediate and moving
-to the one that arises in practice.
+the background `PSMatrixList` obtained above. The sections below shows 
+an example on how to build the promoter sequences, starting from the case where 
+it is almost immediate and moving to the one that most often arises in practice.
 
 For humans, mice, and Drosophila, the available background models are based on
 RefSeq identifiers, for Arabidopsis on TAIR, and for yeast on SGD IDs. Other
@@ -161,8 +159,8 @@ unambiguous match for one promoter within a given assembly and annotation. A
 list of transcripts therefore determines a promoter set outright, and nothing
 has to be decided.
 
-The package ships such a list: human NRF1 target transcripts in RefSeq,
-curated from the literature.
+The package ships an example of such a list: human NRF1 target transcripts 
+in RefSeq, curated from the literature.
 
 ```{r chunk-2}
 file_path <- system.file("extdata", "nrf1100.txt", package = "PscanR")
@@ -170,11 +168,9 @@ target <- read.csv(file_path, header = FALSE)
 head(target)
 ```
 
-Every transcript in this set is a known NRF1 target, which is what makes it
-useful here: a scan that works should find NRF1.
-
-It also ships the matching promoters, human, 200 bp upstream and 50 bp
-downstream of the TSS, which is the window of the background loaded above:
+The package also ships the matching promoter sequences, human, 200 bp upstream 
+and 50 bp downstream of the TSS, which is the window of the background loaded 
+above:
 
 ```{r load-promoters}
 library(Biostrings)
@@ -207,14 +203,13 @@ head(ps_results_table(res))
 
 `ps_results_table()` orders motifs by increasing p-value. NRF1 comes first, by a
 wide margin over the second motif, which is the expected result for a set of
-curated NRF1 targets and a reasonable check that the foreground and the
-background were paired correctly.
+curated NRF1 targets.
 
 ## When the list is of genes
 
 A list of transcripts is not what most analyses produce. A differential
-expression experiment returns **genes**, and a gene list does not determine a
-promoter set: a gene may have several transcription start sites, and therefore
+expression experiment usually returns **genes**, and a gene list does not determine 
+a promoter set: a gene may have several transcription start sites, and therefore
 several promoters, whose sequences differ.
 
 One promoter per gene has to be chosen. That choice cannot be avoided, only
@@ -224,9 +219,8 @@ depends on how finely each gene happens to be annotated.
 every gene which transcript was chosen and why.
 
 It is given the genes of interest, the promoters to choose from, and a table
-relating one to the other. The package ships no gene list, so a few of the genes
-behind the NRF1 targets stand in for what a differential expression analysis
-would return:
+relating one to the other. A few of the genes behind the NRF1 targets stand in 
+for what a differential expression analysis would return:
 
 ```{r gene-list}
 genes <- c(
@@ -236,8 +230,7 @@ genes <- c(
 ```
 
 `org.Hs.eg.db` supplies the transcripts of each, which is the relating table.
-Note how many there are: eight genes give far more than eight candidates, and
-that is the whole difficulty.
+Note how many there are: eight genes give far more than eight candidate promoters.
 
 ```{r build-annotation}
 library(org.Hs.eg.db)
@@ -324,10 +317,9 @@ selection <- ps_select_promoters(
 )
 ```
 
-That chunk is deliberately not run when this vignette is built.
 `ps_load_select_transcripts()` retrieves the two tracks from the UCSC API, which
 takes around a minute and requires a third-party service to be reachable;
-neither belongs in a package build. Run once, the table is cached under
+so is is not evaluated in the vignette build. Run once, the table is cached under
 `tools::R_user_dir("PscanR", "cache")` and later calls read it from there. The
 metadata is specific to human hg38, so for other organisms either
 `mode = "representative"` applies, or a species-specific table is supplied
