@@ -331,7 +331,7 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 }
 
 # .ps_check_filtered_inputs and .ps_filter_promoters are internal helpers used
-# by PscanFiltered.
+# by pscan_filtered.
 .ps_check_filtered_inputs <- function(prom_seq, Jmatrix, background) {
     if (!is(prom_seq, "DNAStringSet")) {
     stop("Invalid input: 'prom_seq' must be a DNAStringSet")
@@ -457,15 +457,15 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #' bg <- ps_retrieve_bg_from_file(bg_path, J2020)
 #'
 #' JM <- bg[[1]]
-#' res <- PscanFiltered(prom_seq,
+#' res <- pscan_filtered(prom_seq,
 #'   JM,
 #'   background = bg,
 #'   BPPARAM = BiocParallel::SerialParam()
 #' )
 #'
 #' @export
-PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
-                            BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
+pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
+                           BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
     .ps_check_filtered_inputs(prom_seq, Jmatrix, background)
 
     # From `background`, not `Jmatrix`: the legend belongs to the promoter

@@ -18,9 +18,13 @@ editor_options:
 ---
 
 ```{r setup, include = FALSE}
+library(PscanR)
+
 knitr::opts_chunk$set(
     collapse = TRUE,
-    comment = "#>"
+    comment = "#>",
+    warning = FALSE,
+    message = FALSE
 )
 ```
 
@@ -69,9 +73,76 @@ score rises even when nothing is enriched. The foreground promoters must
 therefore be extracted with exactly the window the background was built on, and
 each shipped background records that window in its name, as in `950u_50d`.
 
-The remainder of this vignette covers the other half of preparing an input,
-which is arriving at the transcript identifiers that name the promoters to be
-scanned.
+The remainder of this vignette covers the other half of preparing an input:
+obtaining a background, and arriving at the promoter sequences to be scanned.
+
+## Obtaining a Pre-Computed Background
+
+Most analyses do not need a background to be built, because one has been
+computed already. `get_availableBG()` lists what is available, and
+`generate_psmatrixlist_from_background()` retrieves one and returns it as the
+`PSMatrixList` that `pscan()` takes:
+
+```{r list-backgrounds, eval=FALSE}
+get_availableBG()
+get_availableBG(details = TRUE) # the full version-2 catalog
+```
+
+```{r download-background, eval=FALSE}
+J2020_PSBG <- generate_psmatrixlist_from_background(
+    "Jaspar2020", "hs", c(-200, 50), "hg38"
+)
+```
+
+Four things identify a background, and they are the four arguments above: the
+JASPAR release the motifs come from, the species, the promoter window relative
+to the TSS, and the genome assembly. The assembly is required only for *Mus
+musculus* and *Homo sapiens*, which have more than one. Available combinations
+are:
+
+-   *Homo sapiens*, assemblies hg38 and hs1
+
+-   *Mus musculus*, assemblies mm10 and mm39
+
+-   *Arabidopsis thaliana*, TAIR9
+
+-   *Drosophila melanogaster*, dm6
+
+-   *Saccharomyces cerevisiae*, sacCer3
+
+with promoter windows of 200 bp upstream and 50 bp downstream, 450 upstream and
+50 downstream, 500 upstream and 0 downstream, 950 upstream and 50 downstream,
+and 1000 upstream and 0 downstream, for the JASPAR 2020, 2022 and 2024
+releases. Only JASPAR **core** motifs are used.
+
+The call above needs no argument naming where the data comes from, because the
+retrieval is arranged so that it does not have to. It resolves the resource
+through ExperimentHub, and falls back to the immutable Zenodo record
+<https://doi.org/10.5281/zenodo.21821764> with a warning if the Hub cannot be
+reached, so a temporary Hub outage does not stop an analysis. Both routes serve
+the same archive and every file is verified by SHA-256 on arrival. Pass
+`source = "zenodo"` to go to Zenodo directly, or `source = "github"` to reach
+the legacy version-1 resources, which no other backend exposes.
+
+For a self-contained example, the package ships the JASPAR2020 core matrices
+and the matching human 200-up, 50-down background as a table, which
+`ps_retrieve_bg_from_file()` combines into the same kind of object without any
+download:
+
+```{r offline-background}
+J2020 <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
+bg_path <- system.file(
+    "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+    package = "PscanR"
+)
+J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
+J2020_PSBG[[4]] # one matrix, with its background statistics
+```
+
+This is the background the worked example at the end of this vignette scans
+against. When no shipped background matches the species, window or motif
+collection an analysis needs, one can be built instead; the vignette *Building
+a background for PscanR* covers that case.
 
 # The Input Transcript For `pscan()`
 
@@ -234,6 +305,129 @@ ORF <- AnnotationDbi::select(org.Sc.sgd.db,
 ORF # take the second column for systematic ids
 ```
 
+## From Transcript IDs to promoter sequences
+
+Identifiers are not sequences, and the conversions above stop one step short of
+what `pscan()` needs. Two further things are required: a set of promoters
+extracted in the window the chosen background was built on, and a rule for
+picking one promoter per gene, since most genes have several transcripts and
+scoring all of them would weight a gene by how finely it happens to be
+annotated. `ps_select_promoters()` performs that selection.
+
+The promoters shipped with the package are human, 200 bp upstream and 50 bp
+downstream of the TSS, which is the window of the background loaded earlier:
+
+```{r load-promoters}
+library(Biostrings)
+prom_seq <- readRDS(
+    system.file("extdata", "prom_seq.rds", package = "PscanR")
+)
+length(prom_seq)
+unique(width(prom_seq)) # 200 upstream + 50 downstream
+head(names(prom_seq), 3)
+```
+
+`ps_select_promoters()` is given the genes of interest, the promoters to choose
+from, and a table relating one to the other. The NRF1 targets read above are
+RefSeq transcripts, so `org.Hs.eg.db` supplies the gene symbol behind each of
+them and the table is built from the result:
+
+```{r build-annotation}
+library(org.Hs.eg.db)
+annotation <- AnnotationDbi::select(
+    org.Hs.eg.db,
+    keys = target[[1]], keytype = "REFSEQ", columns = "SYMBOL"
+)
+annotation <- annotation[!is.na(annotation$SYMBOL), ]
+genes <- unique(annotation$SYMBOL)
+length(genes)
+```
+
+Note that the identifiers in this table carry no version, whereas the promoters
+are named `NM_006559.3` and do. This mismatch is the reason the function
+inspects the identifiers before matching them rather than comparing them as
+strings. It recognises the RefSeq convention, in which the trailing number is a
+release version and two versions name the same transcript, and normalises the
+suffix away. It does not do so for TAIR identifiers such as `AT1G01110.2`,
+where the same punctuation marks a splice variant that is a different
+transcript, frequently with a different start site.
+
+```{r select-promoters}
+selection <- ps_select_promoters(
+    genes = genes,
+    promoter_sequences = prom_seq,
+    annotation = annotation,
+    mode = "representative",
+    return = "both"
+)
+```
+
+The mapping records how each promoter was arrived at, which keeps the choice
+auditable rather than implicit:
+
+```{r selection-mapping}
+head(
+    selection$mapping[, c(
+        "gene", "transcript_id", "promoter_id",
+        "scheme", "suffix_role", "n_candidates", "decided_by"
+    )],
+    3
+)
+```
+
+`ps_selection_summary()` reports the same thing over the whole set, including
+how many genes offered a real choice and how many were settled by the tie-break
+rather than by the ranking:
+
+```{r selection-summary}
+ps_selection_summary(selection$mapping)
+```
+
+One gene is unmapped because its transcript is absent from this small promoter
+set. The remaining 90 are returned as a `DNAStringSet`, named by gene and
+transcript so that a result can be traced back to both:
+
+```{r selected-sequences}
+foreground <- selection$sequences
+foreground
+```
+
+`mode = "representative"` ranks transcripts by the scheme's own rule, which for
+RefSeq prefers `NM_` over `NR_` over the predicted `XM_` and `XR_` accessions.
+For human hg38 a better ranking is available, because MANE Select and RefSeq
+Select name one transcript per gene by curation. `mode = "select"` uses it:
+
+```{r mane-select, eval=FALSE}
+select_tx <- ps_load_select_transcripts("hg38")
+selection <- ps_select_promoters(
+    genes = genes,
+    promoter_sequences = prom_seq,
+    annotation = annotation,
+    select_transcripts = select_tx,
+    mode = "select",
+    return = "both"
+)
+```
+
+That chunk is not run when this vignette is built, because
+`ps_load_select_transcripts()` downloads the table from UCSC and caches it. The
+metadata it retrieves is specific to human hg38, so for other organisms either
+`mode = "representative"` applies, or a species-specific table is supplied
+through `select_transcripts`.
+
+The foreground is now what `pscan()` takes, together with the background from
+the earlier section:
+
+```{r ready-for-pscan, eval=FALSE}
+res <- pscan(foreground, J2020_PSBG)
+```
+
+Both arguments describe the same 200-up, 50-down window, which is what makes
+their scores comparable. Had the background been a `950u_50d` one, these
+promoters would have had to be extracted again over 950 bp upstream rather than
+200, because a longer window gives a motif more places to match and raises its
+best score whether or not anything is enriched.
+
 # Choosing a `BPPARAM`
 
 `pscan()` parallelises over motifs through **BiocParallel**, and the `BPPARAM`
@@ -247,20 +441,15 @@ argument selects the strategy. The recommendation is:
     Windows. It starts independent processes and communicates over sockets, so
     it works everywhere at the cost of the data transfer.
 
--   **`SerialParam()` when a run must be exactly reproducible** or when
-    debugging, since it starts no workers at all.
+-   **`SerialParam()` when debugging**, since it starts no workers at all and a
+    failure therefore surfaces in the session rather than inside one of them.
 
 The default is `bpparam()`, which picks a strategy and a worker count from the
 session's own configuration.
 
-More cores are not always better. Both parallel backends pay a fixed cost to
-start workers and to ship the matrices out to them, and that cost is repaid only
-if each worker then has enough scanning to do. A foreground of a few hundred
-promoters can therefore be *slower* on eight cores than on one, while a
-background build over an entire promoter universe scales well. Both worked
-examples in this collection quote measured timings for their own scans, and the
-custom-background vignette compares a one-core and an eight-core build of the
-same background directly.
+Raise the number of cores when a scan on one appears slow. More cores may not
+help on a scan that is already quick, because starting the workers and shipping
+the matrices out to them costs time that a short scan does not repay.
 
 # Session information
 

@@ -732,7 +732,7 @@ The scan so far asked what is enriched across the whole set of retina-only
 upregulated promoters. A narrower question is what is enriched *in the subset of
 those promoters that carry a strong match for a particular factor*.
 
-`PscanFiltered()` scans the promoters with one chosen matrix, keeps those
+`pscan_filtered()` scans the promoters with one chosen matrix, keeps those
 scoring at least `n` standard deviations above that motif's background mean, and
 rescans the survivors against the whole collection.
 
@@ -742,7 +742,7 @@ can be run as it stands.
 ```{r pscan-filtered, eval=FALSE}
 irf3_matrix <- background[[which(TFBSTools::ID(background) == "MA1418.1")]]
 
-filtered <- PscanFiltered(
+filtered <- pscan_filtered(
     retina_up_promoters, irf3_matrix, n = 1,
     background = background,
     BPPARAM = BiocParallel::SerialParam()
@@ -821,7 +821,7 @@ ps_results_table(results)
 Everything after that is interpretation: per-promoter scores (`ps_z_table()`),
 hit positions and sequences (`ps_hits_table()`, `ps_hitpos_map()`,
 `ps_density_plot()`, `ps_hit_score_plot()`), and the ability to restrict the
-foreground to promoters carrying a particular site (`PscanFiltered()`).
+foreground to promoters carrying a particular site (`pscan_filtered()`).
 
 # Appendix: how this compares with the published analysis
 

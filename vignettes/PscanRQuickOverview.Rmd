@@ -21,7 +21,7 @@ For a comprehensive reference, please consult the `PscanR` Reference Manual.
 
 <hr />
 
-## Table 1: PscanR main functions for Motif Enrichment Analysis
+# Table 1: PscanR main functions for Motif Enrichment Analysis
 
 <table style="border-collapse: collapse; width: 100%;">
     <thead>
@@ -50,7 +50,7 @@ For a comprehensive reference, please consult the `PscanR` Reference Manual.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>PscanFiltered()</code></td>
+        <td style="border-bottom: 1px solid #ddd;"><code>pscan_filtered()</code></td>
         <td style="border-bottom: 1px solid #ddd;">
     Applies the Pscan algorithm to sequences filtered based on their affinity
     with a specific motif matrix, allowing focused analysis on relevant
@@ -80,7 +80,7 @@ For a comprehensive reference, please consult the `PscanR` Reference Manual.
 
 <hr />
 
-## Table 2: Background construction
+# Table 2: Background construction
 
 We refer to ‘Background’ as the collection of scores obtained by
 scanning any promoter sequence of the organism of study against the
@@ -170,7 +170,7 @@ analysis (can be sourced from public databases such as JASPAR).
 
 <hr />
 
-## Table 3: Visualization of the results
+# Table 3: Visualization of the results
 
 <table style="border-collapse: collapse; width: 100%;">
     <thead>

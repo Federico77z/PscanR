@@ -91,7 +91,7 @@ test_that("a table from a different promoter set is refused", {
     expect_identical(ps_bg_size(ordinary[[1]]), 39438L)
 })
 
-test_that("pscan, pscan_fullBG and PscanFiltered preserve the legend", {
+test_that("pscan, pscan_fullBG and pscan_filtered preserve the legend", {
     full <- full_pfms()
     prom <- prom_seq()
     legend <- transcriptIDLegend(full)
@@ -106,7 +106,7 @@ test_that("pscan, pscan_fullBG and PscanFiltered preserve the legend", {
     retrieved <- suppressWarnings(pscan_fullBG(ids, full, quiet = TRUE))
     expect_identical(transcriptIDLegend(retrieved), legend)
 
-    filtered <- PscanFiltered(prom[seq_len(20)], full[[1]], n = 1,
+    filtered <- pscan_filtered(prom[seq_len(20)], full[[1]], n = 1,
                               background = full[seq_len(2)],
                               BPPARAM = BiocParallel::SerialParam())
     expect_identical(transcriptIDLegend(filtered), legend)

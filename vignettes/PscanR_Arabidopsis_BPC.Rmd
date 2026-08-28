@@ -519,7 +519,7 @@ The scan so far asked what is enriched across the whole set of downregulated pro
 A narrower question is what is enriched *in the subset of those promoters that carry a
 strong match for a particular factor*.
 
-`PscanFiltered()` scans the promoters with one chosen
+`pscan_filtered()` scans the promoters with one chosen
 matrix, keeps those scoring at least `n` standard deviations above that motif's
 background mean, and rescans the survivors against the whole collection.
 
@@ -529,7 +529,7 @@ can be run as it stands and should take under a minute.
 ```{r pscan-filtered, eval=FALSE}
 bpc6 <- background[[which(TFBSTools::ID(background) == "MA1402.1")]]
 
-filtered <- PscanFiltered(
+filtered <- pscan_filtered(
     down_promoters, bpc6, n = 1,
     background = background,
     BPPARAM = BiocParallel::SerialParam()
@@ -588,7 +588,7 @@ ps_results_table(results)
 Everything after that is interpretation: per-promoter scores (`ps_z_table()`),
 hit positions and sequences (`ps_hits_table()`, `ps_hitpos_map()`,
 `ps_density_plot()`, `ps_hit_score_plot()`), and the ability to restrict the
-foreground to promoters carrying a particular site (`PscanFiltered()`).
+foreground to promoters carrying a particular site (`pscan_filtered()`).
 
 # Appendix: why this analysis agrees closely, but not exactly, with the published one
 
