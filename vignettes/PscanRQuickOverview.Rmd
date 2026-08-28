@@ -14,10 +14,10 @@ vignette: >
     %\VignetteEncoding{UTF-8}
 ---
 
-This document provides a Quick Overview of most, but not all, functions
-contained in the `PscanR` package, which is used for motif enrichment
-analysis in promoter sequences.  
-For a comprehensive reference, please consult the `PscanR` Reference Manual.
+This document provides a Quick Overview of most functions contained in the 
+`PscanR` package, which is used for motif enrichment analysis in promoter 
+sequences. For a comprehensive reference, please consult the `PscanR` Reference 
+Manual.
 
 <hr />
 
