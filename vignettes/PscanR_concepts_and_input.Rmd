@@ -143,7 +143,7 @@ PscanR* covers that case.
 # The Input Transcript For `pscan()`
 
 **`pscan()`** takes two arguments: a `DNAStringSet` of promoter sequences, and
-the background `PSMatrixList` obtained above. The sections below shows 
+the background `PSMatrixList` obtained above. The sections below show 
 an example on how to build the promoter sequences, starting from the case where 
 it is almost immediate and moving to the one that most often arises in practice.
 
@@ -182,19 +182,18 @@ unique(width(prom_seq)) # 200 upstream + 50 downstream
 head(names(prom_seq), 3)
 ```
 
-The two cannot be matched by name as they stand. The promoters are named
-`NM_006559.3` and the target list holds `NM_006559`, because in RefSeq the
-trailing number is a release version rather than part of the transcript's
-identity. Stripping it is one substitution:
+Both name transcripts the same way, down to the RefSeq version, so the
+foreground is one subset:
 
-```{r match-by-suffix}
-base <- sub("\\..*$", "", names(prom_seq))
-foreground <- prom_seq[base %in% target[[1]]]
+```{r match-by-name}
+foreground <- prom_seq[names(prom_seq) %in% target[[1]]]
 length(foreground)
 ```
 
-That is the foreground. Scanning it against the background is the whole of the
-analysis:
+Every transcript in the list has a promoter in the bundled set, so all 90 are
+kept here; the same expression is what selects a foreground out of a promoter
+set covering a whole genome. Scanning that foreground against the background is
+the whole of the analysis:
 
 ```{r run-pscan}
 res <- pscan(foreground, J2020_PSBG, BPPARAM = BiocParallel::SerialParam())
@@ -252,8 +251,9 @@ normalises the suffix away. It does not do so for TAIR identifiers such as
 `AT1G01110.2`, where the same punctuation marks a splice variant that is a
 different transcript, frequently with a different start site.
 
-The substitution used in the previous section is therefore correct for RefSeq
-and wrong in general, which is what this function exists to get right.
+Comparing identifiers as strings is therefore correct for RefSeq and wrong in
+general, and deciding which of the two applies is what this function exists to
+get right.
 
 ```{r select-promoters}
 selection <- ps_select_promoters(
@@ -319,7 +319,7 @@ selection <- ps_select_promoters(
 
 `ps_load_select_transcripts()` retrieves the two tracks from the UCSC API, which
 takes around a minute and requires a third-party service to be reachable;
-so is is not evaluated in the vignette build. Run once, the table is cached under
+so it is not evaluated in the vignette build. Run once, the table is cached under
 `tools::R_user_dir("PscanR", "cache")` and later calls read it from there. The
 metadata is specific to human hg38, so for other organisms either
 `mode = "representative"` applies, or a species-specific table is supplied
@@ -346,7 +346,7 @@ argument selects the strategy. The recommendation is:
     Windows. It starts independent processes and communicates over sockets, so
     it works everywhere at the cost of the data transfer.
 
--   **`SerialParam()` when debugging**,   since it starts no workers at all and a
+-   **`SerialParam()` when debugging**, since it starts no workers at all and a
     failure therefore surfaces in the session rather than inside one of them.
 
 The default is `bpparam()`, which picks a strategy and a worker count from the
