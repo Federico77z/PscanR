@@ -14,14 +14,13 @@ vignette: >
     %\VignetteEncoding{UTF-8}
 ---
 
-This document provides a Quick Overview of most functions contained in the 
-`PscanR` package, which is used for motif enrichment analysis in promoter 
-sequences. For a comprehensive reference, please consult the `PscanR` Reference 
-Manual.
+This vignette summarises the principal PscanR functions for motif enrichment
+analysis in promoter sequences. The package reference manual provides complete
+argument descriptions and examples.
 
 <hr />
 
-# Table 1: PscanR main functions for Motif Enrichment Analysis
+# Table 1: Motif enrichment analysis and input preparation
 
 <table style="border-collapse: collapse; width: 100%;">
     <thead>
@@ -34,8 +33,8 @@ Manual.
     <tr>
         <td style="border-bottom: 1px solid #ddd;"><code>pscan()</code></td>
         <td style="border-bottom: 1px solid #ddd;">
-    Scans a set of promoter sequences with motif matrices to compute the binding
-    affinity scores and assesses motif enrichment against a background.
+    Computes the best match to each motif in each promoter and tests motif
+    enrichment against the supplied background score distributions.
 </td>
     </tr>
     <tr>
@@ -43,36 +42,40 @@ Manual.
     <code>pscan_fullBG()</code>
 </td>
         <td style="border-bottom: 1px solid #ddd;">
-    Uses a pre-computed full background containing the binding affinity scores
-    for all promoters in the organism of study, and it retrieves the scores for
-    the sequences in input (a subset of promoters) to avoid redundant
-    calculation and speed up the analysis.
+    Retrieves stored motif hits for foreground identifiers from a full
+    background and calculates enrichment without rescanning the DNA sequences.
 </td>
     </tr>
     <tr>
         <td style="border-bottom: 1px solid #ddd;"><code>pscan_filtered()</code></td>
         <td style="border-bottom: 1px solid #ddd;">
-    Applies the Pscan algorithm to sequences filtered based on their affinity
-    with a specific motif matrix, allowing focused analysis on relevant
-    sequences.
+    Selects promoters whose best match to a specified motif meets a threshold
+    defined from its background distribution, then scans the selected promoters
+    against the supplied motif collection.
 </td>
     </tr>
     <tr>
         <td style="border-bottom: 1px solid #ddd;"><code>ps_select_promoters()</code></td>
         <td style="border-bottom: 1px solid #ddd;">
-    Maps genes to transcript promoters and selects one representative promoter per gene, using a rule appropriate to the transcript identifier scheme in use. The scheme is detected automatically and reported, so the choice remains auditable.
+    Selects one promoter per mapped gene from supplied sequences and annotation,
+    using transcript preferences or rules appropriate to the identifier scheme.
+    Reports the scheme and the reason for each selection.
 </td>
     </tr>
     <tr>
         <td style="border-bottom: 1px solid #ddd;"><code>ps_selection_summary()</code></td>
         <td style="border-bottom: 1px solid #ddd;">
-    Reports how a mapping produced by <code>ps_select_promoters()</code> was arrived at: which scheme was used, which rule selected each promoter, how many genes offered a real choice, and how many were decided by the tie-break rather than by the ranking.
+    Summarises a mapping produced by <code>ps_select_promoters()</code>, including
+    identifier schemes, selection rules, genes with multiple candidates, and
+    selections requiring a tie-breaking rule after ranking.
 </td>
     </tr>
     <tr>
         <td><code>ps_load_select_transcripts()</code></td>
         <td>
-    Downloads and caches the human MANE Select and RefSeq Select transcript tables from UCSC hg38, for use as the ranking passed to <code>ps_select_promoters()</code>. This metadata is hg38-specific; for other organisms a species-specific table is supplied instead.
+    Downloads and caches human hg38 MANE Select and RefSeq Select metadata from
+    UCSC for use with <code>ps_select_promoters()</code>. Other organisms require
+    an appropriate user-supplied selection table or representative selection.
 </td>
     </tr>
     </tbody>
@@ -82,10 +85,11 @@ Manual.
 
 # Table 2: Background construction
 
-We refer to ‘Background’ as the collection of scores obtained by
-scanning any promoter sequence of the organism of study against the
-set of motif matrices that are investigated for the motif enrichment
-analysis (can be sourced from public databases such as JASPAR).
+A background describes the distribution of best motif scores across a defined
+reference set of promoters. A standard background stores the number of
+promoters, mean score, and score standard deviation for each motif; a full
+background also retains the individual hits. Foreground and background must
+use matching promoter definitions and motif matrices.
 
 <table style="border-collapse: collapse; width: 100%;">
     <thead>
@@ -100,8 +104,8 @@ analysis (can be sourced from public databases such as JASPAR).
             <code>ps_build_bg()</code>
         </td>
         <td style="border-bottom: 1px solid #ddd;">
-    Constructs the background by applying the pscan() algorithm to all annotated
-    promoter sequences of the organism.
+    Scans the supplied reference sequences and computes background statistics
+    for each motif after sequence filtering and deduplication.
 </td>
     </tr>
     <tr>
@@ -109,7 +113,8 @@ analysis (can be sourced from public databases such as JASPAR).
     <code>generate_psmatrixlist_from_background()</code>
 </td>
         <td style="border-bottom: 1px solid #ddd;">
-    Retrieves pre-computed background.
+    Retrieves a precomputed background and associates its statistics with the
+    matching motif matrices in a <code>PSMatrixList</code>.
 </td>
     </tr>
     <tr>
@@ -124,9 +129,8 @@ analysis (can be sourced from public databases such as JASPAR).
     <tr>
         <td style="border-bottom: 1px solid #ddd;"><code>ps_retrieve_bg_from_file()</code></td>
         <td style="border-bottom: 1px solid #ddd;">
-    Generates a background from a text file containing background information
-    for each matrix, including ID, background size, average score, and standard
-    deviation.
+    Reads a background text file and associates the stored size, mean score,
+    and standard deviation with the supplied motif matrices by identifier.
 </td>
     </tr>
     <tr>
@@ -150,19 +154,26 @@ analysis (can be sourced from public databases such as JASPAR).
     <tr>
         <td style="border-bottom: 1px solid #ddd;"><code>ps_build_bg(fullBG = TRUE)</code></td>
         <td style="border-bottom: 1px solid #ddd;">
-    Builds a <em>full</em> background instead of the three summary statistics per matrix. A full background retains, for every promoter and every matrix, the hit score, position, strand and matched oligonucleotide. It is far larger than a standard background, so none is shipped with the package.
+    Builds a full background containing summary statistics and the best hit's
+    score, position, strand, and matched oligonucleotide for each retained
+    promoter and motif. Full backgrounds require substantially more storage;
+    the package includes small demonstration objects.
 </td>
     </tr>
     <tr>
         <td style="border-bottom: 1px solid #ddd;"><code>pscan_fullBG()</code></td>
         <td style="border-bottom: 1px solid #ddd;">
-    The reason to build a full background. It scans a foreground given only <em>transcript identifiers</em>, retrieving hits already stored in the full background rather than rescanning DNA, which makes repeated foreground scans against one background very fast.
+    Uses foreground transcript identifiers to retrieve hits stored in a full
+    background. Reusing these hits reduces computation for repeated analyses
+    against the same reference set.
 </td>
     </tr>
     <tr>
         <td><code>transcriptIDLegend()</code></td>
         <td>
-    Retrieves the legend of a full background: the mapping from every original sequence name to the representative kept after de-duplication. It is what lets <code>pscan_fullBG()</code> resolve an identifier that was not itself retained.
+    Retrieves the mapping from original sequence names to representatives
+    retained after deduplication. This allows <code>pscan_fullBG()</code> to
+    resolve identifiers associated with identical promoter sequences.
 </td>
     </tr>
     </tbody>
@@ -170,7 +181,7 @@ analysis (can be sourced from public databases such as JASPAR).
 
 <hr />
 
-# Table 3: Visualization of the results
+# Table 3: Result summaries and visualisation
 
 <table style="border-collapse: collapse; width: 100%;">
     <thead>
@@ -185,9 +196,9 @@ analysis (can be sourced from public databases such as JASPAR).
     <code>ps_results_table()</code>
 </td>
         <td style="border-bottom: 1px solid #ddd;">
-    Displays a summary table of results, ordered by increasing p-values.
-    Transcription factors can be filtered based on a specified false discovery
-    rate (FDR) threshold.
+    Returns motif-level results ordered by increasing p-value, with decreasing
+    z-score used to resolve ties. Motifs can be selected using a specified
+    false discovery rate (FDR) threshold.
 </td>
     </tr>
     <tr>
@@ -195,8 +206,8 @@ analysis (can be sourced from public databases such as JASPAR).
             <code>ps_z_table()</code>
         </td>
         <td style="border-bottom: 1px solid #ddd;">
-    Creates a matrix of Z-scores for motif occurrences across multiple
-    PSMatrices contained in a PSMatrixList.
+    Returns a matrix of standardised best-hit scores, with promoters as rows
+    and motifs as columns, from a <code>PSMatrixList</code>.
 </td>
     </tr>
     <tr>
@@ -204,8 +215,9 @@ analysis (can be sourced from public databases such as JASPAR).
     <code>ps_zscore_heatmap()</code>
 </td>
         <td style="border-bottom: 1px solid #ddd;">
-    Generates a heatmap visualizing the correlation of Z-scores for
-    transcription factors, based on a specified FDR threshold.
+    Displays a heatmap of per-promoter motif z-scores after motif selection by
+    FDR. By default, rows are scaled and both axes are clustered using
+    correlation distances; the cells are not pairwise correlation coefficients.
 </td>
     </tr>
     <tr>
@@ -213,8 +225,8 @@ analysis (can be sourced from public databases such as JASPAR).
     <code>ps_hitpos_map()</code>
 </td>
         <td style="border-bottom: 1px solid #ddd;">
-        Produces a heatmap showing the positional distribution of motif hits,
-        aiding in the identification of common binding regions.
+        Displays the position of each promoter's best motif match as a heatmap
+        to compare positional patterns across motifs.
         </td>
     </tr>
     <tr>
@@ -222,27 +234,32 @@ analysis (can be sourced from public databases such as JASPAR).
     <code>ps_density_plot()</code>
 </td>
         <td style="border-bottom: 1px solid #ddd;">
-        Creates a density plot representing the distribution of hits along
-        promoter sequences, based on their position and score for a specific
-        position weight matrix (PWM).
+        Estimates the positional density of a motif's best hits, optionally
+        restricted by a score threshold. A supplied promoter window enables
+        boundary correction, and optional bins show a histogram on the same
+        density scale.
         </td>
     </tr>
     <tr>
         <td style="border-bottom: 1px solid #ddd;"><code>ps_hit_score_plot()</code></td>
         <td style="border-bottom: 1px solid #ddd;">
-    Plots every promoter's best hit as a point positioned by where the site sits and by how well it scores, so that position and strength are read together. A positional profile alone cannot show whether a concentration is made of strong sites or of weak ones.
+    Plots best-hit score against position for each promoter, allowing joint
+    assessment of match strength and positional concentration.
 </td>
     </tr>
     <tr>
         <td style="border-bottom: 1px solid #ddd;"><code>ps_motif_barplot()</code></td>
         <td style="border-bottom: 1px solid #ddd;">
-    Plots the highest ranking motifs of a scan as horizontal bars, optionally coloured by a grouping such as the structural class of the factor.
+    Displays the highest-ranked motifs as horizontal bars, optionally coloured
+    by a grouping such as transcription factor structural class.
 </td>
     </tr>
     <tr>
         <td><code>ps_motif_class()</code></td>
         <td>
-    Returns the structural class of the transcription factor behind each motif, for example <code>"Basic leucine zipper factors (bZIP)"</code>. It supplies the grouping <code>ps_motif_barplot()</code> colours by.
+    Extracts the transcription factor structural class associated with each
+    motif, for example <code>"Basic leucine zipper factors (bZIP)"</code>, for
+    annotation or grouping in <code>ps_motif_barplot()</code>.
 </td>
     </tr>
     </tbody>

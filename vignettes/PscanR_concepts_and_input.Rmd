@@ -30,58 +30,64 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-**PscanR** is an R implementation of the algorithm developed by Zambelli et al.
-(2009) for analyzing sequence motif enrichment. It helps identify transcription
+PscanR is an R implementation of the algorithm developed by
+[Zambelli et al. (2009)](https://doi.org/10.1093/nar/gkp464) for analysing
+sequence motif enrichment. It identifies transcription
 factors (TFs) that are potential regulators of a set of co-regulated or
 co-expressed genes. By scanning input sequences (e.g., promoters) against a
-database of known TF binding motifs, **PscanR** assesses which motifs are
-significantly over- or under- represented and highlights candidate binding
-sites.
+database of known TF binding motifs, PscanR tests for motif enrichment and
+reports candidate binding sites. Negative z-scores indicate lower mean scores
+than the background; the reported upper-tail p-values test enrichment, not
+depletion. Motif matches alone do not establish transcription factor binding.
 
-## Workflow overview:
+## Workflow overview
 
-***Input***: A set of DNA sequences (e.g., promoter regions) and a library of
-known transcription factors binding motif, such as Position Weight Matrices
-(PWMs) from the JASPAR database.
+**Input:** DNA sequences supplied as a `DNAStringSet`, and transcription factor
+binding matrices with matching background statistics supplied as a
+`PSMatrixList`.
 
-***Analysis***: Identification of enriched motif and calculation of statistical
-significance (Z-scores and P-Values).
+**Analysis:** Calculation of the best motif match in each promoter, followed by
+comparison of foreground and background scores.
 
-***Output***: A ranked list of enriched motif, along with their associated
-P-Values and Z-scores.
+**Output:** Motif-level z-scores, p-values, and adjusted p-values, together with
+the best match in each promoter for each motif.
 
-# The Background Model
+# The background model
 
-In order to assess the significance of the obtained result, a background model
-must be computed in the form of a PSMatrixList object. 
+Statistical assessment requires a background model, represented by background
+statistics stored in a `PSMatrixList` object.
 
-In PscanR the input sequences are considered a sample drawn from a universe 
-consisting of all promoter sequences available for the species under
-investigation. This *universe* serves as the background model for statistical
-analyses, ensuring a comprehensive and unbiased assessment of the analysis
-outcomes.
+PscanR treats the input sequences as a sample from a defined reference
+population, usually the annotated promoters of the species under investigation.
+This reference population supplies the background model for statistical
+analyses. The choice of this reference population affects interpretation;
+using all annotated promoters does not eliminate sequence-composition or
+gene-selection biases.
 
 Because the background is the distribution of scores over the whole promoter
 universe, the foreground and the background must describe the *same* kind of
-sequence. A promoter window of 200 bp upstream and 50 bp downstream of the TSS
+sequence. A promoter window of 200 bp upstream and 50 bp downstream of the
+transcription start site (TSS)
 does not yield scores comparable with one of 950 bp upstream and 50 bp
-downstream: a longer window offers a motif more places to match, so its best
-score rises even when nothing is enriched. The foreground promoters must
-therefore be extracted with exactly the window the background was built on, and
-each shipped background records that window in its name, as in `950u_50d`.
+downstream: a longer window offers more candidate matches and can therefore
+increase the best score without biological enrichment. Extract foreground
+promoters using the background's window and compatible reference sequences and
+annotations. Each precomputed background records its window in its name, as in
+`950u_50d`.
 
-The next section shows how to use one of the pre-computed backgrounds available
-for PscanR. Please refer to the vignette *Building a background for PscanR* 
-for a walkthrough on how to build and use a custom background.
+The next section demonstrates the use of a precomputed background. The vignette
+[Building a background for PscanR](PscanR_Custom_Background.html) describes the construction and use of custom
+backgrounds.
 
-## Obtaining a Pre-Computed Background
+## Obtaining a precomputed background
 
-PscanR ships with precomputed backgrounds for five model organisms: *H. sapiens,
-M. musculus, D. melanogaster, A. thaliana and S. cerevisiae.*
+PscanR provides access to precomputed backgrounds for five model organisms:
+*Homo sapiens*, *Mus musculus*, *Drosophila melanogaster*,
+*Arabidopsis thaliana*, and *Saccharomyces cerevisiae*.
 
-`get_availableBG()` lists what is available, and
-`generate_psmatrixlist_from_background()` retrieves one and returns it as the
-`PSMatrixList` that `pscan()` takes:
+`get_availableBG()` lists the available backgrounds, and
+`generate_psmatrixlist_from_background()` retrieves the selected background as
+a `PSMatrixList` for use with `pscan()`:
 
 ```{r list-backgrounds, eval=FALSE}
 get_availableBG()
@@ -94,11 +100,10 @@ J2020_PSBG <- generate_psmatrixlist_from_background(
 )
 ```
 
-Four things identify a background, and they are the four arguments above: the
-JASPAR release the motifs come from, the species, the promoter window relative
-to the TSS, and the genome assembly. The assembly is required only for *Mus
-musculus* and *Homo sapiens*, which have more than one. Available combinations
-are:
+The four arguments above identify the JASPAR release, species, promoter window
+relative to the TSS, and genome assembly. The
+assembly must be specified for mouse and human, for which multiple assemblies
+are available. The supported species and assemblies are:
 
 -   *Homo sapiens*, assemblies hg38 and hs1
 
@@ -110,21 +115,21 @@ are:
 
 -   *Saccharomyces cerevisiae*, sacCer3
 
-with promoter windows of 200 bp upstream and 50 bp downstream, 450 upstream and
+The available promoter windows span 200 bp upstream and 50 bp downstream, 450 upstream and
 50 downstream, 500 upstream and 0 downstream, 950 upstream and 50 downstream,
-and 1000 upstream and 0 downstream, for the JASPAR 2020, 2022 and 2024
-releases. Only JASPAR **core** motifs are used.
+and 1000 upstream and 0 downstream, for the JASPAR 2020, 2022, and 2024
+releases. Only JASPAR CORE motifs are used.
 
-`generate_psmatrixlist_from_background()` resolves the resource through 
+`generate_psmatrixlist_from_background()` resolves the resource through
 ExperimentHub, and falls back to the immutable Zenodo record
 <https://doi.org/10.5281/zenodo.21821764> with a warning if the Hub cannot be
-reached. Both routes serve the same archive and every file is verified by SHA-256 
-on arrival. Pass `source = "zenodo"` to go to Zenodo directly.
+reached. Both routes serve the same archived resources, and downloaded files
+are verified against their SHA-256 checksums. Set `source = "zenodo"` to retrieve
+the resource directly from Zenodo.
 
-For a self-contained example, the package ships the JASPAR2020 core matrices
-and the matching human 200-up, 50-down background as a table, which
-`ps_retrieve_bg_from_file()` combines into the same kind of object without any
-download:
+For an offline example, the package includes JASPAR 2020 CORE matrices and a
+matching human background table for 200 bp upstream and 50 bp downstream of the
+TSS. `ps_retrieve_bg_from_file()` combines them into a `PSMatrixList`:
 
 ```{r offline-background}
 J2020 <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
@@ -136,30 +141,28 @@ J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
 J2020_PSBG[[4]] # one matrix, with its background statistics
 ```
 
-When no shipped background matches the species, window or motif collection an 
-analysis needs, one can be built instead; the vignette *Building a background for 
-PscanR* covers that case.
+If no available background matches the required species, window, or motif
+collection, construct a custom background as described in [Building a background for PscanR](PscanR_Custom_Background.html).
 
-# The Input Transcript For `pscan()`
+# Preparing promoter sequences for `pscan()`
 
-**`pscan()`** takes two arguments: a `DNAStringSet` of promoter sequences, and
-the background `PSMatrixList` obtained above. The sections below show 
-an example on how to build the promoter sequences, starting from the case where 
-it is almost immediate and moving to the one that most often arises in practice.
+The two principal inputs to `pscan()` are a `DNAStringSet` of promoter sequences
+and a background `PSMatrixList`. The following sections demonstrate promoter
+selection from transcript identifiers and from gene identifiers.
 
 For humans, mice, and Drosophila, the available background models are based on
-RefSeq identifiers, for Arabidopsis on TAIR, and for yeast on SGD IDs. Other
-types of gene identifiers can also be used if the corresponding background model
-is created; the *Building a background for PscanR* vignette covers that case.
+RefSeq identifiers; for *Arabidopsis*, on TAIR; and for yeast, on SGD. Other
+types of gene identifiers can also be mapped to the annotation used by an
+existing background. Custom backgrounds can use other annotations, as described
+in [Building a background for PscanR](PscanR_Custom_Background.html).
 
 ## Scanning from a list of transcripts
 
-PscanR works at the promoter level, and a transcript identifier is an
-unambiguous match for one promoter within a given assembly and annotation. A
-list of transcripts therefore determines a promoter set outright, and nothing
-has to be decided.
+PscanR operates on promoter sequences. When transcript identifiers map uniquely
+within the chosen assembly and annotation, their corresponding promoters can
+be selected directly without choosing among transcripts of the same gene.
 
-The package ships an example of such a list: human NRF1 target transcripts 
+The package includes an example list of human NRF1 target transcripts
 in RefSeq, curated from the literature.
 
 ```{r chunk-2}
@@ -168,9 +171,8 @@ target <- read.csv(file_path, header = FALSE)
 head(target)
 ```
 
-The package also ships the matching promoter sequences, human, 200 bp upstream 
-and 50 bp downstream of the TSS, which is the window of the background loaded 
-above:
+The bundled human promoter sequences span 200 bp upstream and 50 bp downstream
+of the TSS, matching the background loaded above:
 
 ```{r load-promoters}
 library(Biostrings)
@@ -182,8 +184,9 @@ unique(width(prom_seq)) # 200 upstream + 50 downstream
 head(names(prom_seq), 3)
 ```
 
-Both name transcripts the same way, down to the RefSeq version, so the
-foreground is one subset:
+The transcript list and promoter names use identical RefSeq identifiers,
+including version suffixes. The foreground can therefore be selected by exact
+name matching:
 
 ```{r match-by-name}
 foreground <- prom_seq[names(prom_seq) %in% target[[1]]]
@@ -191,35 +194,33 @@ length(foreground)
 ```
 
 Every transcript in the list has a promoter in the bundled set, so all 90 are
-kept here; the same expression is what selects a foreground out of a promoter
-set covering a whole genome. Scanning that foreground against the background is
-the whole of the analysis:
+retained. The same operation can select a foreground from a genome-wide
+promoter set. The selected sequences are then scanned against the background:
 
 ```{r run-pscan}
 res <- pscan(foreground, J2020_PSBG, BPPARAM = BiocParallel::SerialParam())
 head(ps_results_table(res))
 ```
 
-`ps_results_table()` orders motifs by increasing p-value. NRF1 comes first, by a
-wide margin over the second motif, which is the expected result for a set of
-curated NRF1 targets.
+`ps_results_table()` returns motifs ordered by increasing p-value, with
+decreasing z-score used to resolve ties. NRF1 is the highest-ranked motif,
+consistent with the origin of the curated target set.
 
-## When the list is of genes
+## Selecting promoters from a gene list
 
-A list of transcripts is not what most analyses produce. A differential
-expression experiment usually returns **genes**, and a gene list does not determine 
-a promoter set: a gene may have several transcription start sites, and therefore
-several promoters, whose sequences differ.
+A differential expression analysis often produces a gene list. A gene may have
+several transcription start sites and therefore several distinct promoters, so
+gene identifiers alone do not uniquely specify a promoter set.
 
-One promoter per gene has to be chosen. That choice cannot be avoided, only
-made explicitly or left implicit, and leaving it implicit means the result
-depends on how finely each gene happens to be annotated.
-`ps_select_promoters()` makes it explicitly, by a stated rule, and records for
-every gene which transcript was chosen and why.
+This workflow selects one promoter per gene to avoid giving greater weight to
+genes with more annotated transcripts. `ps_select_promoters()` applies an
+explicit selection rule and records the selected transcript and the reason for
+its selection. This provides reproducibility without establishing which
+transcript is active in the experimental condition.
 
-It is given the genes of interest, the promoters to choose from, and a table
-relating one to the other. A few of the genes behind the NRF1 targets stand in 
-for what a differential expression analysis would return:
+The function requires the genes of interest, candidate promoter sequences, and
+a gene-to-transcript annotation table. The following subset of genes from the
+NRF1 target list illustrates the input format:
 
 ```{r gene-list}
 genes <- c(
@@ -228,8 +229,8 @@ genes <- c(
 )
 ```
 
-`org.Hs.eg.db` supplies the transcripts of each, which is the relating table.
-Note how many there are: eight genes give far more than eight candidate promoters.
+`org.Hs.eg.db` supplies the gene-to-transcript mapping. These eight genes have
+more than eight candidate transcripts:
 
 ```{r build-annotation}
 library(org.Hs.eg.db)
@@ -242,18 +243,16 @@ nrow(annotation)
 table(annotation$SYMBOL)
 ```
 
-Note also that the identifiers in this table carry no version, whereas the
-promoters are named `NM_006559.3` and do. This mismatch is the reason the
-function inspects the identifiers before matching them rather than comparing
-them as strings. It recognises the RefSeq convention, in which the trailing
-number is a release version and two versions name the same transcript, and
-normalises the suffix away. It does not do so for TAIR identifiers such as
-`AT1G01110.2`, where the same punctuation marks a splice variant that is a
-different transcript, frequently with a different start site.
+The annotation table contains unversioned RefSeq accessions, whereas promoter
+names such as `NM_006559.3` include a version suffix. The function recognises
+the RefSeq convention and removes the suffix for identifier matching. It
+preserves the suffix in TAIR identifiers such as `AT1G01110.2`, where it
+distinguishes transcript variants that may have different start sites.
 
-Comparing identifiers as strings is therefore correct for RefSeq and wrong in
-general, and deciding which of the two applies is what this function exists to
-get right.
+Thus, RefSeq matching uses the accession after version normalisation, whereas
+TAIR matching uses the complete transcript identifier. Matching RefSeq versions
+does not imply that their sequences or annotated start sites are identical;
+the promoter sequences must still correspond to the chosen reference.
 
 ```{r select-promoters}
 selection <- ps_select_promoters(
@@ -266,9 +265,8 @@ selection <- ps_select_promoters(
 )
 ```
 
-The mapping records how each promoter was arrived at, which keeps the choice
-auditable rather than implicit. Protein accessions such as `NP_` are discarded
-along the way, since they are not transcripts:
+The returned mapping documents each selection. Protein accessions such as
+`NP_` are excluded because they do not identify transcripts:
 
 ```{r selection-mapping}
 selection$mapping[, c(
@@ -277,9 +275,9 @@ selection$mapping[, c(
 )]
 ```
 
-`ps_selection_summary()` reports the same thing over the whole set, including
-how many genes offered a real choice and how many were settled by the tie-break
-rather than by the ranking:
+`ps_selection_summary()` summarises the mapping, including the number of genes
+with multiple candidates and the number requiring a tie-breaking rule after
+transcript ranking:
 
 ```{r selection-summary}
 ps_selection_summary(selection$mapping)
@@ -290,9 +288,10 @@ unmapped <- attr(selection$mapping, "ps_unmapped_genes")
 n_selected <- length(selection$sequences)
 ```
 
-Of the `r length(genes)` genes, `r length(unmapped)` is unmapped
-(`r paste(unmapped, collapse = ", ")`), because none of its transcripts has a
-promoter in this small set. The remaining `r n_selected` are returned as a
+The number of unmapped genes is `r length(unmapped)` out of `r length(genes)`;
+the unmapped identifiers are `r paste(unmapped, collapse = ", ")`. These genes
+have no matching transcript promoter in the bundled set. The
+`r n_selected` selected promoters are returned as a
 `DNAStringSet`, named by gene and transcript so that a result can be traced
 back to both:
 
@@ -300,10 +299,11 @@ back to both:
 selection$sequences
 ```
 
-`mode = "representative"` ranks transcripts by the scheme's own rule, which for
-RefSeq prefers `NM_` over `NR_` over the predicted `XM_` and `XR_` accessions.
-For human hg38 a better ranking is available, because MANE Select and RefSeq
-Select name one transcript per gene by curation. `mode = "select"` uses it:
+`mode = "representative"` ranks transcripts by the identifier scheme's rule.
+For RefSeq, it prefers `NM_` over `NR_`, followed by predicted `XM_` and `XR_`
+accessions.
+For human hg38, MANE Select and RefSeq Select provide curated transcript
+preferences. These can be used with `mode = "select"`:
 
 ```{r mane-select, eval=FALSE}
 select_tx <- ps_load_select_transcripts("hg38")
@@ -317,44 +317,43 @@ selection <- ps_select_promoters(
 )
 ```
 
-`ps_load_select_transcripts()` retrieves the two tracks from the UCSC API, which
-takes around a minute and requires a third-party service to be reachable;
-so it is not evaluated in the vignette build. Run once, the table is cached under
-`tools::R_user_dir("PscanR", "cache")` and later calls read it from there. The
+`ps_load_select_transcripts()` retrieves the two tracks through the UCSC API.
+This network-dependent example is not evaluated during vignette compilation.
+After retrieval, the table is cached under
+`tools::R_user_dir("PscanR", "cache")` for subsequent calls. The
 metadata is specific to human hg38, so for other organisms either
 `mode = "representative"` applies, or a species-specific table is supplied
 through `select_transcripts`.
 
-Either way the result is a `DNAStringSet` of one promoter per gene, which is
-passed to `pscan()` exactly as the foreground of the previous section was. Both
-it and the background must describe the same window, here 200 bp upstream and
-50 bp downstream. Had the background been a `950u_50d` one, these promoters
-would have had to be extracted again over 950 bp upstream rather than 200,
-because a longer window gives a motif more places to match and raises its best
-score whether or not anything is enriched.
+With `return = "both"`, the selected `DNAStringSet` is available as
+`selection$sequences` and can be passed to `pscan()`. It contains one promoter
+per mapped gene. The sequences and background must use the same window, here
+200 bp upstream and 50 bp downstream. A `950u_50d` background would require
+promoters extracted over the corresponding interval.
 
-# Choosing a `BPPARAM`
+# Configuring parallel execution
 
 `pscan()` parallelises over motifs through **BiocParallel**, and the `BPPARAM`
-argument selects the strategy. The recommendation is:
+argument selects the execution strategy:
 
--   **`MulticoreParam(n)` on Linux and macOS.** It parallelises by forking, which
-    is the faster of the two because the workers inherit the session's memory
-    instead of receiving a copy of it.
+-   **`MulticoreParam(n)` on systems supporting forked execution.** Workers
+    inherit the parent process's memory, which can reduce data-transfer
+    overhead on Linux and macOS. Suitability also depends on the execution
+    environment; forked execution is unavailable on Windows.
 
--   **`SnowParam(n)` where forking is unavailable**, which in practice means
-    Windows. It starts independent processes and communicates over sockets, so
-    it works everywhere at the cost of the data transfer.
+-   **`SnowParam(n)` for portable parallel execution.** Independent R processes
+    communicate through sockets on Windows and Unix-like systems. Worker
+    startup and data transfer introduce additional overhead.
 
--   **`SerialParam()` when debugging**, since it starts no workers at all and a
-    failure therefore surfaces in the session rather than inside one of them.
+-   **`SerialParam()` for debugging and small examples.** Computation occurs
+    within the current R process, simplifying error inspection.
 
-The default is `bpparam()`, which picks a strategy and a worker count from the
-session's own configuration.
+The default is `bpparam()`, which selects a strategy and worker count from the
+session configuration.
 
-Raise the number of cores when a scan on one appears slow. More cores may not
-help on a scan that is already quick, because starting the workers and shipping
-the matrices out to them costs time that a short scan does not repay.
+Select the worker count according to the workload and available resources.
+For short scans, worker startup and data-transfer costs may exceed the benefit
+of parallel execution.
 
 # Session information
 

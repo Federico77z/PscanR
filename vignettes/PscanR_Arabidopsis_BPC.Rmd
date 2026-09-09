@@ -37,21 +37,20 @@ fixture <- function(...) {
 
 # Overview
 
-PscanR looks for transcription factor binding motifs that are over-represented
-in the regulatory regions of a set of genes. The idea in brief: take the
-promoters of genes that behave alike (co-expressed, co-regulated, differentially
-expressed in the same contrast), scan them with a collection of position
-frequency matrices, and ask which motifs score higher there than they do across
-all promoters of the organism, that is the universe background set. 
+PscanR identifies transcription factor binding motifs enriched in regulatory
+sequences. Promoters of co-expressed or co-regulated genes are scanned with a
+collection of motif matrices, and their mean best-match scores are compared
+with those of a reference promoter population. Enriched motifs suggest
+candidate regulators; sequence matches alone do not establish binding or
+regulatory activity.
 
-The package ships a collection of precomputed background sets for five model
-organisms: human, mouse and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR
-annotation), and yeast (SGD annotation). The package also provides functions to
-compute and use custom backgrounds, for those or for different organisms (not
-covered in this vignette).
+PscanR provides access to precomputed backgrounds for five model organisms:
+human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR annotation),
+and yeast (SGD annotation). Custom backgrounds can also be constructed for
+these or other organisms, as described in [Building a background for PscanR](PscanR_Custom_Background.html).
 
-This vignette works through a PscanR analysis on A. thaliana promoters
-and through several functions the package provides for inspecting the result.
+This vignette demonstrates motif enrichment analysis of *A. thaliana*
+promoters and the functions available for examining the results.
 
 ## The data
 
@@ -62,15 +61,17 @@ the *Arabidopsis* gynoecium.
 > Caselli F, Palermiti M, Petrella R, Morlacchi VA, Dünser K, Kleine-Vehn J,
 > Chiara M, Gregis V. *A novel role of BPCs in the control of medial domain
 > differentiation during gynoecium development in Arabidopsis thaliana.*
-> Plant Mol Biol 116(1):4 (2025). doi:10.1007/s11103-025-01662-x
+> Plant Mol Biol 116(1):4 (2025).
+> [doi:10.1007/s11103-025-01662-x](https://doi.org/10.1007/s11103-025-01662-x)
 
-The input is a two-column table holding a gene identifier and the direction of
-change, which is all an analysis needs to begin.
+The input is a two-column table containing gene identifiers and directions of
+expression change.
 
-Every fixture this vignette reads was produced by `run_uc4_pscan.R`, which is
-kept in `UseCase/UC4_Arabidopsis_TransmittingTract/` of the PscanR source
-repository rather than shipped with the package, because it requires network
-access and the full TAIR9 annotation.
+The bundled example data were generated with `run_uc4_pscan.R` in the
+developers' local `UseCase/UC4_Arabidopsis_TransmittingTract/` analysis
+directory. This directory is separate from the package repository and is not
+distributed with PscanR. The examples below use the bundled results to avoid
+network access and repeated genome-wide sequence extraction.
 
 ```{r read-gene-sets}
 gene_sets <- read.delim(
@@ -82,20 +83,19 @@ table(gene_sets$direction)
 ```
 
 The rest of this vignette follows the `r sum(gene_sets$direction == "down")`
-downregulated genes, those that lose expression when BPC function is impaired.
+genes with reduced expression when BPC function is impaired.
 
 # The background
 
-PscanR precomputed backgrounds are indexed by organism, genome assembly, promoter window and motif
-collection. `get_availableBG()` lists what is available.
+Precomputed backgrounds are indexed by organism, genome assembly, promoter
+window, and motif collection. `get_availableBG()` lists the available resources.
 
 ```{r discover-background, eval=FALSE}
 get_availableBG(keyword = "TAIR9", details = TRUE)
 ```
 
-`generate_psmatrixlist_from_background()` retrieves a background and attaches it to the
-matching JASPAR collection, returning a `PSMatrixList`, that is the object PscanR works
-with throughout.
+`generate_psmatrixlist_from_background()` retrieves the background statistics
+and associates them with the matching JASPAR matrices in a `PSMatrixList`.
 
 ```{r retrieve-background, eval=FALSE}
 background <- generate_psmatrixlist_from_background(
@@ -109,43 +109,38 @@ length(background)
 #> [1] 530
 ```
 
-That returns the JASPAR 2020 CORE *plants* collection, 530 matrices, each
-carrying three numbers: how many promoters its background was computed
-over, and the mean and standard deviation of its score across them.
+This returns 530 matrices from the JASPAR 2020 CORE plant collection. Each
+matrix includes the background promoter count and the mean and standard
+deviation of its best-match scores across those promoters.
 
-Take notice, the promoter window selected, 1000 bp upstream of the transcription start
-site here, is important: **to be comparable, the foreground promoters must be extracted
-with the same promoter window the background was built from**. 
-
-The requirement is that foreground and background *match each other*. 
+The selected window extends 1000 bp upstream of the transcription start site
+(TSS). **Foreground promoters must use the same window as the background**,
+together with a compatible assembly and annotation.
 
 # From genes to promoters
 
-The `pscan()` function of PscanR takes as input a `DNAStringSet` object containing a set of promoters from  co-regulated or co-expressed genes. The user needs to take care to match the promoter
-window of the selected background. 
+`pscan()` accepts promoter sequences as a `DNAStringSet`. The following
+procedure constructs the foreground using the background's promoter definition.
 
-> The ideal workflow would require knowing which transcripts are co-regulated or
-> co-expressed, in order to retrieve the exact set of promoters regulating their
-> expression. Usually, though, the output of a differential expression analysis
-> is a list of genes rather than transcripts.
->
-> Since a gene may have several transcription start sites and therefore
-> different promoters, when working at the gene level the choice of which
-> promoter to use for each gene is necessarily arbitrary. This is not ideal, but
-> it removes the barrier of having to work at the transcript level, which
-> remains the preferred option.
+When relevant transcripts are known, their corresponding promoters can be
+selected directly. Gene-level differential expression results require an
+additional selection rule because a gene may have multiple transcription start
+sites. Selecting one promoter per gene avoids weighting genes by their number
+of annotated transcripts. A deterministic rule makes this choice reproducible,
+but does not establish which promoter is active under the experimental
+conditions.
 
-The `ps_select_promoters()` function is a utility function that can be used to pass from gene or 
-transcript identifiers to their promoter sequences for the supported organisms and annotations,  deterministically resolving a gene list to one promoter per gene.
+`ps_select_promoters()` maps a gene list to one promoter per mapped gene using
+supplied promoter identifiers or sequences and a gene-to-transcript annotation
+table.
 
-Before it can do that it has to work out what the identifiers mean, because the
-same punctuation carries different meanings in different references. In RefSeq,
-`NM_000546.6` ends in a release **version**, so that two versions name one
-transcript. In TAIR, `AT1G01110.2` ends in a **splice variant**, which is a
-different transcript,
-often with a different start site. PscanR detects the convention and reports it.
+Identifier suffixes have different meanings across annotation systems. The
+suffix in the RefSeq accession `NM_000546.6` denotes a sequence version and is
+removed for matching. In the TAIR identifier `AT1G01110.2`, the suffix denotes
+a transcript variant and is preserved. PscanR detects and reports the scheme
+used for matching.
 
-Toy example:
+The following minimal example illustrates TAIR transcript selection:
 
 ```{r promoter-scheme, message=TRUE}
 promoters <- c("AT1G01110.2", "AT1G01110.1", "AT1G01160.1")
@@ -163,7 +158,7 @@ selection <- ps_select_promoters(
 )
 ```
 
-The returned mapping records the reason for the choice:
+The returned mapping records the selected promoter and the selection rule:
 
 ```{r promoter-scheme-table, echo=FALSE}
 knitr::kable(
@@ -171,36 +166,35 @@ knitr::kable(
         "gene", "promoter_id", "scheme", "suffix_role",
         "transcript_class", "selection_source", "n_candidates", "decided_by"
     )],
-    caption = "One promoter per gene, and why each was chosen."
+    caption = "Selected promoters and the rules used for their selection."
 )
 ```
 
 For *Arabidopsis* the rule is to prefer the `.1` primary gene model and fall
 back to the lowest available variant.
 
-For our dataset we need promoter sequences matching the background selected
+This dataset requires promoter sequences matching the background selected
 above: TAIR9 annotation, 1000 bp upstream of the TSS.
 
-Notice Bioconductor's `TxDb.Athaliana.BioMart.*` packages are
-Ensembl Plants builds of the newer Araport11 gene models, which extended many
-5' UTRs of the transcript identifiers they share with TAIR9. Those extensions
-*would* shift transcription start sites, and with them the promoters. 
-Since the background is TAIR9, so is the annotation used here.
+Annotations derived from newer gene models should not be assumed to reproduce
+TAIR9 promoters, even when transcript identifiers are shared. Changes to
+annotated transcript ends can shift the TSS and the extracted sequence. This
+example therefore uses the TAIR9 annotation specified by the background.
 
-The following chunk shows how to do it. It is not evaluated during the vignette
-build, because it requires network access, and it additionally needs the
-`txdbmaker`, `GenomicFeatures`, `GenomicRanges`, `GenomeInfoDb`, `Biostrings`
-and `BSgenome.Athaliana.TAIR.TAIR9` packages.
+The following code illustrates promoter extraction and selection. It is not
+evaluated during vignette compilation because it requires an external
+annotation file and the `txdbmaker`, `GenomicFeatures`, `GenomicRanges`,
+`GenomeInfoDb`, `Biostrings`, and `BSgenome.Athaliana.TAIR.TAIR9` packages.
 
 `TAIR9_GFF3_genes.gff` can be downloaded from the
 [TAIR9 GFF3 release directory](https://www.arabidopsis.org/download/list?dir=Genes/TAIR9_genome_release/tair9_gff3).
-Set `tair9_gff` to the path it was saved to.
+Set `tair9_gff` to the local path of the downloaded file.
 
 ```{r select-real, eval=FALSE}
 
 down_genes <- gene_sets$gene_id[gene_sets$direction == "down"]
 
-# The same TAIR9 annotation the background was built from.
+# Use the TAIR9 annotation used to construct the background.
 
 tair9_gff <- "TAIR9_GFF3_genes.gff" # path to the downloaded annotation
 
@@ -219,8 +213,8 @@ names(tx) <- GenomicRanges::mcols(tx)$tx_name
 # and anchored on the transcription start site.
 ranges <- GenomicRanges::promoters(tx, upstream = 1000, downstream = 0)
 
-# A promoter that runs off the end of its chromosome cannot be read, and
-# getSeq() would stop rather than skip it. One transcript is affected here.
+# Exclude out-of-bounds ranges before sequence extraction; getSeq() otherwise
+# raises an error. One transcript is affected here.
 inside <- GenomicRanges::start(ranges) >= 1L &
     GenomicRanges::end(ranges) <= GenomeInfoDb::seqlengths(genome)[
         as.character(GenomicRanges::seqnames(ranges))
@@ -230,7 +224,7 @@ ranges <- ranges[inside]
 promoters_tair9 <- Biostrings::getSeq(genome, ranges)
 names(promoters_tair9) <- names(ranges)
 
-# One more promoter is more than half unsequenced.
+# Exclude one additional promoter with more than 50% ambiguous N bases.
 promoters_tair9 <- promoters_tair9[
     Biostrings::letterFrequency(promoters_tair9, "N", as.prob = TRUE) <= 0.5
 ]
@@ -252,24 +246,25 @@ down_mapping <- ps_select_promoters(
 down_promoters <- promoters_tair9[down_mapping$promoter_id]
 ```
 
-That mapping was saved along with the scan it fed, so the rest of this vignette
-can read it directly from the precomputed object.
+The mapping and scan results are bundled in a precomputed object, allowing the
+remaining examples to run without repeating promoter extraction or scanning.
 
 ```{r load-precomputed}
 precomputed <- readRDS(fixture("arabidopsis_bpc_results.rds"))
 down_mapping <- precomputed$down_mapping
 ```
 
-`ps_selection_summary()` condenses the gene-to-transcript mapping into something reviewable:
-how many genes were asked for, how many were placed, and how often there was a
-real choice to make.
+`ps_selection_summary()` reports the numbers of input and mapped genes,
+including those with multiple candidate promoters.
 
 ```{r selection-summary}
 ps_selection_summary(down_mapping)$overall
 ```
 
-The genes that go unmapped are usually loci annotated after the assembly was released.
-`selection_source` names the rule that decided each promoter:
+Unmapped genes have no eligible promoter in the supplied reference. In this
+dataset, annotation coverage accounts for several missing genes, as discussed
+in the appendix.
+`selection_source` records the rule used to select each promoter:
 
 ```{r selection-by-source}
 ps_selection_summary(down_mapping)$by_source
@@ -277,30 +272,35 @@ ps_selection_summary(down_mapping)$by_source
 
 # Running the scan
 
-`pscan()` takes the foreground promoter sequences and the background `PSMatrixList`, and
-returns the updated `PSMatrixList` carrying the per-sequence results for every motif.
+`pscan()` takes foreground promoter sequences and a background `PSMatrixList`,
+and returns a `PSMatrixList` containing the per-promoter results for each motif.
 
-The BPPARAM from `BiocParallel` is useful to set the level of parallelism:
+The `BPPARAM` argument configures execution through BiocParallel:
 
-- `SerialParam()` uses one R process and is the safest choice for package checks and reproducible debugging. 
- 
-- `SnowParam()` starts independent socket-based R workers; it is the portable parallel choice on Windows and Unix-like systems, but has greater worker startup and memory overhead. 
- 
-- `MulticoreParam()` uses lower-overhead forked workers and is generally preferable for local parallel execution on Linux or other supported Unix-like systems; it should not be used on Windows.
+- `SerialParam()` uses the current R process and simplifies package checks and
+  debugging.
 
-The next chunk is not evaluated by default to limit the vignette's build time, but the user can
-run it. It should take under two minutes with `BPPARAM` set to
-`BiocParallel::SerialParam()`, or less with parallelism enabled.
+- `SnowParam()` uses independent R workers connected through sockets. It
+  supports Windows and Unix-like systems, with additional startup and
+  data-transfer overhead.
+
+- `MulticoreParam()` uses forked workers on supported Unix-like systems. It can
+  reduce data-transfer overhead, but suitability depends on the execution
+  environment. Forked execution is unavailable on Windows.
+
+The following scan is not evaluated during vignette compilation to limit
+computation time. It can be run after the preceding data-preparation steps;
+runtime depends on the hardware and execution strategy.
 
 ```{r scan, eval=FALSE}
 
-BPPARAM <- BiocParallel::SerialParam() # Serial - Compatible but slower
+BPPARAM <- BiocParallel::SerialParam() # Execute in the current R process.
 
-# Cross-platform parallel execution with four independent R workers:
-# BPPARAM <- BiocParallel::SnowParam(workers = 4, type = "SOCK") #Use this on Windows
+# Portable parallel execution with four independent R workers:
+# BPPARAM <- BiocParallel::SnowParam(workers = 4, type = "SOCK")
 
-# Lower-overhead forked execution on supported Unix-like systems: #Use this on Linux and MacOS
-# BPPARAM <- BiocParallel::MulticoreParam(workers = 4) 
+# Forked execution on supported Unix-like systems:
+# BPPARAM <- BiocParallel::MulticoreParam(workers = 4)
 
 results <- pscan(
     down_promoters, background,
@@ -308,43 +308,44 @@ results <- pscan(
 )
 ```
 
-`ps_results_table()` turns that object into the enrichment table.
+`ps_results_table()` converts the result object to a motif enrichment table.
 
 ```{r results-table, eval=FALSE}
 enrichment <- ps_results_table(results)
 ```
 
 
-To shorten the vignette's build time the scan was saved into the same RDS file the mapping came from. The two objects below are that saved result; everything from here on is computed from them.
+The following objects contain the saved scan results. Subsequent examples
+operate on these bundled results.
 
 ```{r load-results}
-# Exactly what ps_results_table() returned for the downregulated promoters.
+# Saved enrichment table for downregulated promoters.
 enrichment <- precomputed$enrichment_down
 dim(enrichment)
 
-# The same scan kept as a PSMatrixList rather than a table, so the
-# per-promoter detail survives, restricted to a few motifs to keep it small.
+# A motif subset of the PSMatrixList retains the per-promoter results.
 results_subset <- precomputed$results_subset
 results_subset
 ```
 
-Those motifs were chosen to span the biology of the original study: the BPC factors it
-is about, the G-box binders that turn out to dominate the result, and two unrelated motifs for contrast.
+The subset includes BPC motifs relevant to the original study, the
+highest-ranked G-box-associated motifs, and two unrelated motifs for comparison.
 
 ```{r subset-names}
 TFBSTools::name(results_subset)
 ```
 
-The enrichment table is one row per motif, keyed by JASPAR matrix identifier:
+The enrichment table contains one row per motif, indexed by JASPAR matrix
+identifier:
 
 ```{r results-table-shown}
 head(enrichment[order(-enrichment$ZSCORE), ], 6)
 ```
 
-The top of the full table is occupied by G-box binders of the bHLH and bZIP
-families: ABI5, ABF1 and ABF2 are all bZIPs recognising the ACGT core.
+G-box-associated motifs from the bHLH and bZIP families occupy the highest
+ranks. ABI5, ABF1, and ABF2 are bZIP factors whose motifs contain an ACGT core.
 
-The background parameters travel with the result, so they can be read back
+The background parameters remain associated with the result and can be retrieved
 from it at any point with `ps_get_bg_table()`:
 
 ```{r bg-table}
@@ -352,15 +353,17 @@ ps_get_bg_table(results_subset)
 ```
 
 `BG_SIZE` is the number of *Arabidopsis* promoters the background was computed
-over; `BG_MEAN` and `BG_STDEV` describe how that motif scores across them. 
+over; `BG_MEAN` and `BG_STDEV` describe how that motif scores across them.
 
-Each row of the enrichment table compares the foreground mean score against the
-background mean, turns the difference into a z-score, and reports the corresponding p-value with a
-Benjamini–Hochberg FDR across the collection. 
+For each motif, the foreground mean score is compared with the background
+mean using an enrichment z-score. The table reports the corresponding
+upper-tail p-value and its Benjamini–Hochberg adjustment across the motif
+collection in the `FDR` column.
 
-`ps_motif_barplot()` ranks the motifs and draws them; the `n` argument limits the
-plot to the top of the list (default to at most 20). `group = "class"` colours each bar by the
-structural class of the factor, which `ps_motif_class()` reads off the JASPAR matrices.
+`ps_motif_barplot()` displays the highest-ranked motifs. The `n` argument
+limits their number to at most 20 by default. With `group = "class"`, bar
+colours indicate transcription factor structural classes extracted from the
+JASPAR metadata by `ps_motif_class()`.
 
 ```{r top-motifs, fig.width=8, fig.height=5, dpi=120}
 
@@ -372,21 +375,22 @@ ps_motif_barplot(results_subset, group = "class")
 Within the subset the G-box binders rank above the three BPC motifs, as they do
 in the full table above.
 
-The function returns a `ggplot` object rather than drawing immediately, so a
-title, a different theme or any other layer can be added afterwards:
+The function returns a `ggplot` object that can be customised with a title,
+theme, or additional layers:
 
 ```{r barplot-composable, eval=FALSE}
 ps_motif_barplot(results_subset, group = "class") +
     ggplot2::labs(title = "Downregulated promoters")
 ```
 
-# What a result object contains
+# Inspecting the result object
 
-`ps_results_table()` summarises across promoters, but the `PSMatrixList` keeps
-the per-promoter detail and can be explored with the accessors.
+`ps_results_table()` summarises results across promoters. The `PSMatrixList`
+also retains per-promoter results, which can be retrieved using accessor
+functions.
 
-A `PSMatrixList` is indexed by JASPAR matrix identifier, so `MA0931.1` pulls
-out the entry for ABI5:
+A `PSMatrixList` can be indexed by JASPAR matrix identifier; `MA0931.1` selects
+the ABI5 entry:
 
 ```{r accessors}
 abi5 <- results_subset[["MA0931.1"]]
@@ -398,18 +402,22 @@ c(background = ps_bg_avg(abi5), foreground = ps_fg_avg(abi5))
 ps_hits_size(abi5)
 ```
 
-`ps_hits_table()` returns the best hit in every promoter: its score, position,
-strand, and the matched oligonucleotide.
+`ps_hits_table()` returns each promoter's best motif match, including its score,
+position, strand, and matched oligonucleotide.
 
 ```{r hits-table}
 head(ps_hits_table(abi5), 5)
 ```
 
-For example, for ABI5 the recovered sequences are variations on the G-box core `CACGTG`.
+The ABI5 matches illustrate sequence variation around the G-box core `CACGTG`.
+Oligonucleotides are reported in the forward orientation of the supplied
+promoter sequence, including matches assigned to the reverse strand.
 
-# Structure across promoters
+# Motif score patterns across promoters
 
-`ps_z_table()` gives the per-promoter z-scores as a matrix.
+`ps_z_table()` returns a matrix of standardised best-hit scores, with promoters
+as rows and motifs as columns. These per-promoter values differ from the
+motif-level enrichment z-scores, which compare foreground and background means.
 
 ```{r z-table}
 z <- ps_z_table(results_subset)
@@ -417,8 +425,9 @@ dim(z)
 round(z[1:4, 1:5], 2)
 ```
 
-`ps_zscore_heatmap()` clusters that matrix, which exposes how motifs group
-across the promoter set.
+`ps_zscore_heatmap()` displays these values to compare motif score patterns
+across promoters. By default, it scales each row and clusters both axes using
+correlation distances.
 
 ```{r zscore-heatmap, fig.width=9, fig.height=7, dpi=110}
 ps_zscore_heatmap(
@@ -427,16 +436,16 @@ ps_zscore_heatmap(
 )
 ```
 
-In this case, the column dendrogram roughly splits the motifs in two. The three BPC paralogues sit
-together, unsurprisingly since they recognise very similar GA-rich elements.
-Opposite them is a block of G-box binders (HY5, the ABF/AREB bZIPs, the PIF and
-SPT bHLHs). Promoters scoring high across the BPC columns
-are largely not the ones scoring high across the G-box columns, and vice versa,
-something that could not be seen looking only at the enrichment table.
+The column dendrogram groups the three BPC motifs, consistent with their
+similar GA-rich sequence preferences. A separate group contains
+G-box-associated motifs, including HY5, ABF/AREB bZIPs, and PIF and SPT bHLHs.
+The row-scaled heatmap suggests that promoters with relatively high BPC scores
+differ from those with relatively high G-box motif scores. This heterogeneity
+is not apparent from the motif-level enrichment table alone.
 
-# Where the sites are
+# Positional distribution of motif matches
 
- `ps_hitpos_map()` plots the position of the best hit in each promoter.
+`ps_hitpos_map()` displays the position of each promoter's best motif match.
 
 ```{r hitpos-map, fig.width=9, fig.height=7, dpi=110}
 ps_hitpos_map(
@@ -448,8 +457,8 @@ ps_hitpos_map(
 `shift = -1000` relabels the axis so that coordinates are relative to the
 transcription start site, matching how the promoters were extracted.
 
-For a single motif, `ps_density_plot()` shows the distribution of hit positions
-directly.
+`ps_density_plot()` estimates the positional distribution of the best hits for
+a single motif.
 
 ```{r density-plot, fig.width=7.5, fig.height=4.6, dpi=120}
 ps_density_plot(
@@ -459,20 +468,18 @@ ps_density_plot(
 )
 ```
 
-Strong ABI5 sites are concentrated just upstream of the transcription start
-site, peaking within about 100 bp of it, rather than spread evenly over the
-kilobase scanned.
+Higher-scoring ABI5 matches are concentrated near the TSS, with the estimated
+density peaking within approximately 100 bp upstream.
 
-`window` defines the promoter window the positions came from. 
-Given the window, the kernel density estimate is corrected by reflection. The
-reflecting bounds are the positions a hit can be *reported* at: a hit is
-recorded at the start of the motif, so it can never fall in the last few bases
-of the window.
+The `window` argument specifies the promoter interval and enables reflection
+boundary correction for the kernel density estimate. The boundaries correspond
+to valid motif start positions, accounting for motif width.
 
-`bins` adds the same positions as a binned profile. Bars are on the density
-scale, so they share the curve's axis directly. 
+The `bins` argument adds a histogram of the same positions on the density
+scale, allowing comparison with the smoothed curve.
 
-The profile is worth comparing between motifs. BPC6 binds GA-rich elements rather than the ACGT core ABI5 recognises.
+The BPC6 motif, with its GA-rich sequence preference, provides a comparison
+with the ACGT-containing ABI5 motif.
 
 ```{r density-plot-bpc6, fig.width=7.5, fig.height=4.6, dpi=120}
 bpc6_hits <- results_subset[["MA1402.1"]]
@@ -484,21 +491,20 @@ ps_density_plot(
 )
 ```
 
-Both motifs are concentrated near the transcription start site, but not in the
-same way. ABI5 peaks around 75–100 bp upstream and then falls away over the last
-stretch; BPC6 climbs monotonically and is densest in the final bin, right up
-against the start site. Note where its curve stops: the motif is
-`r ncol(bpc6_hits)` bp wide and a hit is reported at its start, so it cannot be
-placed closer than `r ncol(bpc6_hits) - 1` bp from the end of the window. 
+Both profiles show concentration near the TSS. The ABI5 density peaks
+approximately 75–100 bp upstream and then decreases, whereas the BPC6 profile
+increases towards the final bin. BPC6 has width `r ncol(bpc6_hits)` bp, so the
+last valid motif start lies `r ncol(bpc6_hits) - 1` bp before the end of the
+window.
 
-The `st` argument sets which hits are used: `"all"` uses every promoter, `"loose"`
-those scoring above the motif's background mean, and `"strict"` those a standard
-deviation above it. Restricting to strong sites is usually what makes positional
-structure visible, because with every promoter included the weak matches present in
-almost any sequence flatten the distribution.
+The `st` argument selects the displayed hits: `"all"` includes every promoter,
+`"loose"` selects scores at or above the background mean, and `"strict"` selects
+scores at least one background standard deviation above that mean. This can
+highlight positional patterns among stronger matches. These display filters
+do not alter the motif enrichment statistics.
 
-`ps_hit_score_plot()` puts one point per promoter at its hit
-position and its hit score, with the two thresholds `st` names drawn as references.
+`ps_hit_score_plot()` plots best-hit score against position for each promoter
+and shows the `st` score thresholds as reference lines.
 
 ```{r hit-score-plot, fig.width=9.5, fig.height=4.6, dpi=115}
 ps_hit_score_plot(
@@ -507,24 +513,24 @@ ps_hit_score_plot(
 )
 ```
 
-The two motifs behave differently. BPC6's retained hits bank into the last few
-hundred bases while its weak hits stay spread across the kilobase, so its
-positional concentration is specifically a concentration of *strong* sites.
-ABI5's retained hits are spread more evenly, and sit somewhat further from the
-transcription start site than BPC6's.
+Higher-scoring BPC6 hits are concentrated within the final few hundred bases,
+whereas lower-scoring hits are distributed across the window. Higher-scoring
+ABI5 hits show a broader distribution and generally occur farther upstream.
+The joint display distinguishes positional concentration from match strength.
 
-# Narrowing the question with a filter
+# Analysing a motif-selected promoter subset
 
-The scan so far asked what is enriched across the whole set of downregulated promoters.
-A narrower question is what is enriched *in the subset of those promoters that carry a
-strong match for a particular factor*.
+The preceding analysis considers all downregulated promoters. A complementary
+analysis restricts the foreground to promoters containing a high-scoring match
+to a selected motif.
 
 `pscan_filtered()` scans the promoters with one chosen
 matrix, keeps those scoring at least `n` standard deviations above that motif's
-background mean, and rescans the survivors against the whole collection.
+background mean, and rescans the retained promoters against the supplied
+collection.
 
-The following chunk is not evaluated, to limit the vignette's build time, but it
-can be run as it stands and should take under a minute.
+The following code can be run after the preceding data-preparation steps. It is
+not evaluated during vignette compilation to limit computation time.
 
 ```{r pscan-filtered, eval=FALSE}
 bpc6 <- background[[which(TFBSTools::ID(background) == "MA1402.1")]]
@@ -537,7 +543,7 @@ filtered <- pscan_filtered(
 ps_results_table(filtered)
 ```
 
-Anchoring on BPC6 keeps `r precomputed$filtered_bpc6$n_retained` of the
+Filtering by BPC6 score retains `r precomputed$filtered_bpc6$n_retained` of the
 `r precomputed$filtered_bpc6$n_input` downregulated promoters.
 
 ```{r filtered-table, echo=FALSE}
@@ -552,25 +558,27 @@ knitr::kable(
     row.names = FALSE, align = c("l", "l", "r", "r"),
     caption = paste(
         "Enrichment within the", precomputed$filtered_bpc6$n_retained,
-        "promoters carrying a strong BPC6 site."
+        "promoters with a high-scoring BPC6 match."
     )
 )
 ```
 
-The BPC motifs and RAMOSA1, all of them GA-repeat binders, now sit far above
-everything else, which is the expected consequence of selecting on one of them.
-What is informative is the rest of the list: the G-box bZIP and bHLH motifs that
-dominated the unfiltered scan have dropped out of the top entirely, replaced by
-C2H2 and Dof factors. Apparently, the promoters BPC is positioned to bind are a different
-population from the ones driving the overall G-box signal.
+The GA-rich BPC and RAMOSA1 motifs have the highest ranks after selection by
+BPC6 score. G-box-associated bZIP and bHLH motifs are absent from the leading
+results shown here, which instead include C2H2 and Dof motifs. This change is
+consistent with different sequence properties in the BPC6-selected subset;
+it does not establish factor occupancy in those promoters.
 
-That is the point of the filter: it separates a mixed foreground into
-subpopulations that a single scan reports only in aggregate.
+Filtering provides a way to examine subsets of a heterogeneous foreground.
+Because selection is based on a motif score, enrichment of that motif and
+similar motifs is expected and should not be treated as independent evidence
+of regulation.
 
 # Summary
 
-A complete PscanR analysis is four steps: choose a background, resolve genes to
-promoters with a matching window, scan, and read the table.
+The core workflow comprises four steps: select a background, map genes to
+promoters with a matching definition, scan the sequences, and inspect the
+motif enrichment table.
 
 ```{r workflow, eval=FALSE}
 background <- generate_psmatrixlist_from_background(
@@ -585,43 +593,48 @@ results <- pscan(down_promoters, background)
 ps_results_table(results)
 ```
 
-Everything after that is interpretation: per-promoter scores (`ps_z_table()`),
-hit positions and sequences (`ps_hits_table()`, `ps_hitpos_map()`,
-`ps_density_plot()`, `ps_hit_score_plot()`), and the ability to restrict the
-foreground to promoters carrying a particular site (`pscan_filtered()`).
+Additional analyses examine per-promoter scores (`ps_z_table()`), match
+positions and sequences (`ps_hits_table()`, `ps_hitpos_map()`,
+`ps_density_plot()`, `ps_hit_score_plot()`), and promoter subsets selected by
+motif score (`pscan_filtered()`). These complementary summaries support the
+interpretation of candidate regulatory patterns.
 
-# Appendix: why this analysis agrees closely, but not exactly, with the published one
+# Appendix: Comparison with the published analysis
 
-The study used here reports its own Pscan results, so the two can be compared
-directly. They agree on the biology and on most of the motif list: of the 168
-motifs called significant in the published downregulated set, 164 are recovered
-here. Three differences between the setups account for the rest, none of them a
-disagreement about the data.
+The source study reports Pscan results that permit motif-level comparison.
+Using the comparison criterion described below, this analysis recovers 164 of
+the 168 motifs listed for the published downregulated set. The agreement is
+substantial but incomplete. The following methodological details affect the
+comparison.
 
 **The promoter window.** The published analysis used −1000/+100 relative to the
-TSS. No precomputed background currently exists for that window, so this one
-uses −1000/0: the same upstream extent, without the 100 bp downstream. That
-100 bp is unlikely to matter much, judging by a comparison that can be made:
-scanning the same genes against the −950/+50 background instead yields z-scores
-correlating with these at ρ = 0.99 across all 530 motifs. Shifting the window by
-50 bp barely moves the underlying statistic, even though it does move some calls
-across the significance threshold.
+TSS. The bundled catalogue does not include that window, so this analysis uses
+−1000/0. A separate analysis of the same genes with the −950/+50 background
+gave a Spearman correlation of ρ = 0.99 across all 530 motif z-scores, although
+some significance classifications changed. This comparison supports similarity
+between the two tested windows; it does not directly measure the effect of
+adding the full 100 bp downstream interval used in the publication.
 
 **The annotation release.** The published promoters were defined on TAIR10 gene
-models; the background here was built from TAIR9. This is smaller than it
-sounds, because TAIR10 is an annotation release on the *same genome assembly*:
-it adds loci and gene models without moving coordinates. The consequence is not
-shifted promoters but a few genes that do not yet exist in the older
-annotation: 2244 of the study's 2253 genes are present in the TAIR9 promoter
-universe, or 99.6 %. The nine missing are mostly ncRNA loci introduced in
-TAIR10, plus one mitochondrial gene outside the nuclear promoter set, and they
-are split between the up and down lists rather than concentrated in one.
+models; this background uses TAIR9. Shared genome coordinates do not guarantee
+identical transcript models or TSS annotations. In the recorded reference
+comparison, 2244 of the study's 2253 genes have promoters in the TAIR9 universe
+(99.6%). The nine missing genes include loci absent from the older annotation
+and a mitochondrial gene outside the nuclear reference set; they occur in both
+expression directions. High gene coverage does not establish promoter-level
+identity between annotation releases.
 
-**Multiple testing correction.** PscanR reports the raw *P*-value alongside a
-Benjamini–Hochberg FDR. The published significance values follow a different
-convention, so the two lists were put on the same footing before being compared.
-Since the raw *P*-value travels with the result table, any correction can be
-applied to it afterwards.
+**Multiple testing correction.** PscanR reports nominal p-values and
+Benjamini–Hochberg adjusted p-values in the `FDR` column. The
+[published methods](https://doi.org/10.1007/s11103-025-01662-x) specify
+Benjamini–Hochberg correction with a 0.01 threshold. However, inspection of the
+deposited Supplementary Table 3 in the local reproduction found adjusted values
+approximately equal to nominal p-values multiplied by 530, with listed values
+below 0.1.
+The overlap of 164 out of 168 therefore refers to the reproduction's
+Bonferroni criterion, `p * 530 < 0.1`, chosen to match those deposited values;
+it is not the count obtained from the default PscanR `FDR` column. Comparisons
+must state both the correction method and threshold explicitly.
 
 # Session information
 
