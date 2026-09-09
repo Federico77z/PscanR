@@ -63,6 +63,23 @@ jobs:
             check_dir = 'check')
         shell: Rscript {0}
 
+      # R CMD check prints only the headline of each NOTE and WARNING to
+      # stdout; the body -- which package, which object, which line -- goes to
+      # 00check.log, and that file dies with the runner. A note such as
+      # "checking dependencies in R code" therefore arrives with no reason
+      # attached and cannot be diagnosed from the run at all. Kept on failure
+      # too, which is when it is worth the most.
+      - name: Upload check results
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: check-results
+          path: |
+            check/**/00check.log
+            check/**/00install.out
+          retention-days: 30
+          if-no-files-found: warn
+
       - name: BiocCheck
         run: |
           BiocCheck::BiocCheck(
