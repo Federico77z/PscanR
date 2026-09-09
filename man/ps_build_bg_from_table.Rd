@@ -39,6 +39,12 @@ This function:
    \item Converts each element of pfms into `PSMatrix` objects.
    \item A warning is issued if the number of elements in `pfms` doesn't
    match the number of rows of `x`.
+   \item If `pfms` is a full background — one carrying the per-promoter
+   scan — the function stops when `BG_SIZE` disagrees with the number of
+   hits stored on a matrix. The two are equal by construction, so a
+   disagreement means the table was computed on a different set of
+   promoters from the one those hits describe, and applying it would leave
+   the object with statistics and hits from two different universes.
 }
 
 Note: This function does not compute new background scores — it assigns

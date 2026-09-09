@@ -67,17 +67,21 @@ from `x` to avoid redundant computations. It also removes all sequences
 with an N content above 50%.
 The motif matrices are background scored by the `ps_scan` function in
 parallel.
-The output of this function can be stored in a .txt file by the
-`ps_write_bg_to_file()` function. In this case, only information about the
-background mean and standard deviation are stored for each matrix. These
-metrics will be later used for the computation of z-score by the pscan
-function.
 
-If a full background PSMatrixList is required (including all background
-hit scores along with their positions, strands, and oligonucleotide
-sequences), store the output using `save()` and set the `fullBG` flag to
-`TRUE`. Note that this process can generate a very large file (several
-gigabytes).
+`ps_write_bg_to_file()` writes a text file carrying three numbers per
+matrix — background size, mean and standard deviation — which is all
+`pscan()` needs to compute a z-score. It carries nothing else: not the
+per-promoter hits a full background stores, and not the
+`transcriptIDLegend` that `pscan_fullBG()` resolves identifiers against. A
+background read back with `ps_retrieve_bg_from_file()` therefore supports a
+full-background retrieval only when the matrices it is applied to already
+carry that scan.
+
+To persist a full background, use `saveRDS()` / `readRDS()` (or
+`save()` / `load()`), which preserve the object whole — hits, positions,
+strands, oligonucleotides and legend included. Expect a large file: the
+object holds one hit per promoter per matrix, so it grows with the product
+of the two.
 
 Note: this function assumes transcript identifiers can be safely matched
 without version suffixes (e.g., NM_30287 instead of NM_30287.1).

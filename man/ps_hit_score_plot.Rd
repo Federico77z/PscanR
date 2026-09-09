@@ -4,7 +4,7 @@
 \alias{ps_hit_score_plot}
 \title{Hit Position Against Hit Score}
 \usage{
-ps_hit_score_plot(x, shift = 0)
+ps_hit_score_plot(x, shift = 0, alpha = NULL, size = NULL)
 }
 \arguments{
 \item{x}{A `PSMatrix`, or a `PSMatrixList` in which case the motifs are
@@ -12,6 +12,10 @@ drawn as panels sharing both axes.}
 
 \item{shift}{Integer positional shift applied to hit positions, to place
 them relative to the TSS. Default `0`.}
+
+\item{alpha, size}{Point opacity and point size. Left `NULL`, both are scaled
+from the number of promoters so that a large scan stays readable; supply
+either to override that.}
 }
 \value{
 A `ggplot` object.
@@ -36,6 +40,14 @@ Because each promoter contributes exactly one point, vertical structure is
 the score distribution and horizontal structure is the positional one. A
 motif whose strong sites are positionally constrained shows points banking
 into one region above the upper line while the weak sites stay spread out.
+
+Every promoter is drawn, whatever the size of the scan: nothing is
+subsampled and nothing is binned, so the figure keeps meaning one point per
+promoter. Opacity and point size are instead scaled from the number of
+promoters, interpolated between the values that suit a few hundred points
+and ones that survive tens of thousands, so that a large scan reads as
+density rather than as solid blocks of colour. `alpha` and `size` override
+that scaling.
 }
 \examples{
 prom_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")

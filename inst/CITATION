@@ -1,13 +1,14 @@
 citHeader("This R package is based on the Pscan web platform described in
-          the following pubblication")
+          the following publication")
 
 bibentry(
   bibtype = "Article",
-  title = "Pscan: finding over-represented transcription factor binding site \
-  motifs in sequences from co-regulated or co-expressed genes.",
+  title = paste("Pscan: finding over-represented transcription factor",
+                "binding site motifs in sequences from co-regulated or",
+                "co-expressed genes."),
   author = c(person("Federico", "Zambelli"), person("Graziano", "Pesole"),
              person("Giulio", "Pavesi")),
-  journal = "Nucleic Acid Research",
+  journal = "Nucleic Acids Research",
   year = "2009",
   volume = "37",
   pages = "W247-W252",

@@ -17,8 +17,10 @@ function when multiple identical sequences exist. So, if multiple
 identical sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique()
 retains only ID2, the mapping will associate each original name with its
 unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2).
-This argument is currently ignored by the constructor; the slot is
-typically populated by background-building helpers.}
+Defaults to an empty vector, which marks the list as an ordinary
+background rather than a full one. `ps_build_bg(fullBG = TRUE)` builds
+this vector from the names of the sequences it is given; pass it here to
+carry it through an object rebuilt by hand.}
 
 \item{use.names}{Logical. Assert whether to use names from the input objects.
 Default = `TRUE`}

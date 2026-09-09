@@ -1,0 +1,16 @@
+MATRIX	NAME	REASON
+MA0359.1	RAP1	RAP1: the demonstration; the reported ribosomal protein regulator
+MA0378.1	SFP1	SFP1: also reported on ribosomal protein promoters
+MA0295.1	FHL1	FHL1: also reported on ribosomal protein promoters
+MA0265.1	ABF1	ABF1: general chromatin-organising factor
+MA0363.1	REB1	REB1: general chromatin-organising factor
+MA0303.1	GCN4	GCN4: amino-acid starvation response
+MA0331.1	MCM1	MCM1: cell-cycle and mating-type control
+MA0341.1	MSN2	MSN2: stress response element
+MA0342.1	MSN4	MSN4: stress response element
+MA0319.1	HSF1	HSF1: heat-shock element
+MA0299.1	GAL4	GAL4: galactose regulon, no expected signal here
+MA0357.1	PHO4	PHO4: phosphate regulon, no expected signal here
+MA0393.1	STE12	STE12: mating response, no expected signal here
+MA0412.1	UME6	UME6: meiotic repression, no expected signal here
+MA0324.1	LEU3	LEU3: leucine biosynthesis, no expected signal here

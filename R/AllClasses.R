@@ -129,8 +129,10 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #'   identical sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique()
 #'   retains only ID2, the mapping will associate each original name with its
 #'   unique counterpart (ID1 → ID2, ID2 → ID2, ID3 → ID2, ID4 → ID2).
-#'   This argument is currently ignored by the constructor; the slot is
-#'   typically populated by background-building helpers.
+#'   Defaults to an empty vector, which marks the list as an ordinary
+#'   background rather than a full one. `ps_build_bg(fullBG = TRUE)` builds
+#'   this vector from the names of the sequences it is given; pass it here to
+#'   carry it through an object rebuilt by hand.
 #'
 #' @return A `PSMatrixList` object, which is a list containing `PSMatrix`
 #'    objects. Each element in the list corresponds to a `PSMatrix` object
@@ -161,10 +163,21 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 PSMatrixList <- function(...,
                             transcriptIDLegend = character(),
                             use.names = TRUE) {
+    if (!is.character(transcriptIDLegend)) {
+    stop("'transcriptIDLegend' must be a character vector")
+    }
+
     listData <- list(...)
-    XMatrixList(listData,
+    out <- XMatrixList(listData,
     use.names = use.names,
     type = "PSMatrixList",
     matrixClass = "PSMatrix"
     )
+
+    # XMatrixList() knows nothing of the slot PSMatrixList adds, so the legend
+    # is set here. Without this the argument would be accepted and discarded,
+    # and no rebuilt list could ever be a full background.
+    out@transcriptIDLegend <- transcriptIDLegend
+
+    return(out)
 }

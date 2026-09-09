@@ -64,6 +64,26 @@
 #' by the function. They can be accessed using `system.file()` as shown in the
 #' examples.
 #'
+#' @section Foreground size:
+#'
+#' The Pscan z-score is `sqrt(n)` times the standardised difference between the
+#' foreground and background mean scores, so it grows with the size of the
+#' foreground rather than only with the strength of the signal. And since the
+#' background is every promoter, a foreground of `n` out of `N` is compared
+#' against a set that largely consists of itself: the difference the statistic
+#' measures is the foreground-against-the-rest difference shrunk by `1 - f`,
+#' with `f = n / N`. Both effects are invisible in the reported number, which is
+#' why a foreground above a tenth of the background raises a warning rather than
+#' being left to the reader.
+#'
+#' The threshold is `getOption("PscanR.foreground.max_fraction", 0.1)`; set it
+#' to `Inf` to silence the check, or to a smaller fraction to tighten it.
+#'
+#' `ps_bg_size()` is a per-motif slot rather than a run constant. It is
+#' `NA_integer_` for any motif absent from the background table, and a
+#' hand-built table can legitimately give different sizes per motif, so `N` is
+#' the median of the usable values and nothing is reported when none are.
+#'
 #' @return
 #' Enriched PSMatrixList object where each matrix includes
 #' \code{ps_hits_score}, \code{ps_hits_pos}, \code{ps_hits_strand},
@@ -101,8 +121,18 @@
 pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
     .ps_checks(x, pfms, type = 4)
 
+    # Carried, not derived: the legend describes the background's promoter
+    # universe, which the scan does not change.
+    legend <- .ps_legend_of(pfms)
+
     x <- BiocGenerics::unique(x)
     x <- .clean_sequence(x)
+
+    # After cleaning, so the count is the one the statistic will actually use,
+    # and before the scan, so the user hears it while it is still cheap to act.
+    .ps_warn_foreground_fraction(
+    length(x), .ps_sizes(pfms, ps_bg_size), "scan"
+    )
 
     # Encode the sequences once and reuse the encoding for every motif.
     encoded <- .ps_encode_seqs(as.character(x))
@@ -117,7 +147,9 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
     BPOPTIONS = BPOPTIONS
     )
 
-    BiocGenerics::do.call(PSMatrixList, pfms)
+    BiocGenerics::do.call(
+    PSMatrixList, c(pfms, list(transcriptIDLegend = legend))
+    )
 }
 
 #' Extract Pre-Computed Metrics from a PSMatrixList Object
@@ -163,6 +195,12 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
 #' raises a warning naming the identifier rather than silently returning the
 #' first match.
 #'
+#' A full background is a whole `PSMatrixList`, hits included, so `saveRDS()`
+#' / `readRDS()` is the way to keep one between sessions. The `.txt` format
+#' `ps_write_bg_to_file()` produces carries only the background size, mean and
+#' standard deviation of each matrix, which is enough for `pscan()` and not
+#' enough for this function.
+#'
 #' Identifiers absent from the background are dropped with a warning. That
 #' normally means the promoter was excluded during background construction
 #' (high 'N' content or a length mismatch), but it also covers identifiers that
@@ -183,16 +221,43 @@ pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
 #'   "NR_148960.1", "NM_001130413.4"
 #' )
 #'
+#' # The bundled background is a 36-promoter toy, so retrieving ten of them is
+#' # a large enough share of it to trip the foreground-fraction warning. A real
+#' # background is tens of thousands of promoters and would not.
+#' old <- options(PscanR.foreground.max_fraction = Inf)
+#'
 #' results <- pscan_fullBG(IDs, full_pfms)
 #' ps_results_table(results)
+#'
+#' options(old)
+#'
+#' @seealso \code{\link{pscan}}, whose "Foreground size" section explains why a
+#'    foreground that is a large share of the background weakens the statistic.
 #'
 #' @export
 pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     if (!is.character(ID)) {
     stop("ID must be a character vector containing transcript identifiers")
     }
+    if (!is(full_pfms, "PSMatrixList")) {
+    stop("'full_pfms' must be a PSMatrixList")
+    }
+    # Every PSMatrixList now carries whatever legend its input had, so a
+    # non-empty legend no longer means "this object holds a background scan".
+    # Testing for the scan itself is what stops a pscan() result from being
+    # read as a background, which would answer with foreground hits over a
+    # subset instead of background hits over the universe.
+    if (!.ps_has_bg_scan(full_pfms)) {
+    stop(
+        "'full_pfms' carries no per-promoter background scan, so there is ",
+        "nothing to retrieve. Build it with ps_build_bg(..., fullBG = TRUE)."
+    )
+    }
     if (length(full_pfms@transcriptIDLegend) == 0) {
-    stop("The background PSMatrixList must be a full background")
+    stop(
+        "'full_pfms' has an empty transcriptIDLegend, so transcript ",
+        "identifiers cannot be resolved against the background."
+    )
     }
 
     all_seq_ID <- full_pfms@transcriptIDLegend
@@ -246,6 +311,10 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 
     x <- unique(x)
 
+    .ps_warn_foreground_fraction(
+    length(x), .ps_sizes(full_pfms, ps_bg_size), "scan"
+    )
+
     # See ps_scan for details
 
     pfms <- lapply(
@@ -256,11 +325,13 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     use_full_BG = TRUE
     )
 
-    BiocGenerics::do.call(PSMatrixList, pfms)
+    BiocGenerics::do.call(
+    PSMatrixList, c(pfms, list(transcriptIDLegend = all_seq_ID))
+    )
 }
 
 # .ps_check_filtered_inputs and .ps_filter_promoters are internal helpers used
-# by PscanFiltered.
+# by pscan_filtered.
 .ps_check_filtered_inputs <- function(prom_seq, Jmatrix, background) {
     if (!is(prom_seq, "DNAStringSet")) {
     stop("Invalid input: 'prom_seq' must be a DNAStringSet")
@@ -359,7 +430,9 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #'       \item scans the filtered sequences across the background PWMs.
 #'    }
 #'
-#' @seealso \code{\link{pscan}}
+#' @seealso \code{\link{pscan}}, whose "Foreground size" section explains why
+#'    a foreground that is a large share of the background weakens the
+#'    statistic.
 #'
 #' @return A `PSMatrixList` object in which the foreground values
 #' (the alignment scores) have been computed for each sequence in `prom_seq`,
@@ -384,21 +457,30 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #' bg <- ps_retrieve_bg_from_file(bg_path, J2020)
 #'
 #' JM <- bg[[1]]
-#' res <- PscanFiltered(prom_seq,
+#' res <- pscan_filtered(prom_seq,
 #'   JM,
 #'   background = bg,
 #'   BPPARAM = BiocParallel::SerialParam()
 #' )
 #'
 #' @export
-PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
-                            BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
+pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
+                           BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
     .ps_check_filtered_inputs(prom_seq, Jmatrix, background)
+
+    # From `background`, not `Jmatrix`: the legend belongs to the promoter
+    # universe, and `Jmatrix` is a single matrix with no such slot.
+    legend <- .ps_legend_of(background)
 
     filtered_prom_seq <- .ps_filter_promoters(prom_seq, Jmatrix, n)
     if (is.null(filtered_prom_seq)) {
     return(NULL)
     }
+
+    .ps_warn_foreground_fraction(
+    length(filtered_prom_seq),
+    .ps_sizes(background, ps_bg_size), "scan"
+    )
 
     pfms <- BiocParallel::bplapply(
     background,
@@ -409,7 +491,9 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
     BPOPTIONS = BPOPTIONS
     )
 
-    BiocGenerics::do.call(PSMatrixList, pfms)
+    BiocGenerics::do.call(
+    PSMatrixList, c(pfms, list(transcriptIDLegend = legend))
+    )
 }
 
 #' Create a Summary Table of PscanR Results
@@ -490,9 +574,30 @@ PscanFiltered <- function(prom_seq, Jmatrix, n = 1, background,
 #'
 #' ps_results_table(results, FDR = 0.1)
 #'
+#' @seealso \code{\link{pscan}}, whose "Foreground size" section explains why a
+#'    foreground that is a large share of the background weakens the statistic.
+#'
 #' @export
 #' @importFrom stats p.adjust
 ps_results_table <- function(pfms, FDR = 1) {
+    tbl <- .ps_results_table_core(pfms, FDR)
+
+    # After the core call, so that invalid input still errors before anything
+    # is said about the foreground.
+    .ps_warn_foreground_fraction(
+    stats::median(.ps_sizes(pfms, ps_fg_size), na.rm = TRUE),
+    .ps_sizes(pfms, ps_bg_size), "results"
+    )
+
+    tbl
+}
+
+# The table itself, without the foreground-fraction warning. The functions in
+# this file that need a results table on their way to a figure call this one:
+# the user is making no decision about foreground size there, and having every
+# plot repeat the warning that pscan() and ps_results_table() already gave
+# would put one on every figure chunk of a vignette.
+.ps_results_table_core <- function(pfms, FDR = 1) {
     .ps_checks2(pfms)
 
     if (!is.numeric(FDR) || length(FDR) != 1L || is.na(FDR) ||
@@ -662,7 +767,7 @@ ps_z_table <- function(pfms) {
 #' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
 ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
-    res_table <- ps_results_table(pfms)
+    res_table <- .ps_results_table_core(pfms)
     z_table <- ps_z_table(pfms)
     topn <- which(res_table$FDR <= FDR)
 
@@ -768,7 +873,7 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
 #' @importFrom utils modifyList
 #' @importFrom grDevices colorRampPalette
 ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
-    res_table <- ps_results_table(pfms)
+    res_table <- .ps_results_table_core(pfms)
 
     topn <- which(res_table$FDR <= FDR)
 
@@ -1151,124 +1256,6 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
     )
 }
 
-.ps_hit_distances <- function(M1, M2, st1, st2) {
-    scores1 <- ps_hits_score(M1)
-    g_scores1 <- scores1 >= st1
-    scores2 <- ps_hits_score(M2)
-    g_scores2 <- scores2 >= st2
-
-    hits1 <- ps_hits_pos(M1, pos_shift = ncol(M1) / 2)[g_scores1]
-    hits2 <- ps_hits_pos(M2, pos_shift = ncol(M2) / 2)[g_scores2]
-
-    hits1 <- hits1[names(hits1) %in% names(hits2)]
-    hits2 <- hits2[names(hits2) %in% names(hits1)]
-
-    hits1 - hits2
-}
-
-#' Density Plot of Distances between Identified Motif Hits in two PSMatrix
-#' Objects
-#'
-#' This function visualizes the density plot of distances between identified
-#' hit sites in two `PSMatrix` objects. The distance between hits is calculated
-#' for each sequence that is present in both matrices.
-#' It allows filtering the identified sites based on a specified threshold
-#' value.
-#'
-#'
-#' @param M1 A `PSMatrix` object. It must be processed by the PscanR
-#'    algorithm.
-#' @param M2 A `PSMatrix` object. It must be processed by the PscanR
-#'    algorithm.
-#' @param st1 Score threshold used to filter hits for the first `PSMatrix` .
-#'    Can be a numeric value to set the threshold directly, or a character:
-#'    \itemize{
-#'      \item `all`: the threshold is set to `0` (All hits are evaluated).
-#'      \item `loose`: uses the background average as threshold.
-#'      \item `strict`: uses the background average plus the background
-#'      standard deviation as threshold.}
-#'    Default is set to `loose`.
-#' @param st2 Score threshold used to filter hits for the second `PSMatrix`.
-#'    Can be a numeric value to set the threshold directly, or a character, as
-#'    for st1.
-#'    Default is set to `loose`.
-#' @param window Optional length-2 numeric giving the interval the distances
-#'    can occupy. Supplying it corrects the estimate at the edges by
-#'    reflection; leaving it `NULL` only clips the curve to the observed range.
-#' @param bins Optional number of bins for a binned profile of the same
-#'    distances, drawn behind the curve on the density scale.
-#'
-#' @return A `ggplot` object showing the distribution of distances between
-#'    identified motif hits in \code{M1} and \code{M2}. Nothing is drawn until
-#'    the object is printed, so it can be modified with further `ggplot2`
-#'    layers first.
-#'
-#' @seealso \code{\link{ps_bg_avg}}, \code{\link{ps_bg_std_dev}},
-#' \code{\link{ps_hits_score}}, \code{\link{ps_hits_pos}}
-#'
-#' @details
-#' The x-axis represents the distances between corresponding hits: positive
-#' values indicate that M1 is positioned upstream in respect to M2, whereas
-#' negative values indicate that it is downstream to M2. The y-axis represents
-#' the density of those distances, and a dashed line marks the mode.
-#'
-#' Hit positions are shifted by half of the motif length (i.e., `ncol(M1)/2`
-#' and `ncol(M2)/2`) before distances are computed, so distances are centered
-#' on the motif midpoint.
-#'
-#' This function uses example datasets located in the `extdata/` directory for
-#' demonstration purposes only. These files are not part of the core data used
-#' by the function. They can be accessed using `system.file()` as shown in the
-#' examples.
-#'
-#' @examples
-#' # Load the promoter sequences for hg38 (Homo sapiens), promoter regions:
-#' # -200 +50 bp in respect to the TSS.
-#' file_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
-#' prom_seq <- readRDS(file_path)[1:10]
-#'
-#' # Build a two-motif background from bundled files.
-#' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-#' matrices <- readRDS(matrix_path)
-#' bg_path <- system.file(
-#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-#'   package = "PscanR"
-#' )
-#' background <- ps_retrieve_bg_from_file(bg_path, matrices)
-#' background <- background[c("MA0506.1", "MA0632.2")]
-#'
-#' results <- pscan(prom_seq, background,
-#'   BPPARAM = BiocParallel::SerialParam()
-#' )
-#'
-#' ps_density_distances_plot(results[[1]], results[[2]], "all", "loose")
-#' @export
-ps_density_distances_plot <- function(M1, M2, st1 = ps_bg_avg(M1),
-                                        st2 = ps_bg_avg(M2),
-                                        window = NULL, bins = NULL) {
-    if (!is(M1, "PSMatrix") || !is(M2, "PSMatrix")) {
-    stop("Both object must be of class PSMatrix")
-    }
-
-    st1 <- .ps_resolve_threshold(st1, M1, "st1")
-    st2 <- .ps_resolve_threshold(st2, M2, "st2")
-    distances <- .ps_hit_distances(M1, M2, st1, st2)
-    density_distances <- .ps_bounded_density(distances, window)
-
-    # The count is the point of the title as much as the names are: a distance
-    # needs a retained hit for both motifs, so raising either threshold can
-    # leave the plot resting on far fewer promoters than were scanned.
-    .ps_density_ggplot(
-    density_distances,
-    title = paste(
-        M1@name, "binding site distance relative to", M2@name,
-        "across", length(distances), "promoter regions"
-    ),
-    xlab = "Distances between the identified sites",
-    values = distances, bins = bins
-    )
-}
-
 #' Structural Class of Each Motif
 #'
 #' Returns the structural class of the transcription factor behind each motif,
@@ -1489,7 +1476,7 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 # character vector aligned with the table rows (or NULL).
 .ps_barplot_inputs <- function(pfms, group) {
     if (is(pfms, "PFMatrixList")) {
-    res_table <- ps_results_table(pfms)
+    res_table <- .ps_results_table_core(pfms)
     grouping <- .ps_resolve_group(group, pfms, row.names(res_table))
     return(list(table = res_table, grouping = grouping))
     }
@@ -1572,7 +1559,9 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 #'    drawn as panels sharing both axes.
 #' @param shift Integer positional shift applied to hit positions, to place
 #'    them relative to the TSS. Default `0`.
-#'
+#' @param alpha,size Point opacity and point size. Left `NULL`, both are scaled
+#'    from the number of promoters so that a large scan stays readable; supply
+#'    either to override that.
 #'
 #' @return A `ggplot` object.
 #'
@@ -1590,6 +1579,14 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 #' the score distribution and horizontal structure is the positional one. A
 #' motif whose strong sites are positionally constrained shows points banking
 #' into one region above the upper line while the weak sites stay spread out.
+#'
+#' Every promoter is drawn, whatever the size of the scan: nothing is
+#' subsampled and nothing is binned, so the figure keeps meaning one point per
+#' promoter. Opacity and point size are instead scaled from the number of
+#' promoters, interpolated between the values that suit a few hundred points
+#' and ones that survive tens of thousands, so that a large scan reads as
+#' density rather than as solid blocks of colour. `alpha` and `size` override
+#' that scaling.
 #'
 #' @seealso \code{\link{ps_density_plot}}, \code{\link{ps_hitpos_map}}
 #'
@@ -1610,7 +1607,7 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 #' results <- pscan(prom_seq, bg, BPPARAM = BiocParallel::SerialParam())
 #'
 #' ps_hit_score_plot(results, shift = -200)
-ps_hit_score_plot <- function(x, shift = 0) {
+ps_hit_score_plot <- function(x, shift = 0, alpha = NULL, size = NULL) {
     motifs <- if (is(x, "PFMatrixList")) {
     as.list(x)
     } else if (is(x, "PSMatrix")) {
@@ -1640,6 +1637,18 @@ ps_hit_score_plot <- function(x, shift = 0) {
     motif_names <- vapply(motifs, name, character(1L))
     points$motif <- factor(points$motif, levels = unique(motif_names))
 
+    # Panels share one aesthetic, so the busiest panel sets it. The scale runs
+    # from the values that suit a few hundred points to ones that survive tens
+    # of thousands, interpolated on a log scale between 1e3 and 2e4 promoters.
+    busiest <- max(table(points$motif))
+    crowding <- min(1, max(0, log10(busiest / 1e3) / log10(2e4 / 1e3)))
+    if (is.null(alpha)) {
+    alpha <- 0.55 * (1 - crowding) + 0.06 * crowding
+    }
+    if (is.null(size)) {
+    size <- 0.9 * (1 - crowding) + 0.35 * crowding
+    }
+
     references <- data.frame(
     motif = factor(motif_names, levels = unique(motif_names)),
     loose = vapply(motifs, ps_bg_avg, numeric(1L)),
@@ -1661,7 +1670,7 @@ ps_hit_score_plot <- function(x, shift = 0) {
     ) +
     ggplot2::geom_point(
         ggplot2::aes(colour = .data$band),
-        size = 0.9, alpha = 0.55
+        size = size, alpha = alpha
     ) +
     ggplot2::scale_colour_manual(
         values = stats::setNames(

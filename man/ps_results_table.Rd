@@ -85,3 +85,7 @@ results <- pscan(prom_seq, background,
 ps_results_table(results, FDR = 0.1)
 
 }
+\seealso{
+\code{\link{pscan}}, whose "Foreground size" section explains why a
+   foreground that is a large share of the background weakens the statistic.
+}

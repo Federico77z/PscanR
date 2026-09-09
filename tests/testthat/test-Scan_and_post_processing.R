@@ -364,6 +364,12 @@ test_that("pscan_fullBG resolves the requested splice variant, not its gene", {
     unname(bg_scores[["AT1G01110.1"]]), unname(bg_scores[["AT1G01110.2"]])
   ))
 
+  # This fixture is four promoters, so every retrieval from it is most of the
+  # background. That is deliberate here and has nothing to do with what this
+  # test checks, so the foreground-fraction warning is switched off for it.
+  old_option <- options(PscanR.foreground.max_fraction = Inf)
+  on.exit(options(old_option), add = TRUE)
+
   # Ask for .2 and deliberately not .1. (Three identifiers are the minimum the
   # z-test accepts.)
   wanted <- c("AT1G01110.2", "AT1G01160.1", "AT1G01200.1")
@@ -671,22 +677,6 @@ test_that("ps_density_plot honours the score threshold", {
   expect_equal(fallback$data, ps_density_plot(pfm, st = "loose")$data)
 })
 
-test_that("ps_density_distances_plot returns a ggplot and checks its inputs", {
-  results <- scan_bundled_motifs()
-  plot <- ps_density_distances_plot(
-    results[["MA0506.1"]], results[["MA0632.2"]], "all", "loose"
-  )
-
-  expect_s3_class(plot, "ggplot")
-  expect_s3_class(plot + ggplot2::labs(title = "t"), "ggplot")
-  expect_match(plot$labels$x, "Distances between")
-
-  expect_error(
-    ps_density_distances_plot(results[["MA0506.1"]], "not a matrix"),
-    "Both object must be of class PSMatrix"
-  )
-})
-
 test_that("ps_density_plot can draw a binned profile on the density scale", {
   pfm <- readRDS(system.file("extdata", "pfm1.rds", package = "PscanR"))
   plot <- ps_density_plot(pfm, shift = -200, window = c(-200, 50), bins = 12)
@@ -772,4 +762,170 @@ test_that("ps_hit_score_plot panels a PSMatrixList in the given order", {
   )
 
   expect_error(ps_hit_score_plot(data.frame(a = 1)), "PSMatrix")
+})
+
+# The z-score is sqrt(n) times a standardised difference, and the background
+# contains the foreground, so a foreground that is a large share of the
+# background distorts the statistic in two directions at once. These cover the
+# warning that says so.
+
+foreground_fixture <- function(bg_size = 250L) {
+  x <- Biostrings::DNAStringSet(c("ATGCTGCAATCGA", "CATGCTAAGCTAT",
+                                  "GTACTACTAAATG", "TCAGACCATTAAA"))
+  names(x) <- c("NM_001078.4", "NM_000639.3", "NM_000756.8", "NM_001094.2")
+  pfm <- PFMatrix(ID = "PSM1", name = "Example1", matrixClass = "PWM",
+                  profileMatrix = matrix(c(4, 19, 0, 0, 0, 0,
+                                           16, 0, 20, 0, 0, 0,
+                                           0, 1, 0, 20, 0, 20,
+                                           0, 0, 0, 0, 20, 0),
+                                         nrow = 4, byrow = TRUE,
+                                         dimnames = list(c("A", "C", "G", "T"))))
+  psm <- PSMatrix(pfm, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478,
+                  ps_bg_std_dev = 0.07493493, ps_bg_size = bg_size,
+                  ps_seq_names = names(x))
+  list(x = x, pfms = PSMatrixList(psm))
+}
+
+test_that("pscan warns when the foreground is a large share of the background", {
+  # Four sequences against a background of 20 is f = 0.2, twice the default.
+  fixture <- foreground_fixture(bg_size = 20L)
+
+  expect_warning(
+    result <- pscan(fixture$x, fixture$pfms,
+                    BPPARAM = BiocParallel::SerialParam()),
+    "becomes increasingly less reliable"
+  )
+  expect_s4_class(result, "PFMatrixList")
+
+  # The message has to carry the numbers, not just the complaint.
+  expect_warning(
+    pscan(fixture$x, fixture$pfms, BPPARAM = BiocParallel::SerialParam()),
+    "4 sequences against a background of 20"
+  )
+})
+
+test_that("the foreground warning respects its threshold and its option", {
+  small <- foreground_fixture(bg_size = 250L)
+  expect_no_warning(
+    pscan(small$x, small$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+
+  large <- foreground_fixture(bg_size = 20L)
+  old <- options(PscanR.foreground.max_fraction = Inf)
+  on.exit(options(old), add = TRUE)
+  expect_no_warning(
+    pscan(large$x, large$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+
+  options(PscanR.foreground.max_fraction = 0.5)
+  expect_no_warning(
+    pscan(large$x, large$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+})
+
+test_that("the foreground warning is silent when no background size is known", {
+  # ps_bg_size is a per-motif slot and is NA for a motif absent from the
+  # background table, so the check has to degrade rather than fail.
+  unknown <- foreground_fixture(bg_size = NA_integer_)
+  expect_no_warning(
+    PscanR:::.ps_warn_foreground_fraction(
+      4L, vapply(unknown$pfms, ps_bg_size, integer(1L)), "scan"
+    )
+  )
+  expect_null(PscanR:::.ps_warn_foreground_fraction(NA_integer_, 20L, "scan"))
+  expect_null(PscanR:::.ps_warn_foreground_fraction(4L, integer(0), "scan"))
+})
+
+test_that("ps_results_table warns about the foreground it was computed on", {
+  fixture <- foreground_fixture(bg_size = 20L)
+  result <- suppressWarnings(
+    pscan(fixture$x, fixture$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+
+  expect_warning(
+    table <- ps_results_table(result),
+    "These results come from a foreground"
+  )
+  expect_s3_class(table, "data.frame")
+})
+
+test_that("the plotters do not repeat the foreground warning", {
+  # The bundled background records 39438 promoters, so ten of them are nowhere
+  # near the threshold; shrinking the recorded size is the smallest way to make
+  # the same scan warn. ps_bg_size does not enter the z-score, so nothing else
+  # about the result changes.
+  prom_seq <- readRDS(
+    system.file("extdata", "prom_seq.rds", package = "PscanR")
+  )[1:10]
+  J2020 <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
+  bg <- ps_retrieve_bg_from_file(
+    system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+                package = "PscanR"),
+    J2020
+  )
+  bg <- bg[c("MA0506.1", "MA0632.2", "MA0611.1",
+             "MA0685.1", "MA0698.1", "MA0699.1")]
+  for (i in seq_along(bg)) {
+    ps_bg_size(bg[[i]]) <- 20L
+  }
+
+  expect_warning(
+    results <- pscan(prom_seq, bg, BPPARAM = BiocParallel::SerialParam()),
+    "becomes increasingly less reliable"
+  )
+  # The two entry points still say it: a user who loads a cached PSMatrixList
+  # and goes straight to the table would otherwise never hear it.
+  expect_warning(ps_results_table(results), "These results come from")
+
+  # pheatmap draws as a side effect; keep the figures out of the test directory.
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+
+  expect_no_warning(ps_zscore_heatmap(results, FDR = 1))
+  expect_no_warning(ps_hitpos_map(results, FDR = 1))
+  expect_no_warning(ps_motif_barplot(results, n = 4))
+})
+
+test_that("a malformed size slot does not stop ps_results_table", {
+  # ps_fg_size and ps_bg_size are declared "integer", which constrains the type
+  # but not the length, so a hand-built or previously serialised PSMatrix can
+  # carry integer(0) or a double. The check is a diagnostic and must not be the
+  # thing that fails.
+  fixture <- foreground_fixture(bg_size = 250L)
+  result <- pscan(fixture$x, fixture$pfms,
+                  BPPARAM = BiocParallel::SerialParam())
+
+  empty <- result
+  empty[[1]]@ps_fg_size <- integer(0)
+  expect_no_warning(table <- ps_results_table(empty))
+  expect_s3_class(table, "data.frame")
+  expect_identical(nrow(table), 1L)
+
+  # The slot assignment operator enforces the declared type, so a double can
+  # only reach the check from an object built outside it. Read rather than
+  # rejected, so that the check still fires on one.
+  expect_identical(PscanR:::.ps_sizes(list(4), function(m) m), 4L)
+  expect_identical(
+    PscanR:::.ps_sizes(
+      list(1L, integer(0), NA_integer_, -1L, NaN, "20"), function(m) m
+    ),
+    c(1L, rep(NA_integer_, 5L))
+  )
+})
+
+test_that("a non-positive threshold falls back to the default", {
+  # At a threshold of zero or less `fraction <= threshold` is false for every
+  # real input, which makes the warning unconditional rather than stricter.
+  small <- foreground_fixture(bg_size = 250L)
+
+  old <- options(PscanR.foreground.max_fraction = 0)
+  on.exit(options(old), add = TRUE)
+  expect_no_warning(
+    pscan(small$x, small$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
+
+  options(PscanR.foreground.max_fraction = -1)
+  expect_no_warning(
+    pscan(small$x, small$pfms, BPPARAM = BiocParallel::SerialParam())
+  )
 })

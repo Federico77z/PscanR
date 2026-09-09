@@ -28,6 +28,139 @@ test_that("ps_load_select_transcripts returns cached metadata offline", {
   )
 })
 
+test_that("ps_load_select_transcripts refetches a pre-rename cache", {
+  # Caches written before transcript identifiers became scheme-aware carry
+  # refseq_id/refseq_clean/select_gene_symbol. Returned unchecked they were
+  # rejected much later, inside ps_select_promoters(), as a table with no
+  # 'transcript_base' or 'transcript_id'.
+  cache_dir <- tempfile("pscanr-stale-")
+  dir.create(cache_dir)
+  on.exit(unlink(cache_dir, recursive = TRUE), add = TRUE)
+
+  cache_file <- file.path(
+    cache_dir,
+    "hg38_mane_refseq_select_transcripts.rds"
+  )
+  saveRDS(
+    data.frame(
+      refseq_id = "NM_000546.6",
+      refseq_clean = "NM_000546",
+      select_gene_symbol = "TP53",
+      selection_source = "MANE Select",
+      selection_priority = 1L
+    ),
+    cache_file
+  )
+
+  fresh <- data.frame(
+    transcript_id = "NM_000492.4",
+    transcript_base = "NM_000492",
+    gene_symbol = "CFTR",
+    selection_source = "MANE Select",
+    selection_priority = 1L
+  )
+  local_mocked_bindings(
+    .ps_mane_select_transcripts = function() fresh,
+    .ps_refseq_select_transcripts = function() fresh[0, ],
+    .package = "PscanR"
+  )
+
+  expect_warning(
+    loaded <- ps_load_select_transcripts(cache_dir = cache_dir),
+    "predates the switch to scheme-aware identifiers"
+  )
+  expect_identical(loaded, fresh)
+  # The stale file is replaced, so the warning fires once and not forever.
+  expect_true(
+    all(c("transcript_id", "transcript_base") %in% names(readRDS(cache_file)))
+  )
+})
+
+test_that("ps_load_select_transcripts refetches an unreadable cache", {
+  cache_dir <- tempfile("pscanr-corrupt-")
+  dir.create(cache_dir)
+  on.exit(unlink(cache_dir, recursive = TRUE), add = TRUE)
+
+  cache_file <- file.path(
+    cache_dir,
+    "hg38_mane_refseq_select_transcripts.rds"
+  )
+  writeLines("not an rds file", cache_file)
+
+  fresh <- data.frame(
+    transcript_id = "NM_000492.4",
+    transcript_base = "NM_000492",
+    gene_symbol = "CFTR",
+    selection_source = "MANE Select",
+    selection_priority = 1L
+  )
+  local_mocked_bindings(
+    .ps_mane_select_transcripts = function() fresh,
+    .ps_refseq_select_transcripts = function() fresh[0, ],
+    .package = "PscanR"
+  )
+
+  expect_warning(
+    loaded <- ps_load_select_transcripts(cache_dir = cache_dir),
+    "Ignoring unusable cached select transcripts"
+  )
+  expect_identical(loaded, fresh)
+})
+
+test_that(".ps_ucsc_track_by_chrom errors rather than degrading", {
+  payload <- function(rows) {
+    list(mane = rows)
+  }
+  valid <- data.frame(
+    ncbiId = "NM_000546.6",
+    geneName2 = "TP53",
+    maneStat = "MANE Select",
+    stringsAsFactors = FALSE
+  )
+
+  # (a) a valid payload on every chromosome.
+  local_mocked_bindings(
+    fromJSON = function(...) payload(valid),
+    .package = "jsonlite"
+  )
+  tbl <- .ps_ucsc_track_by_chrom("mane", c("maneStat", "ncbiId", "geneName2"))
+  expect_s3_class(tbl, "data.frame")
+  expect_identical(nrow(tbl), 24L)
+
+  # (b) an empty response: previously a bare data.frame() with no columns,
+  # which failed later inside data.frame() with a row-count message.
+  local_mocked_bindings(
+    fromJSON = function(...) list(mane = NULL),
+    .package = "jsonlite"
+  )
+  expect_error(
+    .ps_ucsc_track_by_chrom("mane", c("maneStat", "ncbiId", "geneName2")),
+    "UCSC returned no 'mane' table"
+  )
+
+  # (c) a renamed column: previously undetected until the field read as NULL.
+  renamed <- valid
+  names(renamed)[names(renamed) == "ncbiId"] <- "ncbiAcc"
+  local_mocked_bindings(
+    fromJSON = function(...) payload(renamed),
+    .package = "jsonlite"
+  )
+  expect_error(
+    .ps_ucsc_track_by_chrom("mane", c("maneStat", "ncbiId", "geneName2")),
+    "missing the column 'ncbiId'"
+  )
+
+  # A request that fails names the track and chromosome.
+  local_mocked_bindings(
+    fromJSON = function(...) stop("connection refused"),
+    .package = "jsonlite"
+  )
+  expect_error(
+    .ps_ucsc_track_by_chrom("mane"),
+    "Could not retrieve UCSC track 'mane' for chr1"
+  )
+})
+
 test_that("ps_select_promoters ranks select transcripts before fallback", {
   annotation <- data.frame(
     SYMBOL = c(
