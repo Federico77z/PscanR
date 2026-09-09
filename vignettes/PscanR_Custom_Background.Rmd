@@ -316,7 +316,23 @@ to `r round(fullbg$size_bytes / 1024)` KB; scaling that by matrix count puts all
 `r verification$motif_count` at roughly `r full_bg_all_mb` MB for yeast, and far
 more for a vertebrate. For this reason, no FullBG is shipped with the package.
 
-A full background is stored in a standard `.rds` file rather than a `.txt` one.
+## Writing it out, and reading it back
+
+A full background is a whole `PSMatrixList`, hits included, so it is kept as an
+`.rds` file rather than the three-column `.txt` that `ps_write_bg_to_file()`
+writes: that format carries only the size, mean and standard deviation of each
+matrix, which is enough for `pscan()` and not enough for `pscan_fullBG()`.
+
+```{r save-full, eval=FALSE}
+saveRDS(full_bg, "sacCer3_950u_50d_fullBG_15motifs.rds", compress = "xz")
+```
+
+`compress = "xz"` is worth its extra time on an object of this kind: it is the
+compression the sizes above refer to, and it roughly halves the file against the
+default gzip.
+
+Reading it back returns the object as it was scanned, hits and legend included,
+and it is that object the next section queries.
 
 ```{r load-full}
 full_bg <- readRDS(fixture("sacCer3_950u_50d_fullBG_15motifs.rds"))
@@ -429,10 +445,16 @@ background <- ps_retrieve_bg_from_file("my_background.txt", motifs)
 
 # Optionally, keep the scan as well, and query it by identifier.
 full_bg <- ps_build_bg(prom_seq, motifs, fullBG = TRUE)
+saveRDS(full_bg, "my_full_background.rds", compress = "xz")
+full_bg <- readRDS("my_full_background.rds")
 
 # The identifiers of the genes of interest, in the scheme the background
-# uses.
-my_gene_ids <- readLines("my_gene_ids.txt")
+# uses. These usually come from an experiment, one per line in a file read
+# with readLines(); here they are the cytoplasmic ribosomal protein genes,
+# named as SGD systematic names because that is what the promoters above
+# are named.
+gene_names <- unlist(as.list(org.Sc.sgd.db::org.Sc.sgdGENENAME))
+my_gene_ids <- names(gene_names)[grepl("^RP[LS][0-9]", gene_names)]
 
 ps_results_table(pscan_fullBG(my_gene_ids, full_bg))
 ```
