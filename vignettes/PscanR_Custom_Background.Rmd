@@ -90,11 +90,10 @@ The example reconstructs an existing catalogue entry for *Saccharomyces
 cerevisiae*, using promoters from −950 to +50 bp relative to the transcription
 start site (TSS). This permits comparison with the published background.
 
-The bundled timing and verification results were generated with `run_ucbg.R`
-in the developers' local `UseCase/UC_Background/` analysis directory. This
-directory is separate from the package repository and is not distributed with
-PscanR. The code below documents the construction procedure; expensive or
-externally dependent steps are not evaluated during vignette compilation.
+The bundled timing and verification results were generated using the developers'
+computational environment. The code below documents the construction procedure; 
+expensive or externally dependent steps are not evaluated during vignette 
+compilation.
 
 The yeast example permits a relatively short demonstration. In the recorded
 run, background construction took
@@ -286,10 +285,9 @@ decimal places in this comparison.
 
 Floating-point arithmetic and text serialisation can introduce small numerical
 differences. Agreement to ten decimal places is the criterion used for this
-verification, not a guarantee of exact equality across platforms. Such
-differences can propagate to z-scores and p-values, so exact reproducibility
-requires using the same archived background and documenting the software
-environment.
+verification, not a guarantee of exact byte-equality across platforms. Those tiny 
+differences across platforms are usually negligible and do not impact PscanR 
+results in any meaningful way. 
 
 # Part B: Building and querying a full background
 
@@ -326,28 +324,25 @@ full_bg <- ps_build_bg(
 input names. Deduplicating beforehand prevents the function from retaining
 identifiers associated with the removed duplicate sequences.
 
-**Storage requirements.** Full backgrounds can require several gigabytes. The
-bundled yeast demonstration contains `r length(fullbg$motifs)` matrices and
-occupies approximately `r round(fullbg$size_bytes / 1024)` KiB. Linear
+**Storage requirements.** Full backgrounds can use sizeable storage up to hundreds 
+of megabytes depending on the number of promoters and matrices. 
+The bundled yeast demonstration contains `r length(fullbg$motifs)`
+matrices and occupies approximately `r round(fullbg$size_bytes / 1024)` KiB. Linear
 extrapolation by matrix count gives approximately `r full_bg_all_mb` MiB for
-all `r verification$motif_count` yeast matrices; this is an estimate rather
-than a measured file size. Complete full-background collections are not
-bundled with the package, but small demonstration objects are included.
+all `r verification$motif_count` yeast matrices. Complete full-background 
+collections are not maintaned nor bundled with the package.
 
 ## Saving and reloading a full background
 
 Save a full background as an `.rds` file to preserve its `PSMatrixList`, hits,
-and identifier legend. The text format written by `ps_write_bg_to_file()`
-contains only the matrix identifier and three summary statistics; it cannot
-store the individual hits required by `pscan_fullBG()`.
+and identifier legend. 
 
 ```{r save-full, eval=FALSE}
 saveRDS(full_bg, "sacCer3_950u_50d_fullBG_15motifs.rds", compress = "xz")
 ```
 
 The reported file sizes use `compress = "xz"`. This compression method can
-reduce storage requirements at the cost of additional compression time; the
-benefit relative to gzip depends on the object.
+reduce storage requirements at the cost of additional compression time.
 
 Reloading restores the hits and legend used in the following foreground query.
 
@@ -388,7 +383,7 @@ RAP1 is the highest-ranked motif, with a z-score of
 collection. The displayed table reports both nominal and adjusted p-values.
 
 
-This workflow requires identifier lookup and retrieval of stored hits for each
+This workflow performs identifier lookup and retrieval of stored hits for each
 query, followed by enrichment calculation. It avoids promoter extraction and
 DNA rescanning. Query identifiers must match the background legend; gene
 symbols cannot be substituted unless they are the identifiers used by that

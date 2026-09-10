@@ -41,8 +41,7 @@ PscanR identifies transcription factor binding motifs enriched in regulatory
 sequences. Promoters of co-expressed or co-regulated genes are scanned with a
 collection of motif matrices, and their mean best-match scores are compared
 with those of a reference promoter population. Enriched motifs suggest
-candidate regulators; sequence matches alone do not establish binding or
-regulatory activity.
+candidate regulators.
 
 PscanR provides access to precomputed backgrounds for five model organisms:
 human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR annotation),
@@ -67,11 +66,8 @@ the *Arabidopsis* gynoecium.
 The input is a two-column table containing gene identifiers and directions of
 expression change.
 
-The bundled example data were generated with `run_uc4_pscan.R` in the
-developers' local `UseCase/UC4_Arabidopsis_TransmittingTract/` analysis
-directory. This directory is separate from the package repository and is not
-distributed with PscanR. The examples below use the bundled results to avoid
-network access and repeated genome-wide sequence extraction.
+The examples below use bundled results to avoid network access and repeated 
+genome-wide sequence extraction.
 
 ```{r read-gene-sets}
 gene_sets <- read.delim(
@@ -566,8 +562,7 @@ knitr::kable(
 The GA-rich BPC and RAMOSA1 motifs have the highest ranks after selection by
 BPC6 score. G-box-associated bZIP and bHLH motifs are absent from the leading
 results shown here, which instead include C2H2 and Dof motifs. This change is
-consistent with different sequence properties in the BPC6-selected subset;
-it does not establish factor occupancy in those promoters.
+consistent with different sequence properties in the BPC6-selected subset.
 
 Filtering provides a way to examine subsets of a heterogeneous foreground.
 Because selection is based on a motif score, enrichment of that motif and
@@ -633,8 +628,7 @@ approximately equal to nominal p-values multiplied by 530, with listed values
 below 0.1.
 The overlap of 164 out of 168 therefore refers to the reproduction's
 Bonferroni criterion, `p * 530 < 0.1`, chosen to match those deposited values;
-it is not the count obtained from the default PscanR `FDR` column. Comparisons
-must state both the correction method and threshold explicitly.
+it is not the count obtained from the default PscanR `FDR` column. 
 
 # Session information
 

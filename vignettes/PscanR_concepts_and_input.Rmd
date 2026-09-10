@@ -36,9 +36,7 @@ sequence motif enrichment. It identifies transcription
 factors (TFs) that are potential regulators of a set of co-regulated or
 co-expressed genes. By scanning input sequences (e.g., promoters) against a
 database of known TF binding motifs, PscanR tests for motif enrichment and
-reports candidate binding sites. Negative z-scores indicate lower mean scores
-than the background; the reported upper-tail p-values test enrichment, not
-depletion. Motif matches alone do not establish transcription factor binding.
+reports candidate binding sites. 
 
 ## Workflow overview
 
@@ -60,9 +58,7 @@ statistics stored in a `PSMatrixList` object.
 PscanR treats the input sequences as a sample from a defined reference
 population, usually the annotated promoters of the species under investigation.
 This reference population supplies the background model for statistical
-analyses. The choice of this reference population affects interpretation;
-using all annotated promoters does not eliminate sequence-composition or
-gene-selection biases.
+analyses. 
 
 Because the background is the distribution of scores over the whole promoter
 universe, the foreground and the background must describe the *same* kind of
