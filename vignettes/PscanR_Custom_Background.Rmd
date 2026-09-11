@@ -69,59 +69,63 @@ pct_cerevisiae <- round(100 * n_cerevisiae / length(is_cerevisiae))
 
 # Overview
 
-The PscanR package ships a collection of precomputed background sets for five model
-organisms: human, mouse and fruit fly (RefSeq annotation), Arabidopsis (TAIR
-annotation), and yeast (SGD annotation).
+PscanR provides access to precomputed backgrounds for five model organisms:
+human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR annotation),
+and yeast (SGD annotation).
 
- `get_availableBG()` lists them:
+`get_availableBG()` lists the available resources:
 
 ```{r available}
 head(get_availableBG(), 4)
 ```
 
-This vignette describes how to build a custom background. Custom backgrounds 
-are useful for cases when:
+This vignette describes custom background construction. A custom background is
+required when the catalogue does not include the desired:
 
-- **an organism is not in the catalogue**;
-- **a promoter window is not in the catalogue**.
+- organism or reference annotation;
+- promoter window;
+- motif collection.
 
-This vignette intentionally rebuilds one of the backgrounds that already exists 
-in the shipped catalogue so that they *can* be compared for consistency: 
-*Saccharomyces cerevisiae -950/+50*.
+The example reconstructs an existing catalogue entry for *Saccharomyces
+cerevisiae*, using promoters from −950 to +50 bp relative to the transcription
+start site (TSS). This permits comparison with the published background.
 
-Every timing and verification figure quoted below was produced by `run_ucbg.R`,
-which is kept in `UseCase/UC_Background/` of the PscanR source repository rather
-than shipped with the package, because it requires network access and rebuilds
-the whole background.
+The bundled timing and verification results were generated using the developers'
+computational environment. The code below documents the construction procedure; 
+expensive or externally dependent steps are not evaluated during vignette 
+compilation.
 
-Yeast also keeps the demonstration short. On our server the whole build was
+The yeast example permits a relatively short demonstration. In the recorded
+run, background construction took
 `r round(timing_of(timings_1core, "background_short"))` seconds on one core, for
 `r format(verification$promoter_count, big.mark = ",")` promoters and
-`r verification$motif_count` matrices; the same demonstration on human promoters
-would be roughly 25 times that.
+`r verification$motif_count` matrices. Runtime for other organisms depends on
+the number and length of promoters, the motif collection, and the hardware.
 
-# Part A: build a background
+# Part A: Building a standard background
 
 ## The promoters
 
-A background is build from a set of sequences and a set of motif matrices. 
-The sequences here are every promoter in the organism, defined exactly as the foreground promoters will later be defined: **−950 to +50 around the transcription start site**.
+A background is constructed from reference sequences and motif matrices. Here,
+the reference comprises annotated nuclear promoters, defined using the same
+window as the intended foreground: **−950 to +50 bp relative to the TSS**.
 
-Three decisions are made here about the reference:
+The reference is specified by three components:
 
-1. **the annotation**, UCSC's `sgdGene` table, here through the
+1. **Annotation:** UCSC's `sgdGene` table, provided by the
    `TxDb.Scerevisiae.UCSC.sacCer3.sgdGene` package, whose version records
-   *which* release was used;
-2. **the genome**, `BSgenome.Scerevisiae.UCSC.sacCer3`, whose chromosome names
+   the annotation release used;
+2. **Genome:** `BSgenome.Scerevisiae.UCSC.sacCer3`, whose chromosome names
    must agree with the annotation's;
-3. **the window**, 950 upstream and 50 downstream.
+3. **Window:** 950 bp upstream and 50 bp downstream of the TSS.
 
-Of course, changing the reference will give different background measures, but 
-usually slight updates in the gene annotation have minimal impact.
+Changes to the assembly or annotation can alter promoter sequences and
+background statistics. Record the reference versions and use a consistent
+promoter definition for foreground and background.
 
 ```{r promoters, eval=FALSE}
 
-# UCSC's sgdGene table, packaged and versioned. 
+# UCSC's sgdGene table, packaged and versioned.
 txdb <- TxDb.Scerevisiae.UCSC.sacCer3.sgdGene::TxDb.Scerevisiae.UCSC.sacCer3.sgdGene
 
 # The background covers the 16 nuclear chromosomes.
@@ -135,8 +139,8 @@ ranges <- GenomicRanges::promoters(tx, upstream = 950, downstream = 50)
 
 genome <- BSgenome.Scerevisiae.UCSC.sacCer3::BSgenome.Scerevisiae.UCSC.sacCer3
 
-# A promoter running off the end of its chromosome cannot be read, and getSeq()
-# would stop rather than skip it.
+# Exclude out-of-bounds ranges before sequence extraction; getSeq() otherwise
+# raises an error.
 lengths <- GenomeInfoDb::seqlengths(genome)[
     as.character(GenomicRanges::seqnames(ranges))
 ]
@@ -148,22 +152,28 @@ prom_seq <- Biostrings::getSeq(genome, ranges)
 names(prom_seq) <- names(ranges)
 ```
 
-That gives `r format(verification$transcript_count, big.mark = ",")`
-promoters, that is one per transcript.
+This produces `r format(verification$transcript_count, big.mark = ",")`
+promoter sequences, one per retained transcript.
 
-It is *not recommended* to drop duplicated (i.e. from transcripts sharing the same 
-TSS), incomplete or partially sequenced promoters  since
-the `ps_build_bg()` function will do the tidying itself,
-dropping promoters that repeat one already in the set, promoters that are not
-the full window, and promoters more than half unsequenced. 
+Retain the original sequence names and duplicate sequences when passing the
+extracted promoters to `ps_build_bg()`. The function deduplicates sequences,
+retains those of the maximum supplied length, and removes those with more
+than 50% ambiguous `N` bases. Supply the intended full-length promoter window;
+the function does not infer it from genomic coordinates.
+Preserving names before deduplication is particularly important for full
+backgrounds, where the identifier mapping must retain equivalent transcripts.
+Out-of-bounds genomic ranges must still be excluded before sequence extraction,
+as shown above.
 
-The count that ends up in the file is what survived: the number of **distinct** promoters,
-`r format(verification$promoter_count, big.mark = ",")` here.
+The background size is the number of distinct promoter sequences remaining
+after these operations: `r format(verification$promoter_count, big.mark = ",")`
+in this example.
 
 ## The matrices
 
-Any `PFMatrixList` (see the TFBSTools package for details) will do. 
-The shipped backgrounds use JASPAR CORE, restricted to the taxonomic group of the organism.
+Supply the motif collection as a `PFMatrixList`, as defined by TFBSTools. The
+catalogued backgrounds use JASPAR CORE matrices restricted to the organism's
+taxonomic group.
 
 ```{r matrices}
 motifs <- TFBSTools::getMatrixSet(
@@ -175,9 +185,9 @@ length(motifs)
 
 ## Building a standard background
 
-`ps_build_bg()` scans every sequence with every matrix, keeps the best-scoring
-window per sequence per matrix, and reduces those to a mean and a standard
-deviation.
+`ps_build_bg()` retains the best-scoring window for each promoter–motif pair,
+considering both strands. It then computes the background mean and standard
+deviation of these scores and records the number of retained promoters.
 
 ```{r build, eval=FALSE}
 
@@ -199,21 +209,23 @@ build_timings$Speedup <- round(
 )
 knitr::kable(
     build_timings, digits = 1,
-    caption = "Build time in seconds, MulticoreParam on eight cores."
+    caption = "Background construction time in seconds, using one or eight cores."
 )
 ```
 
 Using eight cores (`BPPARAM` set to `BiocParallel::MulticoreParam(workers = 8)`)
-was `r build_speedup`× faster on the full collection on our server. 
-The gain scales with the size of the matrices collection, not with the promoter set.
+produced a `r build_speedup`-fold speedup for the full motif collection in the
+recorded run. Parallelism is distributed over motifs. Actual speedup also
+depends on promoter count and length, worker overhead, and available resources.
 
-## Writing it out, and reading it back
+## Saving and reloading a standard background
 
 ```{r write, eval=FALSE}
 ps_write_bg_to_file(background, "J2020_sacCer3_950u_50d_UCSC.rebuild.txt")
 ```
 
-This is the whole artefact:
+The following output shows the header, the first three motif records, and the
+file size in bytes:
 
 ```{r show-file}
 bg_file <- fixture("J2020_sacCer3_950u_50d_UCSC.rebuild.txt")
@@ -221,11 +233,12 @@ cat(readLines(bg_file, n = 4), sep = "\n")
 file.size(bg_file)
 ```
 
-A header line, then one row per matrix: identifier, number of promoters,
-mean score, standard deviation: standard PscanR backgrounds are small files.
+The text format contains a header followed by one row per matrix, with four
+fields: matrix identifier, promoter count, mean score, and score standard
+deviation. Storing summary statistics keeps standard background files small.
 
-`ps_retrieve_bg_from_file()` puts those numbers back onto the matrices they
-belong to, and returns the `PSMatrixList` that `pscan()` expects.
+`ps_retrieve_bg_from_file()` associates these statistics with the supplied
+matrices by identifier and returns a `PSMatrixList` for use with `pscan()`.
 
 ```{r read-back}
 background <- ps_retrieve_bg_from_file(bg_file, motifs)
@@ -233,15 +246,16 @@ background
 head(ps_get_bg_table(background), 3)
 ```
 
-The round trip closes here: `ps_get_bg_table()` returns exactly the three
-columns that were written.
+`ps_get_bg_table()` retrieves the three statistical columns from the reloaded
+object. Text serialisation preserves their values to the precision of the
+file format; it does not guarantee bit-for-bit equality with the original
+in-memory floating-point values.
 
-## The verification
+## Verification against the catalogue
 
-The background just built should carry the same numbers as the one the package
-ships for this combination, because it was built from the same annotation, the
-same genome, the same window and the same matrices. We here show the result 
-as obtained in the run on our server.
+The reconstructed and catalogued backgrounds use the same annotation, genome,
+promoter window, and matrices. The following table reports their agreement in
+the recorded verification run.
 
 
 ```{r verify-table}
@@ -266,37 +280,37 @@ knitr::kable(
 )
 ```
 
-Every matrix agrees on both statistics. Following the recipe in this order gives the
-catalogued numbers.
+All matrices agree in background size, and both score statistics agree to ten
+decimal places in this comparison.
 
-> Why ten decimal places and not the whole figure? How double precision numbers
-> are handled differs between platforms (e.g. Linux x64 or Apple Silicon)
-> leading to platform-dependent infinitesimal differences in the measured statistics.
-> Those differences are well past where the enrichment test used by PscanR (z-test) 
-> can notice and have no influence whatsoever on the enrichment results.
+Floating-point arithmetic and text serialisation can introduce small numerical
+differences. Agreement to ten decimal places is the criterion used for this
+verification, not a guarantee of exact byte-equality across platforms. Those tiny 
+differences across platforms are usually negligible and do not impact PscanR 
+results in any meaningful way. 
 
-# Part B: building a full background (fullBG), and querying it by identifier
+# Part B: Building and querying a full background
 
-A standard background file keeps just three numbers per matrix, which means the
-foreground has to be supplied as sequences: the promoters must be extracted
-separately, with the right window.
+A standard background stores three summary statistics per matrix. Foreground
+analysis therefore requires promoter sequences extracted using the matching
+reference and window.
 
-PscanR also supports the creation and use of much bulkier full backgrounds
-(fullBG). These allow a foreground to be scanned from identifiers alone rather
-than from sequences, and they make foreground scanning very fast almost
-independently of the number of promoters in the input. Their typical use case is
-a large number of foreground scans against the same background.
+PscanR also supports full backgrounds, built with `fullBG = TRUE`. These retain
+the per-promoter scan results, allowing subsequent foreground analyses to
+retrieve existing hits by identifier. This avoids repeated DNA scanning and is
+useful when analysing many gene sets against the same background.
 
-A fullBG retains, for every promoter and every matrix, the hit score, position,
-strand and matched oligonucleotide, and it builds a **legend** mapping every
-original sequence name to the representative kept after de-duplication.
+A full background retains the best-hit score, position, strand, and matched
+oligonucleotide for every retained promoter and matrix. Its identifier legend
+maps original sequence names to the representatives retained after
+deduplication.
 
-`pscan_fullBG()` then takes *transcript identifiers* as input where `pscan()`
-takes sequences.
+`pscan_fullBG()` accepts transcript identifiers matching this legend, retrieves
+the stored hits, and calculates foreground enrichment without rescanning DNA.
 
 ```{r build-full, eval=FALSE}
 
-# The fifteen matrices this vignette keeps, and why: input/fullbg_motifs.tsv.
+# The bundled fullbg_motifs.tsv records the fifteen selected matrices.
 subset_ids <- read.delim(fixture("fullbg_motifs.tsv"))$MATRIX
 
 full_bg <- ps_build_bg(
@@ -306,46 +320,46 @@ full_bg <- ps_build_bg(
 ```
 
 
-**Pass the sequences before de-duplication.** The legend is built from the names
-of the sequences passed in, so passing the de-duplicated set produces a legend
-that cannot resolve the names it dropped.
+**Pass sequences before deduplication.** The legend is constructed from the
+input names. Deduplicating beforehand prevents the function from retaining
+identifiers associated with the removed duplicate sequences.
 
-**Size.** A full background can generate a very large file (several gigabytes).  
-This one is deliberately restricted to `r length(fullbg$motifs)` matrices, which brings it
-to `r round(fullbg$size_bytes / 1024)` KB; scaling that by matrix count puts all
-`r verification$motif_count` at roughly `r full_bg_all_mb` MB for yeast, and far
-more for a vertebrate. For this reason, no FullBG is shipped with the package.
+**Storage requirements.** Full backgrounds can use sizeable storage up to hundreds 
+of megabytes depending on the number of promoters and matrices. 
+The bundled yeast demonstration contains `r length(fullbg$motifs)`
+matrices and occupies approximately `r round(fullbg$size_bytes / 1024)` KiB. Linear
+extrapolation by matrix count gives approximately `r full_bg_all_mb` MiB for
+all `r verification$motif_count` yeast matrices. Complete full-background 
+collections are not maintaned nor bundled with the package.
 
-## Writing it out, and reading it back
+## Saving and reloading a full background
 
-A full background is a whole `PSMatrixList`, hits included, so it is kept as an
-`.rds` file rather than the three-column `.txt` that `ps_write_bg_to_file()`
-writes: that format carries only the size, mean and standard deviation of each
-matrix, which is enough for `pscan()` and not enough for `pscan_fullBG()`.
+Save a full background as an `.rds` file to preserve its `PSMatrixList`, hits,
+and identifier legend. 
 
 ```{r save-full, eval=FALSE}
 saveRDS(full_bg, "sacCer3_950u_50d_fullBG_15motifs.rds", compress = "xz")
 ```
 
-`compress = "xz"` is worth its extra time on an object of this kind: it is the
-compression the sizes above refer to, and it roughly halves the file against the
-default gzip.
+The reported file sizes use `compress = "xz"`. This compression method can
+reduce storage requirements at the cost of additional compression time.
 
-Reading it back returns the object as it was scanned, hits and legend included,
-and it is that object the next section queries.
+Reloading restores the hits and legend used in the following foreground query.
 
 ```{r load-full}
 full_bg <- readRDS(fixture("sacCer3_950u_50d_fullBG_15motifs.rds"))
 TFBSTools::name(full_bg)
 ```
 
-## Example of scanning a foreground with a FullBG
+## Analysing a foreground by identifier
 
-Ribosomal protein genes are the textbook Rap1 target set in yeast.
+The foreground example uses yeast cytoplasmic ribosomal protein genes to
+illustrate retrieval of a promoter set expected to contain Rap1 motif matches.
 
-The gene set is `r fullbg$rp_total` cytoplasmic ribosomal protein genes, taken
-from `org.Sc.sgd.db` as standard names matching `^RP[LS][0-9]`, all
-`r fullbg$rp_used` of them present in the background.
+The set contains `r fullbg$rp_total` cytoplasmic ribosomal protein genes
+selected from `org.Sc.sgd.db` by standard names matching `^RP[LS][0-9]` and
+mapped to SGD systematic identifiers. The background contains
+`r fullbg$rp_used` of these identifiers.
 
 ```{r foreground}
 rp_promoters <- readRDS(fixture("rp_promoters.rds"))
@@ -357,55 +371,54 @@ length(rp_ids)
 by_legend <- pscan_fullBG(rp_ids, full_bg)
 ```
 
-The message names the identifier convention PscanR detected in the background.
+The message reports the identifier scheme detected in the background.
 
 ```{r fullbg-results}
 enrichment <- ps_results_table(by_legend)
 head(enrichment[, c("NAME", "ZSCORE", "P.VALUE", "FDR")], 5)
 ```
 
-RAP1 comes first, at *Z* = `r round(fullbg$top_zscore, 1)`, an order of magnitude
-above the next motif. SFP1, also reported on ribosomal protein promoters, is a
-distant second.
+RAP1 is the highest-ranked motif, with a z-score of
+`r round(fullbg$top_zscore, 1)`. SFP1 ranks second in this restricted motif
+collection. The displayed table reports both nominal and adjusted p-values.
 
 
-> What a FullBG buys is time and interface.
-> `pscan_fullBG()` reads hits that were computed once when the background was
-> built, so asking about a gene set costs a lookup in the legend and a subset of
-> the stored scores, whatever the size of the foreground. 
-> The input of a FullBG foreground scan is a list of gene identifiers, instead 
-> of having to reproduce the promoter extraction.
+This workflow performs identifier lookup and retrieval of stored hits for each
+query, followed by enrichment calculation. It avoids promoter extraction and
+DNA rescanning. Query identifiers must match the background legend; gene
+symbols cannot be substituted unless they are the identifiers used by that
+background. Here, the SGD systematic identifiers name the stored promoters.
 
 
-# Part C: a checklist for building a new background
+# Part C: Checklist for a new background
 
-In order:
+Record the following choices to support reproducibility:
 
 1. **Annotation source.** A packaged `TxDb` if Bioconductor ships one for the
    organism. Otherwise a UCSC table via `txdbmaker::makeTxDbFromUCSC()`, or a
    GFF/GTF via `txdbmaker::makeTxDbFromGFF()`; with those, record *which
-   release* was used and when it was retrieved. This is the single decision that
-   determines whether the background is reproducible.
+   release* was used and when it was retrieved.
 2. **Genome sequence.**
    A `BSgenome` package if one exists; otherwise a FASTA read with
-   `Biostrings::readDNAStringSet()`. Make sure the chromosome names convention
-   used in the genome is the same as that in the annotation.
-3. **Window.** A free parameter, and the one thing that must be identical between
-   background and foreground. 
+   `Biostrings::readDNAStringSet()`. Record the assembly and ensure that
+   chromosome names agree with the annotation.
+3. **Window.** Specify the upstream and downstream extent relative to the TSS.
+   Foreground and background must share this window and compatible reference
+   sequences and annotations.
 4. **Motif collection, and its taxonomic subset.** Inspect what the collection
-   actually contains for the organism. For example, JASPAR CORE `fungi`, used
-   above, is `r pct_cerevisiae`% *S. cerevisiae*, so it may or may not be
-   suitable for other fungi.
-5. **Identifier scheme.** Which suffixes, if any, are part of the identifier.
-   `pscan_fullBG(scheme = )` names the grammar explicitly; `"auto"` detects it and
-   reports what it found but currently it supports only RefSeq, SGD and TAIR 
-   name conventions.
+   contains and record its release. In the JASPAR CORE fungi collection used
+   here, `r pct_cerevisiae`% of matrices have *S. cerevisiae* species annotation.
+   Assess suitability for the organism under study.
+5. **Identifier scheme.** Preserve meaningful identifier suffixes. The
+   `scheme` argument of `pscan_fullBG()` supports `"refseq"`, `"sgd"`,
+   `"tair"`, and `"generic"`; `"auto"` detects recognised conventions.
+   Generic identifiers are matched without suffix removal.
 
 # Summary
 
 ```{r workflow, eval=FALSE}
 
-# 1. Promoters, in the window the foreground will use
+# 1. Extract promoters using the intended foreground window.
 
 genome <- BSgenome.Scerevisiae.UCSC.sacCer3::BSgenome.Scerevisiae.UCSC.sacCer3
 
@@ -429,30 +442,28 @@ ranges <- ranges[inside]
 
 prom_seq <- Biostrings::getSeq(genome, ranges)
 
-# 2. Matrices, in the taxonomic group of the organism.
+# 2. Select motif matrices for the organism's taxonomic group.
 motifs <- TFBSTools::getMatrixSet(
     JASPAR2020::JASPAR2020, list(collection = "CORE", tax_group = "fungi")
 )
 
-# 3. Scan.
+# 3. Construct the standard background.
 background <- ps_build_bg(
     prom_seq, motifs, BPPARAM = BiocParallel::SerialParam()
 )
 
-# 4. Keep it.
+# 4. Save the background statistics.
 ps_write_bg_to_file(background, "my_background.txt")
 background <- ps_retrieve_bg_from_file("my_background.txt", motifs)
 
-# Optionally, keep the scan as well, and query it by identifier.
+# Optionally, retain all hits in a full background for identifier-based queries.
 full_bg <- ps_build_bg(prom_seq, motifs, fullBG = TRUE)
 saveRDS(full_bg, "my_full_background.rds", compress = "xz")
 full_bg <- readRDS("my_full_background.rds")
 
-# The identifiers of the genes of interest, in the scheme the background
-# uses. These usually come from an experiment, one per line in a file read
-# with readLines(); here they are the cytoplasmic ribosomal protein genes,
-# named as SGD systematic names because that is what the promoters above
-# are named.
+# Query identifiers must match the background's promoter naming scheme.
+# This example uses SGD systematic identifiers for cytoplasmic ribosomal
+# protein genes. An external list can be read from a file with readLines().
 gene_names <- unlist(as.list(org.Sc.sgd.db::org.Sc.sgdGENENAME))
 my_gene_ids <- names(gene_names)[grepl("^RP[LS][0-9]", gene_names)]
 
