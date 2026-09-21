@@ -35,8 +35,14 @@ For pre-submission installation from source, see the package README.
 
 # An executable workflow
 
-The bundled human promoters and background both use the -200/+50 window.
-Two motifs keep this orientation example short; use the complete motif
+The bundled sequences are 90 human hg38 promoters from the historical NRF1
+example used by the original Pscan web interface. Their underlying experiment
+is unknown; they serve here as a software demonstration. The promoters and
+background both use the -200/+50 window.
+
+We select the JASPAR 2020 motifs for NRF1 (`MA0506.1`) and CTCF (`MA0139.1`)
+to illustrate enriched and background-like motif scores in these sequences.
+The adjusted p-values cover only these two motifs; use the complete motif
 collection for an analysis-wide multiple-testing adjustment.
 
 ```{r quick-scan}
@@ -44,10 +50,16 @@ library(PscanR)
 motifs <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
 background <- ps_retrieve_bg_from_file(system.file(
     "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", package = "PscanR"
-), motifs)[1:2]
+), motifs)
+background <- background[c("MA0506.1", "MA0139.1")] # NRF1 and CTCF
 sequences <- readRDS(system.file("extdata", "prom_seq.rds", package = "PscanR"))
 ps_results_table(pscan(sequences, background))
 ```
+
+NRF1 is strongly enriched ($p \approx 6.7 \times 10^{-66}$), whereas CTCF has
+foreground scores close to background and is not significantly enriched
+(p approximately 0.26). CTCF is a non-significant comparison in this dataset,
+not an experimentally established negative control.
 
 # Table 1: Motif enrichment analysis and input preparation
 

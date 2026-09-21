@@ -36,10 +36,14 @@ motifs <- readRDS(system.file(
 background <- ps_retrieve_bg_from_file(system.file(
     "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
     package = "PscanR"
-), motifs)[1:2]
+), motifs)
+# NRF1 and CTCF illustrate enriched and background-like motif scores.
+background <- background[c("MA0506.1", "MA0139.1")]
+# Historical NRF1-example promoters; the original experiment is unknown.
 sequences <- readRDS(system.file(
     "extdata", "prom_seq.rds", package = "PscanR"
 ))
+# Adjusted p-values cover only these two motifs.
 ps_results_table(pscan(sequences, background))
 
 }
