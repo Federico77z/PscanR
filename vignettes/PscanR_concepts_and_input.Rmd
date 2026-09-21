@@ -57,8 +57,7 @@ scoring primitives. [motifmatchr](https://bioconductor.org/packages/motifmatchr/
 uses MOODS to find matches across many motifs and sequences.
 [PWMEnrich](https://bioconductor.org/packages/PWMEnrich/) provides another
 Biostrings-based toolkit for known-motif scanning and enrichment. These tools
-address related tasks, but their outputs should not be treated as interchangeable
-statistical tests.
+address related tasks, but their statistical approach is different.
 
 PscanR implements the specific best-hit model of
 [Zambelli et al. (2009)](https://doi.org/10.1093/nar/gkp464): each sequence
@@ -119,7 +118,7 @@ a `PSMatrixList` for use with `pscan()`:
 
 ```{r list-backgrounds}
 get_availableBG()
-get_availableBG(details = TRUE) # the full version-2 catalog
+
 ```
 
 ```{r download-background, eval=FALSE}
@@ -193,8 +192,7 @@ be selected directly without choosing among transcripts of the same gene.
 The package includes the historical human NRF1 example list of RefSeq
 transcripts from the original Pscan web interface. See
 [Zambelli, Pesole and Pavesi (2009)](https://doi.org/10.1093/nar/gkp464)
-for the software and interface. The original experimental source of this
-particular list is unknown; it is retained here as a software demonstration.
+for the software and interface. 
 
 ```{r chunk-2}
 file_path <- system.file("extdata", "nrf1100.txt", package = "PscanR")

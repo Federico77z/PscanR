@@ -36,8 +36,7 @@ For pre-submission installation from source, see the package README.
 # An executable workflow
 
 The bundled sequences are 90 human hg38 promoters from the historical NRF1
-example used by the original Pscan web interface. Their underlying experiment
-is unknown; they serve here as a software demonstration. The promoters and
+example used by the original Pscan web interface. The promoters and
 background both use the -200/+50 window.
 
 We select the JASPAR 2020 motifs for NRF1 (`MA0506.1`) and CTCF (`MA0139.1`)
@@ -58,8 +57,7 @@ ps_results_table(pscan(sequences, background))
 
 NRF1 is strongly enriched ($p \approx 6.7 \times 10^{-66}$), whereas CTCF has
 foreground scores close to background and is not significantly enriched
-(p approximately 0.26). CTCF is a non-significant comparison in this dataset,
-not an experimentally established negative control.
+(p approximately 0.26).
 
 # Table 1: Motif enrichment analysis and input preparation
 

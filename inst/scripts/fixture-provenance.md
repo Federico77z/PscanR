@@ -155,4 +155,4 @@ full-analysis preparation scripts and their environment before submission.
 
 The new vignette's small round trip is run directly from these real input
 sequences; it never derives benchmark timings or substitutes for production
-backgrounds. No protected benchmark outputs are modified.
+backgrounds. 
