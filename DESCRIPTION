@@ -39,7 +39,7 @@ Suggests:
     org.Mm.eg.db,
     org.Sc.sgd.db,
     rmarkdown,
-    testthat (>= 3.1.5),
+    testthat (>= 3.3.2),
     TxDb.Scerevisiae.UCSC.sacCer3.sgdGene,
     txdbmaker (>= 1.0.1)
 biocViews: SequenceMatching, MotifDiscovery, Transcription,

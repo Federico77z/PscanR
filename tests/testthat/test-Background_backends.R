@@ -161,3 +161,75 @@ test_that("version 1 is available only through the explicit GitHub catalog", {
     github_catalog <- get_availableBG(details = TRUE, source = "github")
     expect_true(any(github_catalog$background_version == 1L))
 })
+
+# Assisted-by: OpenAI Codex. Exercise public failure behavior with local files.
+mock_hub <- function(paths, titles = rep("PscanR_backgrounds_v2", length(paths)),
+    packages = rep("PscanRBackgrounds", length(paths))) {
+    structure(setNames(as.list(paths), paste0("EH", seq_along(paths))),
+        class = "pscan_test_hub", title = titles, preparerclass = packages)
+}
+
+test_that("Hub lookup requires one matching resource and a valid archive", {
+    local_mocked_s3_method("$", "pscan_test_hub", function(x, name) {
+        attr(x, name)
+    })
+    archive <- tempfile(fileext = ".zip")
+    writeBin(charToRaw("archive"), archive)
+    hub <- mock_hub(archive)
+    local_mocked_bindings(
+        .ps_open_experimenthub = function() hub,
+        .ps_expected_archive_sha256 = function() {
+            unname(tools::sha256sum(archive))
+        },
+        .package = "PscanR"
+    )
+    expect_identical(PscanR:::.ps_fetch_experimenthub_archive(), archive)
+    hub <- mock_hub(archive, titles = "another-resource")
+    expect_error(PscanR:::.ps_fetch_experimenthub_archive(), "one unique")
+    hub <- mock_hub(rep(archive, 2L))
+    expect_error(PscanR:::.ps_fetch_experimenthub_archive(), "one unique")
+    hub <- mock_hub(rep(archive, 2L), titles = c(NA, "PscanR_backgrounds_v2"))
+    expect_identical(PscanR:::.ps_fetch_experimenthub_archive(), archive)
+    hub <- mock_hub(tempfile())
+    expect_error(PscanR:::.ps_fetch_experimenthub_archive(), "invalid.*archive")
+    hub <- mock_hub(NA_character_)
+    expect_error(PscanR:::.ps_fetch_experimenthub_archive(), "invalid.*archive")
+})
+
+test_that("Hub and Zenodo verify archive bytes and evict a corrupt cache", {
+    archive <- tempfile(fileext = ".zip")
+    writeBin(charToRaw("corrupt archive"), archive)
+    local_mocked_s3_method("$", "pscan_test_hub", function(x, name) {
+        attr(x, name)
+    })
+    local_mocked_bindings(
+        .ps_open_experimenthub = function() mock_hub(archive),
+        .ps_expected_archive_sha256 = function() paste(rep("0", 64), collapse=""),
+        .package = "PscanR"
+    )
+    expect_error(PscanR:::.ps_fetch_experimenthub_archive(), "SHA-256")
+
+    cache <- BiocFileCache::BiocFileCache(tempfile("pscan-cache-"), ask=FALSE)
+    url <- "https://example.invalid/pscan-test.zip"
+    BiocFileCache::bfcadd(cache, rname=url, fpath=archive, rtype="local")
+    local_mocked_bindings(
+        .ps_background_cache = function() BiocFileCache::bfccache(cache),
+        .ps_zenodo_archive_url = function() url,
+        .package = "PscanR"
+    )
+    expect_error(PscanR:::.ps_fetch_zenodo_archive(), "SHA-256")
+    expect_equal(nrow(BiocFileCache::bfcquery(cache, url, exact=TRUE)), 0L)
+})
+
+test_that("failure of both archive backends is reported", {
+    local_mocked_bindings(
+        .ps_fetch_experimenthub_archive = function() stop("Hub unavailable"),
+        .ps_fetch_zenodo_archive = function() stop("Zenodo unavailable"),
+        .package = "PscanR"
+    )
+    expect_warning(
+        expect_error(PscanR:::.ps_fetch_background_archive("experimenthub"),
+            "Zenodo unavailable"),
+        "Hub unavailable.*Zenodo fallback"
+    )
+})

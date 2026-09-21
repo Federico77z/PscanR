@@ -26,9 +26,8 @@
 #'
 #' @param BPPARAM The BPPARAM used by bplapply. See BiocParallel package.
 #'    This argument is passed to `BiocParallel::bplapply`.
-#'    If BPPARAM is not explicitly set, the default value (bpparam()) will be
-#'    used, which automatically chooses a sensible parallelization method based
-#'    on the user's system.
+#'    The default, `BiocParallel::SerialParam()`, uses the current R process.
+#'    Pass an explicit backend to enable parallel execution over motifs.
 #'    You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating
 #'    systems, or BPPARAM = BiocParallel::MulticoreParam(8) on Unix-like
 #'    systems to use, for example, 8 cores.
@@ -118,7 +117,8 @@
 #'
 #' ps_results_table(results)
 #'
-pscan <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
+pscan <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
+    BPOPTIONS = bpoptions()) {
     .ps_checks(x, pfms, type = 4)
 
     # Carried, not derived: the legend describes the background's promoter
@@ -408,9 +408,8 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #'    statistics.
 #' @param BPPARAM The BPPARAM used by bplapply. See BiocParallel package.
 #'    This argument is passed to `BiocParallel::bplapply`.
-#'    If BPPARAM is not explicitly set, the default value (bpparam()) will be
-#'    used, which automatically chooses a sensible parallelization method based
-#'    on the user's system.
+#'    The default, `BiocParallel::SerialParam()`, uses the current R process.
+#'    Pass an explicit backend to enable parallel execution over motifs.
 #'    You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating
 #'    systems, or BPPARAM = BiocParallel::MulticoreParam(8) on Unix-like
 #'    systems to use, for example, 8 cores.
@@ -465,7 +464,7 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #'
 #' @export
 pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
-                           BPPARAM = bpparam(), BPOPTIONS = bpoptions()) {
+    BPPARAM = BiocParallel::SerialParam(), BPOPTIONS = bpoptions()) {
     .ps_check_filtered_inputs(prom_seq, Jmatrix, background)
 
     # From `background`, not `Jmatrix`: the legend belongs to the promoter

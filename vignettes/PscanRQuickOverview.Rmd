@@ -14,11 +14,40 @@ vignette: >
     %\VignetteEncoding{UTF-8}
 ---
 
+# Introduction
+
 This vignette summarises the principal PscanR functions for motif enrichment
 analysis in promoter sequences. The package reference manual provides complete
 argument descriptions and examples.
 
 <hr />
+
+# Installation
+
+PscanR is being prepared for Bioconductor submission. After acceptance, install
+it with the following command (not executed while building this vignette):
+
+```{r installation, eval=FALSE}
+BiocManager::install("PscanR")
+```
+
+For pre-submission installation from source, see the package README.
+
+# An executable workflow
+
+The bundled human promoters and background both use the -200/+50 window.
+Two motifs keep this orientation example short; use the complete motif
+collection for an analysis-wide multiple-testing adjustment.
+
+```{r quick-scan}
+library(PscanR)
+motifs <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
+background <- ps_retrieve_bg_from_file(system.file(
+    "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", package = "PscanR"
+), motifs)[1:2]
+sequences <- readRDS(system.file("extdata", "prom_seq.rds", package = "PscanR"))
+ps_results_table(pscan(sequences, background))
+```
 
 # Table 1: Motif enrichment analysis and input preparation
 
@@ -266,6 +295,15 @@ use matching promoter definitions and motif matrices.
 </table>
 
 <hr />
+
+# Data provenance
+
+The installed `inst/scripts/fixture-provenance.md` describes the sources,
+selection rules, serialization, and reproduction recipes for the bundled
+example data. `inst/DATA_SOURCES.md` records attribution and reuse terms.
+The large published analyses use saved results; small workflow examples are
+executed during the build. Reproducing a full analysis requires the matching
+annotation and promoter window, not just the same gene identifiers.
 
 # Session information
 

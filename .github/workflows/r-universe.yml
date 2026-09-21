@@ -1,0 +1,17 @@
+# Official Bioconductor/R-universe validation workflow; does not publish packages.
+# https://docs.r-universe.dev/bioconductor/#debugging-the-ci
+name: Submission platforms
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, devel]
+  pull_request:
+    branches: [main, devel]
+permissions:
+  contents: read
+jobs:
+  build:
+    uses: r-universe-org/workflows/.github/workflows/build.yml@v3
+    with:
+      universe: bioc
+      organization: bioconductor

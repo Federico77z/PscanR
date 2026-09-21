@@ -12,7 +12,7 @@ The package is designed to work with Bioconductor data objects:
 it extends PFMatrix and PFMatrixList from
 the TFBSTools package for transcription factor binding profiles and
 employs Biostrings DNAStringSet for promoter sequences.
-PscanR supports multithreading through the BiocParallel package.
+PscanR supports parallel execution through the BiocParallel package.
 PscanR includes functions to build the background for a set of promoter
 sequences, to scan a foreground set of promoter sequences, and to visualize
 and plot the results.
@@ -29,8 +29,22 @@ and plot the results.
 }
 }
 
+\examples{
+motifs <- readRDS(system.file(
+    "extdata", "J2020.rds", package = "PscanR"
+))
+background <- ps_retrieve_bg_from_file(system.file(
+    "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+    package = "PscanR"
+), motifs)[1:2]
+sequences <- readRDS(system.file(
+    "extdata", "prom_seq.rds", package = "PscanR"
+))
+ps_results_table(pscan(sequences, background))
+
+}
 \references{
-`Pscan` Web: \url{http://159.149.160.88/pscan/}
+`Pscan` Web: \url{http://www.beaconlab.it/pscan/}
 
 Zambelli F, Pesole G, Pavesi G. Pscan: finding over-represented
 transcription factor binding site motifs in sequences from co-regulated or
@@ -48,7 +62,7 @@ Useful links:
 
 }
 \author{
-Federico Zambelli [cre], Giulio Pavesi [cre]
+Federico Zambelli [aut, cre], Giulio Pavesi [aut]
 
 Maintainer: Federico Zambelli <federico.zambelli@unimi.it>
 }

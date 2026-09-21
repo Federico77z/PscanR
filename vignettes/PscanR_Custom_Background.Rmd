@@ -67,7 +67,18 @@ n_cerevisiae <- sum(is_cerevisiae)
 pct_cerevisiae <- round(100 * n_cerevisiae / length(is_cerevisiae))
 ```
 
-# Overview
+# Installation
+
+PscanR is being prepared for Bioconductor submission. After acceptance, install
+it with the following command (not executed while building this vignette):
+
+```{r installation, eval=FALSE}
+BiocManager::install("PscanR")
+```
+
+For pre-submission installation from source, see the package README.
+
+# Introduction
 
 PscanR provides access to precomputed backgrounds for five model organisms:
 human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR annotation),
@@ -101,6 +112,37 @@ run, background construction took
 `r format(verification$promoter_count, big.mark = ",")` promoters and
 `r verification$motif_count` matrices. Runtime for other organisms depends on
 the number and length of promoters, the motif collection, and the hardware.
+
+# A small executable construction and round trip
+
+The following code builds both background representations from a subset of
+real yeast promoters and two JASPAR motifs. This restricted background is an
+API demonstration, not a replacement for the complete promoter universe used
+for enrichment. Both computations run during vignette builds.
+
+```{r small-background-roundtrip}
+example_sequences <- readRDS(fixture("rp_promoters.rds"))
+example_sequences <- example_sequences[seq_len(min(40L, length(example_sequences)))]
+example_motifs <- JASPAR2020::JASPAR2020
+example_motifs <- TFBSTools::getMatrixSet(
+    example_motifs, list(collection = "CORE", tax_group = "fungi")
+)[1:2]
+short_example <- ps_build_bg(example_sequences, example_motifs)
+short_file <- tempfile(fileext = ".txt")
+ps_write_bg_to_file(short_example, short_file)
+short_restored <- ps_retrieve_bg_from_file(short_file, example_motifs)
+stopifnot(isTRUE(all.equal(ps_get_bg_table(short_example),
+    ps_get_bg_table(short_restored))))
+full_example <- ps_build_bg(example_sequences, example_motifs, fullBG = TRUE)
+full_file <- tempfile(fileext = ".rds")
+saveRDS(full_example, full_file, compress = "xz")
+full_restored <- readRDS(full_file)
+stopifnot(identical(full_example, full_restored))
+query <- names(example_sequences)[1:4]
+queried <- pscan_fullBG(query, full_restored)
+ps_results_table(queried)
+unlink(c(short_file, full_file))
+```
 
 # Part A: Building a standard background
 
@@ -469,6 +511,15 @@ my_gene_ids <- names(gene_names)[grepl("^RP[LS][0-9]", gene_names)]
 
 ps_results_table(pscan_fullBG(my_gene_ids, full_bg))
 ```
+
+# Data provenance
+
+The installed `inst/scripts/fixture-provenance.md` describes the sources,
+selection rules, serialization, and reproduction recipes for the bundled
+example data. `inst/DATA_SOURCES.md` records attribution and reuse terms.
+The large published analyses use saved results; small workflow examples are
+executed during the build. Reproducing a full analysis requires the matching
+annotation and promoter window, not just the same gene identifiers.
 
 # Session information
 

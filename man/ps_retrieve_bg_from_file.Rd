@@ -51,8 +51,8 @@ by the function. They can be accessed using `system.file()` as shown in the
 examples.
 
 Other background datasets are available at the public repository
-PscanR_background on GitHub:
-\url{https://github.com/Federico77z/PscanR_backgrounds}
+PscanRBackgrounds on GitHub:
+\url{https://github.com/Federico77z/PscanRBackgrounds}
 See vignettes for further details on the type of background available.
 }
 \examples{

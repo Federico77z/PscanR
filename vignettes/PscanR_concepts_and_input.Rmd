@@ -28,6 +28,17 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Installation
+
+PscanR is being prepared for Bioconductor submission. After acceptance, install
+it with the following command (not executed while building this vignette):
+
+```{r installation, eval=FALSE}
+BiocManager::install("PscanR")
+```
+
+For pre-submission installation from source, see the package README.
+
 # Introduction
 
 PscanR is an R implementation of the algorithm developed by
@@ -37,6 +48,27 @@ factors (TFs) that are potential regulators of a set of co-regulated or
 co-expressed genes. By scanning input sequences (e.g., promoters) against a
 database of known TF binding motifs, PscanR tests for motif enrichment and
 reports candidate binding sites. 
+
+## Relationship to other motif tools
+
+[TFBSTools](https://bioconductor.org/packages/TFBSTools/) supplies the motif
+classes that PscanR extends; Biostrings supplies sequence representations and
+scoring primitives. [motifmatchr](https://bioconductor.org/packages/motifmatchr/)
+uses MOODS to find matches across many motifs and sequences.
+[PWMEnrich](https://bioconductor.org/packages/PWMEnrich/) provides another
+Biostrings-based toolkit for known-motif scanning and enrichment. These tools
+address related tasks, but their outputs should not be treated as interchangeable
+statistical tests.
+
+PscanR implements the specific best-hit model of
+[Zambelli et al. (2009)](https://doi.org/10.1093/nar/gkp464): each sequence
+contributes its best normalized score per motif; the foreground mean is tested
+against promoter-background moments for a matching reference and window.
+Its `PSMatrix` and `PSMatrixList` classes extend TFBSTools objects to retain
+those moments and the selected positions, strands, and oligos. Gene-to-promoter
+selection and cached immutable backgrounds connect this model to workflows
+using annotation packages and `DNAStringSet` inputs. The full-background path
+also supports identifier-based queries without rescanning sequences.
 
 ## Workflow overview
 
@@ -85,7 +117,7 @@ PscanR provides access to precomputed backgrounds for five model organisms:
 `generate_psmatrixlist_from_background()` retrieves the selected background as
 a `PSMatrixList` for use with `pscan()`:
 
-```{r list-backgrounds, eval=FALSE}
+```{r list-backgrounds}
 get_availableBG()
 get_availableBG(details = TRUE) # the full version-2 catalog
 ```
@@ -158,8 +190,11 @@ PscanR operates on promoter sequences. When transcript identifiers map uniquely
 within the chosen assembly and annotation, their corresponding promoters can
 be selected directly without choosing among transcripts of the same gene.
 
-The package includes an example list of human NRF1 target transcripts
-in RefSeq, curated from the literature.
+The package includes the historical human NRF1 example list of RefSeq
+transcripts from the original Pscan web interface. See
+[Zambelli, Pesole and Pavesi (2009)](https://doi.org/10.1093/nar/gkp464)
+for the software and interface. The original experimental source of this
+particular list is unknown; it is retained here as a software demonstration.
 
 ```{r chunk-2}
 file_path <- system.file("extdata", "nrf1100.txt", package = "PscanR")
@@ -344,12 +379,22 @@ argument selects the execution strategy:
 -   **`SerialParam()` for debugging and small examples.** Computation occurs
     within the current R process, simplifying error inspection.
 
-The default is `bpparam()`, which selects a strategy and worker count from the
-session configuration.
+The default is `BiocParallel::SerialParam()`, which uses one R process.
+A registered backend does not change this default; pass `BPPARAM` explicitly
+to request multiple workers.
 
 Select the worker count according to the workload and available resources.
 For short scans, worker startup and data-transfer costs may exceed the benefit
 of parallel execution.
+
+# Data provenance
+
+The installed `inst/scripts/fixture-provenance.md` describes the sources,
+selection rules, serialization, and reproduction recipes for the bundled
+example data. `inst/DATA_SOURCES.md` records attribution and reuse terms.
+The large published analyses use saved results; small workflow examples are
+executed during the build. Reproducing a full analysis requires the matching
+annotation and promoter window, not just the same gene identifiers.
 
 # Session information
 

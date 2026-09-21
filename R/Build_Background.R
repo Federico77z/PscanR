@@ -21,7 +21,8 @@
 #' @param BPPARAM Parallelization parameter passed to `bplapply` function from
 #'   the `BiocParallel` package. This parameter defines the parallel processing
 #'   settings, including the number of cores or workers that the function uses
-#'   for computation.
+#'   for computation. The default, `BiocParallel::SerialParam()`, uses one
+#'   R process. Pass a backend explicitly to enable parallel execution.
 #'   See `BiocParallel` package for more details.
 #'
 #' @param BPOPTIONS Optional configuration settings passed to `bplapply`
@@ -110,7 +111,8 @@
 #' full_bg_matrices[[1]]
 #'
 #' @export
-ps_build_bg <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions(),
+ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
+    BPOPTIONS = bpoptions(),
                         fullBG = FALSE) {
     .ps_checks(x, pfms, type = 1)
 
@@ -187,8 +189,8 @@ ps_build_bg <- function(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions(),
 #' examples.
 #'
 #' Other background datasets are available at the public repository
-#' PscanR_background on GitHub:
-#' \url{https://github.com/Federico77z/PscanR_backgrounds}
+#' PscanRBackgrounds on GitHub:
+#' \url{https://github.com/Federico77z/PscanRBackgrounds}
 #' See vignettes for further details on the type of background available.
 #'
 #' @seealso \code{\link{ps_build_bg}}, \code{\link{ps_write_bg_to_file}},

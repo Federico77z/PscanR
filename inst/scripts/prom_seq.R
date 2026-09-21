@@ -1,3 +1,9 @@
+# Historical human promoter recipe. Live UCSC annotations may have changed;
+# see fixture-provenance.md. Use an isolated reproduction directory.
+# Rscript prom_seq.R OUTPUT.rds
+args <- commandArgs(trailingOnly = TRUE)
+stopifnot(length(args) == 1L, !file.exists(args[[1]]))
+
 txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated") # Import GTF annotation from UCSC for Human genome 
 # You can specify the organism of interest with the 'genome' parameter. 
 # 'hg38' for Human, 'mm10' for Mouse, ... 
@@ -18,4 +24,4 @@ target_prom_rng <- prom_rng[prom_rng$tx_name %in% target[,1]]
 prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, 
                                target_prom_rng) 
 
-saveRDS(prom_seq, "inst/extdata/prom_seq.rds")
+saveRDS(prom_seq, args[[1]], version = 3)

@@ -4,7 +4,7 @@
 \alias{pscan}
 \title{Executes the Pscan algorithm on a set of regulatory sequences.}
 \usage{
-pscan(x, pfms, BPPARAM = bpparam(), BPOPTIONS = bpoptions())
+pscan(x, pfms, BPPARAM = BiocParallel::SerialParam(), BPOPTIONS = bpoptions())
 }
 \arguments{
 \item{x}{A `DNAStringSet` object containing the set of regulatory sequences
@@ -26,9 +26,8 @@ See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}},
 
 \item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel package.
 This argument is passed to `BiocParallel::bplapply`.
-If BPPARAM is not explicitly set, the default value (bpparam()) will be
-used, which automatically chooses a sensible parallelization method based
-on the user's system.
+The default, `BiocParallel::SerialParam()`, uses the current R process.
+Pass an explicit backend to enable parallel execution over motifs.
 You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating
 systems, or BPPARAM = BiocParallel::MulticoreParam(8) on Unix-like
 systems to use, for example, 8 cores.}

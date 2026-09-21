@@ -82,14 +82,14 @@ test_that("ps_write_bg_to_file and ps_retrieve_bg_from_file round-trip", {
     expect_equal(ps_bg_size(back[[2]]), 300L)
 })
 
-test_that("get_availableBG queries ExperimentHub", {
-    skip_if_offline()
-    skip_if_not_installed("ExperimentHub")
-    bg <- tryCatch(get_availableBG(), error = function(e) skip(conditionMessage(e)))
+test_that("get_availableBG lists the bundled catalog without Hub access", {
+    local_mocked_bindings(
+        .ps_open_experimenthub = function() stop("Unexpected Hub access"),
+        .package = "PscanR"
+    )
+    bg <- get_availableBG()
     expect_type(bg, "character")
-    # Resources, once published, follow the J<year>_<assembly>_..._.psbg<v>.txt
-    # naming convention; before publication the result may legitimately be empty.
-    if (length(bg) > 0L) {
-        expect_true(all(grepl("\\.txt$", bg)))
-    }
+    expect_length(bg, 105L)
+    expect_true(all(grepl("\\.psbg2\\.txt$", bg)))
+    expect_error(get_availableBG(keyword = "not-a-background"), "Found 0 matches")
 })

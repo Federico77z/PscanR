@@ -16,3 +16,4 @@
 ^.*\.BiocCheck$
 ^.*\.Rcheck$
 ^vignettes/.*\.html$
+^check$

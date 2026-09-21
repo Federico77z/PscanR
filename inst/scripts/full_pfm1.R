@@ -1,27 +1,19 @@
-# The aim of this script is to explain how the mega_pfm1.RData was generate. 
-# mega_pfm1 corresponds to the first matrix of the background PSMatrixList 
-# obtained as a result of the PscanR algorithm applied to all the promoters 
-# regions in a specified organism, scanned with the PFM retrieved from the 
-# JASPAR database
-txdb <- txdbmaker::makeTxDbFromUCSC(genome="hg38", tablename="ncbiRefSeqCurated") #import gtf annotation from UCSC
-GenomeInfoDb::seqlevels(txdb) <- GenomeInfoDb::seqlevels(txdb)[1:24] #use only annotations on canonical chromosomes
-
-prom_rng <- GenomicFeatures::promoters(txdb, upstream = 200, downstream = 50, use.names = TRUE) 
-prom_rng <- prom_rng[1:50]
-prom_seq <- Biostrings::getSeq(x = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38, prom_rng) #promoter sequences
-
-opts <- list()
-opts[["collection"]] <- "CORE"
-opts[["tax_group"]] <- "vertebrates"
-
-J2020 <- TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts) #core Jaspar 2020 profiles for vertebrates
-
-J2020_PSBG <- PscanR::ps_build_bg(prom_seq, J2020, BPPARAM = BiocParallel::MulticoreParam(8), fullBG = TRUE) #Build Pscan Background
-
-reduced_J2020_PSBG <- J2020_PSBG[1:50]
-
-saveRDS(reduced_J2020_PSBG, file = "full_pfm.rds")
-
-mega_pfm1 <- J2020_PSBG[[1]]
-
-save(mega_pfm1, file = "full_pfm1.rds")
+# Recipe for full_pfms.rds and full_pfm1.rds (not a production background).
+# Assisted-by: OpenAI Codex (repair of the historical serialization recipe).
+# Rscript full_pfm1.R PROMOTERS.rds OUTPUT_DIRECTORY
+# PROMOTERS.rds must contain the first 50 canonical hg38 transcript promoters
+# from the original annotation, using -200/+50, before deduplication.
+# The bundled objects contain 36 unique sequences and the first 50 CORE
+# vertebrate JASPAR2020 motifs. Live annotations can change that count;
+# see fixture-provenance.md for the limits of historical reproduction.
+args <- commandArgs(trailingOnly = TRUE)
+stopifnot(length(args) == 2L, !file.exists(args[[2]]))
+sequences <- readRDS(args[[1]])
+stopifnot(methods::is(sequences, "DNAStringSet"), length(sequences) == 50L)
+motifs <- TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020,
+    list(collection = "CORE", tax_group = "vertebrates"))[1:50]
+full <- PscanR::ps_build_bg(sequences, motifs, fullBG = TRUE,
+    BPPARAM = BiocParallel::SerialParam())
+dir.create(args[[2]], recursive = TRUE)
+saveRDS(full, file.path(args[[2]], "full_pfms.rds"), version = 3)
+saveRDS(full[[1]], file.path(args[[2]], "full_pfm1.rds"), version = 3)

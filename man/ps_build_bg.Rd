@@ -7,7 +7,7 @@
 ps_build_bg(
   x,
   pfms,
-  BPPARAM = bpparam(),
+  BPPARAM = BiocParallel::SerialParam(),
   BPOPTIONS = bpoptions(),
   fullBG = FALSE
 )
@@ -25,7 +25,8 @@ Those are sourced from databases such as JASPAR.}
 \item{BPPARAM}{Parallelization parameter passed to `bplapply` function from
 the `BiocParallel` package. This parameter defines the parallel processing
 settings, including the number of cores or workers that the function uses
-for computation.
+for computation. The default, `BiocParallel::SerialParam()`, uses one
+R process. Pass a backend explicitly to enable parallel execution.
 See `BiocParallel` package for more details.}
 
 \item{BPOPTIONS}{Optional configuration settings passed to `bplapply`

@@ -35,7 +35,18 @@ fixture <- function(...) {
 }
 ```
 
-# Overview
+# Installation
+
+PscanR is being prepared for Bioconductor submission. After acceptance, install
+it with the following command (not executed while building this vignette):
+
+```{r installation, eval=FALSE}
+BiocManager::install("PscanR")
+```
+
+For pre-submission installation from source, see the package README.
+
+# Introduction
 
 PscanR identifies transcription factor binding motifs enriched in regulatory
 sequences. Promoters of co-expressed or co-regulated genes are scanned with a
@@ -304,6 +315,24 @@ head(attr(retina_mapping, "ps_unmapped_genes"), 4)
 ps_selection_summary(retina_mapping)$by_source
 ```
 
+# A small executable scan
+
+This example selects the real mm10 promoters bundled above and scans two
+motifs using their matched -950/+50 background statistics. It demonstrates the
+complete API with a small gene set; interpret the full retinal analysis below
+for biological conclusions. FDR here applies only to these two motifs.
+
+```{r small-scan}
+small_sequences <- ps_select_promoters(
+    genes = example$genes, promoter_sequences = example$promoter_sequences,
+    annotation = example$annotation, gene_col = "ENSEMBL",
+    transcript_col = "REFSEQ", mode = "representative", return = "sequences"
+)
+small_background <- precomputed$results_subset_d[1:2]
+small_results <- pscan(small_sequences, small_background)
+ps_results_table(small_results)
+```
+
 # Running the scan
 
 `pscan()` takes the foreground promoter sequences and the background
@@ -422,7 +451,7 @@ for enrichment.
 The function returns a `ggplot` object that can be customised with a title,
 theme, or additional layers:
 
-```{r barplot-composable, eval=FALSE}
+```{r barplot-composable}
 ps_motif_barplot(results_subset, group = "class") +
     ggplot2::labs(title = "Retina-only upregulated promoters")
 ```
@@ -827,6 +856,15 @@ ranks may therefore differ from the original web-server run.
 adjusted p-values in the `FDR` column; the published figure marks nominal
 thresholds. Alternative corrections can be applied to the nominal p-values
 in the complete result table, retaining the appropriate testing family.
+
+# Data provenance
+
+The installed `inst/scripts/fixture-provenance.md` describes the sources,
+selection rules, serialization, and reproduction recipes for the bundled
+example data. `inst/DATA_SOURCES.md` records attribution and reuse terms.
+The large published analyses use saved results; small workflow examples are
+executed during the build. Reproducing a full analysis requires the matching
+annotation and promoter window, not just the same gene identifiers.
 
 # Session information
 

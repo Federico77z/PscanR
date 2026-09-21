@@ -9,7 +9,7 @@ pscan_filtered(
   Jmatrix,
   n = 1,
   background,
-  BPPARAM = bpparam(),
+  BPPARAM = BiocParallel::SerialParam(),
   BPOPTIONS = bpoptions()
 )
 }
@@ -41,9 +41,8 @@ statistics.}
 
 \item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel package.
 This argument is passed to `BiocParallel::bplapply`.
-If BPPARAM is not explicitly set, the default value (bpparam()) will be
-used, which automatically chooses a sensible parallelization method based
-on the user's system.
+The default, `BiocParallel::SerialParam()`, uses the current R process.
+Pass an explicit backend to enable parallel execution over motifs.
 You can specify BPPARAM = BiocParallel::SnowParam(8) on all operating
 systems, or BPPARAM = BiocParallel::MulticoreParam(8) on Unix-like
 systems to use, for example, 8 cores.}
