@@ -16,13 +16,12 @@ ps_hits_z(x, ...)
   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where
   names correspond to promoter sequence identifiers and values represent
   their respective Z-scores.
-  \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
 `ps_hits_z` is a **generic function** that computes Z-scores for motif hit
 scores in an object. The Z-score indicates how unusual a motif score is
-compared to background sequences (all promoter sequences in an organism).
+compared with scores in the supplied background reference set.
 Higher Z-scores suggest stronger motif enrichment, which may indicate
 regulatory significance.
 }

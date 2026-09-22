@@ -18,7 +18,6 @@ ps_hits_oligo_bg(x, ...)
   names correspond to sequence identifiers, and values represent the
   oligonucleotide sequences (subset of the promoter sequences) matching
   the motif.
-  \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
@@ -32,13 +31,12 @@ scanning results.
 
 
 The `ps_hits_oligo_bg` function is particularly relevant for background
-datasets, which include motif scan results computed across all promoter
-sequences.
+datasets, which include stored motif scan results for every retained
+background sequence.
 
 In a PSMatrixList object, the `ps_hits_oligo_bg` slot is populated only
-for background matrices (i.e., matrices derived from all promoters).
-This ensures that the pscan() function can access precomputed metrics
-without recomputing them, optimizing efficiency.
+for full-background matrices. This allows `pscan_fullBG()` to retrieve
+selected hits without rescanning DNA.
 }
 \examples{
 full_pfm1_path <- system.file("extdata",

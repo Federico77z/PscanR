@@ -19,21 +19,19 @@ A named numeric vector where names correspond to promoter sequence
 }
 \description{
 Retrieves the motif hit scores for each promoter sequence in a `PSMatrix`
-object computed on the background dataset (all promoters in a specific
-organism).
+object computed on a background reference set.
 These scores represent the binding affinity or enrichment level of promoter
 sequences when scanned with a Position Weight Matrix (PWM).
 }
 \details{
 This method is specifically designed for background datasets,
-where motif hit scores are precomputed for all promoter sequences.
+where motif hit scores are precomputed for every retained background
+sequence.
 The function extracts the scores from the \code{ps_hits_score_bg} slot and,
 if applicable, assigns sequence names using \code{.ps_bg_seq_names()}.
 
-These background scores are particularly useful in motif enrichment
-analyses, as they allow \code{pscan()} to compare foreground promoter
-sequences against a reference distribution without the need for
-recomputation.
+These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+selected background identifiers without rescanning DNA.
 }
 \examples{
 full_pfm1_path <- system.file("extdata",

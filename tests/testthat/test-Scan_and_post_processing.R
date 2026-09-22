@@ -16,14 +16,10 @@ test_that("PscanR works", {
                                   11, 1, 1, 1, 24, 0), 
                                 nrow = 4, byrow = TRUE,
                                 dimnames = list(c("A", "C", "G", "T"))))
-  PSM1 <- PSMatrix(PFM1, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478, 
-                   ps_bg_std_dev = 0.07493493, ps_bg_size = 250L, 
-                   ps_seq_names = c("NM_001078.4","NM_000639.3",
-                                    "NM_000756.8", "NM_001094.2"))
-  PSM2 <- PSMatrix(PFM2, ps_bg_avg = 0.8806266, ps_fg_avg = 0.8679936, 
-                   ps_bg_std_dev = 0.07161552, ps_bg_size = 250L,
-                   ps_seq_names = c("NM_001078.4","NM_000639.3",
-                                    "NM_000756.8", "NM_001094.2"))
+  PSM1 <- PSMatrix(PFM1, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478,
+                   ps_bg_std_dev = 0.07493493, ps_bg_size = 250L)
+  PSM2 <- PSMatrix(PFM2, ps_bg_avg = 0.8806266, ps_fg_avg = 0.8679936,
+                   ps_bg_std_dev = 0.07161552, ps_bg_size = 250L)
   pfms <- PSMatrixList(PSM1, PSM2)
   
   result <- pscan(x, pfms, BPPARAM = BiocParallel::SerialParam())
@@ -62,14 +58,10 @@ test_that("ps_result_table works", {
                                             11, 1, 1, 1, 24, 0), 
                                           nrow = 4, byrow = TRUE,
                                           dimnames = list(c("A", "C", "G", "T"))))
-  PSM1 <- PSMatrix(PFM1, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478, 
-                   ps_bg_std_dev = 0.07493493, ps_bg_size = 250L, 
-                   ps_seq_names = c("NM_001078.4","NM_000639.3",
-                                    "NM_000756.8", "NM_001094.2"))
-  PSM2 <- PSMatrix(PFM2, ps_bg_avg = 0.8806266, ps_fg_avg = 0.8679936, 
-                   ps_bg_std_dev = 0.07161552, ps_bg_size = 250L,
-                   ps_seq_names = c("NM_001078.4","NM_000639.3",
-                                    "NM_000756.8", "NM_001094.2"))
+  PSM1 <- PSMatrix(PFM1, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478,
+                   ps_bg_std_dev = 0.07493493, ps_bg_size = 250L)
+  PSM2 <- PSMatrix(PFM2, ps_bg_avg = 0.8806266, ps_fg_avg = 0.8679936,
+                   ps_bg_std_dev = 0.07161552, ps_bg_size = 250L)
   pfms <- PSMatrixList(PSM1, PSM2)
   
   result <- pscan(x, pfms, BPPARAM = BiocParallel::SerialParam())
@@ -123,14 +115,10 @@ test_that("ps_z_table works",{
                                             11, 1, 1, 1, 24, 0), 
                                           nrow = 4, byrow = TRUE,
                                           dimnames = list(c("A", "C", "G", "T"))))
-  PSM1 <- PSMatrix(PFM1, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478, 
-                   ps_bg_std_dev = 0.07493493, ps_bg_size = 250L, 
-                   ps_seq_names = c("NM_001078.4","NM_000639.3",
-                                    "NM_000756.8", "NM_001094.2"))
-  PSM2 <- PSMatrix(PFM2, ps_bg_avg = 0.8806266, ps_fg_avg = 0.8679936, 
-                   ps_bg_std_dev = 0.07161552, ps_bg_size = 250L,
-                   ps_seq_names = c("NM_001078.4","NM_000639.3",
-                                    "NM_000756.8", "NM_001094.2"))
+  PSM1 <- PSMatrix(PFM1, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478,
+                   ps_bg_std_dev = 0.07493493, ps_bg_size = 250L)
+  PSM2 <- PSMatrix(PFM2, ps_bg_avg = 0.8806266, ps_fg_avg = 0.8679936,
+                   ps_bg_std_dev = 0.07161552, ps_bg_size = 250L)
   pfms <- PSMatrixList(PSM1, PSM2)
   
   result <- pscan(x, pfms, BPPARAM = BiocParallel::SerialParam())
@@ -294,8 +282,7 @@ test_that("p-values use the exact upper tail and do not underflow", {
                                           nrow = 4, byrow = TRUE,
                                           dimnames = list(c("A", "C", "G", "T"))))
   probe <- PSMatrix(PFM1, ps_bg_avg = 0.5, ps_fg_avg = NA_real_,
-                    ps_bg_std_dev = 0.05, ps_bg_size = 250L,
-                    ps_seq_names = names(x))
+                    ps_bg_std_dev = 0.05, ps_bg_size = 250L)
   probed <- pscan(x, PSMatrixList(probe), BPPARAM = BiocParallel::SerialParam())
   fg <- ps_fg_avg(probed[[1]])
   n <- length(ps_hits_score(probed[[1]]))
@@ -307,8 +294,7 @@ test_that("p-values use the exact upper tail and do not underflow", {
   bg_avg <- fg - 0.05
   bg_sd <- (fg - bg_avg) * sqrt(n) / target_z
   enriched <- PSMatrix(PFM1, ps_bg_avg = bg_avg, ps_fg_avg = NA_real_,
-                       ps_bg_std_dev = bg_sd, ps_bg_size = 250L,
-                       ps_seq_names = names(x))
+                       ps_bg_std_dev = bg_sd, ps_bg_size = 250L)
   result <- pscan(x, PSMatrixList(enriched),
                   BPPARAM = BiocParallel::SerialParam())
   z <- ps_zscore(result[[1]])
@@ -518,6 +504,10 @@ test_that("ps_motif_barplot groups by class or by a supplied vector", {
     sort(unique(unname(ps_motif_class(results))))
   )
 
+  by_family <- ps_motif_barplot(results, n = 6, group = "family")
+  expect_s3_class(by_family, "ggplot")
+  expect_true("group" %in% names(by_family$data))
+
   supplied <- rep(c("a", "b"), length.out = length(results))
   by_vector <- ps_motif_barplot(results, n = 6, group = supplied)
   expect_setequal(unique(as.character(by_vector$data$group)), c("a", "b"))
@@ -611,9 +601,9 @@ test_that("ps_density_plot corrects the estimate when given a window", {
   reflected <- ps_density_plot(pfm, shift = -200, window = win)
 
   # The corrected curve spans every position a hit could be reported at, which
-  # stops one motif width short of the end of the window.
+# stops one motif width short of the half-open end of the window.
   expect_equal(
-    range(reflected$data$x), c(win[[1]] + 1, win[[2]] - ncol(pfm) + 1)
+    range(reflected$data$x), c(win[[1]], win[[2]] - ncol(pfm))
   )
 
   # Reflection returns the mass that a naive estimate lets escape, so it
@@ -764,6 +754,33 @@ test_that("ps_hit_score_plot panels a PSMatrixList in the given order", {
   expect_error(ps_hit_score_plot(data.frame(a = 1)), "PSMatrix")
 })
 
+test_that("plotters handle empty and singleton inputs explicitly", {
+  results <- scan_bundled_motifs()
+
+  expect_error(
+    ps_zscore_heatmap(results, FDR = 0),
+    "No motifs pass"
+  )
+  expect_error(
+    ps_hitpos_map(results, FDR = 0),
+    "No motifs pass"
+  )
+
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  one <- results[1]
+  expect_no_error(ps_zscore_heatmap(one, FDR = 1))
+  expect_no_error(ps_hitpos_map(one, FDR = 1))
+
+  sparse <- results[[1]]
+  sparse@ps_hits_score[] <- NA_real_
+  sparse@ps_hits_score[[1]] <- 1
+  expect_error(ps_density_plot(sparse, st = "all"), "At least two finite")
+
+  sparse@ps_hits_score[] <- NA_real_
+  expect_error(ps_hit_score_plot(sparse), "No finite motif hit scores")
+})
+
 # The z-score is sqrt(n) times a standardised difference, and the background
 # contains the foreground, so a foreground that is a large share of the
 # background distorts the statistic in two directions at once. These cover the
@@ -781,8 +798,7 @@ foreground_fixture <- function(bg_size = 250L) {
                                          nrow = 4, byrow = TRUE,
                                          dimnames = list(c("A", "C", "G", "T"))))
   psm <- PSMatrix(pfm, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478,
-                  ps_bg_std_dev = 0.07493493, ps_bg_size = bg_size,
-                  ps_seq_names = names(x))
+                  ps_bg_std_dev = 0.07493493, ps_bg_size = bg_size)
   list(x = x, pfms = PSMatrixList(psm))
 }
 

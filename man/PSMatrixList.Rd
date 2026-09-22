@@ -11,7 +11,7 @@ PSMatrixList(..., transcriptIDLegend = character(), use.names = TRUE)
 \item{...}{Objects of class `PSMatrix` to include in the list.}
 
 \item{transcriptIDLegend}{Named character vector. The names correspond to
-the IDs of all transcripts expressed in the organism of study, whereas
+the IDs in the supplied background reference set, whereas
 corresponding values are the IDs of transcripts retained by the unique()
 function when multiple identical sequences exist. So, if multiple
 identical sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique()
@@ -43,6 +43,17 @@ applying the conversion for each `PFMatrix` in the list to a `PSMatrix`.
 The resulting `PSMatrixList` is created by combining the converted `PSMatrix`
 objects into a list and returning the new object.
 }
+\details{
+`PSMatrixList` extends `TFBSTools::PFMatrixList` and adds the
+  `transcriptIDLegend` used by full-background retrieval.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{transcriptIDLegend}}{Named character vector mapping original background
+identifiers to identifiers retained after sequence deduplication.}
+}}
+
 \examples{
 # Load JASPAR motif matrices for vertebrates
 J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
@@ -53,14 +64,14 @@ PSM1 <- PSMatrix(
   ps_bg_avg = 0.25,
   ps_fg_avg = 0.5,
   ps_bg_std_dev = 0.05,
-  ps_bg_size = 250L
+  ps_bg_size = 1000L # number of background sequences
 )
 PSM2 <- PSMatrix(
   pfm = J2020[[2]],
   ps_bg_avg = 0.25,
   ps_fg_avg = 0.5,
   ps_bg_std_dev = 0.05,
-  ps_bg_size = 250L
+  ps_bg_size = 1000L # number of background sequences
 )
 result <- PSMatrixList(PSM1, PSM2)
 ps_results_table(result)

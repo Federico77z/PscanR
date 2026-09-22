@@ -11,16 +11,16 @@
 
 \item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
-Default set to `TRUE`.}
+Included for accessor consistency; it has no effect on this scalar value.}
 }
 \value{
-An integer representing the total number of motif hits detected in
-   the input promoter sequences.
+An integer representing the number of retained per-sequence best
+   hits.
 }
 \description{
-Retrieves the number of motif hits detected by the Pscan algorithm in a
-`PSMatrix` object. A motif hit represents a significant match between a
-promoter sequence and the Position Weight Matrix (PWM).
+Retrieves the number of retained best-scoring motif windows in a `PSMatrix`
+object. Pscan retains one best window per scanned sequence; this count does
+not apply a score or significance threshold.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

@@ -9,14 +9,13 @@
 #' sequences (e.g., gene promoters) using the `ps_scan` function.
 #' Note that the promoter region analysed may vary.
 #'
-#' @param x A `DNAStringSet` object (see Biostrings package) containing the set
-#'   of all the regulatory sequences of the organism of study
+#' @param x A `DNAStringSet` object (see Biostrings package) containing the
+#'   regulatory sequences chosen as the background reference set
 #'   (e.g., gene promoters retrieved from a `TxDb` object).
 #'   These sequences are the target for background scanning.
 #'
-#' @param pfms A `PFMatrixList` object containing position frequency matrices
-#'   (PFM) representing transcription factor binding preferences.
-#'   Those are sourced from databases such as JASPAR.
+#' @param pfms A `PFMatrixList` of transcription-factor binding motifs, for
+#'   example matrices obtained from JASPAR.
 #'
 #' @param BPPARAM Parallelization parameter passed to `bplapply` function from
 #'   the `BiocParallel` package. This parameter defines the parallel processing
@@ -31,7 +30,7 @@
 #'   See `BiocParallel` documentation for more details.
 #'
 #' @param fullBG Logical. Default is FALSE. When set to TRUE, it creates a
-#'   mapping between all sequence names in the organism of study
+#'   mapping between all input sequence names in the background reference set
 #'   and the corresponding names retained after applying the unique() function.
 #'   For example, if multiple identical sequences exist (e.g., ID1, ID2, ID3,
 #'   and ID4), and unique() retains only ID2, the mapping will associate each
@@ -45,33 +44,23 @@
 #'   oligonucleotide sequence of the regulatory sequences scanned with the PWM.
 #'
 #' @details
-#' This function validates input types and removes duplicated sequences
-#' from `x` to avoid redundant computations. It also removes all sequences
-#' with an N content above 50%.
+#' This function validates input types and removes duplicated sequences from
+#' `x` to avoid redundant computations. It also removes sequences whose width
+#' differs from the maximum input width and sequences with more than 50% `N`.
 #' The motif matrices are background scored by the `ps_scan` function in
 #' parallel.
 #'
-#' `ps_write_bg_to_file()` writes a text file carrying three numbers per
-#' matrix — background size, mean and standard deviation — which is all
-#' `pscan()` needs to compute a z-score. It carries nothing else: not the
-#' per-promoter hits a full background stores, and not the
-#' `transcriptIDLegend` that `pscan_fullBG()` resolves identifiers against. A
-#' background read back with `ps_retrieve_bg_from_file()` therefore supports a
-#' full-background retrieval only when the matrices it is applied to already
-#' carry that scan.
+#' The text exporter writes background size, mean, and standard deviation for
+#' each matrix. That is all `pscan()` needs for enrichment testing. It does not
+#' write per-sequence hits or the transcript legend used by full-background
+#' retrieval. Importing that text therefore cannot recreate a full background
+#' unless those matrices already contain the stored scan.
 #'
 #' To persist a full background, use `saveRDS()` / `readRDS()` (or
 #' `save()` / `load()`), which preserve the object whole — hits, positions,
 #' strands, oligonucleotides and legend included. Expect a large file: the
 #' object holds one hit per promoter per matrix, so it grows with the product
 #' of the two.
-#'
-#' Note: this function assumes transcript identifiers can be safely matched
-#' without version suffixes (e.g., NM_30287 instead of NM_30287.1).
-#' For organisms where transcript identifiers use dot-separated versions as
-#' part of the identifier (e.g., AT1G01010.1), version stripping can remove
-#' transcript-level information and lead to incorrect mappings. Use caution
-#' for such organisms.
 #'
 #' This function uses example datasets located in the `extdata/` directory for
 #' demonstration purposes only. These files are not part of the core data used
@@ -403,8 +392,8 @@ ps_get_bg_table <- function(pfms) {
 #'   representing transcription factor binding preferences, obtained, for
 #'   example, from the JASPAR database.
 #'   Each matrix should already include background statistics
-#'   (e.g., computed from all promoter regions in the organism of
-#'   study). Each element must be a `PSMatrix` object or coercible to one.
+#'   computed from the chosen background reference set. Each element must be a
+#'   `PSMatrix` object or coercible to one.
 #'
 #' @param file A character string specifying the path to the output file where
 #'   the background statistics should be saved.
@@ -442,14 +431,14 @@ ps_get_bg_table <- function(pfms) {
 #'   ps_bg_avg = 0.25,
 #'   ps_fg_avg = 0.5,
 #'   ps_bg_std_dev = 0.05,
-#'   ps_bg_size = 250L
+#'   ps_bg_size = 1000L # number of background sequences
 #' )
 #' PSM2 <- PSMatrix(
 #'   pfm = J2020[[2]],
 #'   ps_bg_avg = 0.25,
 #'   ps_fg_avg = 0.5,
 #'   ps_bg_std_dev = 0.05,
-#'   ps_bg_size = 250L
+#'   ps_bg_size = 1000L # number of background sequences
 #' )
 #'
 #' PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
@@ -550,12 +539,14 @@ ps_write_bg_to_file <- function(pfms, file) {
 #' @param JASPAR_matrix A character string specifying the JASPAR database
 #'    version. You can choose between 'JASPAR2020', 'JASPAR2022', or
 #'    'JASPAR2024' (non case sensitive).
-#' @param org A string representing the organism acronym. Accepted values are:
-#'    `hs` (Homo sapiens),
-#'    `mm` (Mus musculus),
-#'    `at` (Arabidopsis thaliana),
-#'    `sc` (Saccharomyces cerevisiae),
-#'    `dm` (Drosophila melanogaster).
+#' @param org Organism acronym:
+#'    \itemize{
+#'      \item `hs`: Homo sapiens
+#'      \item `mm`: Mus musculus
+#'      \item `at`: Arabidopsis thaliana
+#'      \item `sc`: Saccharomyces cerevisiae
+#'      \item `dm`: Drosophila melanogaster
+#'    }
 #' @param prom_reg A numeric vector of two integers as `[upstream, downstream]`
 #'    representing the promoter region relative to the TSS.
 #'    Allowed combinations:
@@ -582,10 +573,8 @@ ps_write_bg_to_file <- function(pfms, file) {
 #'   explicit legacy backend, including version 1.
 #' @param destfile A string indicating the path where the downloaded background
 #'   .txt file should be saved. This tab-separated file contains the matrix
-#'   identifiers, background size, average background score, and standard
-#'   deviation. See \code{\link{ps_retrieve_bg_from_file}} for details on how
-#'   to use this file. Default is NULL, so the file is not saved in the user's
-#'   working environment.
+#'   identifiers, background size, average, and standard deviation. See the
+#'   file-reader function in See Also. By default the file is not saved.
 #'
 #' @details
 #' Version-2 backgrounds are distributed as an immutable archive through
@@ -596,6 +585,8 @@ ps_write_bg_to_file <- function(pfms, file) {
 #' files are checked against their recorded SHA-256 values.
 #'
 #' @return A `PSMatrixList` object with background-scored motif matrices.
+#'
+#' @seealso \code{\link{ps_retrieve_bg_from_file}}
 #'
 #' @export
 #'

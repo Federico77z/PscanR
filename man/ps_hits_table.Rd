@@ -21,8 +21,6 @@ ps_hits_table(x, ...)
     \item `OLIGO`: The matched oligonucleotide sequence.
   }
   Rows correspond to sequence names and are **sorted by decreasing score**.
-
-- If `x` belongs to another supported class, the return format may vary.
 }
 \description{
 `ps_hits_table` is a **generic function** that extracts motif hit

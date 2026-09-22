@@ -17,7 +17,6 @@ ps_hits_oligo(x, ...)
   names correspond to sequence identifiers, and values represent the
   oligonucleotide sequences (subset of the input promoter sequences)
   matching the motif.
-  \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{

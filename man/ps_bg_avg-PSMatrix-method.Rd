@@ -16,9 +16,8 @@ the function returns a single numeric value. It is included for
 consistency with other matrix-related methods.}
 }
 \value{
-A numeric value representing the background average score.
-   This value is computed as the mean of the PWM scores obtained from
-   scanning all promoter regions in the organism.
+The stored numeric background average. It is the mean best-hit PWM
+   score over the sequences in the background reference set.
 }
 \description{
 Retrieves the background average score stored in a `PSMatrix` object.

@@ -43,12 +43,33 @@
 #'    co-expressed or co-regulated genes when scanned with a PWM.
 #' @param ps_bg_std_dev Numeric. The background standard deviation of PWM
 #'    scores, default = `NA`.
-#' @param ps_bg_size Integer. The size of the background promoter region
-#'    (e.g., 250L), default = `NA`.
+#' @param ps_bg_size Integer. The number of sequences in the background
+#'    reference set, default = `NA`.
 #' @param .PS_PSEUDOCOUNT Numeric. The pseudocount added to avoid division
 #'    by zero. Default = `0.01`.
-#' @param ... Additional arguments passed to other methods or used in the
-#'    initialization.
+#' @param ... Reserved for compatibility. Supplying additional arguments is an
+#'    error, which protects against silently misspelled argument names.
+#'
+#' @slot ps_bg_avg Mean normalized best-hit score in the background reference
+#'    set.
+#' @slot ps_fg_avg Mean normalized best-hit score in the retained foreground.
+#' @slot ps_bg_std_dev Standard deviation of normalized background scores.
+#' @slot ps_bg_size Number of sequences in the background reference set.
+#' @slot ps_fg_size Number of retained foreground sequences.
+#' @slot ps_hits_pos Integer positions of foreground best hits.
+#' @slot ps_hits_pos_bg Integer positions of stored full-background best hits.
+#' @slot ps_hits_strand Foreground best-hit strands.
+#' @slot ps_hits_strand_bg Stored full-background best-hit strands.
+#' @slot ps_hits_score Normalized foreground best-hit scores.
+#' @slot ps_hits_score_bg Stored normalized full-background best-hit scores.
+#' @slot ps_hits_oligo Foreground sequence windows at best-hit positions.
+#' @slot ps_hits_oligo_bg Stored full-background sequence windows.
+#' @slot ps_zscore Motif-enrichment Z-statistic.
+#' @slot ps_pvalue Upper-tail p-value for `ps_zscore`.
+#' @slot ps_seq_names Identifiers of retained foreground sequences.
+#' @slot ps_bg_seq_names Identifiers of stored full-background sequences.
+#' @slot .PS_PSEUDOCOUNT Pseudocount used to convert frequencies to weights.
+#' @slot .PS_ALPHABET Integer encoding of A, C, G, and T.
 #'
 #' @return A `PSMatrix` object containing the provided statistics, initialized
 #'    with default or provided values.
@@ -56,8 +77,10 @@
 #' @details
 #' When a `PSMatrix` object is created or modified, it is automatically
 #' validated using an internal function. The validation ensures that the
-#' background and foreground statistics are properly formatted, and that motif
-#' hit-related vectors have consistent lengths.
+#' background and foreground statistics are properly formatted, and that the
+#' foreground and stored full-background hit vectors have consistent lengths.
+#' The class extends `TFBSTools::PFMatrix` and therefore also contains its motif
+#' identifier, name, matrix, strand, tags, and related metadata.
 #'
 #' @export
 #'
@@ -72,7 +95,7 @@
 #'   ps_bg_avg = 0.25,
 #'   ps_fg_avg = 0.5,
 #'   ps_bg_std_dev = 0.05,
-#'   ps_bg_size = 250L
+#'   ps_bg_size = 1000L # number of background sequences
 #' )
 #' print(result)
 PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
@@ -80,6 +103,16 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
                         ps_bg_std_dev = as.numeric(NA),
                         ps_bg_size = as.integer(NA),
                         .PS_PSEUDOCOUNT = 0.01, ...) {
+    dots <- list(...)
+    if (length(dots) != 0L) {
+        dot_names <- names(dots)
+        if (is.null(dot_names)) dot_names <- rep("", length(dots))
+        dot_names[dot_names == ""] <- paste0("..", which(dot_names == ""))
+        stop(
+            "unused argument(s): ", paste(dot_names, collapse = ", "),
+            call. = FALSE
+        )
+    }
     #  .ps_required_packages()
     .ps_norm_matrix(.PSMatrix(pfm,
     ps_bg_avg = ps_bg_avg,
@@ -123,7 +156,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' @param use.names Logical. Assert whether to use names from the input objects.
 #'    Default = `TRUE`
 #' @param transcriptIDLegend Named character vector. The names correspond to
-#'   the IDs of all transcripts expressed in the organism of study, whereas
+#'   the IDs in the supplied background reference set, whereas
 #'   corresponding values are the IDs of transcripts retained by the unique()
 #'   function when multiple identical sequences exist. So, if multiple
 #'   identical sequences exist (e.g., ID1, ID2, ID3, and ID4), and unique()
@@ -133,10 +166,15 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #'   background rather than a full one. `ps_build_bg(fullBG = TRUE)` builds
 #'   this vector from the names of the sequences it is given; pass it here to
 #'   carry it through an object rebuilt by hand.
+#' @slot transcriptIDLegend Named character vector mapping original background
+#'   identifiers to identifiers retained after sequence deduplication.
 #'
 #' @return A `PSMatrixList` object, which is a list containing `PSMatrix`
 #'    objects. Each element in the list corresponds to a `PSMatrix` object
 #'    provided as input.
+#'
+#' @details `PSMatrixList` extends `TFBSTools::PFMatrixList` and adds the
+#'   `transcriptIDLegend` used by full-background retrieval.
 #'
 #' @examples
 #' # Load JASPAR motif matrices for vertebrates
@@ -148,14 +186,14 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #'   ps_bg_avg = 0.25,
 #'   ps_fg_avg = 0.5,
 #'   ps_bg_std_dev = 0.05,
-#'   ps_bg_size = 250L
+#'   ps_bg_size = 1000L # number of background sequences
 #' )
 #' PSM2 <- PSMatrix(
 #'   pfm = J2020[[2]],
 #'   ps_bg_avg = 0.25,
 #'   ps_fg_avg = 0.5,
 #'   ps_bg_std_dev = 0.05,
-#'   ps_bg_size = 250L
+#'   ps_bg_size = 1000L # number of background sequences
 #' )
 #' result <- PSMatrixList(PSM1, PSM2)
 #' ps_results_table(result)

@@ -16,9 +16,8 @@ ps_density_plot(
 \item{pfm}{A `PSMatrix` object. It is a selected matrix from the
 `PSMatrixList`, result of `pscan` function.}
 
-\item{shift}{Integer value specifying the positional shift applied to the
-hit positions to obtain the position in respect to the TSS.
-Default is `0`.}
+\item{shift}{Integer coordinate assigned to the first promoter base. For a
+promoter beginning 200 bases upstream of the TSS, use `-200`.}
 
 \item{st}{Score threshold used to filter hits. Can be a numeric value to set
 the threshold directly, or a character:
@@ -56,8 +55,10 @@ It helps visualize where motif occurrences are concentrated.
 \details{
 The function filters motif hits based on a specified threshold and generates
 a density plot to show their distribution. The function includes a vertical
-dashed line marking the mode (the most frequent position along the
-promoters). The title reports how many promoters passed the threshold.
+dashed line marking the estimated kernel-density mode. This smoothed mode
+need not be an observed position or the most frequent discrete coordinate.
+At least two finite positions must pass the threshold. The title reports how
+many promoters passed.
 
 This function uses example datasets located in the `extdata/` directory for
 demonstration purposes only. These files are not part of the core data used

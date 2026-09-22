@@ -10,8 +10,8 @@ ps_hit_score_plot(x, shift = 0, alpha = NULL, size = NULL)
 \item{x}{A `PSMatrix`, or a `PSMatrixList` in which case the motifs are
 drawn as panels sharing both axes.}
 
-\item{shift}{Integer positional shift applied to hit positions, to place
-them relative to the TSS. Default `0`.}
+\item{shift}{Integer coordinate assigned to the first promoter base. For a
+promoter beginning 200 bases upstream of the TSS, use `-200`.}
 
 \item{alpha, size}{Point opacity and point size. Left `NULL`, both are scaled
 from the number of promoters so that a large scan stays readable; supply
@@ -21,8 +21,9 @@ either to override that.}
 A `ggplot` object.
 }
 \description{
-Plots every promoter's best hit as a point positioned by where the site sits
-and by how well it scores, so that position and strength are read together.
+Plots every scorable promoter's best hit as a point positioned by where the
+site sits and by how well it scores, so position and strength are read
+together.
 A positional profile alone cannot show whether a concentration is made of
 strong sites or weak ones.
 }
@@ -36,14 +37,15 @@ deviation above it, and beyond that. A point in the top band is a site that
 Colouring the middle band separately rather than lumping it with the weak
 hits shows how much of a positional pattern rests on marginal sites.
 
-Because each promoter contributes exactly one point, vertical structure is
-the score distribution and horizontal structure is the positional one. A
+Each promoter with a non-missing score contributes exactly one point;
+unscorable promoters are omitted. Vertical structure is the score
+distribution and horizontal structure is the positional one. A
 motif whose strong sites are positionally constrained shows points banking
 into one region above the upper line while the weak sites stay spread out.
 
-Every promoter is drawn, whatever the size of the scan: nothing is
-subsampled and nothing is binned, so the figure keeps meaning one point per
-promoter. Opacity and point size are instead scaled from the number of
+Every scorable promoter is drawn, whatever the size of the scan: nothing is
+subsampled and nothing is binned. Opacity and point size are scaled from the
+number of
 promoters, interpolated between the values that suit a few hundred points
 and ones that survive tens of thousands, so that a large scan reads as
 density rather than as solid blocks of colour. `alpha` and `size` override

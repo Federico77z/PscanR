@@ -12,11 +12,12 @@ ps_selection_summary(mapping)
 \code{return = "both"}.}
 }
 \value{
-A list with two elements. \code{overall} is a one-row
-  \code{data.frame} of counts: genes requested, genes mapped, genes
-  unmapped, genes with more than one candidate, genes decided by tie-break,
-  and candidates excluded as protein accessions. \code{by_source} is a
-  \code{data.frame} with one row per \code{selection_source}.
+A list with two tables:
+  \itemize{
+    \item \code{overall}: counts of requested, mapped, and unmapped genes,
+      ambiguous choices, tie-break decisions, and excluded proteins.
+    \item \code{by_source}: one row per selection source.
+  }
 }
 \description{
 Reports how a mapping produced by \code{\link{ps_select_promoters}} was

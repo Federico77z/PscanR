@@ -14,15 +14,12 @@
 #' @param pfms A `PSMatrixList` object containing PWMs and background
 #'    statistics.
 #'    For background statistics we refer to the standard deviation and average
-#'    of hits scores when the background (set of promoters of all the
-#'    transcript in the organism of study) is scanned with the position weight
-#'    matrices.
+#'    of best-hit scores when the supplied background reference set is scanned
+#'    with the position weight matrices.
 #'    This is used to assert the statistical enrichment of motif occurrences
 #'    in co-expressed or co-regulated genes.
-#'    See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}},
-#'    \code{\link{ps_build_bg_from_table}},
-#'    \code{\link{generate_psmatrixlist_from_background}} for how to create
-#'    `PSMatrixList` objects that contain background statistics.
+#'    The background-building functions described in See Also create suitable
+#'    `PSMatrixList` objects.
 #'
 #' @param BPPARAM The BPPARAM used by bplapply. See BiocParallel package.
 #'    This argument is passed to `BiocParallel::bplapply`.
@@ -49,8 +46,11 @@
 #' reverse strand based on how well the k-mer matches the Transcription Factor
 #' Binding Motif provided by the PWM. For each input sequence scanned with
 #' individual PWM, only the k-mer with the highest score is selected.
-#' The method populates the following PSMatrix slots for each input
-#' sequence:
+#'
+#' Before scanning, exact duplicate sequences are collapsed. Sequences whose
+#' width differs from the maximum input width and sequences containing more
+#' than 50 percent `N` are removed with a warning. The following slots therefore
+#' describe the retained unique foreground sequences:
 #' \itemize{
 #'    \item ps_hits_score: the highest matching value found for each sequence.
 #'    \item ps_hits_pos: position of the best TFBS match.
@@ -68,9 +68,9 @@
 #' The Pscan z-score is `sqrt(n)` times the standardised difference between the
 #' foreground and background mean scores, so it grows with the size of the
 #' foreground rather than only with the strength of the signal. And since the
-#' background is every promoter, a foreground of `n` out of `N` is compared
-#' against a set that largely consists of itself: the difference the statistic
-#' measures is the foreground-against-the-rest difference shrunk by `1 - f`,
+#' background contains the foreground, a foreground of `n` out of `N` is
+#' compared against a set that partly consists of itself: the statistic's
+#' foreground-versus-rest difference is shrunk by `1 - f`,
 #' with `f = n / N`. Both effects are invisible in the reported number, which is
 #' why a foreground above a tenth of the background raises a warning rather than
 #' being left to the reader.
@@ -82,11 +82,16 @@
 #' `NA_integer_` for any motif absent from the background table, and a
 #' hand-built table can legitimately give different sizes per motif, so `N` is
 #' the median of the usable values and nothing is reported when none are.
+#' The Z-test uses the number of non-`NA` foreground scores as `n`, while
+#' `ps_fg_size()` reports the number of retained foreground sequences.
 #'
 #' @return
-#' Enriched PSMatrixList object where each matrix includes
-#' \code{ps_hits_score}, \code{ps_hits_pos}, \code{ps_hits_strand},
-#' and \code{ps_hits_oligo} populated for each input sequence.
+#' A `PSMatrixList` with each retained sequence's best score, start, strand,
+#' and oligo stored in every matrix.
+#'
+#' @seealso \code{\link{ps_build_bg}},
+#'   \code{\link[=ps_build_bg_from_table]{background table builder}}, and
+#'   \code{\link[=ps_retrieve_bg_from_file]{background file reader}}.
 #'
 #' @export
 #'
@@ -167,13 +172,12 @@ pscan <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 #'    IDs) corresponding to the sequences of interest. These should match
 #'    those used when the background was originally computed
 #'    (e.g., RefSeq transcript IDs).
-#' @param full_pfms A `PSMatrixList` object generated using
-#'    \code{\link{ps_build_bg}} with the `fullBG = TRUE` flag. This object
-#'    must contain a complete set of pre-computed scores and metadata for all
-#'    promoter sequences of the reference organism.
+#' @param full_pfms A complete background object. Create it with the background
+#'    builder in full-background mode. It stores scores and metadata for the
+#'    complete promoter reference set.
 #' @param scheme Transcript identifier scheme. `"auto"` (the default) detects
-#'    it from the background's transcript identifiers. See
-#'    \code{\link{ps_select_promoters}} for the available schemes.
+#'    it from the background's transcript identifiers. The choices match those
+#'    used for promoter selection.
 #' @param quiet Logical. Suppress the scheme-detection message.
 #'
 #' @details
@@ -503,8 +507,8 @@ pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
 #' between Pscan input regulatory sequences and position weight matrices)
 #' for each PWM.
 #' Then it compares motif occurrences in the foreground (e.g.,
-#' coexpressed/coregulated promoter sequences) with the background (e.g., all
-#' promoters in an organism) using Z-scores, p-values, and FDR correction.
+#' coexpressed/coregulated promoter sequences) with the supplied background
+#' reference set using Z-scores, p-values, and FDR correction.
 #' Returns a table ordered by decreasing `ZSCORE` and increasing `P.VALUE`.
 #'
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated
@@ -520,16 +524,16 @@ pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
 #' ZSCORE, prioritizing significant and strongly enriched motifs.
 #' It contains the following columns:
 #' \itemize{
-#'   \item "NAME": The matrices identifiers.
+#'   \item "NAME": The motif or transcription-factor name. Matrix identifiers
+#'   are stored as row names.
 #'   \item "BG_AVG": The average background score of TFBSs for each PWM.
 #'   \item "BG_STDEV": The standard deviation of the background scores of TFBSs
 #'   for each PWM.
 #'   \item "FG_AVG": The average foreground score (the TFBS scores found by
 #'   scanning the chosen subset of regulatory regions) for each PWM.
-#'   \item "ZSCORE": The Z-score for each PWM computed as
-#'   (FG_AVG-BG_AVG)/BG_STDEV. It represents a statistical measure of motif
-#'   enrichment, quantifying how much the average foreground score deviates from
-#'   the background one.
+#'   \item "ZSCORE": The one-sample Z-statistic
+#'   `(FG_AVG - BG_AVG) / (BG_STDEV / sqrt(n))`, where `n` is the number of
+#'   non-missing foreground scores.
 #'   \item "P.VALUE": The p-value for each PWM.
 #'   \item "FDR": The adjusted p-value, representing the False Discovery Rate,
 #'   is calculated using the Benjamini-Hochberg correction.
@@ -689,12 +693,10 @@ ps_z_table <- function(pfms) {
     as.matrix(as.data.frame(tbl, col.names = ID(pfms)))
 }
 
-#' Motif Z-Score Correlation Heatmap from Pscan Results
+#' Heatmap of Per-Sequence Motif Z-Scores
 #'
-#' This function generates a heatmap that visualizes the correlation of
-#' Z-scores for transcription factors (TFs) based on a specified false
-#' discovery rate threshold.
-#' It allows customization of the heatmap's appearance.
+#' This function displays standardized best-hit scores for each retained
+#' sequence and motif selected by a motif-level FDR threshold.
 #'
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated
 #'    metadata (foreground and background statistics). Typically the output
@@ -705,9 +707,9 @@ ps_z_table <- function(pfms) {
 #'    settings, such as color palettes or clustering objects.
 #'
 #' @details
-#' The heatmap represents the correlation of motif Z-scores, helping to
-#' identify clusters of motifs that show similar enrichment patterns across
-#' sequences.
+#' The cells contain the per-sequence values returned by `ps_hits_z()`; they are
+#' not correlations. Correlation distance is used only for clustering rows and
+#' columns when both dimensions contain at least two entries.
 #' The function performs the following steps:
 #' \itemize{
 #'   \item Extracts the result table and the z-score table from the pscan
@@ -720,9 +722,10 @@ ps_z_table <- function(pfms) {
 #'
 #'  Default settings (which can be changed) are:
 #'  \itemize{
-#'    \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
+#'    \item `cluster_rows` and `cluster_cols`, set to `TRUE` when the selected
+#'      matrix dimensions permit clustering.
 #'    \item `color`, which uses a blue-white-red palette.
-#'    \item The main `Pscan Score Correlation Heatmap`.
+#'    \item The main `Pscan Per-Sequence Z-Score Heatmap`.
 #'    \item TF names are shown as column labels.
 #'    }
 #'
@@ -769,12 +772,19 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
     res_table <- .ps_results_table_core(pfms)
     z_table <- ps_z_table(pfms)
     topn <- which(res_table$FDR <= FDR)
+    if (length(topn) == 0L) {
+        stop("No motifs pass the requested FDR threshold", call. = FALSE)
+    }
+
+    tf_to_plot <- rownames(res_table)[topn]
+    z_table_reduced <- z_table[, tf_to_plot, drop = FALSE]
 
     defaults <- list(
-    cluster_rows = TRUE,
-    cluster_cols = TRUE,
+    cluster_rows = nrow(z_table_reduced) > 1L,
+    cluster_cols = ncol(z_table_reduced) > 1L,
     color = colorRampPalette(c("blue", "white", "red"))(50),
-    main = "Pscan Score Correlation Heatmap", scale = "row",
+    main = "Pscan Per-Sequence Z-Score Heatmap",
+    scale = if (ncol(z_table_reduced) > 1L) "row" else "none",
     show_rownames = FALSE,
     labels_col = res_table$NAME[topn],
     clustering_distance_rows = "correlation",
@@ -788,10 +798,13 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
     user_args <- list(...)
 
     final_args <- modifyList(defaults, user_args)
-
-    tf_to_plot <- rownames(res_table)[topn]
-
-    z_table_reduced <- z_table[, tf_to_plot]
+    if (any(dim(z_table_reduced) < 2L)) {
+        final_args$cluster_rows <- FALSE
+        final_args$cluster_cols <- FALSE
+    }
+    if (ncol(z_table_reduced) < 2L && identical(final_args$scale, "row")) {
+        final_args$scale <- "none"
+    }
 
     res <- do.call(pheatmap::pheatmap, c(list(z_table_reduced), final_args))
 
@@ -802,17 +815,17 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
 #'
 #' This function creates a heatmap visualizing the positional distribution
 #' of motif hits based on a specified false discovery rate threshold.
-#' The heatmap helps visualize where significant motif hits occur within the
-#' analyzed sequences.
+#' The heatmap shows each sequence's best-hit start for motifs that pass the
+#' motif-level FDR filter. The individual windows are not separately tested for
+#' significance.
 #'
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated
 #'    metadata (foreground and background statistics). Typically the output
 #'    of `pscan()` or `pscan_fullBG()` function.
 #' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
 #'    to be included in the analysis. The default is set to `0.01`.
-#' @param shift Integer. A value to shift the reported positions of motif hits
-#'    in respect to the TSS.
-#'    Default is set to `0`.
+#' @param shift Integer coordinate assigned to the first sequence base. For a
+#'    promoter beginning 200 bases upstream of the TSS, use `-200`.
 #' @param ... Additional user-defined arguments that can be passed to
 #'    the function (e.g., the color palette) to change the default settings.
 #'
@@ -875,6 +888,9 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
     res_table <- .ps_results_table_core(pfms)
 
     topn <- which(res_table$FDR <= FDR)
+    if (length(topn) == 0L) {
+        stop("No motifs pass the requested FDR threshold", call. = FALSE)
+    }
 
     defaults <- list(
     cluster_rows = TRUE,
@@ -910,6 +926,8 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 
     colnames(pos_mat) <- res_table$NAME[topn]
     rownames(pos_mat) <- ps_seq_names(pfms[[1]])
+    if (nrow(pos_mat) < 2L) final_args$cluster_rows <- FALSE
+    if (ncol(pos_mat) < 2L) final_args$cluster_cols <- FALSE
 
     res <- do.call(pheatmap::pheatmap, c(list(pos_mat), final_args))
 
@@ -949,9 +967,8 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 #'
 #' @param pfm A `PSMatrix` object. It is a selected matrix from the
 #'    `PSMatrixList`, result of `pscan` function.
-#' @param shift Integer value specifying the positional shift applied to the
-#'    hit positions to obtain the position in respect to the TSS.
-#'    Default is `0`.
+#' @param shift Integer coordinate assigned to the first promoter base. For a
+#'    promoter beginning 200 bases upstream of the TSS, use `-200`.
 #' @param st Score threshold used to filter hits. Can be a numeric value to set
 #'    the threshold directly, or a character:
 #'    \itemize{
@@ -979,8 +996,10 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 #' @details
 #' The function filters motif hits based on a specified threshold and generates
 #' a density plot to show their distribution. The function includes a vertical
-#' dashed line marking the mode (the most frequent position along the
-#' promoters). The title reports how many promoters passed the threshold.
+#' dashed line marking the estimated kernel-density mode. This smoothed mode
+#' need not be an observed position or the most frequent discrete coordinate.
+#' At least two finite positions must pass the threshold. The title reports how
+#' many promoters passed.
 #'
 #' This function uses example datasets located in the `extdata/` directory for
 #' demonstration purposes only. These files are not part of the core data used
@@ -1005,10 +1024,17 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
     st <- .ps_resolve_threshold(st, pfm, "st")
 
     scores <- ps_hits_score(pfm)
-    g_scores <- scores >= st
+    g_scores <- !is.na(scores) & scores >= st
     sum_g <- sum(g_scores)
 
     positions <- ps_hits_pos(pfm, pos_shift = shift)[g_scores]
+    positions <- positions[is.finite(positions)]
+    if (length(positions) < 2L) {
+        stop(
+            "At least two finite hit positions must pass the score threshold",
+            call. = FALSE
+        )
+    }
     # A hit is reported at the start of its window, so the last position a
     # motif of width w can start at is w - 1 short of the end of the promoter.
     # Reflecting at the end of the promoter itself would place the boundary
@@ -1087,7 +1113,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
 #' Reflecting at the end of the promoter itself would put the boundary where no
 #' hit can be observed.
 #'
-#' @param window Promoter window, or `NULL`.
+#' @param window Half-open promoter interval `[start, end)`, or `NULL`.
 #' @param width Motif width, `ncol()` of the matrix.
 #'
 #' @return Length-2 numeric, or `NULL` when `window` is `NULL`.
@@ -1106,7 +1132,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
     )
     }
     window <- sort(as.numeric(window))
-    support <- c(window[[1L]] + 1, window[[2L]] - width + 1)
+    support <- c(window[[1L]], window[[2L]] - width)
     if (support[[1L]] >= support[[2L]]) {
     stop(
         "'window' spans ", diff(window), " bases, which is too short to ",
@@ -1322,8 +1348,7 @@ ps_motif_class <- function(pfms) {
 #' Plots the highest ranking motifs of a scan as horizontal bars, optionally
 #' coloured by a grouping such as the structural class of the factor.
 #'
-#' @param pfms A `PSMatrixList` returned by \code{\link{pscan}}, or a
-#'    `data.frame` produced by \code{\link{ps_results_table}}. A results table
+#' @param pfms A scan result, or a table from `ps_results_table()`. A table
 #'    carries no motif metadata, so `group` must be supplied explicitly when
 #'    one is used.
 #' @param n Number of motifs to show. If the collection holds fewer than `n`
@@ -1332,8 +1357,10 @@ ps_motif_class <- function(pfms) {
 #'    `"P.VALUE"`, `"FDR"`, `"FG_AVG"` or `"BG_AVG"`.
 #' @param group Optional grouping mapped to bar colour. `NULL` (the default)
 #'    draws every bar in one colour. `"class"` derives the structural class
-#'    with \code{\link{ps_motif_class}}. Alternatively supply a character or
-#'    factor vector, either one entry per motif or named by matrix identifier.
+#'    with \code{\link{ps_motif_class}}; `"family"` uses each matrix's JASPAR
+#'    family tag, with missing values labelled `"Unclassified"`. Alternatively
+#'    supply a character or factor vector, either one entry per motif or named
+#'    by matrix identifier.
 #' @param FDR Optional significance cutoff applied before ranking. `NULL`, the
 #'    default, keeps every motif.
 #'
@@ -1382,6 +1409,9 @@ ps_motif_class <- function(pfms) {
 #'
 #' # Colour by the structural class of the factor.
 #' ps_motif_barplot(results, n = 6, group = "class")
+#'
+#' # Or by the JASPAR family tag.
+#' ps_motif_barplot(results, n = 6, group = "family")
 ps_motif_barplot <- function(pfms, n = 20, statistic = c(
                                  "ZSCORE", "P.VALUE", "FDR",
                                  "FG_AVG", "BG_AVG"
@@ -1549,15 +1579,16 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 
 #' Hit Position Against Hit Score
 #'
-#' Plots every promoter's best hit as a point positioned by where the site sits
-#' and by how well it scores, so that position and strength are read together.
+#' Plots every scorable promoter's best hit as a point positioned by where the
+#' site sits and by how well it scores, so position and strength are read
+#' together.
 #' A positional profile alone cannot show whether a concentration is made of
 #' strong sites or weak ones.
 #'
 #' @param x A `PSMatrix`, or a `PSMatrixList` in which case the motifs are
 #'    drawn as panels sharing both axes.
-#' @param shift Integer positional shift applied to hit positions, to place
-#'    them relative to the TSS. Default `0`.
+#' @param shift Integer coordinate assigned to the first promoter base. For a
+#'    promoter beginning 200 bases upstream of the TSS, use `-200`.
 #' @param alpha,size Point opacity and point size. Left `NULL`, both are scaled
 #'    from the number of promoters so that a large scan stays readable; supply
 #'    either to override that.
@@ -1574,14 +1605,15 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 #' Colouring the middle band separately rather than lumping it with the weak
 #' hits shows how much of a positional pattern rests on marginal sites.
 #'
-#' Because each promoter contributes exactly one point, vertical structure is
-#' the score distribution and horizontal structure is the positional one. A
+#' Each promoter with a non-missing score contributes exactly one point;
+#' unscorable promoters are omitted. Vertical structure is the score
+#' distribution and horizontal structure is the positional one. A
 #' motif whose strong sites are positionally constrained shows points banking
 #' into one region above the upper line while the weak sites stay spread out.
 #'
-#' Every promoter is drawn, whatever the size of the scan: nothing is
-#' subsampled and nothing is binned, so the figure keeps meaning one point per
-#' promoter. Opacity and point size are instead scaled from the number of
+#' Every scorable promoter is drawn, whatever the size of the scan: nothing is
+#' subsampled and nothing is binned. Opacity and point size are scaled from the
+#' number of
 #' promoters, interpolated between the values that suit a few hundred points
 #' and ones that survive tens of thousands, so that a large scan reads as
 #' density rather than as solid blocks of colour. `alpha` and `size` override
@@ -1619,10 +1651,10 @@ ps_hit_score_plot <- function(x, shift = 0, alpha = NULL, size = NULL) {
     loose <- ps_bg_avg(m)
     strict <- loose + ps_bg_std_dev(m)
     scores <- ps_hits_score(m)
-    keep <- !is.na(scores)
+    keep <- is.finite(scores)
     scores <- scores[keep]
     data.frame(
-        motif = name(m),
+        motif = rep(name(m), length(scores)),
         position = ps_hits_pos(m, pos_shift = shift)[keep],
         score = scores,
         band = .PS_SCORE_BANDS[
@@ -1631,6 +1663,9 @@ ps_hit_score_plot <- function(x, shift = 0, alpha = NULL, size = NULL) {
         stringsAsFactors = FALSE
     )
     }))
+    if (nrow(points) == 0L) {
+        stop("No finite motif hit scores are available to plot", call. = FALSE)
+    }
     points$band <- factor(points$band, levels = rev(.PS_SCORE_BANDS))
     # Panels follow the order the motifs were given, not the alphabet.
     motif_names <- vapply(motifs, name, character(1L))

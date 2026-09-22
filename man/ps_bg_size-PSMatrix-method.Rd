@@ -11,15 +11,15 @@
 
 \item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
-Default set to `TRUE`.}
+Included for accessor consistency; it has no effect on this scalar value.}
 }
 \value{
-An integer value representing the background promoter region size
-   used for background scoring.
+An integer giving the number of background sequences used for
+   background scoring.
 }
 \description{
-Retrieves the background promoter region size used to compute the
-background statistics in a `PSMatrix` object (e.g., 250L).
+Retrieves the number of sequences in the background reference set used to
+compute the background statistics in a `PSMatrix` object.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

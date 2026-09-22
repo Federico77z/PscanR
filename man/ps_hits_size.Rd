@@ -15,7 +15,6 @@ ps_hits_size(x, ...)
 \value{
 \itemize{
   \item If `x` is a `PSMatrix` object (Pscan result), an **integer value**.
-  \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
@@ -24,8 +23,8 @@ for motif enrichment analysis. Methods should be
 implemented for specific object classes that store scan results.
 }
 \details{
-The hits size value represents the total number of motif hits detected in
-the input promoter sequences.
+The hits size is the number of retained per-sequence best windows. It does
+not apply a score or significance threshold.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

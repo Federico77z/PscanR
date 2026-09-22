@@ -31,14 +31,14 @@ co-expressed or co-regulated genes when scanned with a PWM.}
 \item{ps_bg_std_dev}{Numeric. The background standard deviation of PWM
 scores, default = `NA`.}
 
-\item{ps_bg_size}{Integer. The size of the background promoter region
-(e.g., 250L), default = `NA`.}
+\item{ps_bg_size}{Integer. The number of sequences in the background
+reference set, default = `NA`.}
 
 \item{.PS_PSEUDOCOUNT}{Numeric. The pseudocount added to avoid division
 by zero. Default = `0.01`.}
 
-\item{...}{Additional arguments passed to other methods or used in the
-initialization.}
+\item{...}{Reserved for compatibility. Supplying additional arguments is an
+error, which protects against silently misspelled argument names.}
 }
 \value{
 A `PSMatrix` object containing the provided statistics, initialized
@@ -55,9 +55,54 @@ deviation, size, z-scores, and other related information.
 \details{
 When a `PSMatrix` object is created or modified, it is automatically
 validated using an internal function. The validation ensures that the
-background and foreground statistics are properly formatted, and that motif
-hit-related vectors have consistent lengths.
+background and foreground statistics are properly formatted, and that the
+foreground and stored full-background hit vectors have consistent lengths.
+The class extends `TFBSTools::PFMatrix` and therefore also contains its motif
+identifier, name, matrix, strand, tags, and related metadata.
 }
+\section{Slots}{
+
+\describe{
+\item{\code{ps_bg_avg}}{Mean normalized best-hit score in the background reference
+set.}
+
+\item{\code{ps_fg_avg}}{Mean normalized best-hit score in the retained foreground.}
+
+\item{\code{ps_bg_std_dev}}{Standard deviation of normalized background scores.}
+
+\item{\code{ps_bg_size}}{Number of sequences in the background reference set.}
+
+\item{\code{ps_fg_size}}{Number of retained foreground sequences.}
+
+\item{\code{ps_hits_pos}}{Integer positions of foreground best hits.}
+
+\item{\code{ps_hits_pos_bg}}{Integer positions of stored full-background best hits.}
+
+\item{\code{ps_hits_strand}}{Foreground best-hit strands.}
+
+\item{\code{ps_hits_strand_bg}}{Stored full-background best-hit strands.}
+
+\item{\code{ps_hits_score}}{Normalized foreground best-hit scores.}
+
+\item{\code{ps_hits_score_bg}}{Stored normalized full-background best-hit scores.}
+
+\item{\code{ps_hits_oligo}}{Foreground sequence windows at best-hit positions.}
+
+\item{\code{ps_hits_oligo_bg}}{Stored full-background sequence windows.}
+
+\item{\code{ps_zscore}}{Motif-enrichment Z-statistic.}
+
+\item{\code{ps_pvalue}}{Upper-tail p-value for `ps_zscore`.}
+
+\item{\code{ps_seq_names}}{Identifiers of retained foreground sequences.}
+
+\item{\code{ps_bg_seq_names}}{Identifiers of stored full-background sequences.}
+
+\item{\code{.PS_PSEUDOCOUNT}}{Pseudocount used to convert frequencies to weights.}
+
+\item{\code{.PS_ALPHABET}}{Integer encoding of A, C, G, and T.}
+}}
+
 \examples{
 
 # Load JASPAR motif matrices for vertebrates
@@ -69,7 +114,7 @@ result <- PSMatrix(
   ps_bg_avg = 0.25,
   ps_fg_avg = 0.5,
   ps_bg_std_dev = 0.05,
-  ps_bg_size = 250L
+  ps_bg_size = 1000L # number of background sequences
 )
 print(result)
 }

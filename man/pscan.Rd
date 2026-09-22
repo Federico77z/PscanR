@@ -14,15 +14,12 @@ See the Biostrings package for details.}
 \item{pfms}{A `PSMatrixList` object containing PWMs and background
 statistics.
 For background statistics we refer to the standard deviation and average
-of hits scores when the background (set of promoters of all the
-transcript in the organism of study) is scanned with the position weight
-matrices.
+of best-hit scores when the supplied background reference set is scanned
+with the position weight matrices.
 This is used to assert the statistical enrichment of motif occurrences
 in co-expressed or co-regulated genes.
-See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}},
-\code{\link{ps_build_bg_from_table}},
-\code{\link{generate_psmatrixlist_from_background}} for how to create
-`PSMatrixList` objects that contain background statistics.}
+The background-building functions described in See Also create suitable
+`PSMatrixList` objects.}
 
 \item{BPPARAM}{The BPPARAM used by bplapply. See BiocParallel package.
 This argument is passed to `BiocParallel::bplapply`.
@@ -41,9 +38,8 @@ processing many tasks. log = TRUE enables logging to debug each step of
 the parallel tasks.}
 }
 \value{
-Enriched PSMatrixList object where each matrix includes
-\code{ps_hits_score}, \code{ps_hits_pos}, \code{ps_hits_strand},
-and \code{ps_hits_oligo} populated for each input sequence.
+A `PSMatrixList` with each retained sequence's best score, start, strand,
+and oligo stored in every matrix.
 }
 \description{
 This function computes alignment scores between regulatory sequences
@@ -62,8 +58,11 @@ same length of the motif and evaluates a score for both the forward and
 reverse strand based on how well the k-mer matches the Transcription Factor
 Binding Motif provided by the PWM. For each input sequence scanned with
 individual PWM, only the k-mer with the highest score is selected.
-The method populates the following PSMatrix slots for each input
-sequence:
+
+Before scanning, exact duplicate sequences are collapsed. Sequences whose
+width differs from the maximum input width and sequences containing more
+than 50 percent `N` are removed with a warning. The following slots therefore
+describe the retained unique foreground sequences:
 \itemize{
    \item ps_hits_score: the highest matching value found for each sequence.
    \item ps_hits_pos: position of the best TFBS match.
@@ -82,9 +81,9 @@ examples.
 The Pscan z-score is `sqrt(n)` times the standardised difference between the
 foreground and background mean scores, so it grows with the size of the
 foreground rather than only with the strength of the signal. And since the
-background is every promoter, a foreground of `n` out of `N` is compared
-against a set that largely consists of itself: the difference the statistic
-measures is the foreground-against-the-rest difference shrunk by `1 - f`,
+background contains the foreground, a foreground of `n` out of `N` is
+compared against a set that partly consists of itself: the statistic's
+foreground-versus-rest difference is shrunk by `1 - f`,
 with `f = n / N`. Both effects are invisible in the reported number, which is
 why a foreground above a tenth of the background raises a warning rather than
 being left to the reader.
@@ -96,6 +95,8 @@ to `Inf` to silence the check, or to a smaller fraction to tighten it.
 `NA_integer_` for any motif absent from the background table, and a
 hand-built table can legitimately give different sizes per motif, so `N` is
 the median of the usable values and nothing is reported when none are.
+The Z-test uses the number of non-`NA` foreground scores as `n`, while
+`ps_fg_size()` reports the number of retained foreground sequences.
 }
 
 \examples{
@@ -125,4 +126,9 @@ results <- pscan(prom_seq, background,
 
 ps_results_table(results)
 
+}
+\seealso{
+\code{\link{ps_build_bg}},
+  \code{\link[=ps_build_bg_from_table]{background table builder}}, and
+  \code{\link[=ps_retrieve_bg_from_file]{background file reader}}.
 }

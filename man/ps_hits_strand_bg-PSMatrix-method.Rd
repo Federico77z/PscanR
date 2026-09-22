@@ -20,22 +20,22 @@ A named character vector where names correspond to promoter sequence
 }
 \description{
 Retrieves the strand information (`+` or `-`) of motif hits in a
-`PSMatrix` object computed on the background dataset (all promoters in a
-specific organism). This indicates whether a motif was detected on
+`PSMatrix` object computed on a background reference set. This indicates
+whether a motif was detected on
 the forward (`+`) or reverse (`-`) strand of the promoter sequence.
 The Pscan algorithm scans both the strands of the promoter sequences to
 ensure that no potential binding sites are missed.
 }
 \details{
 This method is specifically designed for background datasets,
-where motif hit strands are precomputed for all promoter sequences.
+where motif hit strands are precomputed for every retained background
+sequence.
 The function extracts the strand values from the \code{ps_hits_strand_bg}
 slot and, if applicable, assigns sequence names using
 \code{.ps_bg_seq_names()}.
 
-These background metrics are particularly useful in motif enrichment
-analyses, as they allow pscan() to compare foreground promoter sequences
-against a reference distribution without the need for recomputation.
+These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+selected background identifiers without rescanning DNA.
 }
 \examples{
 full_pfm1_path <- system.file("extdata",

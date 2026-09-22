@@ -11,16 +11,14 @@
 
 \item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
-Default set to `TRUE`.}
+Included for accessor consistency; it has no effect on this scalar value.}
 }
 \value{
-An integer representing the total number of promoter sequences used
-   as input to Pscan.
+An integer representing the retained foreground size.
 }
 \description{
-Retrieves the number of promoter sequences given as input to the Pscan
-algorithm in a `PSMatrix` object. This represents the total number of
-sequences analyzed for motif enrichment.
+Retrieves the number of unique foreground sequences retained after input
+cleaning. This includes retained sequences whose best-hit score is `NA`.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

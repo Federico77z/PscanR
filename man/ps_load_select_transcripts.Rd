@@ -19,9 +19,8 @@ ps_load_select_transcripts(
 \item{cache_dir}{Directory used for cached transcript metadata.}
 }
 \value{
-A \code{data.frame} with columns \code{transcript_id},
-  \code{transcript_base} (the versionless accession), \code{gene_symbol},
-  \code{selection_source}, and \code{selection_priority}.
+A \code{data.frame} containing transcript identifiers, versionless
+  accessions, gene symbols, selection sources, and selection priorities.
 }
 \description{
 Downloads and caches the human MANE Select and RefSeq Select transcript
@@ -30,16 +29,13 @@ tables from UCSC hg38. The resulting table can be passed to
 promoter per gene.
 }
 \details{
-MANE Select is preferred over RefSeq Select. This helper is intentionally
-  separated from \code{\link{ps_select_promoters}} so callers can cache or
-  inspect the selection table once and reuse it in multiple analyses.
+MANE Select is preferred over RefSeq Select. The returned table can be
+  cached, inspected, and reused in multiple analyses.
 
 The automatic metadata download provided by this function is human-specific
   and applies only to the RefSeq transcript scheme. It currently uses UCSC
-  hg38 MANE and RefSeq Select tracks. For every other reference, call
-  \code{\link{ps_select_promoters}} with \code{mode = "representative"},
-  which applies the ranking rule appropriate to the detected transcript
-  scheme, or supply your own \code{select_transcripts} table.
+  hg38 MANE and RefSeq Select tracks. For every other reference, use
+  representative mode or supply species-specific selection metadata.
 }
 \examples{
 cache_dir <- tempfile("pscanr-select-")

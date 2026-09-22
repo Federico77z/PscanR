@@ -2,7 +2,7 @@
 % Please edit documentation in R/Scan_and_post_processing.R
 \name{ps_zscore_heatmap}
 \alias{ps_zscore_heatmap}
-\title{Motif Z-Score Correlation Heatmap from Pscan Results}
+\title{Heatmap of Per-Sequence Motif Z-Scores}
 \usage{
 ps_zscore_heatmap(pfms, FDR = 0.01, ...)
 }
@@ -22,15 +22,13 @@ Invisibly returns the Z-score submatrix used for plotting.
   The heatmap is drawn as a side effect.
 }
 \description{
-This function generates a heatmap that visualizes the correlation of
-Z-scores for transcription factors (TFs) based on a specified false
-discovery rate threshold.
-It allows customization of the heatmap's appearance.
+This function displays standardized best-hit scores for each retained
+sequence and motif selected by a motif-level FDR threshold.
 }
 \details{
-The heatmap represents the correlation of motif Z-scores, helping to
-identify clusters of motifs that show similar enrichment patterns across
-sequences.
+The cells contain the per-sequence values returned by `ps_hits_z()`; they are
+not correlations. Correlation distance is used only for clustering rows and
+columns when both dimensions contain at least two entries.
 The function performs the following steps:
 \itemize{
   \item Extracts the result table and the z-score table from the pscan
@@ -43,9 +41,10 @@ The function performs the following steps:
 
  Default settings (which can be changed) are:
  \itemize{
-   \item `cluster_rows` and `cluster_cols`, set to `TRUE` by default.
+   \item `cluster_rows` and `cluster_cols`, set to `TRUE` when the selected
+     matrix dimensions permit clustering.
    \item `color`, which uses a blue-white-red palette.
-   \item The main `Pscan Score Correlation Heatmap`.
+   \item The main `Pscan Per-Sequence Z-Score Heatmap`.
    \item TF names are shown as column labels.
    }
 
