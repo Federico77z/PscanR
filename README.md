@@ -117,11 +117,12 @@ release, the species, the promoter window relative to the TSS, and the genome
 assembly. The assembly is needed only for the two species that have more than
 one.
 
-Retrieval goes through ExperimentHub and falls back, with a warning, to the
-immutable Zenodo record <https://doi.org/10.5281/zenodo.21821764> when the Hub
-cannot be reached. Both routes serve the same archive, and every file is
-verified by SHA-256 on arrival. Pass `source = "zenodo"` to go to Zenodo
-directly.
+Each background is a separate ExperimentHub resource of the
+[PscanRBackgrounds](https://github.com/Federico77z/PscanRBackgrounds) data
+package. Retrieval goes through ExperimentHub and falls back, with a warning,
+to the immutable Zenodo record <https://doi.org/10.5281/zenodo.21821764>,
+which archives the same files in a single ZIP, when the Hub cannot be reached. Downloads are cached, and every file is verified by
+SHA-256 on arrival. Pass `source = "zenodo"` to go to Zenodo directly.
 
 **The foreground promoter window must match the background's.** A `950u_50d`
 background describes promoters from -950 to +50 relative to the TSS, and a

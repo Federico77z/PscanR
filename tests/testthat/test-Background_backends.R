@@ -1,235 +1,215 @@
-make_background_archive_fixture <- function(background, version = 2L) {
-    root <- tempfile("pscan-background-archive-")
-    release <- file.path(root, paste0("PscanR_backgrounds_v", version))
-    dir.create(file.path(release, "backgrounds"), recursive = TRUE)
-    target <- file.path(release, "backgrounds", basename(background))
-    stopifnot(file.copy(background, target))
-    archive <- tempfile(fileext = ".zip")
-    old <- setwd(root)
-    on.exit(setwd(old), add = TRUE)
-    status <- utils::zip(
-        archive,
-        files = file.path(
-            basename(release), "backgrounds", basename(background)
-        ),
-        flags = "-X -q"
+bundled_background <- function() {
+    system.file(
+        "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", package = "PscanR"
     )
-    setwd(old)
-    stopifnot(identical(status, 0L))
-    archive
 }
 
-test_that("bundled Hub catalog contains the complete version-2 release", {
+background_entry <- function(path = bundled_background(),
+                             file = "backgrounds/J2020_hg38_200u_50d_UCSC.psbg2.txt") {
+    data.frame(
+        background_version = 2L,
+        artifact = file,
+        artifact_sha256 = unname(tools::sha256sum(path)),
+        stringsAsFactors = FALSE
+    )
+}
+
+mock_hub <- function(paths, titles, packages = rep(
+    "PscanRBackgrounds", length(paths)
+)) {
+    structure(
+        setNames(as.list(paths), paste0("EH", seq_along(paths))),
+        class = "pscan_test_hub", title = titles, preparerclass = packages
+    )
+}
+
+test_that("bundled catalog contains the complete version-2 release", {
     details <- get_availableBG(details = TRUE)
     expect_identical(nrow(details), 105L)
     expect_true(all(details$status == "validated"))
     expect_true(all(details$latest))
     expect_true(all(details$background_version == 2L))
     expect_error(
-        PscanR:::.ps_match_background_source("automatic"),
+        PscanR:::.ps_match_background_source("github"),
         "should be one of"
     )
 })
 
-test_that("ExperimentHub failure falls back to Zenodo with a warning", {
+make_background_archive <- function(background, file) {
+    root <- tempfile("pscan-background-archive-")
+    release <- file.path(root, "PscanR_backgrounds_v2", "backgrounds")
+    dir.create(release, recursive = TRUE)
+    stopifnot(file.copy(background, file.path(release, file)))
     archive <- tempfile(fileext = ".zip")
-    writeBin(charToRaw("fixture"), archive)
-    local_mocked_bindings(
-        .ps_fetch_experimenthub_archive = function() stop("Hub unavailable"),
-        .ps_fetch_zenodo_archive = function() archive,
-        .package = "PscanR"
+    old <- setwd(root)
+    on.exit(setwd(old), add = TRUE)
+    status <- utils::zip(
+        archive, files = file.path("PscanR_backgrounds_v2", "backgrounds", file),
+        flags = "-X -q"
     )
-
-    expect_warning(
-        result <- PscanR:::.ps_fetch_background_archive("experimenthub"),
-        "Using the immutable Zenodo fallback"
-    )
-    expect_identical(result, archive)
-})
-
-test_that("archive and GitHub backends yield identical background objects", {
-    background <- system.file(
-        "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-        package = "PscanR"
-    )
-    matrices <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
-    archive <- make_background_archive_fixture(background)
-    entry <- data.frame(
-        background_version = 2L,
-        artifact = file.path("backgrounds", basename(background)),
-        artifact_sha256 = unname(tools::sha256sum(background)),
-        stringsAsFactors = FALSE
-    )
-
-    archive_path <- PscanR:::.ps_extract_background(archive, entry)
-
-    github_root <- tempfile("pscan-github-fixture-")
-    dir.create(file.path(github_root, "BG_files"), recursive = TRUE)
-    github_source <- file.path(github_root, "BG_files", basename(background))
-    expect_true(file.copy(background, github_source))
-    old <- options(
-        PscanR.background.base_url = paste0(
-            "file://", normalizePath(github_root)
-        )
-    )
-    on.exit(options(old), add = TRUE)
-    github_path <- PscanR:::.download_background(
-        file.path("BG_files", basename(background)),
-        sha256 = entry$artifact_sha256
-    )
-
-    archive_result <- ps_retrieve_bg_from_file(archive_path, matrices)
-    github_result <- ps_retrieve_bg_from_file(github_path, matrices)
-    expect_identical(archive_result, github_result)
-})
-
-test_that("archive extraction validates member checksums and destfile", {
-    background <- system.file(
-        "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-        package = "PscanR"
-    )
-    archive <- make_background_archive_fixture(background)
-    entry <- data.frame(
-        background_version = 2L,
-        artifact = file.path("backgrounds", basename(background)),
-        artifact_sha256 = unname(tools::sha256sum(background)),
-        stringsAsFactors = FALSE
-    )
-    destination <- tempfile(fileext = ".txt")
-    result <- PscanR:::.ps_extract_background(archive, entry, destination)
-    expect_identical(result, destination)
-    expect_identical(readLines(result), readLines(background))
-
-    entry$artifact_sha256 <- paste(rep("0", 64L), collapse = "")
-    bad_destination <- tempfile(fileext = ".txt")
-    expect_error(
-        PscanR:::.ps_extract_background(archive, entry, bad_destination),
-        "SHA-256"
-    )
-    expect_false(file.exists(bad_destination))
-
-    # A destfile that already exists must survive a checksum failure intact.
-    preserved <- tempfile(fileext = ".txt")
-    writeLines("existing user content", preserved)
-    expect_error(
-        PscanR:::.ps_extract_background(archive, entry, preserved), "SHA-256"
-    )
-    expect_true(file.exists(preserved))
-    expect_identical(readLines(preserved), "existing user content")
-})
-
-test_that("archive extraction rejects versions the archive does not carry", {
-    background <- system.file(
-        "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-        package = "PscanR"
-    )
-    archive <- make_background_archive_fixture(background)
-    entry <- data.frame(
-        background_version = 1L,
-        artifact = file.path("backgrounds", basename(background)),
-        artifact_sha256 = unname(tools::sha256sum(background)),
-        stringsAsFactors = FALSE
-    )
-    expect_error(
-        PscanR:::.ps_extract_background(archive, entry),
-        "is not distributed in the"
-    )
-})
-
-test_that("version 1 is available only through the explicit GitHub catalog", {
-    hub_catalog <- get_availableBG(details = TRUE, source = "experimenthub")
-    expect_false(any(hub_catalog$background_version == 1L))
-
-    catalog_path <- tempfile(fileext = ".tsv")
-    catalog <- data.frame(
-        status = c("validated", "validated"), latest = c(FALSE, TRUE),
-        organism = c("hs", "hs"), assembly = c("hg38", "hg38"),
-        upstream = c(950L, 950L), downstream = c(50L, 50L),
-        jaspar_release = c(2024L, 2024L),
-        background_version = c(1L, 2L),
-        artifact = c(
-            "BG_files/J2024_hg38_950u_50d_UCSC.psbg1.txt",
-            "BG_files/J2024_hg38_950u_50d_UCSC.psbg2.txt"
-        ),
-        artifact_sha256 = c("one", "two"), stringsAsFactors = FALSE
-    )
-    utils::write.table(
-        catalog, catalog_path, sep = "\t", quote = FALSE, row.names = FALSE
-    )
-    old <- options(PscanR.background.catalog = catalog_path)
-    on.exit(options(old), add = TRUE)
-    github_catalog <- get_availableBG(details = TRUE, source = "github")
-    expect_true(any(github_catalog$background_version == 1L))
-})
-
-# Assisted-by: OpenAI Codex. Exercise public failure behavior with local files.
-mock_hub <- function(paths, titles = rep("PscanR_backgrounds_v2", length(paths)),
-    packages = rep("PscanRBackgrounds", length(paths))) {
-    structure(setNames(as.list(paths), paste0("EH", seq_along(paths))),
-        class = "pscan_test_hub", title = titles, preparerclass = packages)
+    stopifnot(identical(status, 0L))
+    archive
 }
 
-test_that("Hub lookup requires one matching resource and a valid archive", {
-    local_mocked_s3_method("$", "pscan_test_hub", function(x, name) {
-        attr(x, name)
-    })
-    archive <- tempfile(fileext = ".zip")
-    writeBin(charToRaw("archive"), archive)
-    hub <- mock_hub(archive)
-    local_mocked_bindings(
-        .ps_open_experimenthub = function() hub,
-        .ps_expected_archive_sha256 = function() {
-            unname(tools::sha256sum(archive))
-        },
-        .package = "PscanR"
+test_that("catalog entries map to unique Hub titles", {
+    expect_identical(
+        PscanR:::.ps_hub_title(background_entry()),
+        "PscanR_bg_v2_J2020_hg38_200u_50d_UCSC"
     )
-    expect_identical(PscanR:::.ps_fetch_experimenthub_archive(), archive)
-    hub <- mock_hub(archive, titles = "another-resource")
-    expect_error(PscanR:::.ps_fetch_experimenthub_archive(), "one unique")
-    hub <- mock_hub(rep(archive, 2L))
-    expect_error(PscanR:::.ps_fetch_experimenthub_archive(), "one unique")
-    hub <- mock_hub(rep(archive, 2L), titles = c(NA, "PscanR_backgrounds_v2"))
-    expect_identical(PscanR:::.ps_fetch_experimenthub_archive(), archive)
-    hub <- mock_hub(tempfile())
-    expect_error(PscanR:::.ps_fetch_experimenthub_archive(), "invalid.*archive")
-    hub <- mock_hub(NA_character_)
-    expect_error(PscanR:::.ps_fetch_experimenthub_archive(), "invalid.*archive")
+    catalog <- get_availableBG(details = TRUE)
+    titles <- vapply(
+        seq_len(nrow(catalog)),
+        function(i) PscanR:::.ps_hub_title(catalog[i, ]),
+        character(1L)
+    )
+    expect_false(anyDuplicated(titles) > 0L)
 })
 
-test_that("Hub and Zenodo verify archive bytes and evict a corrupt cache", {
-    archive <- tempfile(fileext = ".zip")
-    writeBin(charToRaw("corrupt archive"), archive)
+test_that("archive extraction validates the member and its version", {
+    background <- bundled_background()
+    entry <- background_entry()
+    archive <- make_background_archive(background, basename(entry$artifact))
+    extracted <- PscanR:::.ps_extract_background(archive, entry)
+    expect_identical(readLines(extracted), readLines(background))
+
+    bad <- entry
+    bad$artifact_sha256 <- paste(rep("0", 64L), collapse = "")
+    expect_error(PscanR:::.ps_extract_background(archive, bad), "SHA-256")
+    missing <- entry
+    missing$artifact <- "backgrounds/absent.psbg2.txt"
+    expect_error(
+        PscanR:::.ps_extract_background(archive, missing), "one unique"
+    )
+    old <- entry
+    old$background_version <- 1L
+    expect_error(
+        PscanR:::.ps_extract_background(archive, old), "is not distributed"
+    )
+})
+
+test_that("Hub lookup requires one matching resource and a valid file", {
     local_mocked_s3_method("$", "pscan_test_hub", function(x, name) {
         attr(x, name)
     })
+    entry <- background_entry()
+    title <- PscanR:::.ps_hub_title(entry)
+    path <- bundled_background()
+    hub <- mock_hub(path, title)
     local_mocked_bindings(
-        .ps_open_experimenthub = function() mock_hub(archive),
-        .ps_expected_archive_sha256 = function() paste(rep("0", 64), collapse=""),
-        .package = "PscanR"
+        .ps_open_experimenthub = function() hub, .package = "PscanR"
     )
-    expect_error(PscanR:::.ps_fetch_experimenthub_archive(), "SHA-256")
+    expect_identical(PscanR:::.ps_fetch_experimenthub_background(entry), path)
+    hub <- mock_hub(path, "another-resource")
+    expect_error(
+        PscanR:::.ps_fetch_experimenthub_background(entry), "one unique"
+    )
+    hub <- mock_hub(rep(path, 2L), rep(title, 2L))
+    expect_error(
+        PscanR:::.ps_fetch_experimenthub_background(entry), "one unique"
+    )
+    hub <- mock_hub(rep(path, 2L), c(NA, title))
+    expect_identical(PscanR:::.ps_fetch_experimenthub_background(entry), path)
+    hub <- mock_hub(tempfile(), title)
+    expect_error(
+        PscanR:::.ps_fetch_experimenthub_background(entry), "invalid file"
+    )
+    hub <- mock_hub(NA_character_, title)
+    expect_error(
+        PscanR:::.ps_fetch_experimenthub_background(entry), "invalid file"
+    )
+    entry$artifact_sha256 <- paste(rep("0", 64L), collapse = "")
+    hub <- mock_hub(path, title)
+    expect_error(
+        PscanR:::.ps_fetch_experimenthub_background(entry), "SHA-256"
+    )
+})
 
-    cache <- BiocFileCache::BiocFileCache(tempfile("pscan-cache-"), ask=FALSE)
+test_that("Zenodo archive is verified and a corrupt cache is evicted", {
+    cache <- BiocFileCache::BiocFileCache(tempfile("pscan-cache-"), ask = FALSE)
     url <- "https://example.invalid/pscan-test.zip"
-    BiocFileCache::bfcadd(cache, rname=url, fpath=archive, rtype="local")
+    corrupt <- tempfile(fileext = ".zip")
+    writeBin(charToRaw("corrupt archive"), corrupt)
+    BiocFileCache::bfcadd(cache, rname = url, fpath = corrupt, rtype = "local")
     local_mocked_bindings(
         .ps_background_cache = function() BiocFileCache::bfccache(cache),
         .ps_zenodo_archive_url = function() url,
         .package = "PscanR"
     )
     expect_error(PscanR:::.ps_fetch_zenodo_archive(), "SHA-256")
-    expect_equal(nrow(BiocFileCache::bfcquery(cache, url, exact=TRUE)), 0L)
+    expect_equal(nrow(BiocFileCache::bfcquery(cache, url, exact = TRUE)), 0L)
 })
 
-test_that("failure of both archive backends is reported", {
+test_that("ExperimentHub failure falls back to Zenodo with a warning", {
+    path <- bundled_background()
     local_mocked_bindings(
-        .ps_fetch_experimenthub_archive = function() stop("Hub unavailable"),
-        .ps_fetch_zenodo_archive = function() stop("Zenodo unavailable"),
+        .ps_fetch_experimenthub_background = function(entry) {
+            stop("Hub unavailable")
+        },
+        .ps_fetch_zenodo_background = function(entry) path,
         .package = "PscanR"
     )
     expect_warning(
-        expect_error(PscanR:::.ps_fetch_background_archive("experimenthub"),
-            "Zenodo unavailable"),
+        result <- PscanR:::.ps_fetch_background(
+            background_entry(), "experimenthub"
+        ),
+        "Using the Zenodo fallback"
+    )
+    expect_identical(result, path)
+})
+
+test_that("failure of both backends is reported", {
+    local_mocked_bindings(
+        .ps_fetch_experimenthub_background = function(entry) {
+            stop("Hub unavailable")
+        },
+        .ps_fetch_zenodo_background = function(entry) {
+            stop("Zenodo unavailable")
+        },
+        .package = "PscanR"
+    )
+    expect_warning(
+        expect_error(
+            PscanR:::.ps_fetch_background(background_entry(), "experimenthub"),
+            "Zenodo unavailable"
+        ),
         "Hub unavailable.*Zenodo fallback"
     )
+})
+
+test_that("a retrieved background is saved to destfile and read back", {
+    path <- bundled_background()
+    matrices <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
+    local_mocked_bindings(
+        .ps_fetch_zenodo_background = function(entry) path,
+        .package = "PscanR"
+    )
+    destination <- tempfile(fileext = ".txt")
+    result <- PscanR:::.ps_retrieve_background(
+        background_entry(), "zenodo", destination
+    )
+    expect_identical(result, destination)
+    expect_identical(readLines(destination), readLines(path))
+    expect_identical(
+        ps_retrieve_bg_from_file(destination, matrices),
+        ps_retrieve_bg_from_file(path, matrices)
+    )
+    expect_identical(
+        PscanR:::.ps_retrieve_background(background_entry(), "zenodo"), path
+    )
+})
+
+test_that("an existing destfile survives a failed retrieval", {
+    local_mocked_bindings(
+        .ps_fetch_zenodo_background = function(entry) stop("SHA-256 mismatch"),
+        .package = "PscanR"
+    )
+    preserved <- tempfile(fileext = ".txt")
+    writeLines("existing user content", preserved)
+    expect_error(
+        PscanR:::.ps_retrieve_background(
+            background_entry(), "zenodo", preserved
+        ),
+        "SHA-256"
+    )
+    expect_identical(readLines(preserved), "existing user content")
 })

@@ -4,11 +4,7 @@
 \alias{get_availableBG}
 \title{Get Available Pre-Computed Background Files}
 \usage{
-get_availableBG(
-  keyword = NULL,
-  details = FALSE,
-  source = c("experimenthub", "zenodo", "github")
-)
+get_availableBG(keyword = NULL, details = FALSE)
 }
 \arguments{
 \item{keyword}{A string to filter the file names. Default is NULL, so the
@@ -18,10 +14,6 @@ complete list of available file names is returned.}
 used by earlier PscanR versions. If `TRUE`, return matching rows from the
 background catalog, including versions, latest status, provenance, and
 checksums.}
-
-\item{source}{Background catalog backend. The default, `"experimenthub"`,
-lists version-2 resources distributed through ExperimentHub and Zenodo.
-Use `"github"` to include legacy version-1 resources.}
 }
 \value{
 A character vector containing available background filenames, or a
@@ -44,15 +36,14 @@ Some information for the filtering:
    'mm10' or 'mm39'.
    \item To filter by promoter region, use strings like '500u_0d', where 'u'
    stands for 'upstream' and 'd' for 'downstream'
-   \item You may also filter by version number, e.g., '1.txt'.
+   \item You may also filter by background version, e.g., 'psbg2'.
    \item Multiple keywords can be combined (e.g., 'hs1.*450u_50d').}
 }
 \examples{
-if (interactive()) {
-  head(get_availableBG())
-  get_availableBG("mm10")
-  get_availableBG("hs1.*450u_50d", details = TRUE)
-}
+# The catalog is bundled with PscanR, so listing needs no network access.
+head(get_availableBG())
+get_availableBG("mm10")
+get_availableBG("hs1.*450u_50d", details = TRUE)
 
 }
 \seealso{

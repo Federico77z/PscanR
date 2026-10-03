@@ -147,12 +147,14 @@ The available promoter windows span 200 bp upstream and 50 bp downstream, 450 up
 and 1000 upstream and 0 downstream, for the JASPAR 2020, 2022, and 2024
 releases. Only JASPAR CORE motifs are used.
 
-`generate_psmatrixlist_from_background()` resolves the resource through
-ExperimentHub, and falls back to the immutable Zenodo record
-<https://doi.org/10.5281/zenodo.21821764> with a warning if the Hub cannot be
-reached. Both routes serve the same archived resources, and downloaded files
-are verified against their SHA-256 checksums. Set `source = "zenodo"` to retrieve
-the resource directly from Zenodo.
+Each precomputed background is a separate ExperimentHub resource of the
+`PscanRBackgrounds` data package. `generate_psmatrixlist_from_background()`
+retrieves it through ExperimentHub and, if the Hub cannot be reached, falls
+back with a warning to the immutable Zenodo record
+<https://doi.org/10.5281/zenodo.21821764>, which archives the same files in a
+single ZIP. Downloads are cached, and every file is verified against the
+SHA-256 checksum recorded in the catalog. Set `source = "zenodo"` to use the
+Zenodo archive directly.
 
 For an offline example, the package includes JASPAR 2020 CORE matrices and a
 matching human background table for 200 bp upstream and 50 bp downstream of the

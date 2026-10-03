@@ -177,10 +177,11 @@ ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 #' by the function. They can be accessed using `system.file()` as shown in the
 #' examples.
 #'
-#' Other background datasets are available at the public repository
-#' PscanRBackgrounds on GitHub:
-#' \url{https://github.com/Federico77z/PscanRBackgrounds}
-#' See vignettes for further details on the type of background available.
+#' Precomputed backgrounds for other organisms, promoter windows and JASPAR
+#' releases are distributed through ExperimentHub by the PscanRBackgrounds
+#' package; see \code{\link{get_availableBG}} and
+#' \code{\link{generate_psmatrixlist_from_background}}. See the vignettes for
+#' further details on the backgrounds available.
 #'
 #' @seealso \code{\link{ps_build_bg}}, \code{\link{ps_write_bg_to_file}},
 #' \code{\link{ps_build_bg_from_table}}
@@ -565,24 +566,26 @@ ps_write_bg_to_file <- function(pfms, file) {
 #' @param version A string indicating the desired immutable background version,
 #'   or `"latest"` to retrieve the latest validated version in the background
 #'   catalog. The default is `"latest"`. Use an explicit positive integer such
-#'   as `"1"` when an analysis must remain pinned to a specific background.
+#'   as `"2"` when an analysis must remain pinned to a specific background.
+#'   Version 2 is currently the only version distributed.
 #' @param source Background retrieval backend. The default, `"experimenthub"`,
-#'   retrieves the version-2 archive through ExperimentHub and automatically
-#'   uses the same immutable Zenodo record if Hub retrieval is unavailable.
-#'   Use `"zenodo"` to access that record directly or `"github"` for the
-#'   explicit legacy backend, including version 1.
+#'   retrieves the background from the PscanRBackgrounds ExperimentHub
+#'   package and, if Hub retrieval is unavailable, falls back to the
+#'   immutable Zenodo record that archives the same files in a single ZIP
+#'   (\doi{10.5281/zenodo.21821764}). Use `"zenodo"` to use that archive
+#'   directly.
 #' @param destfile A string indicating the path where the downloaded background
 #'   .txt file should be saved. This tab-separated file contains the matrix
 #'   identifiers, background size, average, and standard deviation. See the
 #'   file-reader function in See Also. By default the file is not saved.
 #'
 #' @details
-#' Version-2 backgrounds are distributed as an immutable archive through
-#' ExperimentHub and Zenodo (\doi{10.5281/zenodo.21821764}). GitHub remains an
-#' explicit legacy backend. This function fetches the appropriate background
-#' and combines it with the specified JASPAR matrix collection to create a
-#' `PSMatrixList` with background statistics. Archives and selected background
-#' files are checked against their recorded SHA-256 values.
+#' Each precomputed background is a separate ExperimentHub resource of the
+#' PscanRBackgrounds package, and the same files are archived on Zenodo. This
+#' function looks up the requested background in the catalog bundled with
+#' PscanR, retrieves it (downloads are cached), checks it against its recorded
+#' SHA-256 value, and combines it with the specified JASPAR matrix collection
+#' to create a `PSMatrixList` with background statistics.
 #'
 #' @return A `PSMatrixList` object with background-scored motif matrices.
 #'
@@ -617,10 +620,10 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
                                                     destfile = NULL,
                                                     source = c(
                                                         "experimenthub",
-                                                        "zenodo", "github"
+                                                        "zenodo"
                                                     )) {
     source <- .ps_match_background_source(source)
-    catalog <- .ps_background_catalog(source)
+    catalog <- .ps_background_catalog()
     entry <- .ps_resolve_bg_catalog(
         catalog, JASPAR_matrix, org, prom_reg, assembly, version
     )
@@ -654,9 +657,6 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #'    used by earlier PscanR versions. If `TRUE`, return matching rows from the
 #'    background catalog, including versions, latest status, provenance, and
 #'    checksums.
-#' @param source Background catalog backend. The default, `"experimenthub"`,
-#'   lists version-2 resources distributed through ExperimentHub and Zenodo.
-#'   Use `"github"` to include legacy version-1 resources.
 #'
 #' @details
 #' Some information for the filtering:
@@ -667,7 +667,7 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #'    'mm10' or 'mm39'.
 #'    \item To filter by promoter region, use strings like '500u_0d', where 'u'
 #'    stands for 'upstream' and 'd' for 'downstream'
-#'    \item You may also filter by version number, e.g., '1.txt'.
+#'    \item You may also filter by background version, e.g., 'psbg2'.
 #'    \item Multiple keywords can be combined (e.g., 'hs1.*450u_50d').}
 #'
 #' @seealso \code{\link{generate_psmatrixlist_from_background}},
@@ -677,22 +677,17 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #' catalog `data.frame` when `details = TRUE`.
 #'
 #' @examples
-#' if (interactive()) {
-#'   head(get_availableBG())
-#'   get_availableBG("mm10")
-#'   get_availableBG("hs1.*450u_50d", details = TRUE)
-#' }
+#' # The catalog is bundled with PscanR, so listing needs no network access.
+#' head(get_availableBG())
+#' get_availableBG("mm10")
+#' get_availableBG("hs1.*450u_50d", details = TRUE)
 #'
 #' @export
-get_availableBG <- function(keyword = NULL, details = FALSE,
-                            source = c(
-                                "experimenthub", "zenodo", "github"
-                            )) {
+get_availableBG <- function(keyword = NULL, details = FALSE) {
     if (!is.logical(details) || length(details) != 1L || is.na(details)) {
     stop("details must be TRUE or FALSE", call. = FALSE)
     }
-    source <- .ps_match_background_source(source)
-    catalog <- .ps_background_catalog(source)
+    catalog <- .ps_background_catalog()
     catalog <- catalog[catalog$status == "validated", , drop = FALSE]
     file_names <- basename(catalog$artifact)
     if (!is.null(keyword)) {

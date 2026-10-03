@@ -1,5 +1,6 @@
 # PscanR 0.99.0
 
+- Retrieve each precomputed background as its own ExperimentHub resource of the PscanRBackgrounds package, with the immutable Zenodo archive of the same files as the fallback. The GitHub download route (`source = "github"`) and the legacy version-1 backgrounds it served are removed, and `get_availableBG()` no longer takes a `source` argument because it reads the catalog bundled with PscanR.
 - Default scanning, background construction and filtered rescanning to serial execution; explicit BiocParallel backends remain supported.
 - Ignore unrelated missing ExperimentHub titles when matching the archive resource.
 - Add executable small vignette workflows, offline backend regression tests, and installed fixture provenance and attribution.
