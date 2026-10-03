@@ -13,8 +13,7 @@ ps_motif_barplot(
 )
 }
 \arguments{
-\item{pfms}{A `PSMatrixList` returned by \code{\link{pscan}}, or a
-`data.frame` produced by \code{\link{ps_results_table}}. A results table
+\item{pfms}{A scan result, or a table from `ps_results_table()`. A table
 carries no motif metadata, so `group` must be supplied explicitly when
 one is used.}
 
@@ -26,8 +25,10 @@ motifs, all of them are shown.}
 
 \item{group}{Optional grouping mapped to bar colour. `NULL` (the default)
 draws every bar in one colour. `"class"` derives the structural class
-with \code{\link{ps_motif_class}}. Alternatively supply a character or
-factor vector, either one entry per motif or named by matrix identifier.}
+with \code{\link{ps_motif_class}}; `"family"` uses each matrix's JASPAR
+family tag, with missing values labelled `"Unclassified"`. Alternatively
+supply a character or factor vector, either one entry per motif or named
+by matrix identifier.}
 
 \item{FDR}{Optional significance cutoff applied before ranking. `NULL`, the
 default, keeps every motif.}
@@ -75,6 +76,9 @@ ps_motif_barplot(results, n = 6)
 
 # Colour by the structural class of the factor.
 ps_motif_barplot(results, n = 6, group = "class")
+
+# Or by the JASPAR family tag.
+ps_motif_barplot(results, n = 6, group = "family")
 }
 \seealso{
 \code{\link{ps_motif_class}}, \code{\link{ps_results_table}}

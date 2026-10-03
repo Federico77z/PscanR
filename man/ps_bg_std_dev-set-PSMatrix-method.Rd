@@ -28,6 +28,5 @@ pfm1 <- readRDS(pfm1_path)
 }
 \seealso{
 \code{\link{ps_bg_std_dev}} to retrieve the background
-   standard deviation, and \code{\link{validObject}} to see which checks
-   are performed on the input `PSMatrix` object.
+   standard deviation, and \code{methods::validObject()} for validation.
 }

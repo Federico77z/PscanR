@@ -18,13 +18,11 @@ A character vector of names.
 }
 \description{
 Retrieves the names or identifiers of the promoter sequences in a `PSMatrix`
-object computed on the background dataset (all promoters in a specific
-organism).
+object computed on a background reference set.
 }
 \details{
 This method is specifically designed for background datasets.
-The function extracts the sequence identifiers from the ps_bg_seq_names slot
-and, if applicable, assigns sequence names using .ps_bg_seq_names().
+The method returns the stored background sequence identifiers.
 }
 \examples{
 full_pfm1_path <- system.file("extdata",

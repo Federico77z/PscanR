@@ -10,21 +10,17 @@
 #'   \code{cache_dir}.
 #' @param cache_dir Directory used for cached transcript metadata.
 #'
-#' @return A \code{data.frame} with columns \code{transcript_id},
-#'   \code{transcript_base} (the versionless accession), \code{gene_symbol},
-#'   \code{selection_source}, and \code{selection_priority}.
+#' @return A \code{data.frame} containing transcript identifiers, versionless
+#'   accessions, gene symbols, selection sources, and selection priorities.
 #'
 #' @details
-#' MANE Select is preferred over RefSeq Select. This helper is intentionally
-#'   separated from \code{\link{ps_select_promoters}} so callers can cache or
-#'   inspect the selection table once and reuse it in multiple analyses.
+#' MANE Select is preferred over RefSeq Select. The returned table can be
+#'   cached, inspected, and reused in multiple analyses.
 #'
 #' The automatic metadata download provided by this function is human-specific
 #'   and applies only to the RefSeq transcript scheme. It currently uses UCSC
-#'   hg38 MANE and RefSeq Select tracks. For every other reference, call
-#'   \code{\link{ps_select_promoters}} with \code{mode = "representative"},
-#'   which applies the ranking rule appropriate to the detected transcript
-#'   scheme, or supply your own \code{select_transcripts} table.
+#'   hg38 MANE and RefSeq Select tracks. For every other reference, use
+#'   representative mode or supply species-specific selection metadata.
 #'
 #' @seealso \code{\link{ps_select_promoters}}
 #'
@@ -168,9 +164,8 @@ ps_load_select_transcripts <- function(
 #'   sequences, named by transcript identifier.
 #' @param promoter_ids Optional character vector of available promoter
 #'   transcript IDs. Ignored when \code{promoter_sequences} is supplied.
-#' @param annotation Optional \code{data.frame} containing gene-to-transcript
-#'   mappings. If omitted, \code{AnnotationDbi::select()} is used with
-#'   \code{org_db}.
+#' @param annotation Optional gene-to-transcript mapping table. If omitted,
+#'   the selected organism database is queried.
 #' @param org_db Optional organism annotation package object. If omitted and
 #'   \code{annotation} is omitted, \code{org.Hs.eg.db::org.Hs.eg.db} is used.
 #' @param keytype Key type used for \code{genes} when querying
@@ -181,10 +176,9 @@ ps_load_select_transcripts <- function(
 #' @param select_transcripts Optional table from
 #'   \code{\link{ps_load_select_transcripts}}. If omitted and
 #'   \code{mode = "select"}, the table is downloaded or loaded from cache.
-#' @param scheme Transcript identifier scheme. \code{"auto"} (the default)
-#'   detects it from the promoter identifiers and reports what it found. Use
-#'   \code{"refseq"}, \code{"tair"}, \code{"sgd"} or \code{"generic"} to
-#'   override. See Details.
+#' @param scheme Transcript identifier scheme. \code{"auto"} detects and
+#'   reports the scheme. The explicit choices are \code{"refseq"},
+#'   \code{"tair"}, \code{"sgd"}, and \code{"generic"}. See Details.
 #' @param mode Character. \code{"select"} uses MANE Select, then RefSeq Select,
 #'   then the scheme's own ranking; it requires the RefSeq scheme.
 #'   \code{"representative"} uses only the scheme's own ranking.
@@ -200,15 +194,11 @@ ps_load_select_transcripts <- function(
 #'   uses the selected promoter identifier alone.
 #' @param quiet Logical. Suppress the scheme-detection message.
 #'
-#' @return A \code{data.frame}, \code{DNAStringSet}, or list depending on
-#'   \code{return}. The mapping table has one row per selected promoter with
-#'   columns \code{gene}, \code{transcript_id}, \code{transcript_base},
-#'   \code{promoter_id}, \code{scheme}, \code{suffix_role},
-#'   \code{transcript_class}, \code{selection_source},
-#'   \code{selection_priority}, \code{n_candidates}, \code{decided_by} and
-#'   \code{input_order}. Genes that could not be mapped are recorded in
-#'   \code{attr(mapping, "ps_unmapped_genes")}; see
-#'   \code{\link{ps_selection_summary}}.
+#' @return A mapping table, a \code{DNAStringSet}, or a list containing both,
+#'   as selected by \code{return}. The mapping has one row per promoter and
+#'   records its gene, transcript, scheme, selection source and priority,
+#'   candidate count, decision rule, and input order. Unmapped genes are
+#'   retained as an attribute.
 #'
 #' @details
 #' Transcript identifiers do not all mean the same thing, and the difference
@@ -243,10 +233,8 @@ ps_load_select_transcripts <- function(
 #'
 #' Automatic MANE Select and RefSeq Select metadata are available only for
 #'   human hg38, so \code{mode = "select"} requires the RefSeq scheme and is an
-#'   error otherwise. Use \code{mode = "representative"} elsewhere, or supply a
-#'   species-specific \code{select_transcripts} table with
-#'   \code{transcript_id} or \code{transcript_base}, \code{selection_source}
-#'   and \code{selection_priority} columns.
+#'   error otherwise. Elsewhere, use representative mode or provide a table
+#'   containing a transcript identifier, selection source, and priority.
 #'
 #' @seealso \code{\link{ps_selection_summary}},
 #'   \code{\link{ps_load_select_transcripts}}
@@ -779,11 +767,12 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
 #'   \code{\link{ps_select_promoters}}, or the list returned with
 #'   \code{return = "both"}.
 #'
-#' @return A list with two elements. \code{overall} is a one-row
-#'   \code{data.frame} of counts: genes requested, genes mapped, genes
-#'   unmapped, genes with more than one candidate, genes decided by tie-break,
-#'   and candidates excluded as protein accessions. \code{by_source} is a
-#'   \code{data.frame} with one row per \code{selection_source}.
+#' @return A list with two tables:
+#'   \itemize{
+#'     \item \code{overall}: counts of requested, mapped, and unmapped genes,
+#'       ambiguous choices, tie-break decisions, and excluded proteins.
+#'     \item \code{by_source}: one row per selection source.
+#'   }
 #'
 #' @seealso \code{\link{ps_select_promoters}}
 #'

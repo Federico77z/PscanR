@@ -11,7 +11,7 @@
 
 \item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
-Default set to `TRUE`.}
+Included for accessor consistency; it has no effect on this scalar value.}
 }
 \value{
 A numeric value representing the standard deviation of the

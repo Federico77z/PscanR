@@ -24,10 +24,13 @@ and hit-related values.
 It performs the following steps:
 \itemize{
   \item `ps_bg_avg`,`ps_fg_avg`, and `ps_bg_std_dev` must be of length 1.
-  \item The values of \code{ps_bg_avg} and \code{ps_bg_std_dev}
-  must be between 0 and 1 (excluding 0 for \code{ps_bg_std_dev}).
-  \item the length of `ps_hits_pos`, `ps_hits_strand`, and `ps_hits_score`
-  vectors must be equal.}
+  \item Background and foreground averages must be between 0 and 1, and a
+  non-missing background standard deviation must be greater than 0 and no
+  greater than 1.
+  \item Foreground position, strand, score, oligo, and sequence-name vectors
+  must have equal lengths.
+  \item Stored full-background position, strand, score, oligo, and
+  sequence-name vectors must have equal lengths and agree with `ps_bg_size`.}
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

@@ -35,7 +35,18 @@ fixture <- function(...) {
 }
 ```
 
-# Overview
+# Installation
+
+PscanR is being prepared for Bioconductor submission. After acceptance, install
+it with the following command (not executed while building this vignette):
+
+```{r installation, eval=FALSE}
+BiocManager::install("PscanR")
+```
+
+For pre-submission installation from source, see the package README.
+
+# Introduction
 
 PscanR identifies transcription factor binding motifs enriched in regulatory
 sequences. Promoters of co-expressed or co-regulated genes are scanned with a
@@ -86,7 +97,7 @@ genes with reduced expression when BPC function is impaired.
 Precomputed backgrounds are indexed by organism, genome assembly, promoter
 window, and motif collection. `get_availableBG()` lists the available resources.
 
-```{r discover-background, eval=FALSE}
+```{r discover-background}
 get_availableBG(keyword = "TAIR9", details = TRUE)
 ```
 
@@ -264,6 +275,28 @@ in the appendix.
 
 ```{r selection-by-source}
 ps_selection_summary(down_mapping)$by_source
+```
+
+# A small executable scan
+
+The following example uses twelve genes from the same downregulated list and
+all their candidate TAIR9 promoters, extracted over -1000/0 from the archived
+annotation snapshot. Selection preserves splice-variant suffixes. Two motifs
+keep execution short; this demonstration does not replace the full analysis,
+and its FDR adjustment covers only those two motifs.
+
+```{r small-scan}
+small_example <- readRDS(fixture("promoter_selection_example.rds"))
+small_sequences <- ps_select_promoters(
+    genes = small_example$genes,
+    promoter_sequences = small_example$promoter_sequences,
+    annotation = small_example$annotation, gene_col = "GENE",
+    transcript_col = "TX", scheme = "tair", mode = "representative",
+    return = "sequences"
+)
+small_background <- precomputed$results_subset[1:2]
+small_results <- pscan(small_sequences, small_background)
+ps_results_table(small_results)
 ```
 
 # Running the scan
@@ -629,6 +662,15 @@ below 0.1.
 The overlap of 164 out of 168 therefore refers to the reproduction's
 Bonferroni criterion, `p * 530 < 0.1`, chosen to match those deposited values;
 it is not the count obtained from the default PscanR `FDR` column. 
+
+# Data provenance
+
+The installed `inst/scripts/fixture-provenance.md` describes the sources,
+selection rules, serialization, and reproduction recipes for the bundled
+example data. `inst/DATA_SOURCES.md` records attribution and reuse terms.
+The large published analyses use saved results; small workflow examples are
+executed during the build. Reproducing a full analysis requires the matching
+annotation and promoter window, not just the same gene identifiers.
 
 # Session information
 

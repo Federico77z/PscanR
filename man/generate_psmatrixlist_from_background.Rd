@@ -19,12 +19,14 @@ generate_psmatrixlist_from_background(
 version. You can choose between 'JASPAR2020', 'JASPAR2022', or
 'JASPAR2024' (non case sensitive).}
 
-\item{org}{A string representing the organism acronym. Accepted values are:
-`hs` (Homo sapiens),
-`mm` (Mus musculus),
-`at` (Arabidopsis thaliana),
-`sc` (Saccharomyces cerevisiae),
-`dm` (Drosophila melanogaster).}
+\item{org}{Organism acronym:
+\itemize{
+  \item `hs`: Homo sapiens
+  \item `mm`: Mus musculus
+  \item `at`: Arabidopsis thaliana
+  \item `sc`: Saccharomyces cerevisiae
+  \item `dm`: Drosophila melanogaster
+}}
 
 \item{prom_reg}{A numeric vector of two integers as `[upstream, downstream]`
 representing the promoter region relative to the TSS.
@@ -50,10 +52,8 @@ as `"1"` when an analysis must remain pinned to a specific background.}
 
 \item{destfile}{A string indicating the path where the downloaded background
 .txt file should be saved. This tab-separated file contains the matrix
-identifiers, background size, average background score, and standard
-deviation. See \code{\link{ps_retrieve_bg_from_file}} for details on how
-to use this file. Default is NULL, so the file is not saved in the user's
-working environment.}
+identifiers, background size, average, and standard deviation. See the
+file-reader function in See Also. By default the file is not saved.}
 
 \item{source}{Background retrieval backend. The default, `"experimenthub"`,
 retrieves the version-2 archive through ExperimentHub and automatically
@@ -98,4 +98,7 @@ matrices <- readRDS(matrix_path)
 local_bg_matrices <- ps_retrieve_bg_from_file(bg_path, matrices)
 local_bg_matrices[[4]]
 
+}
+\seealso{
+\code{\link{ps_retrieve_bg_from_file}}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/AllGenerics.R
 \name{ps_zscore}
 \alias{ps_zscore}
-\title{Compute the Z-score for motif enrichment analysis (Generic Function)}
+\title{Retrieve the Motif-Enrichment Z-Score (Generic Function)}
 \usage{
 ps_zscore(x, ...)
 }
@@ -14,14 +14,11 @@ ps_zscore(x, ...)
 \value{
 \itemize{
   \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
-  representing the computed Z-score.
-  \item If `x` is another supported class, the return format may differ.
+  representing the stored Z-score.
 }
 }
 \description{
-`ps_zscore` is a **generic function** that computes the Z-score
-for motif enrichment analysis. Methods should be implemented for
-specific object classes that store scan results.
+`ps_zscore` retrieves the Z-statistic stored in a `PSMatrix` after scanning.
 }
 \details{
 The Z-score represents how significantly a motif is enriched in

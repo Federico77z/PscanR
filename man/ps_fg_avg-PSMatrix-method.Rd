@@ -16,9 +16,7 @@ the function returns a single numeric value. It is included for
 consistency with other matrix-related methods.}
 }
 \value{
-A numeric value representing the foreground average score.
-   This value is computed as the mean of the PWM scores obtained from
-   scanning a set of promoter regions of genes of interest.
+The stored mean of the non-missing foreground best-hit scores.
 }
 \description{
 Retrieves the foreground average score stored in a `PSMatrix` object.

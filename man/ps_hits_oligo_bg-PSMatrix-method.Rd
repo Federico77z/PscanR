@@ -23,15 +23,12 @@ background sequences, returning a character vector.
 }
 \details{
 This method is specifically designed for background datasets,
-where motif hit oligonucleotide sequences are precomputed for all
-promoter sequences.
-The function extracts the character values from the ps_hits_oligo_bg slot
-and, if applicable, assigns sequence names using .ps_bg_seq_names().
+where motif hit oligonucleotides are precomputed for every retained
+background sequence.
+The returned values are named with their background sequence identifiers.
 
-These background metrics are particularly useful in motif enrichment
-analyses, as they allow \code{pscan()} to compare promoter
-sequences against a reference distribution without the need for
-recomputation.
+These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+selected background identifiers without rescanning DNA.
 }
 \examples{
 full_pfm1_path <- system.file("extdata",

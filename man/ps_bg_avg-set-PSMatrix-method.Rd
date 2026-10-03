@@ -19,9 +19,9 @@ This method specifically sets the background average for an object of
 class `PSMatrix`.
 }
 \details{
-The background size is the total number of promoters used to compute
-background statistics, such as the average score and standard deviation.
-This method allows users to modify this value.
+The background average is the mean normalized best-hit score across the
+background reference set. This method replaces that stored value and then
+validates the object.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
@@ -31,6 +31,5 @@ pfm1 <- readRDS(pfm1_path)
 }
 \seealso{
 \code{\link{ps_bg_avg}} to retrieve the background average value,
-   and \code{\link{validObject}} to see which checks are performed on the
-   input `PSMatrix` object.
+   and \code{methods::validObject()} for object validation.
 }

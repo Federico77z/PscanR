@@ -19,18 +19,18 @@ A named integer vector where names correspond to promoter sequence
 }
 \description{
 Retrieves the positions of hits stored in a `PSMatrix` object computed on
-the background dataset (all promoters in a specific organism). These
+a background reference set. These
 positions indicate where the motifs are located in each promoter sequence.
 }
 \details{
 This method is specifically designed for background datasets,
-where motif hit positions are precomputed for all promoter sequences.
+where motif hit positions are precomputed for every retained background
+sequence.
 The function extracts the position values from the ps_hits_pos_bg slot and,
 if applicable, assigns sequence names using .ps_bg_seq_names().
 
-These background metrics are particularly useful in motif enrichment
-analyses, as they allow pscan() to compare foreground promoter sequences
-against a reference distribution without the need for recomputation.
+These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+selected background identifiers without rescanning DNA.
 }
 \examples{
 full_pfm1_path <- system.file("extdata",

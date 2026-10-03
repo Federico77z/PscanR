@@ -11,8 +11,8 @@ ps_write_bg_to_file(pfms, file)
 representing transcription factor binding preferences, obtained, for
 example, from the JASPAR database.
 Each matrix should already include background statistics
-(e.g., computed from all promoter regions in the organism of
-study). Each element must be a `PSMatrix` object or coercible to one.}
+computed from the chosen background reference set. Each element must be a
+`PSMatrix` object or coercible to one.}
 
 \item{file}{A character string specifying the path to the output file where
 the background statistics should be saved.}
@@ -55,14 +55,14 @@ PSM1 <- PSMatrix(
   ps_bg_avg = 0.25,
   ps_fg_avg = 0.5,
   ps_bg_std_dev = 0.05,
-  ps_bg_size = 250L
+  ps_bg_size = 1000L # number of background sequences
 )
 PSM2 <- PSMatrix(
   pfm = J2020[[2]],
   ps_bg_avg = 0.25,
   ps_fg_avg = 0.5,
   ps_bg_std_dev = 0.05,
-  ps_bg_size = 250L
+  ps_bg_size = 1000L # number of background sequences
 )
 
 PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)

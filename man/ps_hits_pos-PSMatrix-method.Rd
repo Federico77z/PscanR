@@ -9,8 +9,8 @@
 \arguments{
 \item{x}{A `PSMatrix` object.}
 
-\item{pos_shift}{Integer. Specifies the amount to shift the position.
-Default is set to `0`.}
+\item{pos_shift}{Integer coordinate assigned to the first sequence base.
+The default `0` reports positions from a zero-valued first base.}
 
 \item{withDimnames}{Logical, whether to include dimension names in the
 output, if they exist in the object.
@@ -23,8 +23,9 @@ A named integer vector where names correspond to promoter sequence
 \description{
 Retrieves the positions of hits stored in a `PSMatrix` object. These
 positions indicate where the motifs are located in each promoter sequence.
-The positions can be shifted by a specified value to find the corresponding
-position in respect to the TSS.
+Stored positions are one-based sequence indices. `pos_shift` assigns the
+coordinate of the first sequence base. For a promoter from -200 to +50
+relative to the TSS, `pos_shift = -200` reports the first base as -200.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

@@ -20,7 +20,7 @@ A named numeric vector where names correspond to promoter sequence
 \description{
 Computes the Z-Scores for motif hit scores in a `PSMatrix` object.
 The Z-score measures how unusual a motif score is compared to background
-sequences (all promoters expressed in an organism). Higher Z-scores mean
+sequences in the background reference set. Higher Z-scores mean
 stronger motif enrichment, suggesting potential regulatory significance.
 }
 \examples{

@@ -22,11 +22,9 @@ setGeneric(
     function(x, ...) standardGeneric("transcriptIDLegend")
 )
 
-#' Compute the Z-score for motif enrichment analysis (Generic Function)
+#' Retrieve the Motif-Enrichment Z-Score (Generic Function)
 #'
-#' `ps_zscore` is a **generic function** that computes the Z-score
-#' for motif enrichment analysis. Methods should be implemented for
-#' specific object classes that store scan results.
+#' `ps_zscore` retrieves the Z-statistic stored in a `PSMatrix` after scanning.
 #'
 #' The Z-score represents how significantly a motif is enriched in
 #' the input sequences compared to the background model.
@@ -37,8 +35,7 @@ setGeneric(
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
-#'   representing the computed Z-score.
-#'   \item If `x` is another supported class, the return format may differ.
+#'   representing the stored Z-score.
 #' }
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
@@ -48,16 +45,14 @@ setGeneric(
 #' @export
 setGeneric("ps_zscore", function(x, ...) standardGeneric("ps_zscore"))
 
-#' Compute the p-value for motif enrichment analysis (Generic Function)
+#' Retrieve the Motif-Enrichment P-Value (Generic Function)
 #'
-#' `ps_pvalue` is a **generic function** that computes the p-value
-#' for motif enrichment analysis. Methods should be implemented for
-#' specific object classes that store scan results.
+#' `ps_pvalue` retrieves the upper-tail p-value stored in a `PSMatrix` after
+#' scanning.
 #'
 #' The p-value quantifies the statistical significance of motif
 #' enrichment in the input sequences compared to the background model.
-#' A lower p-value indicates a stronger likelihood that the motif
-#' enrichment is not due to random chance.
+#' A lower p-value is stronger evidence against the background null model.
 #'
 #' @param x An object containing motif scan results.
 #' @param ... Additional arguments passed to specific methods.
@@ -65,8 +60,7 @@ setGeneric("ps_zscore", function(x, ...) standardGeneric("ps_zscore"))
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
-#'   representing the computed p-value.
-#'   \item If `x` is another supported class, the return format may differ.
+#'   representing the stored p-value.
 #' }
 #'
 #' @examples
@@ -77,12 +71,10 @@ setGeneric("ps_zscore", function(x, ...) standardGeneric("ps_zscore"))
 #' @export
 setGeneric("ps_pvalue", function(x, ...) standardGeneric("ps_pvalue"))
 
-#' Compute the Background Average Score for Motif Enrichment Analysis
+#' Retrieve the Background Average Score for Motif Enrichment Analysis
 #' (Generic Function)
 #'
-#' `ps_bg_avg` is a **generic function** that retrieves the average background
-#' score for motif enrichment analysis. Methods should be implemented for
-#' specific object classes that store scan results.
+#' `ps_bg_avg` retrieves the average background score stored in a `PSMatrix`.
 #'
 #' The background average score represents the mean motif score computed
 #' over the background sequences. This value is essential for normalizing
@@ -94,8 +86,7 @@ setGeneric("ps_pvalue", function(x, ...) standardGeneric("ps_pvalue"))
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
-#'   representing the computed background average score.
-#'   \item If `x` is another supported class, the return format may differ.
+#'   representing the stored background average score.
 #' }
 #'
 #' @examples
@@ -106,12 +97,10 @@ setGeneric("ps_pvalue", function(x, ...) standardGeneric("ps_pvalue"))
 #' @export
 setGeneric("ps_bg_avg", function(x, ...) standardGeneric("ps_bg_avg"))
 
-#' Compute the Foreground Average Score for Motif Enrichment Analysis
+#' Retrieve the Foreground Average Score for Motif Enrichment Analysis
 #' (Generic Function)
 #'
-#' `ps_fg_avg` is a **generic function** that retrieves the average foreground
-#' score for motif enrichment analysis. Methods should be implemented for
-#' specific object classes that store scan results.
+#' `ps_fg_avg` retrieves the average foreground score stored in a `PSMatrix`.
 #'
 #' The foreground average score represents the mean motif score computed
 #' over the input (foreground) sequences. This value is crucial for
@@ -123,8 +112,7 @@ setGeneric("ps_bg_avg", function(x, ...) standardGeneric("ps_bg_avg"))
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
-#'   representing the computed foreground average score.
-#'   \item If `x` is another supported class, the return format may differ.
+#'   representing the stored foreground average score.
 #' }
 #'
 #' @examples
@@ -135,12 +123,11 @@ setGeneric("ps_bg_avg", function(x, ...) standardGeneric("ps_bg_avg"))
 #' @export
 setGeneric("ps_fg_avg", function(x, ...) standardGeneric("ps_fg_avg"))
 
-#' Compute the Background Standard Deviation Value for Motif Enrichment
+#' Retrieve the Background Standard Deviation for Motif Enrichment
 #' Analysis (Generic Function)
 #'
-#' `ps_bg_std_dev` is a **generic function** that retrieves the background
-#' standard deviation value for motif enrichment analysis. Methods should be
-#' implemented for specific object classes that store scan results.
+#' `ps_bg_std_dev` retrieves the background standard deviation stored in a
+#' `PSMatrix`.
 #'
 #' The background standard deviation value quantifies the variability in the
 #' background motif binding scores.
@@ -151,8 +138,7 @@ setGeneric("ps_fg_avg", function(x, ...) standardGeneric("ps_fg_avg"))
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
-#'   representing the computed background standard deviation value
-#'   \item If `x` is another supported class, the return format may differ.
+#'   representing the stored background standard deviation value.
 #' }
 #'
 #' @examples
@@ -167,11 +153,10 @@ setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 #' (Generic Function)
 #'
 #' `ps_bg_size` is a **generic function** that retrieves the background
-#' size value for motif enrichment analysis. Methods should be
-#' implemented for specific object classes that store scan results.
+#' size value stored in a `PSMatrix`.
 #'
-#' The background size value represents the promoter region size used as
-#' background (e.g., 250L).
+#' The background size is the number of sequences in the background reference
+#' set used to calculate the stored statistics.
 #'
 #' @param x An object containing motif scan results.
 #' @param ... Additional arguments passed to specific methods.
@@ -179,7 +164,6 @@ setGeneric("ps_bg_std_dev", function(x, ...) standardGeneric("ps_bg_std_dev"))
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object (Pscan result), an **integer value**.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -194,12 +178,10 @@ setGeneric("ps_bg_size", function(x, ...) standardGeneric("ps_bg_size"))
 #' (Generic Function)
 #'
 #' `ps_fg_size` is a **generic function** that retrieves the foreground
-#' size value for motif enrichment analysis. Methods should be
-#' implemented for specific object classes that store scan results.
+#' size value stored in a `PSMatrix`.
 #'
-#' The foreground size value represents the dimension of the scanned input
-#' (number of promoter sequences from co-regulated or co-expressed genes
-#' used as input).
+#' The foreground size is the number of unique sequences retained after input
+#' cleaning, including sequences whose best-hit score is `NA`.
 #'
 #' @param x An object containing motif scan results.
 #' @param ... Additional arguments passed to specific methods.
@@ -207,7 +189,6 @@ setGeneric("ps_bg_size", function(x, ...) standardGeneric("ps_bg_size"))
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object (Pscan result), an **integer value**.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -225,8 +206,8 @@ setGeneric("ps_fg_size", function(x, ...) standardGeneric("ps_fg_size"))
 #' for motif enrichment analysis. Methods should be
 #' implemented for specific object classes that store scan results.
 #'
-#' The hits size value represents the total number of motif hits detected in
-#' the input promoter sequences.
+#' The hits size is the number of retained per-sequence best windows. It does
+#' not apply a score or significance threshold.
 #'
 #' @param x An object containing motif scan results.
 #' @param ... Additional arguments passed to specific methods.
@@ -234,7 +215,6 @@ setGeneric("ps_fg_size", function(x, ...) standardGeneric("ps_fg_size"))
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object (Pscan result), an **integer value**.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -263,7 +243,6 @@ setGeneric("ps_hits_size", function(x, ...) standardGeneric("ps_hits_size"))
 #'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where
 #'   names correspond to promoter sequence identifiers and values represent
 #'   their respective motif hit scores.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -290,22 +269,20 @@ setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 #'
 #' @details
 #' The `ps_hits_score_bg` function is particularly relevant for background
-#' datasets, which include motif scan results computed across all promoter
-#' sequences. These background scores provide a reference for comparison in
+#' datasets, which include stored motif scan results for every retained
+#' background sequence. These scores provide a reference for comparison in
 #' motif enrichment analyses, helping to assess the significance of observed
 #' motif occurrences.
 #'
 #' In a PSMatrixList object, the `ps_hits_score_bg` slot is populated only for
-#' background matrices (i.e., matrices derived from all promoters).
-#' This ensures that the pscan() function can access precomputed scores without
-#' recomputing them, optimizing efficiency.
+#' full-background matrices. This allows `pscan_fullBG()` to retrieve selected
+#' hits without rescanning DNA.
 #'
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where
 #'   names correspond to promoter sequence identifiers and values represent
 #'   their respective motif hit scores.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -326,7 +303,7 @@ setGeneric(
 #'
 #' `ps_hits_z` is a **generic function** that computes Z-scores for motif hit
 #' scores in an object. The Z-score indicates how unusual a motif score is
-#' compared to background sequences (all promoter sequences in an organism).
+#' compared with scores in the supplied background reference set.
 #' Higher Z-scores suggest stronger motif enrichment, which may indicate
 #' regulatory significance.
 #'
@@ -341,7 +318,6 @@ setGeneric(
 #'   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where
 #'   names correspond to promoter sequence identifiers and values represent
 #'   their respective Z-scores.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -373,7 +349,6 @@ setGeneric("ps_hits_z", function(x, ...) standardGeneric("ps_hits_z"))
 #'   \item If `x` is a `PSMatrix` object: a **character vector**, where
 #'   names correspond to promoter sequence identifiers, and values represent
 #'   the strand (`+` or `-`) on which the motif was detected.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -406,20 +381,18 @@ setGeneric(
 #'
 #' @details
 #' The `ps_hits_strand_bg` function is particularly relevant for background
-#' datasets, which include motif scan results computed across all promoter
-#' sequences.
+#' datasets, which include stored motif scan results for every retained
+#' background sequence.
 #'
 #' In a PSMatrixList object, the `ps_hits_strand_bg` slot is populated only
-#' for background matrices (i.e., matrices derived from all promoters).
-#' This ensures that the pscan() function can access precomputed metrics
-#' without recomputing them, optimizing efficiency.
+#' for full-background matrices. This allows `pscan_fullBG()` to retrieve
+#' selected hits without rescanning DNA.
 #'
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object: a **character vector**, where
 #'   names correspond to promoter sequence identifiers, and values represent
 #'   the strand (`+` or `-`) on which the motif was detected.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -441,6 +414,8 @@ setGeneric(
 #' `ps_hits_pos` is a **generic function** that retrieves the positions of
 #' motif hits in a given object. These positions indicate where motifs are
 #' located within promoter sequences.
+#' For the `PSMatrix` method, the optional `pos_shift` is the coordinate of the
+#' first sequence base; stored one-based positions are converted accordingly.
 #'
 #' Methods should be implemented for specific object classes that store motif
 #' scanning results.
@@ -453,7 +428,6 @@ setGeneric(
 #'   \item If `x` is a `PSMatrix` object: an **integer vector**, where
 #'   names correspond to promoter sequence identifiers, and values represent
 #'   motif hit positions (with an optional shift).
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -478,20 +452,18 @@ setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 #'
 #' @details
 #' The `ps_hits_pos_bg` function is particularly relevant for background
-#' datasets, which include motif scan results computed across all promoter
-#' sequences.
+#' datasets, which include stored motif scan results for every retained
+#' background sequence.
 #'
 #' In a PSMatrixList object, the `ps_hits_pos_bg` slot is populated only for
-#' background matrices (i.e., matrices derived from all promoters).
-#' This ensures that the pscan() function can access precomputed metrics
-#' without recomputing them, optimizing efficiency.
+#' full-background matrices. This allows `pscan_fullBG()` to retrieve selected
+#' hits without rescanning DNA.
 #'
 #' @return
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object: an **integer vector**, where
 #'   names correspond to promoter sequence identifiers, and values represent
 #'   motif hit positions along the background dataset.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -522,7 +494,6 @@ setGeneric("ps_hits_pos_bg", function(x, ...) standardGeneric("ps_hits_pos_bg"))
 #'   names correspond to sequence identifiers, and values represent the
 #'   oligonucleotide sequences (subset of the input promoter sequences)
 #'   matching the motif.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @section Strand:
@@ -572,13 +543,12 @@ setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 #'
 #' @details
 #' The `ps_hits_oligo_bg` function is particularly relevant for background
-#' datasets, which include motif scan results computed across all promoter
-#' sequences.
+#' datasets, which include stored motif scan results for every retained
+#' background sequence.
 #'
 #' In a PSMatrixList object, the `ps_hits_oligo_bg` slot is populated only
-#' for background matrices (i.e., matrices derived from all promoters).
-#' This ensures that the pscan() function can access precomputed metrics
-#' without recomputing them, optimizing efficiency.
+#' for full-background matrices. This allows `pscan_fullBG()` to retrieve
+#' selected hits without rescanning DNA.
 #'
 #'
 #' @return
@@ -587,7 +557,6 @@ setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 #'   names correspond to sequence identifiers, and values represent the
 #'   oligonucleotide sequences (subset of the promoter sequences) matching
 #'   the motif.
-#'   \item If `x` is another supported class, the return format may differ.
 #' }
 #'
 #' @examples
@@ -628,7 +597,6 @@ setGeneric(
 #'   }
 #'   Rows correspond to sequence names and are **sorted by decreasing score**.
 #'
-#' - If `x` belongs to another supported class, the return format may vary.
 #'
 #' @examples
 #' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
@@ -653,8 +621,6 @@ setGeneric("ps_hits_table", function(x, ...) standardGeneric("ps_hits_table"))
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object: a **character vector** of sequence
 #'   names corresponding to the analyzed promoter regions.
-#'   \item If `x` belongs to another supported class, the return format may
-#'   vary.
 #' }
 #'
 #' @examples
@@ -668,8 +634,7 @@ setGeneric("ps_seq_names", function(x, ...) standardGeneric("ps_seq_names"))
 #' Retrieve Sequence Names for the Background Dataset (Generic Function)
 #'
 #' `ps_bg_seq_names` is a **generic function** that extracts the sequence names
-#' or identifiers from an object containing all the promoter sequence data for
-#' a specific organism.
+#' or identifiers stored for a full-background reference set.
 #'
 #' Methods should be implemented for specific object classes storing sequence
 #' data.
@@ -681,19 +646,16 @@ setGeneric("ps_seq_names", function(x, ...) standardGeneric("ps_seq_names"))
 #' \itemize{
 #'   \item If `x` is a `PSMatrix` object: a **character vector** of sequence
 #'   names corresponding to the analyzed promoter regions.
-#'   \item If `x` belongs to another supported class, the return format may
-#'   vary.
 #' }
 #'
 #' @details
 #' The `ps_bg_seq_names` function is particularly relevant for background
-#' datasets, which include motif scan results computed across all promoter
-#' sequences.
+#' datasets, which include stored motif scan results for every retained
+#' background sequence.
 #'
 #' In a PSMatrixList object, the `ps_bg_seq_names` slot is populated only for
-#' background matrices (i.e., matrices derived from all promoters).
-#' This ensures that the pscan() function can access precomputed metrics
-#' without recomputing them, optimizing efficiency.
+#' full-background matrices. This allows `pscan_fullBG()` to retrieve selected
+#' hits without rescanning DNA.
 #'
 #' @examples
 #' full_pfm1_path <- system.file("extdata",
@@ -752,7 +714,6 @@ setGeneric(".ps_seq_names", function(x, out) standardGeneric(".ps_seq_names"))
 #'   hit information, including positions, strands, scores, and matched
 #'   sequences.
 #'
-#' - If `x` belongs to another supported class, the return format may vary.
 #'
 #' @examples
 #' matrix_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

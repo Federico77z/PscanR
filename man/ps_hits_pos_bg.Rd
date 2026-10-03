@@ -16,7 +16,6 @@ ps_hits_pos_bg(x, ...)
   \item If `x` is a `PSMatrix` object: an **integer vector**, where
   names correspond to promoter sequence identifiers, and values represent
   motif hit positions along the background dataset.
-  \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
@@ -30,13 +29,12 @@ scanning results.
 
 
 The `ps_hits_pos_bg` function is particularly relevant for background
-datasets, which include motif scan results computed across all promoter
-sequences.
+datasets, which include stored motif scan results for every retained
+background sequence.
 
 In a PSMatrixList object, the `ps_hits_pos_bg` slot is populated only for
-background matrices (i.e., matrices derived from all promoters).
-This ensures that the pscan() function can access precomputed metrics
-without recomputing them, optimizing efficiency.
+full-background matrices. This allows `pscan_fullBG()` to retrieve selected
+hits without rescanning DNA.
 }
 \examples{
 full_pfm1_path <- system.file("extdata",

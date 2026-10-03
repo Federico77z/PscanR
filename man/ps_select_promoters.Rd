@@ -32,9 +32,8 @@ sequences, named by transcript identifier.}
 \item{promoter_ids}{Optional character vector of available promoter
 transcript IDs. Ignored when \code{promoter_sequences} is supplied.}
 
-\item{annotation}{Optional \code{data.frame} containing gene-to-transcript
-mappings. If omitted, \code{AnnotationDbi::select()} is used with
-\code{org_db}.}
+\item{annotation}{Optional gene-to-transcript mapping table. If omitted,
+the selected organism database is queried.}
 
 \item{org_db}{Optional organism annotation package object. If omitted and
 \code{annotation} is omitted, \code{org.Hs.eg.db::org.Hs.eg.db} is used.}
@@ -51,10 +50,9 @@ identifiers.}
 \code{\link{ps_load_select_transcripts}}. If omitted and
 \code{mode = "select"}, the table is downloaded or loaded from cache.}
 
-\item{scheme}{Transcript identifier scheme. \code{"auto"} (the default)
-detects it from the promoter identifiers and reports what it found. Use
-\code{"refseq"}, \code{"tair"}, \code{"sgd"} or \code{"generic"} to
-override. See Details.}
+\item{scheme}{Transcript identifier scheme. \code{"auto"} detects and
+reports the scheme. The explicit choices are \code{"refseq"},
+\code{"tair"}, \code{"sgd"}, and \code{"generic"}. See Details.}
 
 \item{mode}{Character. \code{"select"} uses MANE Select, then RefSeq Select,
 then the scheme's own ranking; it requires the RefSeq scheme.
@@ -76,15 +74,11 @@ uses the selected promoter identifier alone.}
 \item{quiet}{Logical. Suppress the scheme-detection message.}
 }
 \value{
-A \code{data.frame}, \code{DNAStringSet}, or list depending on
-  \code{return}. The mapping table has one row per selected promoter with
-  columns \code{gene}, \code{transcript_id}, \code{transcript_base},
-  \code{promoter_id}, \code{scheme}, \code{suffix_role},
-  \code{transcript_class}, \code{selection_source},
-  \code{selection_priority}, \code{n_candidates}, \code{decided_by} and
-  \code{input_order}. Genes that could not be mapped are recorded in
-  \code{attr(mapping, "ps_unmapped_genes")}; see
-  \code{\link{ps_selection_summary}}.
+A mapping table, a \code{DNAStringSet}, or a list containing both,
+  as selected by \code{return}. The mapping has one row per promoter and
+  records its gene, transcript, scheme, selection source and priority,
+  candidate count, decision rule, and input order. Unmapped genes are
+  retained as an attribute.
 }
 \description{
 Maps genes to transcript promoters and selects one promoter per gene using a
@@ -124,10 +118,8 @@ Ties are broken by a natural ordering of the promoter identifier, in which
 
 Automatic MANE Select and RefSeq Select metadata are available only for
   human hg38, so \code{mode = "select"} requires the RefSeq scheme and is an
-  error otherwise. Use \code{mode = "representative"} elsewhere, or supply a
-  species-specific \code{select_transcripts} table with
-  \code{transcript_id} or \code{transcript_base}, \code{selection_source}
-  and \code{selection_priority} columns.
+  error otherwise. Elsewhere, use representative mode or provide a table
+  containing a transcript identifier, selection source, and priority.
 }
 \examples{
 annotation <- data.frame(

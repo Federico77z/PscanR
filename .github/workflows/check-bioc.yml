@@ -1,5 +1,5 @@
 ## Continuous integration for a Bioconductor package, mirroring the checks run
-## by the Bioconductor Single Package Builder: R CMD check + BiocCheck on the
+## for Bioconductor submission: R CMD check + BiocCheck on the
 ## current Bioconductor devel image. Adapted from the biocthis template.
 name: check-bioc
 
@@ -63,6 +63,15 @@ jobs:
             check_dir = 'check')
         shell: Rscript {0}
 
+      - name: BiocCheck
+        run: |
+          clone <- BiocCheck::BiocCheckGitClone('.')
+          stopifnot(clone$getNum('error') == 0L, clone$getNum('warning') == 0L)
+          result <- BiocCheck::BiocCheck(
+            '.', checkDir = 'check', `new-package` = TRUE)
+          stopifnot(result$getNum('error') == 0L, result$getNum('warning') == 0L)
+        shell: Rscript {0}
+
       # R CMD check prints only the headline of each NOTE and WARNING to
       # stdout; the body -- which package, which object, which line -- goes to
       # 00check.log, and that file dies with the runner. A note such as
@@ -77,13 +86,6 @@ jobs:
           path: |
             check/**/00check.log
             check/**/00install.out
+            check/**/00BiocCheck.log
           retention-days: 30
           if-no-files-found: warn
-
-      - name: BiocCheck
-        run: |
-          BiocCheck::BiocCheck(
-            '.',
-            `quit-with-status` = TRUE,
-            `no-check-bioc-views` = FALSE)
-        shell: Rscript {0}

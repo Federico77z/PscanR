@@ -15,17 +15,15 @@ ps_bg_size(x, ...)
 \value{
 \itemize{
   \item If `x` is a `PSMatrix` object (Pscan result), an **integer value**.
-  \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
 `ps_bg_size` is a **generic function** that retrieves the background
-size value for motif enrichment analysis. Methods should be
-implemented for specific object classes that store scan results.
+size value stored in a `PSMatrix`.
 }
 \details{
-The background size value represents the promoter region size used as
-background (e.g., 250L).
+The background size is the number of sequences in the background reference
+set used to calculate the stored statistics.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

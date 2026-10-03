@@ -14,9 +14,8 @@ of `pscan()` or `pscan_fullBG()` function.}
 \item{FDR}{Numeric. False Discovery Rate (FDR) threshold to select the TFs
 to be included in the analysis. The default is set to `0.01`.}
 
-\item{shift}{Integer. A value to shift the reported positions of motif hits
-in respect to the TSS.
-Default is set to `0`.}
+\item{shift}{Integer coordinate assigned to the first sequence base. For a
+promoter beginning 200 bases upstream of the TSS, use `-200`.}
 
 \item{...}{Additional user-defined arguments that can be passed to
 the function (e.g., the color palette) to change the default settings.}
@@ -28,8 +27,9 @@ Invisibly returns the positional hits matrix used for plotting.
 \description{
 This function creates a heatmap visualizing the positional distribution
 of motif hits based on a specified false discovery rate threshold.
-The heatmap helps visualize where significant motif hits occur within the
-analyzed sequences.
+The heatmap shows each sequence's best-hit start for motifs that pass the
+motif-level FDR filter. The individual windows are not separately tested for
+significance.
 }
 \details{
 The function performs the following steps:

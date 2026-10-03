@@ -4,7 +4,7 @@
 enrichment analysis in regulatory DNA sequences. It scans the promoters of a set
 of co-regulated or co-expressed genes with a collection of position weight
 matrices, usually from JASPAR, and compares the resulting scores against a
-background distribution computed over all the promoters of the same organism.
+background distribution computed over a matching promoter reference set.
 Motifs that score higher in the input set than the background would predict are
 reported as candidate common regulators, together with the position of their
 predicted binding sites.

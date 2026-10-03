@@ -27,6 +27,5 @@ pfm1 <- readRDS(pfm1_path)
 }
 \seealso{
 \code{\link{ps_bg_size}} to retrieve the background size,
-   and \code{\link{validObject}} to see which checks are performed on the
-   input `PSMatrix` object.
+   and \code{methods::validObject()} for object validation.
 }

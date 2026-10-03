@@ -2,7 +2,7 @@
 % Please edit documentation in R/AllGenerics.R
 \name{ps_fg_avg}
 \alias{ps_fg_avg}
-\title{Compute the Foreground Average Score for Motif Enrichment Analysis
+\title{Retrieve the Foreground Average Score for Motif Enrichment Analysis
 (Generic Function)}
 \usage{
 ps_fg_avg(x, ...)
@@ -15,14 +15,11 @@ ps_fg_avg(x, ...)
 \value{
 \itemize{
   \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
-  representing the computed foreground average score.
-  \item If `x` is another supported class, the return format may differ.
+  representing the stored foreground average score.
 }
 }
 \description{
-`ps_fg_avg` is a **generic function** that retrieves the average foreground
-score for motif enrichment analysis. Methods should be implemented for
-specific object classes that store scan results.
+`ps_fg_avg` retrieves the average foreground score stored in a `PSMatrix`.
 }
 \details{
 The foreground average score represents the mean motif score computed

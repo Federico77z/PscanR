@@ -2,7 +2,7 @@
 % Please edit documentation in R/AllGenerics.R
 \name{ps_pvalue}
 \alias{ps_pvalue}
-\title{Compute the p-value for motif enrichment analysis (Generic Function)}
+\title{Retrieve the Motif-Enrichment P-Value (Generic Function)}
 \usage{
 ps_pvalue(x, ...)
 }
@@ -14,20 +14,17 @@ ps_pvalue(x, ...)
 \value{
 \itemize{
   \item If `x` is a `PSMatrix` object (Pscan result): a **numeric value**
-  representing the computed p-value.
-  \item If `x` is another supported class, the return format may differ.
+  representing the stored p-value.
 }
 }
 \description{
-`ps_pvalue` is a **generic function** that computes the p-value
-for motif enrichment analysis. Methods should be implemented for
-specific object classes that store scan results.
+`ps_pvalue` retrieves the upper-tail p-value stored in a `PSMatrix` after
+scanning.
 }
 \details{
 The p-value quantifies the statistical significance of motif
 enrichment in the input sequences compared to the background model.
-A lower p-value indicates a stronger likelihood that the motif
-enrichment is not due to random chance.
+A lower p-value is stronger evidence against the background null model.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

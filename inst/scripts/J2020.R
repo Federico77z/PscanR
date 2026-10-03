@@ -1,33 +1,9 @@
-# The aim of this script is to explain how the J2020.rda dataset was obtained. 
-
-#library("JASPAR2020")
-
-opts <- list()
-opts[["collection"]] <- "CORE" # Only core collection is used
-opts[["tax_group"]] <- "vertebrates" # Change Tax Group Based on the organism of study 
-
-J2020 <- getMatrixSet(JASPAR2020, opts) 
-
-# For JASPAR2022
-
-#library("JASPAR2022")
-
-#opts <- list()
-#opts[["collection"]] <- "CORE"
-#opts[["tax_group"]] <- "vertebrates"
-
-#J2022 <- getMatrixSet(JASPAR2022, opts)
-
-# For JASPAR2024
-
-#library("JASPAR2024")
-#library("RSQLite")
-
-#opts <- list()
-#opts[["collection"]] <- "CORE"
-#opts[["tax_group"]] <- "vertebrates"
-
-#library("httr")
-#httr::set_config(config(ssl_verifypeer = 0L))
-#JASPARConnect <- RSQLite::dbConnect(RSQLite::SQLite(), db(JASPAR2024))
-#J2024 <- getMatrixSet(JASPARConnect, opts)
+# JASPAR 2020 CORE vertebrate PFMs (746 matrices).
+# Source and license: https://jaspar.elixir.no/ (CC BY 4.0).
+# Citation: Fornes et al., https://doi.org/10.1093/nar/gkz1001.
+# Rscript J2020.R OUTPUT.rds; an existing file is never overwritten.
+args <- commandArgs(trailingOnly = TRUE)
+stopifnot(length(args) == 1L, !file.exists(args[[1]]))
+matrices <- TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020,
+    list(collection = "CORE", tax_group = "vertebrates"))
+saveRDS(matrices, args[[1]], version = 3)

@@ -16,7 +16,6 @@ ps_hits_score_bg(x, ...)
   \item If `x` is a `PSMatrix` object: a **named numeric vector**, where
   names correspond to promoter sequence identifiers and values represent
   their respective motif hit scores.
-  \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
@@ -32,15 +31,14 @@ motif scanning results.
 
 
 The `ps_hits_score_bg` function is particularly relevant for background
-datasets, which include motif scan results computed across all promoter
-sequences. These background scores provide a reference for comparison in
+datasets, which include stored motif scan results for every retained
+background sequence. These scores provide a reference for comparison in
 motif enrichment analyses, helping to assess the significance of observed
 motif occurrences.
 
 In a PSMatrixList object, the `ps_hits_score_bg` slot is populated only for
-background matrices (i.e., matrices derived from all promoters).
-This ensures that the pscan() function can access precomputed scores without
-recomputing them, optimizing efficiency.
+full-background matrices. This allows `pscan_fullBG()` to retrieve selected
+hits without rescanning DNA.
 }
 \examples{
 full_pfm1_path <- system.file("extdata",

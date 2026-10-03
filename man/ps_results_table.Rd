@@ -21,16 +21,16 @@ A data.frame with matrices ordered by increasing P.VALUE and decreasing
 ZSCORE, prioritizing significant and strongly enriched motifs.
 It contains the following columns:
 \itemize{
-  \item "NAME": The matrices identifiers.
+  \item "NAME": The motif or transcription-factor name. Matrix identifiers
+  are stored as row names.
   \item "BG_AVG": The average background score of TFBSs for each PWM.
   \item "BG_STDEV": The standard deviation of the background scores of TFBSs
   for each PWM.
   \item "FG_AVG": The average foreground score (the TFBS scores found by
   scanning the chosen subset of regulatory regions) for each PWM.
-  \item "ZSCORE": The Z-score for each PWM computed as
-  (FG_AVG-BG_AVG)/BG_STDEV. It represents a statistical measure of motif
-  enrichment, quantifying how much the average foreground score deviates from
-  the background one.
+  \item "ZSCORE": The one-sample Z-statistic
+  `(FG_AVG - BG_AVG) / (BG_STDEV / sqrt(n))`, where `n` is the number of
+  non-missing foreground scores.
   \item "P.VALUE": The p-value for each PWM.
   \item "FDR": The adjusted p-value, representing the False Discovery Rate,
   is calculated using the Benjamini-Hochberg correction.
@@ -43,8 +43,8 @@ pre-computed background and foreground statistics (the alignment scores
 between Pscan input regulatory sequences and position weight matrices)
 for each PWM.
 Then it compares motif occurrences in the foreground (e.g.,
-coexpressed/coregulated promoter sequences) with the background (e.g., all
-promoters in an organism) using Z-scores, p-values, and FDR correction.
+coexpressed/coregulated promoter sequences) with the supplied background
+reference set using Z-scores, p-values, and FDR correction.
 Returns a table ordered by decreasing `ZSCORE` and increasing `P.VALUE`.
 }
 \details{

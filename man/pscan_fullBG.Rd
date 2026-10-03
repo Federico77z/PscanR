@@ -12,14 +12,13 @@ IDs) corresponding to the sequences of interest. These should match
 those used when the background was originally computed
 (e.g., RefSeq transcript IDs).}
 
-\item{full_pfms}{A `PSMatrixList` object generated using
-\code{\link{ps_build_bg}} with the `fullBG = TRUE` flag. This object
-must contain a complete set of pre-computed scores and metadata for all
-promoter sequences of the reference organism.}
+\item{full_pfms}{A complete background object. Create it with the background
+builder in full-background mode. It stores scores and metadata for the
+complete promoter reference set.}
 
 \item{scheme}{Transcript identifier scheme. `"auto"` (the default) detects
-it from the background's transcript identifiers. See
-\code{\link{ps_select_promoters}} for the available schemes.}
+it from the background's transcript identifiers. The choices match those
+used for promoter selection.}
 
 \item{quiet}{Logical. Suppress the scheme-detection message.}
 }

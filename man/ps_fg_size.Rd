@@ -15,18 +15,15 @@ ps_fg_size(x, ...)
 \value{
 \itemize{
   \item If `x` is a `PSMatrix` object (Pscan result), an **integer value**.
-  \item If `x` is another supported class, the return format may differ.
 }
 }
 \description{
 `ps_fg_size` is a **generic function** that retrieves the foreground
-size value for motif enrichment analysis. Methods should be
-implemented for specific object classes that store scan results.
+size value stored in a `PSMatrix`.
 }
 \details{
-The foreground size value represents the dimension of the scanned input
-(number of promoter sequences from co-regulated or co-expressed genes
-used as input).
+The foreground size is the number of unique sequences retained after input
+cleaning, including sequences whose best-hit score is `NA`.
 }
 \examples{
 pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")

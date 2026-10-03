@@ -288,7 +288,7 @@
 
 #' @keywords internal
 #' @importFrom utils download.file
-.ps_background_repository <- "Federico77z/PscanR_backgrounds"
+.ps_background_repository <- "Federico77z/PscanRBackgrounds"
 .ps_background_sources <- c("experimenthub", "zenodo", "github")
 .ps_experimenthub_package <- "PscanRBackgrounds"
 # The archive backends distribute exactly one background version. The Hub
@@ -548,6 +548,7 @@
     hub <- .ps_open_experimenthub()
     keep <- as.character(hub$preparerclass) == .ps_experimenthub_package &
         as.character(hub$title) == .ps_experimenthub_title
+    keep[is.na(keep)] <- FALSE
     if (sum(keep) != 1L) {
         stop(
             "ExperimentHub does not contain one unique ",
