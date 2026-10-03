@@ -115,11 +115,11 @@ in retina, as the comparison.
 # The background
 
 PscanR precomputed backgrounds are indexed by organism, genome assembly,
-promoter window and motif collection. `get_availableBG()` lists what is
+promoter window and motif collection. `ps_available_bg()` lists what is
 available in the catalogue bundled with the package:
 
 ```{r discover-background}
-catalog <- get_availableBG("J2020_mm10_950u_50d", details = TRUE)
+catalog <- ps_available_bg("J2020_mm10_950u_50d", details = TRUE)
 knitr::kable(
     catalog[c(
         "organism", "assembly", "upstream", "downstream",
@@ -130,11 +130,11 @@ knitr::kable(
 )
 ```
 
-`generate_psmatrixlist_from_background()` retrieves the background statistics
+`ps_retrieve_bg()` retrieves the background statistics
 and associates them with the matching JASPAR matrices in a `PSMatrixList`.
 
 ```{r retrieve-background, eval=FALSE}
-background <- generate_psmatrixlist_from_background(
+background <- ps_retrieve_bg(
     JASPAR_matrix = "Jaspar2020",
     org = "mm",
     prom_reg = c(-950, 50),
@@ -813,7 +813,7 @@ promoters with a matching definition, scan the sequences, and inspect the
 motif enrichment table.
 
 ```{r workflow, eval=FALSE}
-background <- generate_psmatrixlist_from_background(
+background <- ps_retrieve_bg(
     "Jaspar2020", "mm", c(-950, 50), "mm10", version = 2
 )
 retina_up_promoters <- ps_select_promoters(

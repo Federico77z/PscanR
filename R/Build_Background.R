@@ -37,7 +37,7 @@
 #'   original name with its unique counterpart (ID1 → ID2, ID2 → ID2,
 #'   ID3 → ID2, ID4 → ID2). This vector is stored in the transcriptIDLegend
 #'   slot of the PSMatrixList and helps generate a complete background
-#'   PSMatrixList, improving computational efficiency for the pscan_fullBG()
+#'   PSMatrixList, improving computational efficiency for the pscan_full_bg()
 #'   function.
 #'   In addition, it retrieves for each PSM in the PSMatrixList output all the
 #'   background metrics relative to hits score, position, strand, and
@@ -71,7 +71,7 @@
 #' A `PSMatrixList` object, containing each motif matrix from `pfms`,
 #' background-scored against the sequences in `x`.
 #'
-#' @seealso \code{\link{pscan_fullBG}}, \code{\link{ps_write_bg_to_file}}
+#' @seealso \code{\link{pscan_full_bg}}, \code{\link{ps_write_bg_to_file}}
 #'
 #' @examples
 #' # Load the example dataset for promoter sequences (hg38 assembly,
@@ -179,8 +179,8 @@ ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 #'
 #' Precomputed backgrounds for other organisms, promoter windows and JASPAR
 #' releases are distributed through ExperimentHub by the PscanRBackgrounds
-#' package; see \code{\link{get_availableBG}} and
-#' \code{\link{generate_psmatrixlist_from_background}}. See the vignettes for
+#' package; see \code{\link{ps_available_bg}} and
+#' \code{\link{ps_retrieve_bg}}. See the vignettes for
 #' further details on the backgrounds available.
 #'
 #' @seealso \code{\link{ps_build_bg}}, \code{\link{ps_write_bg_to_file}},
@@ -496,7 +496,7 @@ ps_write_bg_to_file <- function(pfms, file) {
     }
 }
 
-# Internal JASPAR loader used by generate_psmatrixlist_from_background.
+# Internal JASPAR loader used by ps_retrieve_bg.
 .ps_load_jaspar_collection <- function(JASPAR_matrix, org) {
     tax_map <- c(
     "hs" = "vertebrates", "mm" = "vertebrates", "at" = "plants",
@@ -596,7 +596,7 @@ ps_write_bg_to_file <- function(pfms, file) {
 #' @examples
 #' # The online helper downloads its matching background and motif collection.
 #' if (interactive()) {
-#'   bg_matrices <- generate_psmatrixlist_from_background(
+#'   bg_matrices <- ps_retrieve_bg(
 #'     "Jaspar2020", "hs",
 #'     c(-200, 50), "hg38"
 #'   )
@@ -614,14 +614,9 @@ ps_write_bg_to_file <- function(pfms, file) {
 #' local_bg_matrices[[4]]
 #'
 #' @importFrom TFBSTools getMatrixSet
-generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
-                                                    assembly = character(),
-                                                    version = "latest",
-                                                    destfile = NULL,
-                                                    source = c(
-                                                        "experimenthub",
-                                                        "zenodo"
-                                                    )) {
+ps_retrieve_bg <- function(JASPAR_matrix, org, prom_reg,
+    assembly = character(), version = "latest", destfile = NULL,
+    source = c("experimenthub", "zenodo")) {
     source <- .ps_match_background_source(source)
     catalog <- .ps_background_catalog()
     entry <- .ps_resolve_bg_catalog(
@@ -670,7 +665,7 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #'    \item You may also filter by background version, e.g., 'psbg2'.
 #'    \item Multiple keywords can be combined (e.g., 'hs1.*450u_50d').}
 #'
-#' @seealso \code{\link{generate_psmatrixlist_from_background}},
+#' @seealso \code{\link{ps_retrieve_bg}},
 #' \code{\link{ps_retrieve_bg_from_file}}
 #'
 #' @return A character vector containing available background filenames, or a
@@ -678,12 +673,12 @@ generate_psmatrixlist_from_background <- function(JASPAR_matrix, org, prom_reg,
 #'
 #' @examples
 #' # The catalog is bundled with PscanR, so listing needs no network access.
-#' head(get_availableBG())
-#' get_availableBG("mm10")
-#' get_availableBG("hs1.*450u_50d", details = TRUE)
+#' head(ps_available_bg())
+#' ps_available_bg("mm10")
+#' ps_available_bg("hs1.*450u_50d", details = TRUE)
 #'
 #' @export
-get_availableBG <- function(keyword = NULL, details = FALSE) {
+ps_available_bg <- function(keyword = NULL, details = FALSE) {
     if (!is.logical(details) || length(details) != 1L || is.na(details)) {
     stop("details must be TRUE or FALSE", call. = FALSE)
     }

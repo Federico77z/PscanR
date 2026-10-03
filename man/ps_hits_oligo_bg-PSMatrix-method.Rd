@@ -27,7 +27,7 @@ where motif hit oligonucleotides are precomputed for every retained
 background sequence.
 The returned values are named with their background sequence identifiers.
 
-These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+These stored hits allow \code{\link{pscan_full_bg}} to retrieve results for
 selected background identifiers without rescanning DNA.
 }
 \examples{

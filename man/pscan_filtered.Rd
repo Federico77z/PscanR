@@ -35,7 +35,7 @@ This is used to assert the statistical enrichment of motif occurrences
 in co-expressed or co-regulated genes.
 See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}},
 \code{\link{ps_build_bg_from_table}},
-\code{\link{generate_psmatrixlist_from_background}}
+\code{\link{ps_retrieve_bg}}
 for how to create `PSMatrixList` objects that contain background
 statistics.}
 

@@ -29,20 +29,20 @@ test_that("background catalog supports filename and detailed listings", {
     old <- options(PscanR.background.catalog = catalog_path)
     on.exit(options(old), add = TRUE)
 
-    files <- get_availableBG()
+    files <- ps_available_bg()
     expect_identical(length(files), 2L)
     expect_identical(
         files[[2]], "J2024_hg38_950u_50d_UCSC.psbg2.txt"
     )
-    details <- get_availableBG("psbg2", details = TRUE)
+    details <- ps_available_bg("psbg2", details = TRUE)
     expect_s3_class(details, "data.frame")
     expect_identical(nrow(details), 1L)
     expect_true(details$latest)
     expect_error(
-        get_availableBG("missing"), "Found 0 matches"
+        ps_available_bg("missing"), "Found 0 matches"
     )
     expect_error(
-        get_availableBG(details = NA), "details must be"
+        ps_available_bg(details = NA), "details must be"
     )
 })
 

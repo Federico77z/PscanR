@@ -37,7 +37,7 @@ motif enrichment analyses, helping to assess the significance of observed
 motif occurrences.
 
 In a PSMatrixList object, the `ps_hits_score_bg` slot is populated only for
-full-background matrices. This allows `pscan_fullBG()` to retrieve selected
+full-background matrices. This allows `pscan_full_bg()` to retrieve selected
 hits without rescanning DNA.
 }
 \examples{

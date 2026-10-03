@@ -78,7 +78,7 @@ foreground scores close to background and is not significantly enriched
     </tr>
     <tr>
         <td style="border-bottom: 1px solid #ddd;">
-    <code>pscan_fullBG()</code>
+    <code>pscan_full_bg()</code>
 </td>
         <td style="border-bottom: 1px solid #ddd;">
     Retrieves stored motif hits for foreground identifiers from a full
@@ -149,7 +149,7 @@ use matching promoter definitions and motif matrices.
     </tr>
     <tr>
         <td style="border-bottom: 1px solid #ddd;">
-    <code>generate_psmatrixlist_from_background()</code>
+    <code>ps_retrieve_bg()</code>
 </td>
         <td style="border-bottom: 1px solid #ddd;">
     Retrieves a precomputed background and associates its statistics with the
@@ -158,7 +158,7 @@ use matching promoter definitions and motif matrices.
     </tr>
     <tr>
         <td style="border-bottom: 1px solid #ddd;">
-    <code>get_availableBG()</code>
+    <code>ps_available_bg()</code>
 </td>
         <td style="border-bottom: 1px solid #ddd;">
     Displays the names of all available precomputed backgrounds, with options to
@@ -200,7 +200,7 @@ use matching promoter definitions and motif matrices.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>pscan_fullBG()</code></td>
+        <td style="border-bottom: 1px solid #ddd;"><code>pscan_full_bg()</code></td>
         <td style="border-bottom: 1px solid #ddd;">
     Uses foreground transcript identifiers to retrieve hits stored in a full
     background. Reusing these hits reduces computation for repeated analyses
@@ -208,10 +208,10 @@ use matching promoter definitions and motif matrices.
 </td>
     </tr>
     <tr>
-        <td><code>transcriptIDLegend()</code></td>
+        <td><code>ps_transcript_legend()</code></td>
         <td>
     Retrieves the mapping from original sequence names to representatives
-    retained after deduplication. This allows <code>pscan_fullBG()</code> to
+    retained after deduplication. This allows <code>pscan_full_bg()</code> to
     resolve identifiers associated with identical promoter sequences.
 </td>
     </tr>

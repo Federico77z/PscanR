@@ -84,10 +84,10 @@ PscanR provides access to precomputed backgrounds for five model organisms:
 human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR annotation),
 and yeast (SGD annotation).
 
-`get_availableBG()` lists the available resources:
+`ps_available_bg()` lists the available resources:
 
 ```{r available}
-head(get_availableBG(), 4)
+head(ps_available_bg(), 4)
 ```
 
 This vignette describes custom background construction. A custom background is
@@ -139,7 +139,7 @@ saveRDS(full_example, full_file, compress = "xz")
 full_restored <- readRDS(full_file)
 stopifnot(identical(full_example, full_restored))
 query <- names(example_sequences)[1:4]
-queried <- pscan_fullBG(query, full_restored)
+queried <- pscan_full_bg(query, full_restored)
 ps_results_table(queried)
 unlink(c(short_file, full_file))
 ```
@@ -347,7 +347,7 @@ oligonucleotide for every retained promoter and matrix. Its identifier legend
 maps original sequence names to the representatives retained after
 deduplication.
 
-`pscan_fullBG()` accepts transcript identifiers matching this legend, retrieves
+`pscan_full_bg()` accepts transcript identifiers matching this legend, retrieves
 the stored hits, and calculates foreground enrichment without rescanning DNA.
 
 ```{r build-full, eval=FALSE}
@@ -410,7 +410,7 @@ length(rp_ids)
 ```
 
 ```{r run-fullbg, message=TRUE}
-by_legend <- pscan_fullBG(rp_ids, full_bg)
+by_legend <- pscan_full_bg(rp_ids, full_bg)
 ```
 
 The message reports the identifier scheme detected in the background.
@@ -452,7 +452,7 @@ Record the following choices to support reproducibility:
    here, `r pct_cerevisiae`% of matrices have *S. cerevisiae* species annotation.
    Assess suitability for the organism under study.
 5. **Identifier scheme.** Preserve meaningful identifier suffixes. The
-   `scheme` argument of `pscan_fullBG()` supports `"refseq"`, `"sgd"`,
+   `scheme` argument of `pscan_full_bg()` supports `"refseq"`, `"sgd"`,
    `"tair"`, and `"generic"`; `"auto"` detects recognised conventions.
    Generic identifiers are matched without suffix removal.
 
@@ -509,7 +509,7 @@ full_bg <- readRDS("my_full_background.rds")
 gene_names <- unlist(as.list(org.Sc.sgd.db::org.Sc.sgdGENENAME))
 my_gene_ids <- names(gene_names)[grepl("^RP[LS][0-9]", gene_names)]
 
-ps_results_table(pscan_fullBG(my_gene_ids, full_bg))
+ps_results_table(pscan_full_bg(my_gene_ids, full_bg))
 ```
 
 # Data provenance

@@ -52,8 +52,8 @@ examples.
 
 Precomputed backgrounds for other organisms, promoter windows and JASPAR
 releases are distributed through ExperimentHub by the PscanRBackgrounds
-package; see \code{\link{get_availableBG}} and
-\code{\link{generate_psmatrixlist_from_background}}. See the vignettes for
+package; see \code{\link{ps_available_bg}} and
+\code{\link{ps_retrieve_bg}}. See the vignettes for
 further details on the backgrounds available.
 }
 \examples{

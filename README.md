@@ -104,10 +104,10 @@ each combined with the promoter windows 200 bp upstream to 50 downstream, 450 to
 collections.
 
 ```r
-get_availableBG()                # what is available
-get_availableBG(details = TRUE)  # the full version-2 catalog
+ps_available_bg()                # what is available
+ps_available_bg(details = TRUE)  # the full version-2 catalog
 
-background <- generate_psmatrixlist_from_background(
+background <- ps_retrieve_bg(
     "Jaspar2020", "hs", c(-200, 50), "hg38"
 )
 ```

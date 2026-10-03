@@ -230,7 +230,7 @@ pscan <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 #' # background is tens of thousands of promoters and would not.
 #' old <- options(PscanR.foreground.max_fraction = Inf)
 #'
-#' results <- pscan_fullBG(IDs, full_pfms)
+#' results <- pscan_full_bg(IDs, full_pfms)
 #' ps_results_table(results)
 #'
 #' options(old)
@@ -239,7 +239,7 @@ pscan <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 #'    foreground that is a large share of the background weakens the statistic.
 #'
 #' @export
-pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
+pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     if (!is.character(ID)) {
     stop("ID must be a character vector containing transcript identifiers")
     }
@@ -407,7 +407,7 @@ pscan_fullBG <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #'    in co-expressed or co-regulated genes.
 #'    See \code{\link{ps_build_bg}}, \code{\link{ps_retrieve_bg_from_file}},
 #'    \code{\link{ps_build_bg_from_table}},
-#'    \code{\link{generate_psmatrixlist_from_background}}
+#'    \code{\link{ps_retrieve_bg}}
 #'    for how to create `PSMatrixList` objects that contain background
 #'    statistics.
 #' @param BPPARAM The BPPARAM used by bplapply. See BiocParallel package.
@@ -513,7 +513,7 @@ pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
 #'
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated
 #'    metadata (foreground and background statistics). Typically the output
-#'    of `pscan()` or `pscan_fullBG()` functions.
+#'    of `pscan()` or `pscan_full_bg()` functions.
 #' @param FDR A numeric value indicating the maximum false discovery
 #'    rate (FDR) allowed for filtering the result table.
 #'    Only rows with FDR <= `FDR` will be retained.
@@ -700,7 +700,7 @@ ps_z_table <- function(pfms) {
 #'
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated
 #'    metadata (foreground and background statistics). Typically the output
-#'    of `pscan()` or `pscan_fullBG()` functions.
+#'    of `pscan()` or `pscan_full_bg()` functions.
 #' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
 #'    to include in the analysis. The default is `0.01`.
 #' @param ... Additional user-defined arguments to customize the heatmap
@@ -821,7 +821,7 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
 #'
 #' @param pfms A `PSMatrixList` object containing multiple PWMs and associated
 #'    metadata (foreground and background statistics). Typically the output
-#'    of `pscan()` or `pscan_fullBG()` function.
+#'    of `pscan()` or `pscan_full_bg()` function.
 #' @param FDR Numeric. False Discovery Rate (FDR) threshold to select the TFs
 #'    to be included in the analysis. The default is set to `0.01`.
 #' @param shift Integer coordinate assigned to the first sequence base. For a

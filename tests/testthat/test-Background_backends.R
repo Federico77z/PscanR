@@ -24,7 +24,7 @@ mock_hub <- function(paths, titles, packages = rep(
 }
 
 test_that("bundled catalog contains the complete version-2 release", {
-    details <- get_availableBG(details = TRUE)
+    details <- ps_available_bg(details = TRUE)
     expect_identical(nrow(details), 105L)
     expect_true(all(details$status == "validated"))
     expect_true(all(details$latest))
@@ -56,7 +56,7 @@ test_that("catalog entries map to unique Hub titles", {
         PscanR:::.ps_hub_title(background_entry()),
         "PscanR_bg_v2_J2020_hg38_200u_50d_UCSC"
     )
-    catalog <- get_availableBG(details = TRUE)
+    catalog <- ps_available_bg(details = TRUE)
     titles <- vapply(
         seq_len(nrow(catalog)),
         function(i) PscanR:::.ps_hub_title(catalog[i, ]),

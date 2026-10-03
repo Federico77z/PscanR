@@ -41,7 +41,7 @@ and ID4), and unique() retains only ID2, the mapping will associate each
 original name with its unique counterpart (ID1 → ID2, ID2 → ID2,
 ID3 → ID2, ID4 → ID2). This vector is stored in the transcriptIDLegend
 slot of the PSMatrixList and helps generate a complete background
-PSMatrixList, improving computational efficiency for the pscan_fullBG()
+PSMatrixList, improving computational efficiency for the pscan_full_bg()
 function.
 In addition, it retrieves for each PSM in the PSMatrixList output all the
 background metrics relative to hits score, position, strand, and
@@ -113,5 +113,5 @@ full_bg_matrices[[1]]
 
 }
 \seealso{
-\code{\link{pscan_fullBG}}, \code{\link{ps_write_bg_to_file}}
+\code{\link{pscan_full_bg}}, \code{\link{ps_write_bg_to_file}}
 }

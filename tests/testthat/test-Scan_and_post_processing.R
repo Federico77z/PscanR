@@ -317,7 +317,7 @@ test_that("p-values use the exact upper tail and do not underflow", {
   )
 })
 
-test_that("pscan_fullBG resolves the requested splice variant, not its gene", {
+test_that("pscan_full_bg resolves the requested splice variant, not its gene", {
   # Two splice variants of one Arabidopsis gene with *different* promoter
   # sequences. Before transcript resolution became scheme-aware, both
   # identifiers were stripped to "AT1G01110" and match() returned whichever
@@ -359,7 +359,7 @@ test_that("pscan_fullBG resolves the requested splice variant, not its gene", {
   # Ask for .2 and deliberately not .1. (Three identifiers are the minimum the
   # z-test accepts.)
   wanted <- c("AT1G01110.2", "AT1G01160.1", "AT1G01200.1")
-  retrieved <- pscan_fullBG(wanted, full_bg, quiet = TRUE)
+  retrieved <- pscan_full_bg(wanted, full_bg, quiet = TRUE)
 
   expect_identical(ps_seq_names(retrieved[[1]]), wanted)
   expect_identical(
@@ -374,7 +374,7 @@ test_that("pscan_fullBG resolves the requested splice variant, not its gene", {
   # The bare gene identifier is not a transcript here, so it must be reported
   # as absent rather than silently resolving to one of its variants.
   expect_warning(
-    gene_query <- pscan_fullBG(
+    gene_query <- pscan_full_bg(
       c("AT1G01110", wanted), full_bg, quiet = TRUE
     ),
     "absent from the background"

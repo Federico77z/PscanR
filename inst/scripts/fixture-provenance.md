@@ -152,7 +152,7 @@ full-analysis preparation scripts and their environment before submission.
    of separate serial/eight-worker runs. `ucbg_summary.rds` stores validation,
    sizes, input counts and the foreground comparison. To reproduce substantive
    results, compare `pscan(rp_promoters, background)` with
-   `pscan_fullBG(names(rp_promoters), full_background)`. Hardware-dependent
+   `pscan_full_bg(names(rp_promoters), full_background)`. Hardware-dependent
    timings and compressed sizes are not acceptance criteria for equality.
 
 The new vignette's small round trip is run directly from these real input

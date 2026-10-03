@@ -29,7 +29,7 @@ sequence.
 The function extracts the position values from the ps_hits_pos_bg slot and,
 if applicable, assigns sequence names using .ps_bg_seq_names().
 
-These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+These stored hits allow \code{\link{pscan_full_bg}} to retrieve results for
 selected background identifiers without rescanning DNA.
 }
 \examples{

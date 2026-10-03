@@ -112,17 +112,17 @@ PscanR provides access to precomputed backgrounds for five model organisms:
 *Homo sapiens*, *Mus musculus*, *Drosophila melanogaster*,
 *Arabidopsis thaliana*, and *Saccharomyces cerevisiae*.
 
-`get_availableBG()` lists the available backgrounds, and
-`generate_psmatrixlist_from_background()` retrieves the selected background as
+`ps_available_bg()` lists the available backgrounds, and
+`ps_retrieve_bg()` retrieves the selected background as
 a `PSMatrixList` for use with `pscan()`:
 
 ```{r list-backgrounds}
-get_availableBG()
+ps_available_bg()
 
 ```
 
 ```{r download-background, eval=FALSE}
-J2020_PSBG <- generate_psmatrixlist_from_background(
+J2020_PSBG <- ps_retrieve_bg(
     "Jaspar2020", "hs", c(-200, 50), "hg38"
 )
 ```
@@ -148,7 +148,7 @@ and 1000 upstream and 0 downstream, for the JASPAR 2020, 2022, and 2024
 releases. Only JASPAR CORE motifs are used.
 
 Each precomputed background is a separate ExperimentHub resource of the
-`PscanRBackgrounds` data package. `generate_psmatrixlist_from_background()`
+`PscanRBackgrounds` data package. `ps_retrieve_bg()`
 retrieves it through ExperimentHub and, if the Hub cannot be reached, falls
 back with a warning to the immutable Zenodo record
 <https://doi.org/10.5281/zenodo.21821764>, which archives the same files in a

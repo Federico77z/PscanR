@@ -215,7 +215,7 @@
 # vectors into the _bg slots, so length(ps_hits_score_bg(x)) == ps_bg_size(x)
 # by construction. A table that disagrees was computed on a different set of
 # promoters, and applying it would leave the object with statistics from one
-# universe and hits from another -- which pscan_fullBG() would then read as a
+# universe and hits from another -- which pscan_full_bg() would then read as a
 # background and answer from, silently.
 #
 # The slot is read directly rather than through ps_hits_score_bg(), which
@@ -440,7 +440,7 @@
             "No unique validated background matches JASPAR", target$release,
             ", ", target$assembly, ", ", target$upstream, "u_",
             target$downstream, "d, version ", target$version_label,
-            ". Run get_availableBG(details = TRUE) to inspect the catalog.",
+            ". Run ps_available_bg(details = TRUE) to inspect the catalog.",
             call. = FALSE
         )
     }

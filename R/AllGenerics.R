@@ -1,6 +1,6 @@
 #' Transcript ID Legend (Generic Function)
 #'
-#' `transcriptIDLegend` is a **generic function** that retrieves the
+#' `ps_transcript_legend` is a **generic function** that retrieves the
 #' `transcriptIDLegend` slot from a `PSMatrixList` object. This slot contains
 #' a character vector mapping transcript IDs used in the dataset.
 #'
@@ -15,11 +15,11 @@
 #' @examples
 #' full_pfms_path <- system.file("extdata", "full_pfms.rds", package = "PscanR")
 #' full_pfms <- readRDS(full_pfms_path)
-#' head(transcriptIDLegend(full_pfms))
+#' head(ps_transcript_legend(full_pfms))
 #'
 setGeneric(
-    "transcriptIDLegend",
-    function(x, ...) standardGeneric("transcriptIDLegend")
+    "ps_transcript_legend",
+    function(x, ...) standardGeneric("ps_transcript_legend")
 )
 
 #' Retrieve the Motif-Enrichment Z-Score (Generic Function)
@@ -275,7 +275,7 @@ setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 #' motif occurrences.
 #'
 #' In a PSMatrixList object, the `ps_hits_score_bg` slot is populated only for
-#' full-background matrices. This allows `pscan_fullBG()` to retrieve selected
+#' full-background matrices. This allows `pscan_full_bg()` to retrieve selected
 #' hits without rescanning DNA.
 #'
 #' @return
@@ -385,7 +385,7 @@ setGeneric(
 #' background sequence.
 #'
 #' In a PSMatrixList object, the `ps_hits_strand_bg` slot is populated only
-#' for full-background matrices. This allows `pscan_fullBG()` to retrieve
+#' for full-background matrices. This allows `pscan_full_bg()` to retrieve
 #' selected hits without rescanning DNA.
 #'
 #' @return
@@ -456,7 +456,7 @@ setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 #' background sequence.
 #'
 #' In a PSMatrixList object, the `ps_hits_pos_bg` slot is populated only for
-#' full-background matrices. This allows `pscan_fullBG()` to retrieve selected
+#' full-background matrices. This allows `pscan_full_bg()` to retrieve selected
 #' hits without rescanning DNA.
 #'
 #' @return
@@ -547,7 +547,7 @@ setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 #' background sequence.
 #'
 #' In a PSMatrixList object, the `ps_hits_oligo_bg` slot is populated only
-#' for full-background matrices. This allows `pscan_fullBG()` to retrieve
+#' for full-background matrices. This allows `pscan_full_bg()` to retrieve
 #' selected hits without rescanning DNA.
 #'
 #'
@@ -654,7 +654,7 @@ setGeneric("ps_seq_names", function(x, ...) standardGeneric("ps_seq_names"))
 #' background sequence.
 #'
 #' In a PSMatrixList object, the `ps_bg_seq_names` slot is populated only for
-#' full-background matrices. This allows `pscan_fullBG()` to retrieve selected
+#' full-background matrices. This allows `pscan_full_bg()` to retrieve selected
 #' hits without rescanning DNA.
 #'
 #' @examples

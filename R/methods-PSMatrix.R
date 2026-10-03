@@ -18,9 +18,9 @@
 #'     package = "PscanR"
 #' )
 #' full_pfms <- readRDS(full_pfms_path)
-#' head(transcriptIDLegend(full_pfms))
+#' head(ps_transcript_legend(full_pfms))
 #'
-setMethod("transcriptIDLegend", "PSMatrixList", function(x) {
+setMethod("ps_transcript_legend", "PSMatrixList", function(x) {
     out <- x@transcriptIDLegend
 
     return(out)
@@ -188,7 +188,7 @@ setMethod("ps_hits_oligo", "PSMatrix", function(x, withDimnames = TRUE) {
 #' background sequence.
 #' The returned values are named with their background sequence identifiers.
 #'
-#' These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+#' These stored hits allow \code{\link{pscan_full_bg}} to retrieve results for
 #' selected background identifiers without rescanning DNA.
 #'
 #' @return A character vector containing the sequences of motif matches
@@ -376,7 +376,7 @@ setMethod("ps_hits_score", "PSMatrix", function(x, withDimnames = TRUE) {
 #' The function extracts the scores from the \code{ps_hits_score_bg} slot and,
 #' if applicable, assigns sequence names using \code{.ps_bg_seq_names()}.
 #'
-#' These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+#' These stored hits allow \code{\link{pscan_full_bg}} to retrieve results for
 #' selected background identifiers without rescanning DNA.
 #'
 #' @return A named numeric vector where names correspond to promoter sequence
@@ -483,7 +483,7 @@ setMethod("ps_hits_strand", "PSMatrix", function(x, withDimnames = TRUE) {
 #' slot and, if applicable, assigns sequence names using
 #' \code{.ps_bg_seq_names()}.
 #'
-#' These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+#' These stored hits allow \code{\link{pscan_full_bg}} to retrieve results for
 #' selected background identifiers without rescanning DNA.
 #'
 #' @return A named character vector where names correspond to promoter sequence
@@ -562,7 +562,7 @@ setMethod(
 #' The function extracts the position values from the ps_hits_pos_bg slot and,
 #' if applicable, assigns sequence names using .ps_bg_seq_names().
 #'
-#' These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+#' These stored hits allow \code{\link{pscan_full_bg}} to retrieve results for
 #' selected background identifiers without rescanning DNA.
 #'
 #' @return A named integer vector where names correspond to promoter sequence
@@ -840,7 +840,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 }
 
 .ps_scan_use_full_bg <- function(x, seqs, BG, use_full_BG) {
-    # `seqs` are retained background sequence names resolved by pscan_fullBG(),
+    # `seqs` are retained background sequence names resolved by pscan_full_bg(),
     # which are already exactly the names carried here. Matching them verbatim
     # avoids collapsing distinct transcripts that differ only after a dot.
     indices <- match(seqs, names(x@ps_hits_score_bg))
@@ -1252,7 +1252,7 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
 #' @param object A `PSMatrix` object.
 #'
 #' @details
-#' The function `validPSMatrix` ensures that the `PSMatrix` object has
+#' The function `.ps_valid_psmatrix` ensures that the `PSMatrix` object has
 #' correctly formatted background and foreground averages, standard deviations,
 #' and hit-related values.
 #' It performs the following steps:
@@ -1269,13 +1269,9 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
 #' @return If all the checks are satisfied, returns `TRUE`. Otherwise, a
 #' string describing the reason of failure.
 #'
-#' @examples
-#' pfm1_path <- system.file("extdata", "pfm1.rds", package = "PscanR")
-#' pfm1 <- readRDS(pfm1_path)
-#' validPSMatrix(pfm1)
-#'
-#' @export
-validPSMatrix <- function(object) {
+#' @keywords internal
+#' @noRd
+.ps_valid_psmatrix <- function(object) {
     if (length(object@ps_bg_avg) != 1) {
         return("Background average must be of length 1")
     }
@@ -1347,7 +1343,7 @@ validPSMatrix <- function(object) {
 }
 
 
-setValidity("PSMatrix", validPSMatrix)
+setValidity("PSMatrix", .ps_valid_psmatrix)
 
 #' Display Details of a `PSMatrix` object
 #'

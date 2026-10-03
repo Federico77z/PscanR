@@ -82,14 +82,14 @@ test_that("ps_write_bg_to_file and ps_retrieve_bg_from_file round-trip", {
     expect_equal(ps_bg_size(back[[2]]), 300L)
 })
 
-test_that("get_availableBG lists the bundled catalog without Hub access", {
+test_that("ps_available_bg lists the bundled catalog without Hub access", {
     local_mocked_bindings(
         .ps_open_experimenthub = function() stop("Unexpected Hub access"),
         .package = "PscanR"
     )
-    bg <- get_availableBG()
+    bg <- ps_available_bg()
     expect_type(bg, "character")
     expect_length(bg, 105L)
     expect_true(all(grepl("\\.psbg2\\.txt$", bg)))
-    expect_error(get_availableBG(keyword = "not-a-background"), "Found 0 matches")
+    expect_error(ps_available_bg(keyword = "not-a-background"), "Found 0 matches")
 })
