@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code refactoring, review and
+# documentation). All changes were reviewed and tested by the authors.
+
 #' PscanR: An R Implementation for the `Pscan` Algorithm
 #'
 #' @description

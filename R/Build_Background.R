@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code refactoring, review and
+# documentation). All changes were reviewed and tested by the authors.
+
 #' Build background matrices in parallel
 #'
 #' This function generates a background probability profile matrix list,

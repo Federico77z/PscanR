@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code refactoring, review and
+# documentation). All changes were reviewed and tested by the authors.
+
 #' Executes the Pscan algorithm on a set of regulatory sequences.
 #'
 #' This function computes alignment scores between regulatory sequences

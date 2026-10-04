@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code refactoring, review and
+# documentation). All changes were reviewed and tested by the authors.
+
 #' Get the Transcript ID Legend from a PSMatrixList object
 #'
 #' This method retrieves the value stored in the `transcriptIDLegend` slot of

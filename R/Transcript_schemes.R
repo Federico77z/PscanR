@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code refactoring, review and
+# documentation). All changes were reviewed and tested by the authors.
+
 # Transcript identifier schemes.
 #
 # PscanR matches user-supplied transcript identifiers against the promoter

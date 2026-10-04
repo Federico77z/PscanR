@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code refactoring, review and
+# documentation). All changes were reviewed and tested by the authors.
+
 #' Transcript ID Legend (Generic Function)
 #'
 #' `ps_transcript_legend` is a **generic function** that retrieves the
