@@ -42,8 +42,8 @@ hits without rescanning DNA.
 }
 \examples{
 full_pfm1_path <- system.file("extdata",
-  "full_pfm1.rds",
-  package = "PscanR"
+    "full_pfm1.rds",
+    package = "PscanR"
 )
 full_pfm1 <- readRDS(full_pfm1_path)
 ps_hits_score_bg(full_pfm1)

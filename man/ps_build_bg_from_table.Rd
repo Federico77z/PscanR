@@ -59,9 +59,9 @@ examples.
 \examples{
 # create the `data.frame`
 background_data <- data.frame(
-  BG_SIZE = c(500, 450, 480),
-  BG_MEAN = c(0.3, 0.25, 0.35),
-  BG_STDEV = c(0.05, 0.07, 0.06)
+    BG_SIZE = c(500, 450, 480),
+    BG_MEAN = c(0.3, 0.25, 0.35),
+    BG_STDEV = c(0.05, 0.07, 0.06)
 )
 
 # Retrieve motif matrices for vertebrates from JASPAR2020

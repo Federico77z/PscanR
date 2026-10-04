@@ -109,19 +109,19 @@ prom_seq <- readRDS(file_path)[1:10]
 matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 matrices <- readRDS(matrix_path)
 bg_path <- system.file(
-  "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-  package = "PscanR"
+    "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+    package = "PscanR"
 )
 background <- ps_retrieve_bg_from_file(bg_path, matrices)
 motif_ids <- c(
-  "MA0506.1", "MA0632.2", "MA0615.1",
-  "MA0076.2", "MA0645.1", "MA0838.1"
+    "MA0506.1", "MA0632.2", "MA0615.1",
+    "MA0076.2", "MA0645.1", "MA0838.1"
 )
 background <- background[motif_ids]
 
 # Execute the PScan algorithm
 results <- pscan(prom_seq, background,
-  BPPARAM = BiocParallel::SerialParam()
+    BPPARAM = BiocParallel::SerialParam()
 )
 
 ps_results_table(results)
