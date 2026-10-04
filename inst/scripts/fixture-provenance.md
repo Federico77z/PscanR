@@ -50,10 +50,12 @@ unverifiable promise of bit-for-bit recreation from changing web services.
 
 `PscanR_background_catalog_v2.tsv` is the subset with `background_version == 2`
 of the generation repository's `catalog.tsv`, with `BG_files/` in the artifact
-column replaced by `backgrounds/`, the path inside the immutable ZIP.
-The 105 rows, all other columns, and checksums must agree. The source release is
-https://doi.org/10.5281/zenodo.21821764 and its preparation code is at
-https://github.com/Federico77z/PscanRBackgrounds/tree/7516eee.
+column replaced by `backgrounds/`, the path inside the immutable ZIP of the
+Zenodo release https://doi.org/10.5281/zenodo.21821764; it is identical to the
+`catalog.tsv` in that archive. The file name is also the one under which each
+background is registered in ExperimentHub. The 105 rows, all other columns,
+and checksums must agree. The preparation code is at
+https://github.com/Federico77z/PscanRBackgrounds-pipeline/tree/7516eee.
 
 ## Mouse retinal analysis (`vignettes/mouse_hd_retina/`)
 
@@ -150,7 +152,7 @@ full-analysis preparation scripts and their environment before submission.
    of separate serial/eight-worker runs. `ucbg_summary.rds` stores validation,
    sizes, input counts and the foreground comparison. To reproduce substantive
    results, compare `pscan(rp_promoters, background)` with
-   `pscan_fullBG(names(rp_promoters), full_background)`. Hardware-dependent
+   `pscan_full_bg(names(rp_promoters), full_background)`. Hardware-dependent
    timings and compressed sizes are not acceptance criteria for equality.
 
 The new vignette's small round trip is run directly from these real input

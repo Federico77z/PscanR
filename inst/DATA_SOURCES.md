@@ -16,4 +16,4 @@ in `scripts/fixture-provenance.md`.
 
 CC BY 4.0: https://creativecommons.org/licenses/by/4.0/.
 JASPAR 2022: doi:10.1093/nar/gkab1113; JASPAR 2024: doi:10.1093/nar/gkad1059.
-The immutable production archive contains computed statistics, not raw genomes.
+The distributed background files contain computed statistics, not raw genomes.

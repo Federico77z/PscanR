@@ -20,7 +20,7 @@ and plot the results.
 \section{Main functions}{
 
 \itemize{
-   \item \code{\link{generate_psmatrixlist_from_background}}:
+   \item \code{\link{ps_retrieve_bg}}:
    Build background matrices from pre-computed files.
    \item \code{\link{pscan}}:
    Pscan algorithm utilization on a set of gene promoters.

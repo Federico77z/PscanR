@@ -9,7 +9,7 @@ ps_results_table(pfms, FDR = 1)
 \arguments{
 \item{pfms}{A `PSMatrixList` object containing multiple PWMs and associated
 metadata (foreground and background statistics). Typically the output
-of `pscan()` or `pscan_fullBG()` functions.}
+of `pscan()` or `pscan_full_bg()` functions.}
 
 \item{FDR}{A numeric value indicating the maximum false discovery
 rate (FDR) allowed for filtering the result table.

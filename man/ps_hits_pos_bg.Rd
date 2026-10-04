@@ -33,7 +33,7 @@ datasets, which include stored motif scan results for every retained
 background sequence.
 
 In a PSMatrixList object, the `ps_hits_pos_bg` slot is populated only for
-full-background matrices. This allows `pscan_fullBG()` to retrieve selected
+full-background matrices. This allows `pscan_full_bg()` to retrieve selected
 hits without rescanning DNA.
 }
 \examples{

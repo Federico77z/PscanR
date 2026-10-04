@@ -95,17 +95,17 @@ genes with reduced expression when BPC function is impaired.
 # The background
 
 Precomputed backgrounds are indexed by organism, genome assembly, promoter
-window, and motif collection. `get_availableBG()` lists the available resources.
+window, and motif collection. `ps_available_bg()` lists the available resources.
 
 ```{r discover-background}
-get_availableBG(keyword = "TAIR9", details = TRUE)
+ps_available_bg(keyword = "TAIR9", details = TRUE)
 ```
 
-`generate_psmatrixlist_from_background()` retrieves the background statistics
+`ps_retrieve_bg()` retrieves the background statistics
 and associates them with the matching JASPAR matrices in a `PSMatrixList`.
 
 ```{r retrieve-background, eval=FALSE}
-background <- generate_psmatrixlist_from_background(
+background <- ps_retrieve_bg(
     JASPAR_matrix = "Jaspar2020",
     org = "at",
     prom_reg = c(-1000, 0),
@@ -609,7 +609,7 @@ promoters with a matching definition, scan the sequences, and inspect the
 motif enrichment table.
 
 ```{r workflow, eval=FALSE}
-background <- generate_psmatrixlist_from_background(
+background <- ps_retrieve_bg(
     "Jaspar2020", "at", c(-1000, 0), "TAIR9", version = 2
 )
 down_promoters <- ps_select_promoters(

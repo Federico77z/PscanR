@@ -14,6 +14,6 @@ test_that("default analysis stays serial and agrees with explicit serial runs", 
     expect_identical(pscan(foreground, full), pscan(foreground, full,
         BPPARAM=BiocParallel::SerialParam()))
     # Stored-hit retrieval does not scan or accept a parallel backend.
-    expect_identical(ps_hits_table(pscan_fullBG(names(foreground), full)[[1]]),
+    expect_identical(ps_hits_table(pscan_full_bg(names(foreground), full)[[1]]),
         ps_hits_table(pscan(foreground, full)[[1]]))
 })

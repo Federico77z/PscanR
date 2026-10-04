@@ -34,7 +34,7 @@ The function extracts the strand values from the \code{ps_hits_strand_bg}
 slot and, if applicable, assigns sequence names using
 \code{.ps_bg_seq_names()}.
 
-These stored hits allow \code{\link{pscan_fullBG}} to retrieve results for
+These stored hits allow \code{\link{pscan_full_bg}} to retrieve results for
 selected background identifiers without rescanning DNA.
 }
 \examples{

@@ -13,19 +13,19 @@ test_that("PSMatrix validity covers scalar and hit-vector invariants", {
 
   zero_sd <- foreground
   zero_sd@ps_bg_std_dev <- 0
-  expect_match(validPSMatrix(zero_sd), "Background stddev")
+  expect_match(PscanR:::.ps_valid_psmatrix(zero_sd), "Background stddev")
 
   bad_foreground <- foreground
   bad_foreground@ps_hits_oligo <- bad_foreground@ps_hits_oligo[-1]
-  expect_match(validPSMatrix(bad_foreground), "foreground hit vectors")
+  expect_match(PscanR:::.ps_valid_psmatrix(bad_foreground), "foreground hit vectors")
 
   bad_background <- full
   bad_background@ps_hits_pos_bg <- bad_background@ps_hits_pos_bg[-1]
-  expect_match(validPSMatrix(bad_background), "full-background hit vectors")
+  expect_match(PscanR:::.ps_valid_psmatrix(bad_background), "full-background hit vectors")
 
   bad_size <- full
   bad_size@ps_bg_size <- bad_size@ps_bg_size + 1L
-  expect_match(validPSMatrix(bad_size), "does not equal ps_bg_size")
+  expect_match(PscanR:::.ps_valid_psmatrix(bad_size), "does not equal ps_bg_size")
 })
 
 test_that("withDimnames controls accessor names", {

@@ -24,9 +24,9 @@ test_that("PSMatrixList() honours its transcriptIDLegend argument", {
 
     out <- PSMatrixList(full[[1]], full[[2]], transcriptIDLegend = legend)
 
-    expect_identical(transcriptIDLegend(out), legend)
+    expect_identical(ps_transcript_legend(out), legend)
     # The default still marks an ordinary list.
-    expect_identical(transcriptIDLegend(PSMatrixList(full[[1]])), character())
+    expect_identical(ps_transcript_legend(PSMatrixList(full[[1]])), character())
     expect_error(
         PSMatrixList(full[[1]], transcriptIDLegend = 1:3),
         "must be a character vector"
@@ -44,16 +44,16 @@ test_that("a full background survives the text round trip with its legend", {
 
     back <- ps_retrieve_bg_from_file(f, full)
 
-    expect_identical(transcriptIDLegend(back), transcriptIDLegend(full))
+    expect_identical(ps_transcript_legend(back), ps_transcript_legend(full))
     # The file carries only the three summary statistics; the per-promoter
     # scan is still the one the matrices came in with.
     expect_identical(
         ps_hits_score_bg(back[[1]]), ps_hits_score_bg(full[[1]])
     )
 
-    ids <- utils::head(names(transcriptIDLegend(full)), 10)
-    from_back <- suppressWarnings(pscan_fullBG(ids, back, quiet = TRUE))
-    from_full <- suppressWarnings(pscan_fullBG(ids, full, quiet = TRUE))
+    ids <- utils::head(names(ps_transcript_legend(full)), 10)
+    from_back <- suppressWarnings(pscan_full_bg(ids, back, quiet = TRUE))
+    from_full <- suppressWarnings(pscan_full_bg(ids, full, quiet = TRUE))
     expect_identical(
         ps_hits_score(from_back[[1]]), ps_hits_score(from_full[[1]])
     )
@@ -68,7 +68,7 @@ test_that("a table from a different promoter set is refused", {
     # The bundled hg38 background: real statistics over 39,438 promoters, for
     # matrices whose stored scan covers 36. Applying it would leave the object
     # with statistics from one promoter universe and hits from another, which
-    # pscan_fullBG() would read as a background and answer from.
+    # pscan_full_bg() would read as a background and answer from.
     foreign <- system.file(
         "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt", package = "PscanR"
     )
@@ -91,28 +91,28 @@ test_that("a table from a different promoter set is refused", {
     expect_identical(ps_bg_size(ordinary[[1]]), 39438L)
 })
 
-test_that("pscan, pscan_fullBG and pscan_filtered preserve the legend", {
+test_that("pscan, pscan_full_bg and pscan_filtered preserve the legend", {
     full <- full_pfms()
     prom <- prom_seq()
-    legend <- transcriptIDLegend(full)
+    legend <- ps_transcript_legend(full)
     old <- silence_fraction()
     on.exit(options(old), add = TRUE)
 
     scanned <- pscan(prom[seq_len(5)], full[seq_len(2)],
                      BPPARAM = BiocParallel::SerialParam())
-    expect_identical(transcriptIDLegend(scanned), legend)
+    expect_identical(ps_transcript_legend(scanned), legend)
 
     ids <- utils::head(names(legend), 10)
-    retrieved <- suppressWarnings(pscan_fullBG(ids, full, quiet = TRUE))
-    expect_identical(transcriptIDLegend(retrieved), legend)
+    retrieved <- suppressWarnings(pscan_full_bg(ids, full, quiet = TRUE))
+    expect_identical(ps_transcript_legend(retrieved), legend)
 
     filtered <- pscan_filtered(prom[seq_len(20)], full[[1]], n = 1,
                               background = full[seq_len(2)],
                               BPPARAM = BiocParallel::SerialParam())
-    expect_identical(transcriptIDLegend(filtered), legend)
+    expect_identical(ps_transcript_legend(filtered), legend)
 })
 
-test_that("pscan_fullBG rejects a legend without a background scan", {
+test_that("pscan_full_bg rejects a legend without a background scan", {
     full <- full_pfms()
     prom <- prom_seq()
     old <- silence_fraction()
@@ -123,9 +123,9 @@ test_that("pscan_fullBG rejects a legend without a background scan", {
     # background would answer with foreground hits over a subset.
     scanned <- pscan(prom[seq_len(5)], full[seq_len(2)],
                      BPPARAM = BiocParallel::SerialParam())
-    expect_true(length(transcriptIDLegend(scanned)) > 0)
+    expect_true(length(ps_transcript_legend(scanned)) > 0)
     expect_error(
-        pscan_fullBG(names(transcriptIDLegend(full))[1], scanned, quiet = TRUE),
+        pscan_full_bg(names(ps_transcript_legend(full))[1], scanned, quiet = TRUE),
         "no per-promoter background scan"
     )
 
@@ -133,12 +133,12 @@ test_that("pscan_fullBG rejects a legend without a background scan", {
     legendless <- full
     legendless@transcriptIDLegend <- character()
     expect_error(
-        pscan_fullBG(names(transcriptIDLegend(full))[1], legendless,
+        pscan_full_bg(names(ps_transcript_legend(full))[1], legendless,
                      quiet = TRUE),
         "empty transcriptIDLegend"
     )
 
-    expect_error(pscan_fullBG("NM_000546", full[[1]]), "must be a PSMatrixList")
+    expect_error(pscan_full_bg("NM_000546", full[[1]]), "must be a PSMatrixList")
 })
 
 test_that("ps_build_bg still sets the legend only for a full background", {
@@ -148,12 +148,12 @@ test_that("ps_build_bg still sets the legend only for a full background", {
 
     ordinary <- ps_build_bg(x, full[seq_len(2)],
                             BPPARAM = BiocParallel::SerialParam())
-    expect_identical(transcriptIDLegend(ordinary), character())
+    expect_identical(ps_transcript_legend(ordinary), character())
 
     complete <- ps_build_bg(x, full[seq_len(2)],
                             BPPARAM = BiocParallel::SerialParam(),
                             fullBG = TRUE)
-    legend <- transcriptIDLegend(complete)
+    legend <- ps_transcript_legend(complete)
     expect_identical(names(legend), names(x))
     # Each name maps to the representative kept by unique(); here every
     # promoter is distinct, so each maps to itself.

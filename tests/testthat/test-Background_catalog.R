@@ -11,8 +11,8 @@ make_catalog_fixture <- function(path) {
         tax_group = c("vertebrates", "vertebrates"),
         background_version = c(1L, 2L),
         artifact = c(
-            "BG_files/J2024_hg38_950u_50d_UCSC.psbg1.txt",
-            "BG_files/J2024_hg38_950u_50d_UCSC.psbg2.txt"
+            "J2024_hg38_950u_50d_UCSC.psbg1.txt",
+            "J2024_hg38_950u_50d_UCSC.psbg2.txt"
         ),
         artifact_sha256 = c("one", "two"),
         stringsAsFactors = FALSE
@@ -23,26 +23,26 @@ make_catalog_fixture <- function(path) {
     catalog
 }
 
-test_that("background catalog supports legacy and detailed listings", {
+test_that("background catalog supports filename and detailed listings", {
     catalog_path <- tempfile(fileext = ".tsv")
     make_catalog_fixture(catalog_path)
     old <- options(PscanR.background.catalog = catalog_path)
     on.exit(options(old), add = TRUE)
 
-    files <- get_availableBG(source = "github")
+    files <- ps_available_bg()
     expect_identical(length(files), 2L)
     expect_identical(
         files[[2]], "J2024_hg38_950u_50d_UCSC.psbg2.txt"
     )
-    details <- get_availableBG("psbg2", details = TRUE, source = "github")
+    details <- ps_available_bg("psbg2", details = TRUE)
     expect_s3_class(details, "data.frame")
     expect_identical(nrow(details), 1L)
     expect_true(details$latest)
     expect_error(
-        get_availableBG("missing", source = "github"), "Found 0 matches"
+        ps_available_bg("missing"), "Found 0 matches"
     )
     expect_error(
-        get_availableBG(details = NA, source = "github"), "details must be"
+        ps_available_bg(details = NA), "details must be"
     )
 })
 
@@ -77,46 +77,6 @@ test_that("background catalog resolves latest and pinned versions", {
         ),
         "version must be"
     )
-})
-
-test_that("background downloads enforce catalog checksums", {
-    source_root <- tempfile("pscan-background-")
-    dir.create(file.path(source_root, "BG_files"), recursive = TRUE)
-    source_file <- file.path(source_root, "BG_files", "fixture.txt")
-    writeLines(c("[SHORT TFBS MATRIX]", "MA0001.1\t10\t0.5\t0.1"), source_file)
-    checksum <- unname(tools::sha256sum(source_file))
-    base_url <- paste0("file://", normalizePath(source_root))
-    old <- options(PscanR.background.base_url = base_url)
-    on.exit(options(old), add = TRUE)
-
-    destination <- tempfile(fileext = ".txt")
-    result <- PscanR:::.download_background(
-        "BG_files/fixture.txt", destination, checksum
-    )
-    expect_identical(result, destination)
-    expect_identical(readLines(destination), readLines(source_file))
-
-    corrupt_destination <- tempfile(fileext = ".txt")
-    bad_checksum <- paste(rep("0", 64), collapse = "")
-    expect_error(
-        PscanR:::.download_background(
-            "BG_files/fixture.txt", corrupt_destination, bad_checksum
-        ),
-        "SHA-256"
-    )
-    expect_false(file.exists(corrupt_destination))
-
-    # A destfile that already exists must survive a checksum failure intact.
-    preserved <- tempfile(fileext = ".txt")
-    writeLines("existing user content", preserved)
-    expect_error(
-        PscanR:::.download_background(
-            "BG_files/fixture.txt", preserved, bad_checksum
-        ),
-        "SHA-256"
-    )
-    expect_true(file.exists(preserved))
-    expect_identical(readLines(preserved), "existing user content")
 })
 
 test_that("missing JASPAR collections are reported with install guidance", {
