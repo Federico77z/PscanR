@@ -74,30 +74,18 @@ jobs:
             check_dir = '/tmp/check')
         shell: Rscript {0}
 
-      # Temporary diagnostics: installed R/ size and the empty-bodied
+      # Temporary diagnostic: raw output behind the empty-bodied
       # "dependencies in R code" NOTE seen only on this runner.
       - name: Diagnostics (temporary)
         if: always()
         run: |
-          lib <- "/tmp/check/PscanR.Rcheck"
-          print(file.info(list.files(file.path(lib, "PscanR", "R"),
-              full.names = TRUE))[, "size", drop = FALSE])
-          e <- new.env()
-          lazyLoad(file.path(lib, "PscanR", "R", "PscanR"), envir = e)
-          s <- vapply(ls(e, all.names = TRUE),
-              function(n) length(serialize(get(n, e), NULL)), 1)
-          print(head(sort(s, decreasing = TRUE), 15))
-          print(utils::sessionInfo())
-          readRenviron("/tmp/check.Renviron")
-          for (v in c("_R_CHECK_PACKAGES_USED_IGNORE_UNUSED_IMPORTS_",
-              "_R_CHECK_CODE_USAGE_WITH_ONLY_BASE_ATTACHED_",
-              "_R_CHECK_SUGGESTS_ONLY_", "R_KEEP_PKG_SOURCE")) {
-              cat(v, "=", Sys.getenv(v), "\n")
-          }
-          res <- tools:::.check_packages_used(package = "PscanR",
-              lib.loc = lib)
-          str(unclass(res))
-        shell: Rscript {0}
+          export R_LIBS="/tmp/check/PscanR.Rcheck:${R_LIBS:-}"
+          export R_ENVIRON_USER=/tmp/check.Renviron
+          R_DEFAULT_PACKAGES=NULL Rscript --no-init-file -e \
+            'options(warn = 1); tools:::.check_packages_used(package = "PscanR")' \
+            2>&1 | cat -A
+          echo "exit: ${PIPESTATUS[0]}"
+        shell: bash
 
       - name: BiocCheckGitClone
         run: |
