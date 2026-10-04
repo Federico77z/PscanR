@@ -17,6 +17,7 @@ Imports:
     RSQLite,
     stats,
     TFBSTools,
+    UCSC.utils,
     utils
 Suggests:
     AnnotationDbi,
@@ -33,7 +34,6 @@ Suggests:
     JASPAR2020,
     JASPAR2022,
     JASPAR2024,
-    jsonlite,
     knitr,
     org.Hs.eg.db,
     org.Mm.eg.db,

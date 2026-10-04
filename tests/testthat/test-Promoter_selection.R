@@ -107,57 +107,49 @@ test_that("ps_load_select_transcripts refetches an unreadable cache", {
   expect_identical(loaded, fresh)
 })
 
-test_that(".ps_ucsc_track_by_chrom errors rather than degrading", {
-  payload <- function(rows) {
-    list(mane = rows)
-  }
+test_that(".ps_ucsc_track errors rather than degrading", {
   valid <- data.frame(
-    ncbiId = "NM_000546.6",
-    geneName2 = "TP53",
+    chrom = c("chr17", "chrUn_KI270742v1"),
+    ncbiId = c("NM_000546.6", "NM_000000.1"),
+    geneName2 = c("TP53", "ALT"),
     maneStat = "MANE Select",
     stringsAsFactors = FALSE
   )
+  columns <- c("maneStat", "ncbiId", "geneName2")
 
-  # (a) a valid payload on every chromosome.
+  # (a) a valid table: only the canonical chromosomes are kept.
   local_mocked_bindings(
-    fromJSON = function(...) payload(valid),
-    .package = "jsonlite"
+    .ps_fetch_ucsc_table = function(genome, track) valid,
+    .package = "PscanR"
   )
-  tbl <- .ps_ucsc_track_by_chrom("mane", c("maneStat", "ncbiId", "geneName2"))
+  tbl <- .ps_ucsc_track("mane", columns)
   expect_s3_class(tbl, "data.frame")
-  expect_identical(nrow(tbl), 24L)
+  expect_identical(tbl$ncbiId, "NM_000546.6")
 
-  # (b) an empty response: previously a bare data.frame() with no columns,
-  # which failed later inside data.frame() with a row-count message.
+  # (b) an empty response.
   local_mocked_bindings(
-    fromJSON = function(...) list(mane = NULL),
-    .package = "jsonlite"
+    .ps_fetch_ucsc_table = function(genome, track) valid[0, ],
+    .package = "PscanR"
   )
-  expect_error(
-    .ps_ucsc_track_by_chrom("mane", c("maneStat", "ncbiId", "geneName2")),
-    "UCSC returned no 'mane' table"
-  )
+  expect_error(.ps_ucsc_track("mane", columns), "UCSC returned no 'mane' table")
 
-  # (c) a renamed column: previously undetected until the field read as NULL.
+  # (c) a renamed column is reported instead of reading as NULL later.
   renamed <- valid
   names(renamed)[names(renamed) == "ncbiId"] <- "ncbiAcc"
   local_mocked_bindings(
-    fromJSON = function(...) payload(renamed),
-    .package = "jsonlite"
+    .ps_fetch_ucsc_table = function(genome, track) renamed,
+    .package = "PscanR"
   )
-  expect_error(
-    .ps_ucsc_track_by_chrom("mane", c("maneStat", "ncbiId", "geneName2")),
-    "missing the column 'ncbiId'"
-  )
+  expect_error(.ps_ucsc_track("mane", columns), "missing the column 'ncbiId'")
 
-  # A request that fails names the track and chromosome.
+  # (d) a failed request names the track and genome.
   local_mocked_bindings(
-    fromJSON = function(...) stop("connection refused"),
-    .package = "jsonlite"
+    .ps_fetch_ucsc_table = function(genome, track) stop("connection refused"),
+    .package = "PscanR"
   )
   expect_error(
-    .ps_ucsc_track_by_chrom("mane"),
-    "Could not retrieve UCSC track 'mane' for chr1"
+    .ps_ucsc_track("mane"),
+    "Could not retrieve UCSC track 'mane' for hg38: connection refused"
   )
 })
 

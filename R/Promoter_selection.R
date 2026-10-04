@@ -18,8 +18,9 @@
 #'   cached, inspected, and reused in multiple analyses.
 #'
 #' The automatic metadata download provided by this function is human-specific
-#'   and applies only to the RefSeq transcript scheme. It currently uses UCSC
-#'   hg38 MANE and RefSeq Select tracks. For every other reference, use
+#'   and applies only to the RefSeq transcript scheme. It currently uses the
+#'   UCSC hg38 MANE and RefSeq Select tracks, retrieved with
+#'   \code{UCSC.utils::fetch_UCSC_track_data()}. For every other reference, use
 #'   representative mode or supply species-specific selection metadata.
 #'
 #' @seealso \code{\link{ps_select_promoters}}
@@ -68,10 +69,6 @@ ps_load_select_transcripts <- function(
             return(cached)
         }
     }
-    if (!requireNamespace("jsonlite", quietly = TRUE)) {
-        stop("Package 'jsonlite' is required to download select transcripts.")
-    }
-
     select_transcripts <- rbind(
         .ps_mane_select_transcripts(),
         .ps_refseq_select_transcripts()
@@ -122,7 +119,7 @@ ps_load_select_transcripts <- function(
 }
 
 .ps_mane_select_transcripts <- function() {
-    mane <- .ps_ucsc_track_by_chrom(
+    mane <- .ps_ucsc_track(
         "mane", c("maneStat", "ncbiId", "geneName2")
     )
     mane <- mane[mane$maneStat == "MANE Select" &
@@ -138,7 +135,7 @@ ps_load_select_transcripts <- function(
 }
 
 .ps_refseq_select_transcripts <- function() {
-    refseq <- .ps_ucsc_track_by_chrom(
+    refseq <- .ps_ucsc_track(
         "ncbiRefSeqSelect", c("name", "name2")
     )
     refseq <- refseq[!is.na(refseq$name) & refseq$name != "", ]
@@ -356,75 +353,63 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     unique(genes)
 }
 
-# Fetch a UCSC track chromosome by chromosome. `columns` names the fields the
-# caller reads: they are checked here, where the track and chromosome are still
-# known, rather than left to fail as a missing column much later. A request
-# that fails, or a response that carries no usable table, is an error for the
-# same reason -- silently dropping a chromosome would return a table that looks
-# complete and is not.
-.ps_ucsc_track_by_chrom <- function(track, columns = character()) {
-    canonical <- paste0("chr", c(seq_len(22), "X", "Y"))
-    rows <- lapply(canonical, function(chrom) {
-        url <- sprintf(
-            paste0(
-                "https://api.genome.ucsc.edu/getData/track?",
-                "genome=hg38;track=%s;chrom=%s"
-            ),
-            track,
-            chrom
-        )
-        response <- tryCatch(jsonlite::fromJSON(url), error = function(e) {
+# Download one UCSC track table through UCSC.utils. Kept as a separate
+# function so that tests can replace the network call.
+.ps_fetch_ucsc_table <- function(genome, track) {
+    UCSC.utils::fetch_UCSC_track_data(genome, track)
+}
+
+# Fetch a UCSC track and keep the canonical chromosomes. `columns` names the
+# fields the caller reads: they are checked here, where the track is still
+# known, rather than left to fail as a missing column much later. A failed
+# request or an empty table is an error, so a partial table is never returned
+# as if it were complete.
+.ps_ucsc_track <- function(track, columns = character(), genome = "hg38") {
+    tbl <- tryCatch(
+        .ps_fetch_ucsc_table(genome, track),
+        error = function(e) {
             stop(
                 sprintf(
                     "Could not retrieve UCSC track '%s' for %s: %s",
-                    track, chrom, conditionMessage(e)
-                ),
-                call. = FALSE
-            )
-        })
-        tbl <- response[[track]]
-        if (is.null(tbl) || !is.data.frame(tbl)) {
-            detail <- if (is.null(response$error)) {
-                ""
-            } else {
-                sprintf(": %s", response$error)
-            }
-            stop(
-                sprintf(
-                    "UCSC returned no '%s' table for %s%s.",
-                    track, chrom, detail
+                    track, genome, conditionMessage(e)
                 ),
                 call. = FALSE
             )
         }
-        if (nrow(tbl) == 0L) {
-            return(NULL)
-        }
-        tbl <- as.data.frame(tbl, stringsAsFactors = FALSE)
-        missing <- setdiff(columns, names(tbl))
-        if (length(missing) > 0L) {
-            named <- toString(sQuote(missing))
-            plural <- if (length(missing) > 1L) "s" else ""
-            fmt <- paste0(
-                "UCSC track '%s' is missing the column%s %s for %s. ",
-                "The track schema has probably changed."
-            )
-            stop(sprintf(fmt, track, plural, named, chrom), call. = FALSE)
-        }
-        tbl
-    })
-    rows <- rows[!vapply(rows, is.null, logical(1))]
-    if (length(rows) == 0L) {
+    )
+    if (!is.data.frame(tbl) || nrow(tbl) == 0L) {
         stop(
-            sprintf("UCSC track '%s' returned no rows for any chromosome.",
-                track),
+            sprintf("UCSC returned no '%s' table for %s.", track, genome),
             call. = FALSE
         )
     }
-    # Chromosomes whose payload omits an all-empty field come back with fewer
-    # columns, which rbind reports only as a count mismatch.
-    keep <- Reduce(intersect, lapply(rows, names))
-    do.call(rbind, lapply(rows, function(x) x[, keep, drop = FALSE]))
+    missing <- setdiff(c("chrom", columns), names(tbl))
+    if (length(missing) > 0L) {
+        plural <- if (length(missing) > 1L) "s" else ""
+        stop(
+            sprintf(
+                paste0(
+                    "UCSC track '%s' is missing the column%s %s. ",
+                    "The track schema has probably changed."
+                ),
+                track, plural, toString(sQuote(missing, FALSE))
+            ),
+            call. = FALSE
+        )
+    }
+    canonical <- paste0("chr", c(seq_len(22), "X", "Y"))
+    tbl <- tbl[tbl$chrom %in% canonical, , drop = FALSE]
+    if (nrow(tbl) == 0L) {
+        stop(
+            sprintf(
+                "UCSC track '%s' has no rows on the canonical chromosomes.",
+                track
+            ),
+            call. = FALSE
+        )
+    }
+    row.names(tbl) <- NULL
+    tbl
 }
 
 .ps_validate_promoter_inputs <- function(
