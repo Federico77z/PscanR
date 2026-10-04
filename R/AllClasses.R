@@ -215,7 +215,7 @@ PSMatrixList <- function(...,
     # XMatrixList() knows nothing of the slot PSMatrixList adds, so the legend
     # is set here. Without this the argument would be accepted and discarded,
     # and no rebuilt list could ever be a full background.
-    out@transcriptIDLegend <- transcriptIDLegend
+    out <- .ps_set_legend(out, transcriptIDLegend)
 
     return(out)
 }

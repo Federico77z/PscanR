@@ -257,14 +257,14 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
         "nothing to retrieve. Build it with ps_build_bg(..., fullBG = TRUE)."
     )
     }
-    if (length(full_pfms@transcriptIDLegend) == 0) {
+    if (length(ps_transcript_legend(full_pfms)) == 0) {
     stop(
         "'full_pfms' has an empty transcriptIDLegend, so transcript ",
         "identifiers cannot be resolved against the background."
     )
     }
 
-    all_seq_ID <- full_pfms@transcriptIDLegend
+    all_seq_ID <- ps_transcript_legend(full_pfms)
 
     # Reduce both sides to the transcript key the scheme defines. For RefSeq
     # that removes a version; for TAIR it removes nothing, because there the
@@ -359,15 +359,16 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     seqs <- as.character(prom_seq)
     encoded <- .ps_encode_seqs(seqs)
     if (!is.null(encoded)) {
-    Jmatrix@ps_hits_score <- .ps_scan_batched(seqs, encoded, M, M_rc, W)$score
+        scores <- .ps_scan_batched(seqs, encoded, M, M_rc, W)$score
     } else {
-    res <- mapply(.ps_scan_s, list(Jmatrix), seqs,
-        MoreArgs = list(M = M, M_rc = M_rc, W = W)
-    )
-    Jmatrix@ps_hits_score <- as.numeric(res["score", ])
+        res <- mapply(.ps_scan_s, list(Jmatrix), seqs,
+            MoreArgs = list(M = M, M_rc = M_rc, W = W)
+        )
+        scores <- as.numeric(res["score", ])
     }
-    Jmatrix@ps_hits_score <- .ps_norm_score(Jmatrix)
-    Score <- Jmatrix@ps_hits_score
+    Jmatrix <- .ps_set_hits_score(Jmatrix, scores)
+    Jmatrix <- .ps_set_hits_score(Jmatrix, .ps_norm_score(Jmatrix))
+    Score <- ps_hits_score(Jmatrix, withDimnames = FALSE)
 
     filtered_prom_seq <- character()
     if (n > 0) {

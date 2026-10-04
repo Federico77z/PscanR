@@ -26,6 +26,24 @@ setMethod("ps_transcript_legend", "PSMatrixList", function(x) {
     return(out)
 })
 
+# Internal accessors and setters. Together with the exported accessors and
+# the class methods in this file, these are the only code that touches slots.
+.ps_set_legend <- function(x, value) {
+    x@transcriptIDLegend <- value
+    x
+}
+
+.ps_set_hits_score <- function(x, value) {
+    x@ps_hits_score <- value
+    x
+}
+
+# Length of the stored background hits, read from the slot so that no names
+# are attached on the way out (see .ps_check_bg_scan_size()).
+.ps_bg_hit_count <- function(x) {
+    length(x@ps_hits_score_bg)
+}
+
 #' Get Background Average Score
 #'
 #' Retrieves the background average score stored in a `PSMatrix` object.

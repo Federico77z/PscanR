@@ -197,7 +197,7 @@
 # hand. Returns character() for a PFMatrixList, which has no such slot.
 #' @keywords internal
 .ps_legend_of <- function(x) {
-    if (is(x, "PSMatrixList")) x@transcriptIDLegend else character()
+    if (is(x, "PSMatrixList")) ps_transcript_legend(x) else character()
 }
 
 # A full background stores the hits of every promoter in the universe. An
@@ -218,14 +218,15 @@
 # universe and hits from another -- which pscan_full_bg() would then read as a
 # background and answer from, silently.
 #
-# The slot is read directly rather than through ps_hits_score_bg(), which
-# attaches the sequence names to every score on the way out: that is a copy per
-# matrix for a length, and it would raise a names<- error of its own on an
-# object already malformed enough to reach this check.
+# The length is read with .ps_bg_hit_count() rather than through
+# ps_hits_score_bg(), which attaches the sequence names to every score on the
+# way out: that is a copy per matrix for a length, and it would raise a
+# names<- error of its own on an object already malformed enough to reach this
+# check.
 #' @keywords internal
 .ps_check_bg_scan_size <- function(x, pfms) {
     ids <- vapply(pfms, ID, character(1L))
-    stored <- vapply(pfms, function(m) length(m@ps_hits_score_bg), integer(1L))
+    stored <- vapply(pfms, .ps_bg_hit_count, integer(1L))
 
     # Only matrices the table actually names, as .ps_bg_from_table() does, and
     # only those carrying a scan -- an ordinary PFMatrixList has none.
@@ -279,7 +280,7 @@
     # NA corresponds to sequences eliminated by .clean_sequence()
     all_sequences_ID[removed_sequences] <- NA
 
-    pfms@transcriptIDLegend <- all_sequences_ID
+    pfms <- .ps_set_legend(pfms, all_sequences_ID)
 
     return(pfms)
 }
