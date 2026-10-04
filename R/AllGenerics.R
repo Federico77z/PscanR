@@ -287,8 +287,8 @@ setGeneric("ps_hits_score", function(x, ...) standardGeneric("ps_hits_score"))
 #'
 #' @examples
 #' full_pfm1_path <- system.file("extdata",
-#'   "full_pfm1.rds",
-#'   package = "PscanR"
+#'     "full_pfm1.rds",
+#'     package = "PscanR"
 #' )
 #' full_pfm1 <- readRDS(full_pfm1_path)
 #' ps_hits_score_bg(full_pfm1)
@@ -397,8 +397,8 @@ setGeneric(
 #'
 #' @examples
 #' full_pfm1_path <- system.file("extdata",
-#'   "full_pfm1.rds",
-#'   package = "PscanR"
+#'     "full_pfm1.rds",
+#'     package = "PscanR"
 #' )
 #' full_pfm1 <- readRDS(full_pfm1_path)
 #' ps_hits_strand_bg(full_pfm1)
@@ -468,8 +468,8 @@ setGeneric("ps_hits_pos", function(x, ...) standardGeneric("ps_hits_pos"))
 #'
 #' @examples
 #' full_pfm1_path <- system.file("extdata",
-#'   "full_pfm1.rds",
-#'   package = "PscanR"
+#'     "full_pfm1.rds",
+#'     package = "PscanR"
 #' )
 #' full_pfm1 <- readRDS(full_pfm1_path)
 #' ps_hits_pos_bg(full_pfm1)
@@ -561,8 +561,8 @@ setGeneric("ps_hits_oligo", function(x, ...) standardGeneric("ps_hits_oligo"))
 #'
 #' @examples
 #' full_pfm1_path <- system.file("extdata",
-#'   "full_pfm1.rds",
-#'   package = "PscanR"
+#'     "full_pfm1.rds",
+#'     package = "PscanR"
 #' )
 #' full_pfm1 <- readRDS(full_pfm1_path)
 #' ps_hits_oligo_bg(full_pfm1)
@@ -659,8 +659,8 @@ setGeneric("ps_seq_names", function(x, ...) standardGeneric("ps_seq_names"))
 #'
 #' @examples
 #' full_pfm1_path <- system.file("extdata",
-#'   "full_pfm1.rds",
-#'   package = "PscanR"
+#'     "full_pfm1.rds",
+#'     package = "PscanR"
 #' )
 #' full_pfm1 <- readRDS(full_pfm1_path)
 #' ps_bg_seq_names(full_pfm1)

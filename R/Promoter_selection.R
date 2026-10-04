@@ -269,23 +269,12 @@ ps_load_select_transcripts <- function(
 #'     mode = "representative"
 #' )
 ps_select_promoters <- function(genes, promoter_sequences = NULL,
-                                promoter_ids = NULL, annotation = NULL,
-                                org_db = NULL, keytype = "SYMBOL",
-                                gene_col = keytype,
-                                transcript_col = "REFSEQ",
-                                select_transcripts = NULL,
-                                scheme = "auto",
-                                mode = c(
-                                    "select", "representative",
-                                    "all_transcripts"
-                                ),
-                                fallback = TRUE,
-                                return = c("mapping", "sequences", "both"),
-                                sequence_names = c(
-                                    "gene_transcript",
-                                    "transcript"
-                                ),
-                                quiet = FALSE) {
+    promoter_ids = NULL, annotation = NULL, org_db = NULL,
+    keytype = "SYMBOL", gene_col = keytype, transcript_col = "REFSEQ",
+    select_transcripts = NULL, scheme = "auto",
+    mode = c("select", "representative", "all_transcripts"),
+    fallback = TRUE, return = c("mapping", "sequences", "both"),
+    sequence_names = c("gene_transcript", "transcript"), quiet = FALSE) {
     mode <- match.arg(mode)
     return <- match.arg(return)
     sequence_names <- match.arg(sequence_names)
@@ -296,48 +285,25 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     genes <- input$genes
     promoter_ids <- input$promoter_ids
     annotation <- .ps_gene_transcript_annotation(
-        genes = genes,
-        annotation = annotation,
-        org_db = org_db,
-        keytype = keytype,
-        gene_col = gene_col,
-        transcript_col = transcript_col
+        genes = genes, annotation = annotation, org_db = org_db,
+        keytype = keytype, gene_col = gene_col, transcript_col = transcript_col
     )
-
     scheme <- .ps_resolve_scheme(
-        scheme = scheme,
-        promoter_ids = promoter_ids,
-        annotation_ids = annotation$transcript_id,
-        quiet = quiet
+        scheme = scheme, promoter_ids = promoter_ids,
+        annotation_ids = annotation$transcript_id, quiet = quiet
     )
     annotation$transcript_base <- .ps_transcript_base(
         annotation$transcript_id, scheme
     )
 
     if (identical(mode, "select")) {
-        if (!identical(scheme, "refseq")) {
-            stop(
-                "mode = \"select\" uses MANE Select and RefSeq Select ",
-                "metadata, which exists only for the RefSeq scheme, but the ",
-                "identifiers were resolved as \"", scheme, "\". Use ",
-                "mode = \"representative\", or supply a species-specific ",
-                "'select_transcripts' table.",
-                call. = FALSE
-            )
-        }
-        if (is.null(select_transcripts)) {
-            select_transcripts <- ps_load_select_transcripts()
-        }
+        select_transcripts <- .ps_select_metadata(scheme, select_transcripts)
     }
 
     mapping <- .ps_rank_gene_promoters(
-        genes = genes,
-        annotation = annotation,
-        promoter_ids = promoter_ids,
-        select_transcripts = select_transcripts,
-        scheme = scheme,
-        mode = mode,
-        fallback = fallback
+        genes = genes, annotation = annotation, promoter_ids = promoter_ids,
+        select_transcripts = select_transcripts, scheme = scheme,
+        mode = mode, fallback = fallback
     )
     attr(mapping, "ps_unmapped_genes") <- setdiff(genes, mapping$gene)
     attr(mapping, "ps_scheme") <- scheme
@@ -345,6 +311,25 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     .ps_format_promoter_selection(
         mapping, promoter_sequences, return, sequence_names
     )
+}
+
+# mode = "select" needs MANE/RefSeq Select metadata, which exists only for
+# the RefSeq scheme; it is downloaded when the caller supplied none.
+.ps_select_metadata <- function(scheme, select_transcripts) {
+    if (!identical(scheme, "refseq")) {
+        stop(
+            "mode = \"select\" uses MANE Select and RefSeq Select ",
+            "metadata, which exists only for the RefSeq scheme, but the ",
+            "identifiers were resolved as \"", scheme, "\". Use ",
+            "mode = \"representative\", or supply a species-specific ",
+            "'select_transcripts' table.",
+            call. = FALSE
+        )
+    }
+    if (is.null(select_transcripts)) {
+        select_transcripts <- ps_load_select_transcripts()
+    }
+    select_transcripts
 }
 
 .ps_norm_gene_vector <- function(genes) {
@@ -607,6 +592,26 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
 
 .ps_finalize_promoter_mapping <- function(annotation, genes, scheme, mode) {
     excluded_protein <- attr(annotation, "ps_excluded_protein")
+    annotation <- .ps_order_candidates(annotation, genes, scheme)
+
+    if (mode != "all_transcripts") {
+        annotation <- annotation[!duplicated(annotation$gene), ]
+    }
+    row.names(annotation) <- NULL
+    annotation$scheme <- scheme
+    annotation$suffix_role <- .ps_scheme_suffix_role(scheme)
+    out <- annotation[, c(
+        "gene", "transcript_id", "transcript_base", "promoter_id",
+        "scheme", "suffix_role", "transcript_class", "selection_source",
+        "selection_priority", "n_candidates", "decided_by", "input_order"
+    )]
+    attr(out, "ps_excluded_protein") <- excluded_protein
+    out
+}
+
+# Order the candidate promoters of every gene and record how many there were
+# and whether the choice was made by rule or by tie-break.
+.ps_order_candidates <- function(annotation, genes, scheme) {
     annotation$input_order <- match(annotation$gene, genes)
 
     # A total order, so nothing is left to the order in which candidates
@@ -641,20 +646,7 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     annotation$decided_by <- ifelse(
         best_shared[annotation$gene], "tie_break", "rule"
     )
-
-    if (mode != "all_transcripts") {
-        annotation <- annotation[!duplicated(annotation$gene), ]
-    }
-    row.names(annotation) <- NULL
-    annotation$scheme <- scheme
-    annotation$suffix_role <- .ps_scheme_suffix_role(scheme)
-    out <- annotation[, c(
-        "gene", "transcript_id", "transcript_base", "promoter_id",
-        "scheme", "suffix_role", "transcript_class", "selection_source",
-        "selection_priority", "n_candidates", "decided_by", "input_order"
-    )]
-    attr(out, "ps_excluded_protein") <- excluded_protein
-    out
+    annotation
 }
 
 # Every promoter identifier is retained. Collapsing candidates here, before the

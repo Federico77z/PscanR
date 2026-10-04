@@ -6,10 +6,10 @@
     nabg2 <- vapply(pfms, ps_bg_std_dev, FUN.VALUE = numeric(length = 1L))
     nabg <- is.na(nabg) | is.na(nabg2)
     if (any(nabg)) {
-    warning(sprintf(
-        "\nNo Pscan background for %s %s", name(pfms)[nabg],
-        ID(pfms)[nabg]
-    ))
+        warning(sprintf(
+            "\nNo Pscan background for %s %s", name(pfms)[nabg],
+            ID(pfms)[nabg]
+        ))
     }
 }
 
@@ -35,36 +35,37 @@
     # real input. `Inf`, which silences the check, is deliberately allowed.
     if (!is.numeric(threshold) || length(threshold) != 1L ||
         is.na(threshold) || threshold <= 0) {
-    threshold <- 0.1
+        threshold <- 0.1
     }
     # Per-motif and NA for any motif absent from the background table, so the
     # median of the usable values stands in for the run.
     sizes <- bg_sizes[!is.na(bg_sizes) & bg_sizes > 0]
     if (length(n) != 1L || is.na(n) || n <= 0 || length(sizes) == 0L) {
-    return(invisible(NULL))
+        return(invisible(NULL))
     }
 
     N <- stats::median(sizes)
     fraction <- n / N
     if (!is.finite(fraction) || fraction <= threshold) {
-    return(invisible(NULL))
+        return(invisible(NULL))
     }
 
     opening <- if (identical(when, "results")) {
-    "These results come from a foreground of"
+        "These results come from a foreground of"
     } else {
-    "Scanning a foreground of"
+        "Scanning a foreground of"
     }
     warning(
-    opening, " ", n, " sequences against a background of ", N,
-    " promoters (f = ", format(round(fraction, 3), nsmall = 2), "). ",
-    "When the foreground size exceeds ", round(100 * threshold), "% of the ",
-    "background (here ", max(1, round(threshold * N)), " sequences), the ",
-    "z-score statistic Pscan relies on becomes increasingly less reliable. ",
-    "See ?pscan, section \"Foreground size\", for why. ",
-    "Set options(PscanR.foreground.max_fraction = ) to change this ",
-    "threshold, or Inf to silence it.",
-    call. = FALSE
+        opening, " ", n, " sequences against a background of ", N,
+        " promoters (f = ", format(round(fraction, 3), nsmall = 2), "). ",
+        "When the foreground size exceeds ", round(100 * threshold),
+        "% of the background (here ", max(1, round(threshold * N)),
+        " sequences), the z-score statistic Pscan relies on becomes ",
+        "increasingly less reliable. ",
+        "See ?pscan, section \"Foreground size\", for why. ",
+        "Set options(PscanR.foreground.max_fraction = ) to change this ",
+        "threshold, or Inf to silence it.",
+        call. = FALSE
     )
     invisible(NULL)
 }
@@ -78,61 +79,61 @@
 # to ignore.
 .ps_sizes <- function(pfms, accessor) {
     vapply(pfms, function(m) {
-    size <- accessor(m)
-    if (!is.numeric(size) || length(size) != 1L || !is.finite(size) ||
-        size < 0 || size > .Machine$integer.max) {
-        return(NA_integer_)
-    }
-    as.integer(size)
+        size <- accessor(m)
+        if (!is.numeric(size) || length(size) != 1L || !is.finite(size) ||
+            size < 0 || size > .Machine$integer.max) {
+            return(NA_integer_)
+        }
+        as.integer(size)
     }, integer(1L))
 }
 
 .ps_check_short_matrix_file <- function(path) {
     if (file.access(path, mode = 4) != 0) {
-    stop(sprintf("Cannot access file path: %s", path))
+        stop(sprintf("Cannot access file path: %s", path))
     }
     first_line <- readLines(path, n = 1)
     if (first_line != "[SHORT TFBS MATRIX]") {
-    stop(sprintf("%s does not look like a Pscan .short_matrix file", path))
+        stop(sprintf("%s does not look like a Pscan .short_matrix file", path))
     }
 }
 
 .ps_check_bg_table <- function(x) {
     req_cols <- c("BG_SIZE", "BG_MEAN", "BG_STDEV")
     if (!all(req_cols %in% colnames(x))) {
-    stop(
-        "x does not contain required columns",
-        "\"BG_SIZE\", \"BG_MEAN\", \"BG_STDEV\""
-    )
+        stop(
+            "x does not contain required columns",
+            "\"BG_SIZE\", \"BG_MEAN\", \"BG_STDEV\""
+        )
     }
     if (!all(
-    is.numeric(x$BG_SIZE), is.numeric(x$BG_MEAN),
-    is.numeric(x$BG_STDEV)
+        is.numeric(x$BG_SIZE), is.numeric(x$BG_MEAN),
+        is.numeric(x$BG_STDEV)
     )) {
-    stop("Required columns of x must be of numeric type")
+        stop("Required columns of x must be of numeric type")
     }
 }
 
 .ps_checks <- function(x, pfms, type) {
 
     if (type == 4 && !is(pfms, "PSMatrixList")) {
-    stop("pfms is not an object of PSMatrixList class")
+        stop("pfms is not an object of PSMatrixList class")
     }
 
     if (type == 4) {
-    .ps_warn_missing_bg(pfms)
+        .ps_warn_missing_bg(pfms)
     }
 
     if (!is(pfms, "PFMatrixList") && !is(pfms, "PSMatrixList")) {
-    stop("pfms is not an object of PFMatrixList or PSMatrixList class")
+        stop("pfms is not an object of PFMatrixList or PSMatrixList class")
     }
 
     if (is.character(x) && type == 2) {
-    .ps_check_short_matrix_file(x)
+        .ps_check_short_matrix_file(x)
     } else if (!is(x, "DNAStringSet") && (type == 1 || type == 4)) {
-    stop("x is not an object of DNAStringSet class")
+        stop("x is not an object of DNAStringSet class")
     } else if (is.data.frame(x) && type == 3) {
-    .ps_check_bg_table(x)
+        .ps_check_bg_table(x)
     }
 }
 
@@ -140,23 +141,23 @@
 .ps_checks2 <- function(pfms, file = NULL, ...) {
 
     if (!is(pfms, "PSMatrixList")) {
-    stop("pfms is not an object of PSMatrixList class")
+        stop("pfms is not an object of PSMatrixList class")
     }
 
     if (!is.null(file) && !is.character(file)) {
-    stop("file must be a character string indicating the file path")
+        stop("file must be a character string indicating the file path")
 
-    file_dir <- dirname(file)
+        file_dir <- dirname(file)
 
-    if (!file.exists(file)) {
-        if (file.access(file_dir, mode = 2) != 0) {
-        stop(sprintf("Can't write to directory: %s", file_dir))
+        if (!file.exists(file)) {
+            if (file.access(file_dir, mode = 2) != 0) {
+                stop(sprintf("Can't write to directory: %s", file_dir))
+            }
+        } else {
+            if (file.access(file, mode = 2) != 0) {
+                stop(sprintf("Can't write to existing file: %s", file))
+            }
         }
-    } else {
-        if (file.access(file, mode = 2) != 0) {
-        stop(sprintf("Can't write to existing file: %s", file))
-        }
-    }
     }
 }
 
@@ -206,7 +207,7 @@
 #' @keywords internal
 .ps_has_bg_scan <- function(pfms) {
     length(pfms) > 0 && all(vapply(
-    pfms, function(m) length(ps_hits_score_bg(m)) > 0, logical(1)
+        pfms, function(m) length(ps_hits_score_bg(m)) > 0, logical(1)
     ))
 }
 
@@ -232,7 +233,7 @@
     # only those carrying a scan -- an ordinary PFMatrixList has none.
     compare <- ids %in% row.names(x) & stored > 0L
     if (!any(compare)) {
-    return(invisible(NULL))
+        return(invisible(NULL))
     }
 
     ids <- ids[compare]
@@ -241,18 +242,19 @@
 
     bad <- which(!is.na(tabled) & tabled != stored)
     if (length(bad) == 0L) {
-    return(invisible(NULL))
+        return(invisible(NULL))
     }
 
     first <- bad[1L]
     stop(
-    "Background table disagrees with the stored background scan for ",
-    length(bad), " of ", length(ids), " matrices (e.g. ", ids[first],
-    ": the table says ", tabled[first], " promoters, the stored scan holds ",
-    stored[first], "). The two are equal for a background built by ",
-    "ps_build_bg(), so this table was computed on a different set of ",
-    "promoters from the one these matrices were scanned against.",
-    call. = FALSE
+        "Background table disagrees with the stored background scan for ",
+        length(bad), " of ", length(ids), " matrices (e.g. ", ids[first],
+        ": the table says ", tabled[first],
+        " promoters, the stored scan holds ",
+        stored[first], "). The two are equal for a background built by ",
+        "ps_build_bg(), so this table was computed on a different set of ",
+        "promoters from the one these matrices were scanned against.",
+        call. = FALSE
     )
 }
 
@@ -270,8 +272,8 @@
     unique_x_char <- as.character(unique_x)
 
     all_sequences_ID <- setNames(
-    unique_names[match(x_char, unique_x_char)],
-    original_names
+        unique_names[match(x_char, unique_x_char)],
+        original_names
     )
 
     x <- .clean_sequence(x)
@@ -624,12 +626,14 @@
 
 .check_seq_duplicated <- function(x) {
     for (i in seq_along(x)) {
-    if (names(x[i]) != x[i]) {
-        warning(sprintf(
-        "%s will be evaluated instead of %s since they have the same %s",
-        x[i], names(x[i]), "promoter region"
-        ))
-    }
+        if (names(x[i]) != x[i]) {
+            warning(sprintf(
+                paste(
+                    "%s will be evaluated instead of %s since they have the",
+                    "same %s"
+                ),
+                x[i], names(x[i]), "promoter region"
+            ))
+        }
     }
 }
-

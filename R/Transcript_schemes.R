@@ -266,53 +266,69 @@
 
     resolved <- detected$scheme
     if (identical(resolved, "generic")) {
-        warning(
-            "Could not identify the transcript identifier scheme",
-            if (length(detected$ambiguous) > 0L) {
-                paste0(
-                    " (partial matches: ",
-                    paste(detected$ambiguous, collapse = ", "), ")"
-                )
-            } else {
-                ""
-            },
-            ". Falling back to scheme \"generic\": identifiers are matched ",
-            "whole, nothing is stripped, and every transcript ranks equally. ",
-            "Pass 'scheme' explicitly if this is wrong.",
-            call. = FALSE
-        )
+        .ps_warn_generic_scheme(detected)
     } else if (!quiet) {
-        candidates <- reference[!is.na(reference) &
-            grepl(.ps_scheme_pattern(resolved), reference)]
-        example <- if (length(candidates) > 0L) {
-            candidates[[1L]]
-        } else {
-            NA_character_
-        }
-        role <- .ps_scheme_suffix_role(resolved)
-        suffix_note <- switch(role,
-            version = paste0(
-                "the trailing .N is a VERSION and is normalised away ",
-                "for matching"
-            ),
-            variant = paste0(
-                "the trailing .N is a SPLICE VARIANT and is preserved, ",
-                "not stripped"
-            ),
-            "these identifiers carry no version or variant suffix"
-        )
-        template <- paste0(
-            "Detected transcript scheme: \"%s\" (%d/%d identifiers ",
-            "matched)\n  %s -> transcript %s\n  %s"
-        )
-        message(sprintf(
-            template, resolved, detected$matched, detected$total,
-            example, .ps_transcript_base(example, resolved), suffix_note
-        ))
+        .ps_report_detected_scheme(detected, reference)
     }
+    .ps_check_annotation_scheme(promoter_ids, annotation_ids, resolved)
+    resolved
+}
 
-    # The user's identifiers must speak the same grammar as the promoter set,
-    # otherwise nothing will join and the reason would be invisible.
+.ps_warn_generic_scheme <- function(detected) {
+    warning(
+        "Could not identify the transcript identifier scheme",
+        if (length(detected$ambiguous) > 0L) {
+            paste0(
+                " (partial matches: ",
+                paste(detected$ambiguous, collapse = ", "), ")"
+            )
+        } else {
+            ""
+        },
+        ". Falling back to scheme \"generic\": identifiers are matched ",
+        "whole, nothing is stripped, and every transcript ranks equally. ",
+        "Pass 'scheme' explicitly if this is wrong.",
+        call. = FALSE
+    )
+}
+
+# Report the detected scheme with an example identifier and what happens to
+# its suffix.
+.ps_report_detected_scheme <- function(detected, reference) {
+    resolved <- detected$scheme
+    candidates <- reference[!is.na(reference) &
+        grepl(.ps_scheme_pattern(resolved), reference)]
+    example <- if (length(candidates) > 0L) {
+        candidates[[1L]]
+    } else {
+        NA_character_
+    }
+    role <- .ps_scheme_suffix_role(resolved)
+    suffix_note <- switch(role,
+        version = paste0(
+            "the trailing .N is a VERSION and is normalised away ",
+            "for matching"
+        ),
+        variant = paste0(
+            "the trailing .N is a SPLICE VARIANT and is preserved, ",
+            "not stripped"
+        ),
+        "these identifiers carry no version or variant suffix"
+    )
+    template <- paste0(
+        "Detected transcript scheme: \"%s\" (%d/%d identifiers ",
+        "matched)\n  %s -> transcript %s\n  %s"
+    )
+    message(sprintf(
+        template, resolved, detected$matched, detected$total,
+        example, .ps_transcript_base(example, resolved), suffix_note
+    ))
+}
+
+# The user's identifiers must speak the same grammar as the promoter set,
+# otherwise nothing will join and the reason would be invisible.
+.ps_check_annotation_scheme <- function(promoter_ids, annotation_ids,
+    resolved) {
     if (length(promoter_ids) > 0L && length(annotation_ids) > 0L &&
         !identical(resolved, "generic")) {
         annotation_detected <- .ps_detect_scheme(annotation_ids)
@@ -326,5 +342,5 @@
             )
         }
     }
-    resolved
+    invisible(TRUE)
 }

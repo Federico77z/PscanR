@@ -86,15 +86,15 @@
 #'
 #' # Generate the background-scored motif matrices
 #' bg_matrices <- ps_build_bg(prom_seq, J2020,
-#'   BPPARAM = BiocParallel::SerialParam()
+#'     BPPARAM = BiocParallel::SerialParam()
 #' )
 #' bg_matrices
 #' bg_matrices[[1]]
 #'
 #' # Example for full-background generation
 #' full_bg_matrices <- ps_build_bg(prom_seq, J2020,
-#'   BPPARAM = BiocParallel::SerialParam(),
-#'   fullBG = TRUE
+#'     BPPARAM = BiocParallel::SerialParam(),
+#'     fullBG = TRUE
 #' )
 #'
 #' full_bg_matrices[[1]]
@@ -102,7 +102,7 @@
 #' @export
 ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
     BPOPTIONS = bpoptions(),
-                        fullBG = FALSE) {
+    fullBG = FALSE) {
     .ps_checks(x, pfms, type = 1)
 
     x_unique <- BiocGenerics::unique(x)
@@ -114,14 +114,14 @@ ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
     encoded <- .ps_encode_seqs(as.character(x_unique))
 
     pfms <- bplapply(
-    pfms,
-    FUN = ps_scan,
-    x_unique,
-    BG = TRUE,
-    fullBG = fullBG,
-    encoded = encoded,
-    BPPARAM = BPPARAM,
-    BPOPTIONS = BPOPTIONS
+        pfms,
+        FUN = ps_scan,
+        x_unique,
+        BG = TRUE,
+        fullBG = fullBG,
+        encoded = encoded,
+        BPPARAM = BPPARAM,
+        BPOPTIONS = BPOPTIONS
     )
 
     # The output's legend must describe `x`, so an incoming legend on `pfms`
@@ -132,7 +132,7 @@ ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
     pfms <- do.call(PSMatrixList, pfms)
 
     if (fullBG == TRUE) {
-    pfms <- .mapping_unique_names(x, pfms)
+        pfms <- .mapping_unique_names(x, pfms)
     }
 
     return(pfms)
@@ -194,7 +194,7 @@ ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 #' @examples
 #' # Load a background information file
 #' file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-#'   package = "PscanR"
+#'     package = "PscanR"
 #' )
 #'
 #' # Load the example dataset for JASPAR2020 matrices collection for
@@ -272,9 +272,9 @@ ps_retrieve_bg_from_file <- function(file, pfms) {
 #' @examples
 #' # create the `data.frame`
 #' background_data <- data.frame(
-#'   BG_SIZE = c(500, 450, 480),
-#'   BG_MEAN = c(0.3, 0.25, 0.35),
-#'   BG_STDEV = c(0.05, 0.07, 0.06)
+#'     BG_SIZE = c(500, 450, 480),
+#'     BG_MEAN = c(0.3, 0.25, 0.35),
+#'     BG_STDEV = c(0.05, 0.07, 0.06)
 #' )
 #'
 #' # Retrieve motif matrices for vertebrates from JASPAR2020
@@ -299,10 +299,10 @@ ps_build_bg_from_table <- function(x, pfms) {
     pfms <- lapply(pfms, FUN = as, "PSMatrix")
 
     if (length(pfms) != nrow(x)) {
-    warning(
-        "Mismatch between number of PFMs in PFMatrixList/PSMatrixList object",
-        "and file table"
-    )
+        warning(
+            "Mismatch between number of PFMs in PFMatrixList/PSMatrixList ",
+            "object and file table"
+        )
     }
 
     .ps_check_bg_scan_size(x, pfms)
@@ -360,9 +360,9 @@ ps_build_bg_from_table <- function(x, pfms) {
 #'
 #' # create the `data.frame`
 #' background_data <- data.frame(
-#'   BG_SIZE = c(500, 450, 480),
-#'   BG_MEAN = c(0.3, 0.25, 0.35),
-#'   BG_STDEV = c(0.05, 0.07, 0.06)
+#'     BG_SIZE = c(500, 450, 480),
+#'     BG_MEAN = c(0.3, 0.25, 0.35),
+#'     BG_STDEV = c(0.05, 0.07, 0.06)
 #' )
 #'
 #' rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")
@@ -428,18 +428,18 @@ ps_get_bg_table <- function(pfms) {
 #' file_path <- tempfile(fileext = ".txt")
 #'
 #' PSM1 <- PSMatrix(
-#'   pfm = J2020[[1]],
-#'   ps_bg_avg = 0.25,
-#'   ps_fg_avg = 0.5,
-#'   ps_bg_std_dev = 0.05,
-#'   ps_bg_size = 1000L # number of background sequences
+#'     pfm = J2020[[1]],
+#'     ps_bg_avg = 0.25,
+#'     ps_fg_avg = 0.5,
+#'     ps_bg_std_dev = 0.05,
+#'     ps_bg_size = 1000L # number of background sequences
 #' )
 #' PSM2 <- PSMatrix(
-#'   pfm = J2020[[2]],
-#'   ps_bg_avg = 0.25,
-#'   ps_fg_avg = 0.5,
-#'   ps_bg_std_dev = 0.05,
-#'   ps_bg_size = 1000L # number of background sequences
+#'     pfm = J2020[[2]],
+#'     ps_bg_avg = 0.25,
+#'     ps_fg_avg = 0.5,
+#'     ps_bg_std_dev = 0.05,
+#'     ps_bg_size = 1000L # number of background sequences
 #' )
 #'
 #' PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)
@@ -474,13 +474,13 @@ ps_write_bg_to_file <- function(pfms, file) {
     write("[SHORT TFBS MATRIX]", file = file, append = FALSE)
 
     write.table(
-    tab,
-    file = file,
-    quote = FALSE,
-    sep = "\t",
-    row.names = TRUE,
-    col.names = FALSE,
-    append = TRUE
+        tab,
+        file = file,
+        quote = FALSE,
+        sep = "\t",
+        row.names = TRUE,
+        col.names = FALSE,
+        append = TRUE
     )
 }
 
@@ -488,45 +488,46 @@ ps_write_bg_to_file <- function(pfms, file) {
 # with an actionable message instead of a bare "no package called" error.
 .ps_require_jaspar <- function(pkg) {
     if (!requireNamespace(pkg, quietly = TRUE)) {
-    stop(
-        "Package '", pkg, "' is required for JASPAR_matrix = \"", pkg,
-        "\". Install it with BiocManager::install(\"", pkg, "\").",
-        call. = FALSE
-    )
+        stop(
+            "Package '", pkg, "' is required for JASPAR_matrix = \"", pkg,
+            "\". Install it with BiocManager::install(\"", pkg, "\").",
+            call. = FALSE
+        )
     }
 }
 
 # Internal JASPAR loader used by ps_retrieve_bg.
 .ps_load_jaspar_collection <- function(JASPAR_matrix, org) {
     tax_map <- c(
-    "hs" = "vertebrates", "mm" = "vertebrates", "at" = "plants",
-    "sc" = "fungi", "dm" = "insects"
+        "hs" = "vertebrates", "mm" = "vertebrates", "at" = "plants",
+        "sc" = "fungi", "dm" = "insects"
     )
     opts <- list("collection" = "CORE", "tax_group" = tax_map[[org]])
     J_name <- toupper(JASPAR_matrix)
     switch(J_name,
-    "JASPAR2020" = {
-        .ps_require_jaspar("JASPAR2020")
-        TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts)
-    },
-    "JASPAR2022" = {
-        .ps_require_jaspar("JASPAR2022")
-        TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts)
-    },
-    "JASPAR2024" = {
-        .ps_require_jaspar("JASPAR2024")
-        JASPAR2024 <- JASPAR2024::JASPAR2024()
-        JASPARConnect <- RSQLite::dbConnect(
-        RSQLite::SQLite(),
-        JASPAR2024::db(JASPAR2024)
+        "JASPAR2020" = {
+            .ps_require_jaspar("JASPAR2020")
+            TFBSTools::getMatrixSet(JASPAR2020::JASPAR2020, opts)
+        },
+        "JASPAR2022" = {
+            .ps_require_jaspar("JASPAR2022")
+            TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts)
+        },
+        "JASPAR2024" = {
+            .ps_require_jaspar("JASPAR2024")
+            JASPAR2024 <- JASPAR2024::JASPAR2024()
+            JASPARConnect <- RSQLite::dbConnect(
+                RSQLite::SQLite(),
+                JASPAR2024::db(JASPAR2024)
+            )
+            on.exit(RSQLite::dbDisconnect(JASPARConnect), add = TRUE)
+            TFBSTools::getMatrixSet(JASPARConnect, opts)
+        },
+        stop(
+            "JASPAR_matrix must be one of JASPAR2020, JASPAR2022, or ",
+            "JASPAR2024",
+            call. = FALSE
         )
-        on.exit(RSQLite::dbDisconnect(JASPARConnect), add = TRUE)
-        TFBSTools::getMatrixSet(JASPARConnect, opts)
-    },
-    stop(
-        "JASPAR_matrix must be one of JASPAR2020, JASPAR2022, or JASPAR2024",
-        call. = FALSE
-    )
     )
 }
 
@@ -596,17 +597,17 @@ ps_write_bg_to_file <- function(pfms, file) {
 #' @examples
 #' # The online helper downloads its matching background and motif collection.
 #' if (interactive()) {
-#'   bg_matrices <- ps_retrieve_bg(
-#'     "Jaspar2020", "hs",
-#'     c(-200, 50), "hg38"
-#'   )
-#'   bg_matrices[[4]]
+#'     bg_matrices <- ps_retrieve_bg(
+#'         "Jaspar2020", "hs",
+#'         c(-200, 50), "hg38"
+#'     )
+#'     bg_matrices[[4]]
 #' }
 #'
 #' # The equivalent bundled files provide a fast, offline example.
 #' bg_path <- system.file(
-#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-#'   package = "PscanR"
+#'     "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'     package = "PscanR"
 #' )
 #' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 #' matrices <- readRDS(matrix_path)
@@ -629,10 +630,10 @@ ps_retrieve_bg <- function(JASPAR_matrix, org, prom_reg,
     ))
     matrix_ids <- TFBSTools::ID(J_matrix)
     if (!setequal(background_ids, matrix_ids)) {
-    stop(
-        "Background motif IDs do not match the installed JASPAR collection",
-        call. = FALSE
-    )
+        stop(
+            "Background motif IDs do not match the installed JASPAR collection",
+            call. = FALSE
+        )
     }
     ps_retrieve_bg_from_file(BG_path, J_matrix)
 }
@@ -680,19 +681,19 @@ ps_retrieve_bg <- function(JASPAR_matrix, org, prom_reg,
 #' @export
 ps_available_bg <- function(keyword = NULL, details = FALSE) {
     if (!is.logical(details) || length(details) != 1L || is.na(details)) {
-    stop("details must be TRUE or FALSE", call. = FALSE)
+        stop("details must be TRUE or FALSE", call. = FALSE)
     }
     catalog <- .ps_background_catalog()
     catalog <- catalog[catalog$status == "validated", , drop = FALSE]
     file_names <- basename(catalog$artifact)
     if (!is.null(keyword)) {
-    if (!is.character(keyword) || length(keyword) != 1L || is.na(keyword)) {
-        stop("keyword must be a single string", call. = FALSE)
-    }
-    keep <- grep(keyword, file_names)
-    if (!length(keep)) stop("Found 0 matches for: ", keyword, call. = FALSE)
-    catalog <- catalog[keep, , drop = FALSE]
-    file_names <- file_names[keep]
+        if (!is.character(keyword) || length(keyword) != 1L || is.na(keyword)) {
+            stop("keyword must be a single string", call. = FALSE)
+        }
+        keep <- grep(keyword, file_names)
+        if (!length(keep)) stop("Found 0 matches for: ", keyword, call. = FALSE)
+        catalog <- catalog[keep, , drop = FALSE]
+        file_names <- file_names[keep]
     }
     if (details) catalog else file_names
 }
