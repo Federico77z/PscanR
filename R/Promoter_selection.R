@@ -375,13 +375,9 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     if (length(missing) > 0L) {
         plural <- if (length(missing) > 1L) "s" else ""
         stop(
-            sprintf(
-                paste0(
-                    "UCSC track '%s' is missing the column%s %s. ",
-                    "The track schema has probably changed."
-                ),
-                track, plural, toString(sQuote(missing, FALSE))
-            ),
+            "UCSC track '", track, "' is missing the column", plural, " ",
+            toString(sQuote(missing, FALSE)),
+            ". The track schema has probably changed.",
             call. = FALSE
         )
     }

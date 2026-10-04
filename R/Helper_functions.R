@@ -630,13 +630,10 @@
 .check_seq_duplicated <- function(x) {
     for (i in seq_along(x)) {
         if (names(x[i]) != x[i]) {
-            warning(sprintf(
-                paste(
-                    "%s will be evaluated instead of %s since they have the",
-                    "same %s"
-                ),
-                x[i], names(x[i]), "promoter region"
-            ))
+            warning(
+                x[i], " will be evaluated instead of ", names(x[i]),
+                " since they have the same promoter region"
+            )
         }
     }
 }
