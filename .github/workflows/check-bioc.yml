@@ -74,19 +74,6 @@ jobs:
             check_dir = '/tmp/check')
         shell: Rscript {0}
 
-      # Temporary diagnostic: raw output behind the empty-bodied
-      # "dependencies in R code" NOTE seen only on this runner.
-      - name: Diagnostics (temporary)
-        if: always()
-        run: |
-          export R_LIBS="/tmp/check/PscanR.Rcheck:${R_LIBS:-}"
-          export R_ENVIRON_USER=/tmp/check.Renviron
-          R_DEFAULT_PACKAGES=NULL Rscript --no-init-file -e \
-            'options(warn = 1); tools:::.check_packages_used(package = "PscanR")' \
-            2>&1 | cat -A
-          echo "exit: ${PIPESTATUS[0]}"
-        shell: bash
-
       - name: BiocCheckGitClone
         run: |
           clone <- BiocCheck::BiocCheckGitClone('.')
