@@ -1,19 +1,19 @@
 ---
 title: "Motif enrichment analysis with PscanR: mouse retinal promoters"
 author:
-  - Federico Zambelli
+    - Federico Zambelli
 date: "`r Sys.Date()`"
 output:
-  BiocStyle::html_document:
-    toc: true
-    toc_depth: 2
+    BiocStyle::html_document:
+        toc: true
+        toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{3. Motif enrichment analysis with PscanR: mouse retinal promoters}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{3. PscanR: mouse retinal promoters}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
 editor_options:
-  markdown:
-    wrap: 80
+    markdown:
+        wrap: 80
 ---
 
 ```{r setup, include=FALSE}
@@ -55,9 +55,11 @@ with those of a reference promoter population. Enriched motifs suggest
 candidate regulators.
 
 PscanR provides access to precomputed backgrounds for five model organisms:
-human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR annotation),
+human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR
+annotation),
 and yeast (SGD annotation). Custom backgrounds can also be constructed for
-these or other organisms, as described in [Building a background for PscanR](PscanR_Custom_Background.html).
+these or other organisms, as described in [Building a background for
+PscanR](PscanR_Custom_Background.html).
 
 This vignette demonstrates motif enrichment analysis of mouse promoters and
 the functions available for examining the results.
@@ -342,19 +344,25 @@ per-sequence results for every motif.
 The `BPPARAM` argument configures execution through BiocParallel:
 
 - `SerialParam()` uses the current R process and simplifies package checks and
-  debugging.
+    debugging.
 
 - `SnowParam()` starts independent socket-based R workers; it is the portable
-  parallel choice on Windows and Unix-like systems, but has greater worker
-  startup and memory overhead.
+    parallel choice on Windows and Unix-like systems, but has greater worker
+    startup and memory overhead.
 
 - `MulticoreParam()` uses forked workers on supported Unix-like systems. It can
-  reduce data-transfer overhead, but suitability depends on the execution
-  environment. Forked execution is unavailable on Windows.
+    reduce data-transfer overhead, but suitability depends on the execution
+    environment. Forked execution is unavailable on Windows.
+
+```{r scan-time, include=FALSE}
+timings <- precomputed$timings
+scan_seconds <- round(
+    sum(timings$elapsed_seconds[timings$subset %in% c("d", "f")]), 0
+)
+```
 
 The following scan is not evaluated during vignette compilation. In the
-recorded run, scanning the two sets used here took
-`r round(sum(precomputed$timings$elapsed_seconds[precomputed$timings$subset %in% c("d", "f")]), 0)`
+recorded run, scanning the two sets used here took `r scan_seconds`
 seconds with `BPPARAM` set to
 `BiocParallel::MulticoreParam(workers = 8)`.
 
@@ -482,7 +490,9 @@ data.frame(
     promoters = precomputed$subset_qc$scan_eligible_sequences[
         match(c("d", "f"), precomputed$subset_qc$subset)
     ],
-    nominal = c(sum(enrichment$P.VALUE < 0.05), sum(enrichment_f$P.VALUE < 0.05)),
+    nominal = c(
+        sum(enrichment$P.VALUE < 0.05), sum(enrichment_f$P.VALUE < 0.05)
+    ),
     fdr = c(sum(enrichment$FDR < 0.05), sum(enrichment_f$FDR < 0.05))
 )
 ```
@@ -498,8 +508,9 @@ The GC-rich zinc-finger motifs remain enriched: the KLF15 z-score changes from
 `r sprintf("%.2f", enrichment_f["MA1513.1", "ZSCORE"])`.
 In contrast, the IRF3 z-score changes from
 `r sprintf("%.2f", enrichment["MA1418.1", "ZSCORE"])` to
-`r sprintf("%.2f", enrichment_f["MA1418.1", "ZSCORE"])`, and every IRF and STAT motif
-in the panel has a negative z-score in the striatal set.
+`r sprintf("%.2f", enrichment_f["MA1418.1", "ZSCORE"])`,
+and every IRF and STAT motif in the panel has a negative z-score in the
+striatal set.
 
 The interferon-related pattern differs between these two tissue-associated
 gene sets, consistent with the study's reported retinal inflammatory response.
@@ -578,9 +589,13 @@ knitr::kable(
 )
 ```
 
-Set `e` contains only
-`r precomputed$subset_qc$scan_eligible_sequences[precomputed$subset_qc$subset == "e"]`
-promoters. Its small size limits interpretation of the normal approximation
+```{r subset-e-size, include=FALSE}
+qc <- precomputed$subset_qc
+n_subset_e <- qc$scan_eligible_sequences[qc$subset == "e"]
+```
+
+Set `e` contains only `r n_subset_e` promoters. Its small size limits
+interpretation of the normal approximation
 used for enrichment. 
 
 # Inspecting the result object
@@ -793,7 +808,10 @@ knitr::kable(
         check.names = FALSE
     ),
     row.names = FALSE,
-    caption = "GC-rich motif scores before and after promoter selection by IRF3 score."
+    caption = paste(
+        "GC-rich motif scores before and after promoter selection",
+        "by IRF3 score."
+    )
 )
 ```
 

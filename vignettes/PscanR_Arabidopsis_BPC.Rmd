@@ -1,19 +1,19 @@
 ---
 title: "Motif enrichment analysis with PscanR: Arabidopsis BPC target promoters"
 author:
-  - Federico Zambelli
+    - Federico Zambelli
 date: "`r Sys.Date()`"
 output:
-  BiocStyle::html_document:
-    toc: true
-    toc_depth: 2
+    BiocStyle::html_document:
+        toc: true
+        toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{4. Motif enrichment analysis with PscanR: Arabidopsis BPC target promoters}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{4. PscanR: Arabidopsis BPC target promoters}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
 editor_options:
-  markdown:
-    wrap: 80
+    markdown:
+        wrap: 80
 ---
 
 ```{r setup, include=FALSE}
@@ -55,9 +55,11 @@ with those of a reference promoter population. Enriched motifs suggest
 candidate regulators.
 
 PscanR provides access to precomputed backgrounds for five model organisms:
-human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR annotation),
+human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR
+annotation),
 and yeast (SGD annotation). Custom backgrounds can also be constructed for
-these or other organisms, as described in [Building a background for PscanR](PscanR_Custom_Background.html).
+these or other organisms, as described in [Building a background for
+PscanR](PscanR_Custom_Background.html).
 
 This vignette demonstrates motif enrichment analysis of *A. thaliana*
 promoters and the functions available for examining the results.
@@ -193,8 +195,15 @@ evaluated during vignette compilation because it requires an external
 annotation file and the `txdbmaker`, `GenomicFeatures`, `GenomicRanges`,
 `GenomeInfoDb`, `Biostrings`, and `BSgenome.Athaliana.TAIR.TAIR9` packages.
 
+```{r tair9-url, include=FALSE}
+tair9_url <- paste0(
+    "https://www.arabidopsis.org/download/list?",
+    "dir=Genes/TAIR9_genome_release/tair9_gff3"
+)
+```
+
 `TAIR9_GFF3_genes.gff` can be downloaded from the
-[TAIR9 GFF3 release directory](https://www.arabidopsis.org/download/list?dir=Genes/TAIR9_genome_release/tair9_gff3).
+[TAIR9 GFF3 release directory](`r tair9_url`).
 Set `tair9_gff` to the local path of the downloaded file.
 
 ```{r select-real, eval=FALSE}
@@ -307,15 +316,15 @@ and returns a `PSMatrixList` containing the per-promoter results for each motif.
 The `BPPARAM` argument configures execution through BiocParallel:
 
 - `SerialParam()` uses the current R process and simplifies package checks and
-  debugging.
+    debugging.
 
 - `SnowParam()` uses independent R workers connected through sockets. It
-  supports Windows and Unix-like systems, with additional startup and
-  data-transfer overhead.
+    supports Windows and Unix-like systems, with additional startup and
+    data-transfer overhead.
 
 - `MulticoreParam()` uses forked workers on supported Unix-like systems. It can
-  reduce data-transfer overhead, but suitability depends on the execution
-  environment. Forked execution is unavailable on Windows.
+    reduce data-transfer overhead, but suitability depends on the execution
+    environment. Forked execution is unavailable on Windows.
 
 The following scan is not evaluated during vignette compilation to limit
 computation time. It can be run after the preceding data-preparation steps;

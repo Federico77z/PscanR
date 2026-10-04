@@ -577,7 +577,7 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
 }
 
 .ps_assign_promoter_priorities <- function(annotation, scheme, mode,
-                                           fallback) {
+    fallback) {
     excluded_protein <- attr(annotation, "ps_excluded_protein")
     scheme_priority <- .ps_transcript_priority(annotation$promoter_id, scheme)
     scheme_source <- .ps_scheme_source_label(

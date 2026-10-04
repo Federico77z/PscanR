@@ -1232,17 +1232,6 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
     .ps_pick_single_hit(scores$forward, scores$reverse, Seq, W)
 })
 
-# setMethod(".ps_assign_score", "PSMatrix", function(x, S){
-# sum(Matrix(x)[matrix(data = c(.PS_ALPHABET(x)[S], 1:length(x)), ncol = 2, nrow
-# = length(x))])
-# })
-
-# .ps_assign_score scored a single window one base at a time. It is no longer
-# used: .ps_scan_s now scores all windows at once via matrix indexing. Kept
-# (commented out) for reference.
-# .ps_assign_score <- function(S, x, AB, ncolx) {
-#   sum(x[ncolx + AB[S]]) # Assign score to oligo
-# }
 
 #' Validate a PSMatrix object
 #'
@@ -1485,18 +1474,8 @@ setReplaceMethod("ps_bg_size", "PSMatrix", function(x, value) {
 #' @export
 #' @importFrom TFBSTools PFMatrix
 setAs("PFMatrix", "PSMatrix", function(from) {
-    # .ps_norm_matrix(new(
-    #   "PSMatrix", from, ps_bg_avg = as.numeric(NA),
-    #   ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA),
-    #   ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01
-    # ))
-
     PSMatrix(from)
 })
-
-# PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), ps_fg_avg =
-# as.numeric(NA), ps_bg_std_dev = as.numeric(NA),
-#                     ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01, ...)
 
 #' Convert PFMatrixList to PSMatrixList
 #'

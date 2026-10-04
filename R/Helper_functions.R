@@ -168,12 +168,12 @@
     diff_length_seq <- x[seq_widths != ref_width]
 
     if (length(diff_length_seq) != 0) {
-    warning(paste(
-        length(diff_length_seq), "sequences found with length
-                    different from the reference. Removing the following
-                    sequences:",
-        paste(names(diff_length_seq), collapse = ", ")
-    ))
+        warning(
+            length(diff_length_seq), " sequences found with length ",
+            "different from the reference. Removing the following ",
+            "sequences: ", paste(names(diff_length_seq), collapse = ", "),
+            call. = FALSE
+        )
     }
     x <- x[seq_widths == ref_width]
 
@@ -182,11 +182,11 @@
     rem_names <- names(x[n_proportions > 0.5])
 
     if (length(rem_names) > 0) {
-    warning(paste(
-        "Found", length(rem_names), "sequences with more than 50% of N.
-                    Removing the following sequences:",
-        paste(rem_names, collapse = ", ")
-    ))
+        warning(
+            "Found ", length(rem_names), " sequences with more than 50% of ",
+            "N. Removing the following sequences: ",
+            paste(rem_names, collapse = ", "), call. = FALSE
+        )
     }
     x <- x[n_proportions <= 0.5]
     return(x)

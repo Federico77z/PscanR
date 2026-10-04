@@ -301,12 +301,12 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     rem_names <- names(x[is.na(x)])
 
     if (length(rem_names) > 0) {
-    warning(paste(
-        "Found", length(rem_names), "identifier(s) absent from the background",
-        "(excluded during background construction for high N content or a",
-        "length mismatch, or never part of it). Removing:",
-        paste(rem_names, collapse = ", ")
-    ))
+        warning(
+            "Found ", length(rem_names), " identifier(s) absent from the ",
+            "background (excluded during background construction for high N ",
+            "content or a length mismatch, or never part of it). Removing: ",
+            paste(rem_names, collapse = ", "), call. = FALSE
+        )
     }
 
     x <- x[!is.na(x)]
@@ -687,8 +687,6 @@ ps_z_table <- function(pfms) {
     .ps_checks2(pfms)
 
     tbl <- lapply(pfms, ps_hits_z)
-
-    # as.matrix(as.data.frame(tbl, col.names = name(pfms)))
 
     as.matrix(as.data.frame(tbl, col.names = ID(pfms)))
 }
@@ -1093,7 +1091,9 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
     if (!is.numeric(bins) || length(bins) != 1L || is.na(bins) || bins < 1) {
     stop("bins must be a single positive number", call. = FALSE)
     }
-    breaks <- seq(limits[[1L]], limits[[2L]], length.out = as.integer(bins) + 1L)
+    breaks <- seq(
+        limits[[1L]], limits[[2L]], length.out = as.integer(bins) + 1L
+    )
     width <- diff(breaks)[[1L]]
     counts <- tabulate(
     cut(values, breaks = breaks, include.lowest = TRUE, labels = FALSE),
@@ -1412,11 +1412,9 @@ ps_motif_class <- function(pfms) {
 #'
 #' # Or by the JASPAR family tag.
 #' ps_motif_barplot(results, n = 6, group = "family")
-ps_motif_barplot <- function(pfms, n = 20, statistic = c(
-                                 "ZSCORE", "P.VALUE", "FDR",
-                                 "FG_AVG", "BG_AVG"
-                             ),
-                             group = NULL, FDR = NULL) {
+ps_motif_barplot <- function(pfms, n = 20,
+    statistic = c("ZSCORE", "P.VALUE", "FDR", "FG_AVG", "BG_AVG"),
+    group = NULL, FDR = NULL) {
     statistic <- match.arg(statistic)
 
     parts <- .ps_barplot_inputs(pfms, group)

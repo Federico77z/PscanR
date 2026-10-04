@@ -242,7 +242,7 @@
 #'
 #' @noRd
 .ps_resolve_scheme <- function(scheme = "auto", promoter_ids = NULL,
-                               annotation_ids = NULL, quiet = FALSE) {
+    annotation_ids = NULL, quiet = FALSE) {
     scheme <- match.arg(
         scheme, c("auto", .PS_TRANSCRIPT_SCHEMES)
     )

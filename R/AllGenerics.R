@@ -742,10 +742,6 @@ setGeneric(
     function(x, ...) standardGeneric(".ps_norm_score")
 )
 
-# setGeneric(".ps_assign_score",
-#           function(x, ...) standardGeneric(".ps_assign_score"))
-
-
 setGeneric(
     ".ps_add_hits",
     function(x, ...) standardGeneric(".ps_add_hits")
