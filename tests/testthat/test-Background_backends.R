@@ -139,6 +139,73 @@ test_that("Zenodo archive is verified and a corrupt cache is evicted", {
     expect_equal(nrow(BiocFileCache::bfcquery(cache, url, exact = TRUE)), 0L)
 })
 
+test_that("each background maps to the Zenodo record of its release", {
+    entry <- background_entry()
+    entry$jaspar_release <- 2020L
+    expect_identical(
+        PscanR:::.ps_zenodo_file_url(entry),
+        paste0(
+            "https://zenodo.org/records/23183695/files/",
+            "J2020_hg38_200u_50d_UCSC.psbg2.txt"
+        )
+    )
+    entry$jaspar_release <- 2024L
+    expect_match(PscanR:::.ps_zenodo_file_url(entry), "records/23183720/")
+    entry$jaspar_release <- 2018L
+    expect_null(PscanR:::.ps_zenodo_file_url(entry))
+    entry$jaspar_release <- 2020L
+    entry$background_version <- 1L
+    expect_null(PscanR:::.ps_zenodo_file_url(entry))
+    expect_null(PscanR:::.ps_zenodo_file_url(background_entry()))
+})
+
+test_that("bundled catalog entries all have a per-release Zenodo file", {
+    catalog <- PscanR:::.ps_background_catalog()
+    catalog <- catalog[catalog$status == "validated", , drop = FALSE]
+    urls <- vapply(seq_len(nrow(catalog)), function(i) {
+        url <- PscanR:::.ps_zenodo_file_url(catalog[i, , drop = FALSE])
+        if (is.null(url)) NA_character_ else url
+    }, character(1))
+    expect_false(anyNA(urls))
+    expect_false(anyDuplicated(urls) > 0L)
+})
+
+test_that("Zenodo retrieval uses the per-release file before the archive", {
+    path <- bundled_background()
+    entry <- background_entry()
+    entry$jaspar_release <- 2020L
+    requested <- character()
+    local_mocked_bindings(
+        .ps_cached_download = function(URL, sha256, label) {
+            requested <<- c(requested, URL)
+            path
+        },
+        .ps_fetch_zenodo_archive = function() stop("archive not expected"),
+        .package = "PscanR"
+    )
+    expect_identical(PscanR:::.ps_fetch_zenodo_background(entry), path)
+    expect_match(requested, "records/23183695/files/J2020_hg38", all = TRUE)
+    expect_length(requested, 1L)
+})
+
+test_that("a failed per-release download falls back to the archive", {
+    path <- bundled_background()
+    entry <- background_entry()
+    entry$jaspar_release <- 2020L
+    local_mocked_bindings(
+        .ps_cached_download = function(URL, sha256, label) {
+            stop("Zenodo unavailable")
+        },
+        .ps_fetch_zenodo_archive = function() "archive.zip",
+        .ps_extract_background = function(archive, entry) {
+            stopifnot(identical(archive, "archive.zip"))
+            path
+        },
+        .package = "PscanR"
+    )
+    expect_identical(PscanR:::.ps_fetch_zenodo_background(entry), path)
+})
+
 test_that("ExperimentHub failure falls back to Zenodo with a warning", {
     path <- bundled_background()
     local_mocked_bindings(

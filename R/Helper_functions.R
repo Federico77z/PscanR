@@ -291,11 +291,13 @@
 }
 
 # Precomputed backgrounds are distributed by the PscanRBackgrounds
-# ExperimentHub package as one Hub record per background. The same files are
-# archived in a single ZIP in an immutable Zenodo record, which serves as the
-# fallback. The catalog bundled with PscanR lists every background with its
-# path inside that archive and its SHA-256 checksum, and every retrieved file
-# is checked against that checksum before it is used.
+# ExperimentHub package as one Hub record per background. The Hub records point
+# at files hosted on Zenodo, one record per JASPAR release, which also serve as
+# the fallback; the same files are archived together in a single ZIP in a
+# further Zenodo record, used if a per-release file cannot be retrieved. The
+# catalog bundled with PscanR lists every background with its path inside that
+# archive and its SHA-256 checksum, and every retrieved file is checked against
+# that checksum before it is used.
 .ps_background_sources <- c("experimenthub", "zenodo")
 .ps_experimenthub_package <- "PscanRBackgrounds"
 # The archive holds exactly one background version; its Zenodo file name,
@@ -307,6 +309,10 @@
 .ps_zenodo_record_id <- "21821764"
 .ps_zenodo_archive_sha256 <-
     "668b80839f2b81c7f48d11d0640a06fd58774c6cc9702ec73f4f54ebe9d0b625"
+# Zenodo records holding the individual version-2 files, by JASPAR release.
+.ps_zenodo_file_records <- c(
+    "2020" = "23183695", "2022" = "23183713", "2024" = "23183720"
+)
 
 .ps_match_background_source <- function(source) {
     if (!is.character(source) || !length(source) || anyNA(source)) {
@@ -484,6 +490,25 @@
     )
 }
 
+# URL of a background file in the Zenodo record of its JASPAR release, or
+# NULL when no such record exists for the entry.
+.ps_zenodo_file_url <- function(entry) {
+    if (is.null(entry$jaspar_release) || is.null(entry$background_version)) {
+        return(NULL)
+    }
+    release <- as.character(entry$jaspar_release[[1]])
+    record <- unname(.ps_zenodo_file_records[release])
+    version <- as.integer(entry$background_version[[1]])
+    if (!length(record) || is.na(record) ||
+        !identical(version, .ps_background_archive_version)) {
+        return(NULL)
+    }
+    paste0(
+        "https://zenodo.org/records/", record, "/files/",
+        basename(entry$artifact[[1]])
+    )
+}
+
 .ps_expected_archive_sha256 <- function() {
     getOption(
         "PscanR.background.archive_sha256", .ps_zenodo_archive_sha256
@@ -530,22 +555,20 @@
     path
 }
 
-.ps_fetch_zenodo_archive <- function() {
+# Download URL into the PscanR cache and verify it; a cached copy that fails
+# the checksum is evicted, so the next call downloads it again.
+.ps_cached_download <- function(URL, sha256, label) {
     cache <- BiocFileCache::BiocFileCache(
         cache = .ps_background_cache(), ask = FALSE
     )
-    URL <- .ps_zenodo_archive_url()
-    archive <- unname(BiocFileCache::bfcrpath(
+    path <- unname(BiocFileCache::bfcrpath(
         cache, rnames = URL, exact = TRUE
     ))
-    if (length(archive) != 1L || !file.exists(archive)) {
-        stop("Zenodo did not return the background archive", call. = FALSE)
+    if (length(path) != 1L || !file.exists(path)) {
+        stop("Zenodo did not return the ", label, call. = FALSE)
     }
     tryCatch(
-        .ps_verify_sha256(
-            archive, .ps_expected_archive_sha256(),
-            label = "Zenodo background archive"
-        ),
+        .ps_verify_sha256(path, sha256, label = paste("Zenodo", label)),
         error = function(error) {
             record <- BiocFileCache::bfcquery(
                 cache, URL, field = "rname", exact = TRUE
@@ -554,7 +577,14 @@
             stop(conditionMessage(error), call. = FALSE)
         }
     )
-    archive
+    path
+}
+
+.ps_fetch_zenodo_archive <- function() {
+    .ps_cached_download(
+        .ps_zenodo_archive_url(), .ps_expected_archive_sha256(),
+        label = "background archive"
+    )
 }
 
 # Extract one background from the archive into a temporary file and verify
@@ -593,7 +623,20 @@
     extracted
 }
 
+# The file is taken from the Zenodo record of its JASPAR release; the
+# archive is used only if that download fails.
 .ps_fetch_zenodo_background <- function(entry) {
+    URL <- .ps_zenodo_file_url(entry)
+    if (!is.null(URL)) {
+        path <- tryCatch(
+            .ps_cached_download(
+                URL, entry$artifact_sha256[[1]],
+                label = paste("background", basename(entry$artifact[[1]]))
+            ),
+            error = function(error) NULL
+        )
+        if (!is.null(path)) return(path)
+    }
     .ps_extract_background(.ps_fetch_zenodo_archive(), entry)
 }
 

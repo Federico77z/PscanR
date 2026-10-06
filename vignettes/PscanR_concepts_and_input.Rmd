@@ -123,10 +123,13 @@ ps_available_bg()
 
 ```
 
-```{r download-background, eval=FALSE}
+```{r download-background}
 J2020_PSBG <- ps_retrieve_bg(
-    "Jaspar2020", "hs", c(-200, 50), "hg38"
+    "Jaspar2020", "hs", c(-200, 50), "hg38",
+    source = "zenodo"
 )
+J2020_PSBG
+J2020_PSBG[[4]] # one matrix, with its background statistics
 ```
 
 The four arguments above identify the JASPAR release, species, promoter window
@@ -151,17 +154,20 @@ and 1000 upstream and 0 downstream, for the JASPAR 2020, 2022, and 2024
 releases. Only JASPAR CORE motifs are used.
 
 Each precomputed background is a separate ExperimentHub resource of the
-`PscanRBackgrounds` data package. `ps_retrieve_bg()`
-retrieves it through ExperimentHub and, if the Hub cannot be reached, falls
-back with a warning to the immutable Zenodo record
-<https://doi.org/10.5281/zenodo.21821764>, which archives the same files in a
-single ZIP. Downloads are cached, and every file is verified against the
-SHA-256 checksum recorded in the catalog. Set `source = "zenodo"` to use the
-Zenodo archive directly.
+`PscanRBackgrounds` data package, and the files are hosted on Zenodo in one
+record per JASPAR release. By default `ps_retrieve_bg()` retrieves a background
+through ExperimentHub and, if the Hub cannot be reached, falls back to Zenodo
+with a warning; `source = "zenodo"`, used above, downloads the file from
+Zenodo directly. If a single file cannot be retrieved, the immutable record
+<https://doi.org/10.5281/zenodo.21821764>, which archives all backgrounds in a
+single ZIP, is used instead. Downloads are cached, and every file is verified
+against the SHA-256 checksum recorded in the catalog.
 
-For an offline example, the package includes JASPAR 2020 CORE matrices and a
-matching human background table for 200 bp upstream and 50 bp downstream of the
-TSS. `ps_retrieve_bg_from_file()` combines them into a `PSMatrixList`:
+For offline use, the package also includes JASPAR 2020 CORE matrices and a
+historical human background table for 200 bp upstream and 50 bp downstream of
+the TSS, computed on an earlier snapshot of the hg38 annotation.
+`ps_retrieve_bg_from_file()` combines them into a `PSMatrixList`; the man page
+examples use it:
 
 ```{r offline-background}
 J2020 <- readRDS(system.file("extdata", "J2020.rds", package = "PscanR"))
@@ -169,8 +175,8 @@ bg_path <- system.file(
     "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
     package = "PscanR"
 )
-J2020_PSBG <- ps_retrieve_bg_from_file(bg_path, J2020)
-J2020_PSBG[[4]] # one matrix, with its background statistics
+J2020_offline <- ps_retrieve_bg_from_file(bg_path, J2020)
+length(J2020_offline)
 ```
 
 If no available background matches the required species, window, or motif
