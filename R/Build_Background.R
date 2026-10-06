@@ -514,7 +514,10 @@ ps_write_bg_to_file <- function(pfms, file) {
         },
         "JASPAR2022" = {
             .ps_require_jaspar("JASPAR2022")
-            TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts)
+            # Loading JASPAR2022 downloads its database, so the object is
+            # looked up at run time; R CMD check then does not load it.
+            J2022 <- getExportedValue("JASPAR2022", "JASPAR2022")
+            TFBSTools::getMatrixSet(J2022, opts)
         },
         "JASPAR2024" = {
             .ps_require_jaspar("JASPAR2024")
@@ -574,10 +577,13 @@ ps_write_bg_to_file <- function(pfms, file) {
 #'   Version 2 is currently the only version distributed.
 #' @param source Background retrieval backend. The default, `"experimenthub"`,
 #'   retrieves the background from the PscanRBackgrounds ExperimentHub
-#'   package and, if Hub retrieval is unavailable, falls back to the
-#'   immutable Zenodo record that archives the same files in a single ZIP
-#'   (\doi{10.5281/zenodo.21821764}). Use `"zenodo"` to use that archive
-#'   directly.
+#'   package and, if Hub retrieval is unavailable, falls back to Zenodo with
+#'   a warning. Use `"zenodo"` to download the file directly from the Zenodo
+#'   record of its JASPAR release (2020: \doi{10.5281/zenodo.23183695}; 2022:
+#'   \doi{10.5281/zenodo.23183713}; 2024: \doi{10.5281/zenodo.23183720}).
+#'   If that download fails, the file is taken from the immutable record that
+#'   archives all backgrounds in a single ZIP
+#'   (\doi{10.5281/zenodo.21821764}).
 #' @param destfile A string indicating the path where the downloaded background
 #'   .txt file should be saved. This tab-separated file contains the matrix
 #'   identifiers, background size, average, and standard deviation. See the
@@ -585,7 +591,7 @@ ps_write_bg_to_file <- function(pfms, file) {
 #'
 #' @details
 #' Each precomputed background is a separate ExperimentHub resource of the
-#' PscanRBackgrounds package, and the same files are archived on Zenodo. This
+#' PscanRBackgrounds package; the files are hosted on Zenodo. This
 #' function looks up the requested background in the catalog bundled with
 #' PscanR, retrieves it (downloads are cached), checks it against its recorded
 #' SHA-256 value, and combines it with the specified JASPAR matrix collection

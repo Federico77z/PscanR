@@ -7,8 +7,8 @@
   of all promoters of the organism, and reports z-scores, p-values and FDR.
 - Precomputed backgrounds for the JASPAR 2020, 2022 and 2024 CORE collections,
   seven genome assemblies and five promoter windows are retrieved from
-  ExperimentHub (package PscanRBackgrounds) with `ps_retrieve_bg()` and listed
-  with `ps_available_bg()`.
+  ExperimentHub (package PscanRBackgrounds), or directly from their Zenodo
+  records, with `ps_retrieve_bg()` and listed with `ps_available_bg()`.
 - Custom backgrounds can be built with `ps_build_bg()` and saved and reloaded
   with `ps_write_bg_to_file()` and `ps_retrieve_bg_from_file()`. Full
   backgrounds keep per-promoter hits, so that `pscan_full_bg()` can test a set

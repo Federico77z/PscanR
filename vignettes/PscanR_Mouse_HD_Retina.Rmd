@@ -134,17 +134,19 @@ knitr::kable(
 
 `ps_retrieve_bg()` retrieves the background statistics
 and associates them with the matching JASPAR matrices in a `PSMatrixList`.
+Here `source = "zenodo"` downloads the file from Zenodo directly; by default it
+is retrieved through ExperimentHub.
 
-```{r retrieve-background, eval=FALSE}
+```{r retrieve-background}
 background <- ps_retrieve_bg(
     JASPAR_matrix = "Jaspar2020",
     org = "mm",
     prom_reg = c(-950, 50),
     assembly = "mm10",
-    version = 2
+    version = 2,
+    source = "zenodo"
 )
 length(background)
-#> [1] 746
 ```
 
 This returns 746 matrices from the JASPAR 2020 CORE non-redundant vertebrate
