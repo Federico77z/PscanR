@@ -514,7 +514,10 @@ ps_write_bg_to_file <- function(pfms, file) {
         },
         "JASPAR2022" = {
             .ps_require_jaspar("JASPAR2022")
-            TFBSTools::getMatrixSet(JASPAR2022::JASPAR2022, opts)
+            # Loading JASPAR2022 downloads its database, so the object is
+            # looked up at run time; R CMD check then does not load it.
+            J2022 <- getExportedValue("JASPAR2022", "JASPAR2022")
+            TFBSTools::getMatrixSet(J2022, opts)
         },
         "JASPAR2024" = {
             .ps_require_jaspar("JASPAR2024")
