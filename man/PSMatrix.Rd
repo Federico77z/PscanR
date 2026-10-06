@@ -110,11 +110,11 @@ J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 J2020 <- readRDS(J2020_path)
 
 result <- PSMatrix(
-  pfm = J2020[[1]],
-  ps_bg_avg = 0.25,
-  ps_fg_avg = 0.5,
-  ps_bg_std_dev = 0.05,
-  ps_bg_size = 1000L # number of background sequences
+    pfm = J2020[[1]],
+    ps_bg_avg = 0.25,
+    ps_fg_avg = 0.5,
+    ps_bg_std_dev = 0.05,
+    ps_bg_size = 1000L # number of background sequences
 )
 print(result)
 }

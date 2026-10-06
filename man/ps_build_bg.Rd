@@ -98,15 +98,15 @@ J2020 <- readRDS(J2020_path)[1:2]
 
 # Generate the background-scored motif matrices
 bg_matrices <- ps_build_bg(prom_seq, J2020,
-  BPPARAM = BiocParallel::SerialParam()
+    BPPARAM = BiocParallel::SerialParam()
 )
 bg_matrices
 bg_matrices[[1]]
 
 # Example for full-background generation
 full_bg_matrices <- ps_build_bg(prom_seq, J2020,
-  BPPARAM = BiocParallel::SerialParam(),
-  fullBG = TRUE
+    BPPARAM = BiocParallel::SerialParam(),
+    fullBG = TRUE
 )
 
 full_bg_matrices[[1]]

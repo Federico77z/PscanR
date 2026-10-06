@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code refactoring, review and
+# documentation). All changes were reviewed and tested by the authors.
+
 #' Load MANE Select and RefSeq Select Transcript Metadata
 #'
 #' Downloads and caches the human MANE Select and RefSeq Select transcript
@@ -18,8 +21,9 @@
 #'   cached, inspected, and reused in multiple analyses.
 #'
 #' The automatic metadata download provided by this function is human-specific
-#'   and applies only to the RefSeq transcript scheme. It currently uses UCSC
-#'   hg38 MANE and RefSeq Select tracks. For every other reference, use
+#'   and applies only to the RefSeq transcript scheme. It currently uses the
+#'   UCSC hg38 MANE and RefSeq Select tracks, retrieved with
+#'   \code{UCSC.utils::fetch_UCSC_track_data()}. For every other reference, use
 #'   representative mode or supply species-specific selection metadata.
 #'
 #' @seealso \code{\link{ps_select_promoters}}
@@ -68,10 +72,6 @@ ps_load_select_transcripts <- function(
             return(cached)
         }
     }
-    if (!requireNamespace("jsonlite", quietly = TRUE)) {
-        stop("Package 'jsonlite' is required to download select transcripts.")
-    }
-
     select_transcripts <- rbind(
         .ps_mane_select_transcripts(),
         .ps_refseq_select_transcripts()
@@ -122,7 +122,7 @@ ps_load_select_transcripts <- function(
 }
 
 .ps_mane_select_transcripts <- function() {
-    mane <- .ps_ucsc_track_by_chrom(
+    mane <- .ps_ucsc_track(
         "mane", c("maneStat", "ncbiId", "geneName2")
     )
     mane <- mane[mane$maneStat == "MANE Select" &
@@ -138,7 +138,7 @@ ps_load_select_transcripts <- function(
 }
 
 .ps_refseq_select_transcripts <- function() {
-    refseq <- .ps_ucsc_track_by_chrom(
+    refseq <- .ps_ucsc_track(
         "ncbiRefSeqSelect", c("name", "name2")
     )
     refseq <- refseq[!is.na(refseq$name) & refseq$name != "", ]
@@ -272,23 +272,12 @@ ps_load_select_transcripts <- function(
 #'     mode = "representative"
 #' )
 ps_select_promoters <- function(genes, promoter_sequences = NULL,
-                                promoter_ids = NULL, annotation = NULL,
-                                org_db = NULL, keytype = "SYMBOL",
-                                gene_col = keytype,
-                                transcript_col = "REFSEQ",
-                                select_transcripts = NULL,
-                                scheme = "auto",
-                                mode = c(
-                                    "select", "representative",
-                                    "all_transcripts"
-                                ),
-                                fallback = TRUE,
-                                return = c("mapping", "sequences", "both"),
-                                sequence_names = c(
-                                    "gene_transcript",
-                                    "transcript"
-                                ),
-                                quiet = FALSE) {
+    promoter_ids = NULL, annotation = NULL, org_db = NULL,
+    keytype = "SYMBOL", gene_col = keytype, transcript_col = "REFSEQ",
+    select_transcripts = NULL, scheme = "auto",
+    mode = c("select", "representative", "all_transcripts"),
+    fallback = TRUE, return = c("mapping", "sequences", "both"),
+    sequence_names = c("gene_transcript", "transcript"), quiet = FALSE) {
     mode <- match.arg(mode)
     return <- match.arg(return)
     sequence_names <- match.arg(sequence_names)
@@ -299,48 +288,25 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     genes <- input$genes
     promoter_ids <- input$promoter_ids
     annotation <- .ps_gene_transcript_annotation(
-        genes = genes,
-        annotation = annotation,
-        org_db = org_db,
-        keytype = keytype,
-        gene_col = gene_col,
-        transcript_col = transcript_col
+        genes = genes, annotation = annotation, org_db = org_db,
+        keytype = keytype, gene_col = gene_col, transcript_col = transcript_col
     )
-
     scheme <- .ps_resolve_scheme(
-        scheme = scheme,
-        promoter_ids = promoter_ids,
-        annotation_ids = annotation$transcript_id,
-        quiet = quiet
+        scheme = scheme, promoter_ids = promoter_ids,
+        annotation_ids = annotation$transcript_id, quiet = quiet
     )
     annotation$transcript_base <- .ps_transcript_base(
         annotation$transcript_id, scheme
     )
 
     if (identical(mode, "select")) {
-        if (!identical(scheme, "refseq")) {
-            stop(
-                "mode = \"select\" uses MANE Select and RefSeq Select ",
-                "metadata, which exists only for the RefSeq scheme, but the ",
-                "identifiers were resolved as \"", scheme, "\". Use ",
-                "mode = \"representative\", or supply a species-specific ",
-                "'select_transcripts' table.",
-                call. = FALSE
-            )
-        }
-        if (is.null(select_transcripts)) {
-            select_transcripts <- ps_load_select_transcripts()
-        }
+        select_transcripts <- .ps_select_metadata(scheme, select_transcripts)
     }
 
     mapping <- .ps_rank_gene_promoters(
-        genes = genes,
-        annotation = annotation,
-        promoter_ids = promoter_ids,
-        select_transcripts = select_transcripts,
-        scheme = scheme,
-        mode = mode,
-        fallback = fallback
+        genes = genes, annotation = annotation, promoter_ids = promoter_ids,
+        select_transcripts = select_transcripts, scheme = scheme,
+        mode = mode, fallback = fallback
     )
     attr(mapping, "ps_unmapped_genes") <- setdiff(genes, mapping$gene)
     attr(mapping, "ps_scheme") <- scheme
@@ -350,81 +316,84 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     )
 }
 
+# mode = "select" needs MANE/RefSeq Select metadata, which exists only for
+# the RefSeq scheme; it is downloaded when the caller supplied none.
+.ps_select_metadata <- function(scheme, select_transcripts) {
+    if (!identical(scheme, "refseq")) {
+        stop(
+            "mode = \"select\" uses MANE Select and RefSeq Select ",
+            "metadata, which exists only for the RefSeq scheme, but the ",
+            "identifiers were resolved as \"", scheme, "\". Use ",
+            "mode = \"representative\", or supply a species-specific ",
+            "'select_transcripts' table.",
+            call. = FALSE
+        )
+    }
+    if (is.null(select_transcripts)) {
+        select_transcripts <- ps_load_select_transcripts()
+    }
+    select_transcripts
+}
+
 .ps_norm_gene_vector <- function(genes) {
     genes <- trimws(as.character(genes))
     genes <- genes[!is.na(genes) & genes != ""]
     unique(genes)
 }
 
-# Fetch a UCSC track chromosome by chromosome. `columns` names the fields the
-# caller reads: they are checked here, where the track and chromosome are still
-# known, rather than left to fail as a missing column much later. A request
-# that fails, or a response that carries no usable table, is an error for the
-# same reason -- silently dropping a chromosome would return a table that looks
-# complete and is not.
-.ps_ucsc_track_by_chrom <- function(track, columns = character()) {
-    canonical <- paste0("chr", c(seq_len(22), "X", "Y"))
-    rows <- lapply(canonical, function(chrom) {
-        url <- sprintf(
-            paste0(
-                "https://api.genome.ucsc.edu/getData/track?",
-                "genome=hg38;track=%s;chrom=%s"
-            ),
-            track,
-            chrom
-        )
-        response <- tryCatch(jsonlite::fromJSON(url), error = function(e) {
+# Download one UCSC track table through UCSC.utils. Kept as a separate
+# function so that tests can replace the network call.
+.ps_fetch_ucsc_table <- function(genome, track) {
+    UCSC.utils::fetch_UCSC_track_data(genome, track)
+}
+
+# Fetch a UCSC track and keep the canonical chromosomes. `columns` names the
+# fields the caller reads: they are checked here, where the track is still
+# known, rather than left to fail as a missing column much later. A failed
+# request or an empty table is an error, so a partial table is never returned
+# as if it were complete.
+.ps_ucsc_track <- function(track, columns = character(), genome = "hg38") {
+    tbl <- tryCatch(
+        .ps_fetch_ucsc_table(genome, track),
+        error = function(e) {
             stop(
                 sprintf(
                     "Could not retrieve UCSC track '%s' for %s: %s",
-                    track, chrom, conditionMessage(e)
-                ),
-                call. = FALSE
-            )
-        })
-        tbl <- response[[track]]
-        if (is.null(tbl) || !is.data.frame(tbl)) {
-            detail <- if (is.null(response$error)) {
-                ""
-            } else {
-                sprintf(": %s", response$error)
-            }
-            stop(
-                sprintf(
-                    "UCSC returned no '%s' table for %s%s.",
-                    track, chrom, detail
+                    track, genome, conditionMessage(e)
                 ),
                 call. = FALSE
             )
         }
-        if (nrow(tbl) == 0L) {
-            return(NULL)
-        }
-        tbl <- as.data.frame(tbl, stringsAsFactors = FALSE)
-        missing <- setdiff(columns, names(tbl))
-        if (length(missing) > 0L) {
-            named <- toString(sQuote(missing))
-            plural <- if (length(missing) > 1L) "s" else ""
-            fmt <- paste0(
-                "UCSC track '%s' is missing the column%s %s for %s. ",
-                "The track schema has probably changed."
-            )
-            stop(sprintf(fmt, track, plural, named, chrom), call. = FALSE)
-        }
-        tbl
-    })
-    rows <- rows[!vapply(rows, is.null, logical(1))]
-    if (length(rows) == 0L) {
+    )
+    if (!is.data.frame(tbl) || nrow(tbl) == 0L) {
         stop(
-            sprintf("UCSC track '%s' returned no rows for any chromosome.",
-                track),
+            sprintf("UCSC returned no '%s' table for %s.", track, genome),
             call. = FALSE
         )
     }
-    # Chromosomes whose payload omits an all-empty field come back with fewer
-    # columns, which rbind reports only as a count mismatch.
-    keep <- Reduce(intersect, lapply(rows, names))
-    do.call(rbind, lapply(rows, function(x) x[, keep, drop = FALSE]))
+    missing <- setdiff(c("chrom", columns), names(tbl))
+    if (length(missing) > 0L) {
+        plural <- if (length(missing) > 1L) "s" else ""
+        stop(
+            "UCSC track '", track, "' is missing the column", plural, " ",
+            toString(sQuote(missing, FALSE)),
+            ". The track schema has probably changed.",
+            call. = FALSE
+        )
+    }
+    canonical <- paste0("chr", c(seq_len(22), "X", "Y"))
+    tbl <- tbl[tbl$chrom %in% canonical, , drop = FALSE]
+    if (nrow(tbl) == 0L) {
+        stop(
+            sprintf(
+                "UCSC track '%s' has no rows on the canonical chromosomes.",
+                track
+            ),
+            call. = FALSE
+        )
+    }
+    row.names(tbl) <- NULL
+    tbl
 }
 
 .ps_validate_promoter_inputs <- function(
@@ -577,7 +546,7 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
 }
 
 .ps_assign_promoter_priorities <- function(annotation, scheme, mode,
-                                           fallback) {
+    fallback) {
     excluded_protein <- attr(annotation, "ps_excluded_protein")
     scheme_priority <- .ps_transcript_priority(annotation$promoter_id, scheme)
     scheme_source <- .ps_scheme_source_label(
@@ -622,6 +591,26 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
 
 .ps_finalize_promoter_mapping <- function(annotation, genes, scheme, mode) {
     excluded_protein <- attr(annotation, "ps_excluded_protein")
+    annotation <- .ps_order_candidates(annotation, genes, scheme)
+
+    if (mode != "all_transcripts") {
+        annotation <- annotation[!duplicated(annotation$gene), ]
+    }
+    row.names(annotation) <- NULL
+    annotation$scheme <- scheme
+    annotation$suffix_role <- .ps_scheme_suffix_role(scheme)
+    out <- annotation[, c(
+        "gene", "transcript_id", "transcript_base", "promoter_id",
+        "scheme", "suffix_role", "transcript_class", "selection_source",
+        "selection_priority", "n_candidates", "decided_by", "input_order"
+    )]
+    attr(out, "ps_excluded_protein") <- excluded_protein
+    out
+}
+
+# Order the candidate promoters of every gene and record how many there were
+# and whether the choice was made by rule or by tie-break.
+.ps_order_candidates <- function(annotation, genes, scheme) {
     annotation$input_order <- match(annotation$gene, genes)
 
     # A total order, so nothing is left to the order in which candidates
@@ -656,20 +645,7 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     annotation$decided_by <- ifelse(
         best_shared[annotation$gene], "tie_break", "rule"
     )
-
-    if (mode != "all_transcripts") {
-        annotation <- annotation[!duplicated(annotation$gene), ]
-    }
-    row.names(annotation) <- NULL
-    annotation$scheme <- scheme
-    annotation$suffix_role <- .ps_scheme_suffix_role(scheme)
-    out <- annotation[, c(
-        "gene", "transcript_id", "transcript_base", "promoter_id",
-        "scheme", "suffix_role", "transcript_class", "selection_source",
-        "selection_priority", "n_candidates", "decided_by", "input_order"
-    )]
-    attr(out, "ps_excluded_protein") <- excluded_protein
-    out
+    annotation
 }
 
 # Every promoter identifier is retained. Collapsing candidates here, before the

@@ -51,18 +51,18 @@ J2020 <- readRDS(J2020_path)
 file_path <- tempfile(fileext = ".txt")
 
 PSM1 <- PSMatrix(
-  pfm = J2020[[1]],
-  ps_bg_avg = 0.25,
-  ps_fg_avg = 0.5,
-  ps_bg_std_dev = 0.05,
-  ps_bg_size = 1000L # number of background sequences
+    pfm = J2020[[1]],
+    ps_bg_avg = 0.25,
+    ps_fg_avg = 0.5,
+    ps_bg_std_dev = 0.05,
+    ps_bg_size = 1000L # number of background sequences
 )
 PSM2 <- PSMatrix(
-  pfm = J2020[[2]],
-  ps_bg_avg = 0.25,
-  ps_fg_avg = 0.5,
-  ps_bg_std_dev = 0.05,
-  ps_bg_size = 1000L # number of background sequences
+    pfm = J2020[[2]],
+    ps_bg_avg = 0.25,
+    ps_fg_avg = 0.5,
+    ps_bg_std_dev = 0.05,
+    ps_bg_size = 1000L # number of background sequences
 )
 
 PSMatrixList_J2020 <- PSMatrixList(PSM1, PSM2)

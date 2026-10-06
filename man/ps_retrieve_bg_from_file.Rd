@@ -59,7 +59,7 @@ further details on the backgrounds available.
 \examples{
 # Load a background information file
 file_path <- system.file("extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-  package = "PscanR"
+    package = "PscanR"
 )
 
 # Load the example dataset for JASPAR2020 matrices collection for

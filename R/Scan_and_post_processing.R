@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code refactoring, review and
+# documentation). All changes were reviewed and tested by the authors.
+
 #' Executes the Pscan algorithm on a set of regulatory sequences.
 #'
 #' This function computes alignment scores between regulatory sequences
@@ -105,19 +108,19 @@
 #' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 #' matrices <- readRDS(matrix_path)
 #' bg_path <- system.file(
-#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-#'   package = "PscanR"
+#'     "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'     package = "PscanR"
 #' )
 #' background <- ps_retrieve_bg_from_file(bg_path, matrices)
 #' motif_ids <- c(
-#'   "MA0506.1", "MA0632.2", "MA0615.1",
-#'   "MA0076.2", "MA0645.1", "MA0838.1"
+#'     "MA0506.1", "MA0632.2", "MA0615.1",
+#'     "MA0076.2", "MA0645.1", "MA0838.1"
 #' )
 #' background <- background[motif_ids]
 #'
 #' # Execute the PScan algorithm
 #' results <- pscan(prom_seq, background,
-#'   BPPARAM = BiocParallel::SerialParam()
+#'     BPPARAM = BiocParallel::SerialParam()
 #' )
 #'
 #' ps_results_table(results)
@@ -136,24 +139,24 @@ pscan <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
     # After cleaning, so the count is the one the statistic will actually use,
     # and before the scan, so the user hears it while it is still cheap to act.
     .ps_warn_foreground_fraction(
-    length(x), .ps_sizes(pfms, ps_bg_size), "scan"
+        length(x), .ps_sizes(pfms, ps_bg_size), "scan"
     )
 
     # Encode the sequences once and reuse the encoding for every motif.
     encoded <- .ps_encode_seqs(as.character(x))
 
     pfms <- BiocParallel::bplapply(
-    pfms,
-    FUN = ps_scan,
-    x,
-    BG = FALSE,
-    encoded = encoded,
-    BPPARAM = BPPARAM,
-    BPOPTIONS = BPOPTIONS
+        pfms,
+        FUN = ps_scan,
+        x,
+        BG = FALSE,
+        encoded = encoded,
+        BPPARAM = BPPARAM,
+        BPOPTIONS = BPOPTIONS
     )
 
     BiocGenerics::do.call(
-    PSMatrixList, c(pfms, list(transcriptIDLegend = legend))
+        PSMatrixList, c(pfms, list(transcriptIDLegend = legend))
     )
 }
 
@@ -220,9 +223,9 @@ pscan <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 #' full_pfms <- readRDS(full_bg_path)
 #'
 #' IDs <- c(
-#'   "NM_031921.6", "NM_001005484.2", "NR_047525.1", "NR_029639.1",
-#'   "NR_036051.1", "NR_029834.1", "NM_001029885.2", "NR_148357.1",
-#'   "NR_148960.1", "NM_001130413.4"
+#'     "NM_031921.6", "NM_001005484.2", "NR_047525.1", "NR_029639.1",
+#'     "NR_036051.1", "NR_029834.1", "NM_001029885.2", "NR_148357.1",
+#'     "NR_148960.1", "NM_001130413.4"
 #' )
 #'
 #' # The bundled background is a 36-promoter toy, so retrieving ten of them is
@@ -241,10 +244,34 @@ pscan <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 #' @export
 pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     if (!is.character(ID)) {
-    stop("ID must be a character vector containing transcript identifiers")
+        stop("ID must be a character vector containing transcript identifiers")
     }
+    .ps_check_full_bg(full_pfms)
+    all_seq_ID <- ps_transcript_legend(full_pfms)
+    x <- .ps_map_to_full_bg(ID, all_seq_ID, scheme, quiet)
+
+    .ps_warn_foreground_fraction(
+        length(x), .ps_sizes(full_pfms, ps_bg_size), "scan"
+    )
+
+    # See ps_scan for details
+    pfms <- lapply(
+        full_pfms,
+        FUN = ps_scan,
+        x,
+        BG = FALSE,
+        use_full_BG = TRUE
+    )
+
+    BiocGenerics::do.call(
+        PSMatrixList, c(pfms, list(transcriptIDLegend = all_seq_ID))
+    )
+}
+
+# A full background must hold a per-promoter background scan and a legend.
+.ps_check_full_bg <- function(full_pfms) {
     if (!is(full_pfms, "PSMatrixList")) {
-    stop("'full_pfms' must be a PSMatrixList")
+        stop("'full_pfms' must be a PSMatrixList")
     }
     # Every PSMatrixList now carries whatever legend its input had, so a
     # non-empty legend no longer means "this object holds a background scan".
@@ -252,20 +279,24 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     # read as a background, which would answer with foreground hits over a
     # subset instead of background hits over the universe.
     if (!.ps_has_bg_scan(full_pfms)) {
-    stop(
-        "'full_pfms' carries no per-promoter background scan, so there is ",
-        "nothing to retrieve. Build it with ps_build_bg(..., fullBG = TRUE)."
-    )
+        stop(
+            "'full_pfms' carries no per-promoter background scan, so there ",
+            "is nothing to retrieve. Build it with ",
+            "ps_build_bg(..., fullBG = TRUE)."
+        )
     }
-    if (length(full_pfms@transcriptIDLegend) == 0) {
-    stop(
-        "'full_pfms' has an empty transcriptIDLegend, so transcript ",
-        "identifiers cannot be resolved against the background."
-    )
+    if (length(ps_transcript_legend(full_pfms)) == 0) {
+        stop(
+            "'full_pfms' has an empty transcriptIDLegend, so transcript ",
+            "identifiers cannot be resolved against the background."
+        )
     }
+    invisible(TRUE)
+}
 
-    all_seq_ID <- full_pfms@transcriptIDLegend
-
+# Map the requested transcript identifiers onto the sequence names kept in
+# the full background, warning about ambiguous and absent identifiers.
+.ps_map_to_full_bg <- function(ID, all_seq_ID, scheme, quiet) {
     # Reduce both sides to the transcript key the scheme defines. For RefSeq
     # that removes a version; for TAIR it removes nothing, because there the
     # suffix distinguishes splice variants with different TSSs. The legend
@@ -277,74 +308,55 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     )
     legend_key <- .ps_transcript_base(names(all_seq_ID), scheme)
     query_key <- .ps_transcript_base(ID, scheme)
-
-    # A key that names more than one background transcript cannot be resolved.
-    # Taking the first silently is how the wrong promoter used to be returned.
-    duplicated_keys <- unique(legend_key[duplicated(legend_key)])
-    ambiguous <- intersect(query_key, duplicated_keys)
-    if (length(ambiguous) > 0) {
-    warning(
-        "Ambiguous transcript identifier(s) under scheme \"", scheme,
-        "\": ", paste(utils::head(ambiguous, 10), collapse = ", "),
-        if (length(ambiguous) > 10) ", ..." else "",
-        ". Each matches more than one background transcript; the first was ",
-        "used. Supply fully qualified identifiers to disambiguate.",
-        call. = FALSE
-    )
-    }
+    .ps_warn_ambiguous_keys(query_key, legend_key, scheme)
 
     # Use of all_seq_ID (mapping vector) to extract sequences name retained
     # in full BG that have the same sequence to those inserted by the user.
     x <- stats::setNames(unname(all_seq_ID)[match(query_key, legend_key)], ID)
 
-    # NA removal
     rem_names <- names(x[is.na(x)])
-
     if (length(rem_names) > 0) {
-    warning(paste(
-        "Found", length(rem_names), "identifier(s) absent from the background",
-        "(excluded during background construction for high N content or a",
-        "length mismatch, or never part of it). Removing:",
-        paste(rem_names, collapse = ", ")
-    ))
+        warning(
+            "Found ", length(rem_names), " identifier(s) absent from the ",
+            "background (excluded during background construction for high N ",
+            "content or a length mismatch, or never part of it). Removing: ",
+            paste(rem_names, collapse = ", "), call. = FALSE
+        )
     }
-
     x <- x[!is.na(x)]
-
     .check_seq_duplicated(x)
+    unique(x)
+}
 
-    x <- unique(x)
-
-    .ps_warn_foreground_fraction(
-    length(x), .ps_sizes(full_pfms, ps_bg_size), "scan"
-    )
-
-    # See ps_scan for details
-
-    pfms <- lapply(
-    full_pfms,
-    FUN = ps_scan,
-    x,
-    BG = FALSE,
-    use_full_BG = TRUE
-    )
-
-    BiocGenerics::do.call(
-    PSMatrixList, c(pfms, list(transcriptIDLegend = all_seq_ID))
-    )
+# A key that names more than one background transcript cannot be resolved.
+# Taking the first silently is how the wrong promoter used to be returned.
+.ps_warn_ambiguous_keys <- function(query_key, legend_key, scheme) {
+    duplicated_keys <- unique(legend_key[duplicated(legend_key)])
+    ambiguous <- intersect(query_key, duplicated_keys)
+    if (length(ambiguous) > 0) {
+        warning(
+            "Ambiguous transcript identifier(s) under scheme \"", scheme,
+            "\": ", paste(utils::head(ambiguous, 10), collapse = ", "),
+            if (length(ambiguous) > 10) ", ..." else "",
+            ". Each matches more than one background transcript; the first ",
+            "was used. Supply fully qualified identifiers to disambiguate.",
+            call. = FALSE
+        )
+    }
+    invisible(ambiguous)
 }
 
 # .ps_check_filtered_inputs and .ps_filter_promoters are internal helpers used
 # by pscan_filtered.
 .ps_check_filtered_inputs <- function(prom_seq, Jmatrix, background) {
     if (!is(prom_seq, "DNAStringSet")) {
-    stop("Invalid input: 'prom_seq' must be a DNAStringSet")
+        stop("Invalid input: 'prom_seq' must be a DNAStringSet")
     }
     if (!is(Jmatrix, "PSMatrix")) {
-    stop("Invalid input: 'Jmatrix' must be a PSMatrix")
+        stop("Invalid input: 'Jmatrix' must be a PSMatrix")
     }
     if (!is(background, "PSMatrixList")) {
-    stop("Invalid input: 'background' must be a PSMatrixList")
+        stop("Invalid input: 'background' must be a PSMatrixList")
     }
 }
 
@@ -359,26 +371,27 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     seqs <- as.character(prom_seq)
     encoded <- .ps_encode_seqs(seqs)
     if (!is.null(encoded)) {
-    Jmatrix@ps_hits_score <- .ps_scan_batched(seqs, encoded, M, M_rc, W)$score
+        scores <- .ps_scan_batched(seqs, encoded, M, M_rc, W)$score
     } else {
-    res <- mapply(.ps_scan_s, list(Jmatrix), seqs,
-        MoreArgs = list(M = M, M_rc = M_rc, W = W)
-    )
-    Jmatrix@ps_hits_score <- as.numeric(res["score", ])
+        res <- mapply(.ps_scan_s, list(Jmatrix), seqs,
+            MoreArgs = list(M = M, M_rc = M_rc, W = W)
+        )
+        scores <- as.numeric(res["score", ])
     }
-    Jmatrix@ps_hits_score <- .ps_norm_score(Jmatrix)
-    Score <- Jmatrix@ps_hits_score
+    Jmatrix <- .ps_set_hits_score(Jmatrix, scores)
+    Jmatrix <- .ps_set_hits_score(Jmatrix, .ps_norm_score(Jmatrix))
+    Score <- ps_hits_score(Jmatrix, withDimnames = FALSE)
 
     filtered_prom_seq <- character()
     if (n > 0) {
-    filtered_prom_seq <- prom_seq[Score >= threshold]
+        filtered_prom_seq <- prom_seq[Score >= threshold]
     }
     if (n < 0) {
-    filtered_prom_seq <- prom_seq[Score <= threshold]
+        filtered_prom_seq <- prom_seq[Score <= threshold]
     }
     if (length(filtered_prom_seq) == 0) {
-    warning("No sequence satisfy the filter criterium")
-    return(NULL)
+        warning("No sequence satisfy the filter criterium")
+        return(NULL)
     }
     filtered_prom_seq
 }
@@ -452,8 +465,8 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #' prom_seq <- prom_seq[sample(seq_along(prom_seq), n_prom)]
 #'
 #' bg_path <- system.file("extdata",
-#'   "J2020_hg38_200u_50d_UCSC.psbg.txt",
-#'   package = "PscanR"
+#'     "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'     package = "PscanR"
 #' )
 #' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 #' J2020 <- readRDS(J2020_path)
@@ -461,9 +474,9 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #'
 #' JM <- bg[[1]]
 #' res <- pscan_filtered(prom_seq,
-#'   JM,
-#'   background = bg,
-#'   BPPARAM = BiocParallel::SerialParam()
+#'     JM,
+#'     background = bg,
+#'     BPPARAM = BiocParallel::SerialParam()
 #' )
 #'
 #' @export
@@ -477,25 +490,25 @@ pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
 
     filtered_prom_seq <- .ps_filter_promoters(prom_seq, Jmatrix, n)
     if (is.null(filtered_prom_seq)) {
-    return(NULL)
+        return(NULL)
     }
 
     .ps_warn_foreground_fraction(
-    length(filtered_prom_seq),
-    .ps_sizes(background, ps_bg_size), "scan"
+        length(filtered_prom_seq),
+        .ps_sizes(background, ps_bg_size), "scan"
     )
 
     pfms <- BiocParallel::bplapply(
-    background,
-    FUN = ps_scan,
-    filtered_prom_seq,
-    BG = FALSE,
-    BPPARAM = BPPARAM,
-    BPOPTIONS = BPOPTIONS
+        background,
+        FUN = ps_scan,
+        filtered_prom_seq,
+        BG = FALSE,
+        BPPARAM = BPPARAM,
+        BPOPTIONS = BPOPTIONS
     )
 
     BiocGenerics::do.call(
-    PSMatrixList, c(pfms, list(transcriptIDLegend = legend))
+        PSMatrixList, c(pfms, list(transcriptIDLegend = legend))
     )
 }
 
@@ -560,19 +573,19 @@ pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
 #' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 #' matrices <- readRDS(matrix_path)
 #' bg_path <- system.file(
-#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-#'   package = "PscanR"
+#'     "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'     package = "PscanR"
 #' )
 #' background <- ps_retrieve_bg_from_file(bg_path, matrices)
 #' motif_ids <- c(
-#'   "MA0506.1", "MA0632.2", "MA0615.1",
-#'   "MA0076.2", "MA0645.1", "MA0838.1"
+#'     "MA0506.1", "MA0632.2", "MA0615.1",
+#'     "MA0076.2", "MA0645.1", "MA0838.1"
 #' )
 #' background <- background[motif_ids]
 #'
 #' # Execute the PScan algorithm and view the result table
 #' results <- pscan(prom_seq, background,
-#'   BPPARAM = BiocParallel::SerialParam()
+#'     BPPARAM = BiocParallel::SerialParam()
 #' )
 #'
 #' ps_results_table(results, FDR = 0.1)
@@ -588,8 +601,8 @@ ps_results_table <- function(pfms, FDR = 1) {
     # After the core call, so that invalid input still errors before anything
     # is said about the foreground.
     .ps_warn_foreground_fraction(
-    stats::median(.ps_sizes(pfms, ps_fg_size), na.rm = TRUE),
-    .ps_sizes(pfms, ps_bg_size), "results"
+        stats::median(.ps_sizes(pfms, ps_fg_size), na.rm = TRUE),
+        .ps_sizes(pfms, ps_bg_size), "results"
     )
 
     tbl
@@ -605,7 +618,7 @@ ps_results_table <- function(pfms, FDR = 1) {
 
     if (!is.numeric(FDR) || length(FDR) != 1L || is.na(FDR) ||
         FDR < 0 || FDR > 1) {
-    stop("FDR must be a single numeric value between 0 and 1")
+        stop("FDR must be a single numeric value between 0 and 1")
     }
 
     bg_v <- vapply(pfms, ps_bg_avg, numeric(length = 1L))
@@ -616,9 +629,9 @@ ps_results_table <- function(pfms, FDR = 1) {
     fdr_v <- p.adjust(pv_v, method = "BH")
 
     tbl <- data.frame(
-    "NAME" = name(pfms), "BG_AVG" = bg_v, "BG_STDEV" = std_v,
-    "FG_AVG" = fg_v, "ZSCORE" = zs_v,
-    "P.VALUE" = pv_v, "FDR" = fdr_v, row.names = ID(pfms)
+        "NAME" = name(pfms), "BG_AVG" = bg_v, "BG_STDEV" = std_v,
+        "FG_AVG" = fg_v, "ZSCORE" = zs_v,
+        "P.VALUE" = pv_v, "FDR" = fdr_v, row.names = ID(pfms)
     )
 
     tbl <- tbl[tbl$FDR <= FDR, , drop = FALSE]
@@ -665,19 +678,19 @@ ps_results_table <- function(pfms, FDR = 1) {
 #' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 #' matrices <- readRDS(matrix_path)
 #' bg_path <- system.file(
-#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-#'   package = "PscanR"
+#'     "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'     package = "PscanR"
 #' )
 #' background <- ps_retrieve_bg_from_file(bg_path, matrices)
 #' motif_ids <- c(
-#'   "MA0506.1", "MA0632.2", "MA0615.1",
-#'   "MA0076.2", "MA0645.1", "MA0838.1"
+#'     "MA0506.1", "MA0632.2", "MA0615.1",
+#'     "MA0076.2", "MA0645.1", "MA0838.1"
 #' )
 #' background <- background[motif_ids]
 #'
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, background,
-#'   BPPARAM = BiocParallel::SerialParam()
+#'     BPPARAM = BiocParallel::SerialParam()
 #' )
 #'
 #' ps_z_table(results)
@@ -687,8 +700,6 @@ ps_z_table <- function(pfms) {
     .ps_checks2(pfms)
 
     tbl <- lapply(pfms, ps_hits_z)
-
-    # as.matrix(as.data.frame(tbl, col.names = name(pfms)))
 
     as.matrix(as.data.frame(tbl, col.names = ID(pfms)))
 }
@@ -747,19 +758,19 @@ ps_z_table <- function(pfms) {
 #' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 #' matrices <- readRDS(matrix_path)
 #' bg_path <- system.file(
-#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-#'   package = "PscanR"
+#'     "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'     package = "PscanR"
 #' )
 #' background <- ps_retrieve_bg_from_file(bg_path, matrices)
 #' motif_ids <- c(
-#'   "MA0506.1", "MA0632.2", "MA0615.1",
-#'   "MA0076.2", "MA0645.1", "MA0838.1"
+#'     "MA0506.1", "MA0632.2", "MA0615.1",
+#'     "MA0076.2", "MA0645.1", "MA0838.1"
 #' )
 #' background <- background[motif_ids]
 #'
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, background,
-#'   BPPARAM = BiocParallel::SerialParam()
+#'     BPPARAM = BiocParallel::SerialParam()
 #' )
 #'
 #' ps_zscore_heatmap(results, FDR = 0.05)
@@ -780,19 +791,19 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
     z_table_reduced <- z_table[, tf_to_plot, drop = FALSE]
 
     defaults <- list(
-    cluster_rows = nrow(z_table_reduced) > 1L,
-    cluster_cols = ncol(z_table_reduced) > 1L,
-    color = colorRampPalette(c("blue", "white", "red"))(50),
-    main = "Pscan Per-Sequence Z-Score Heatmap",
-    scale = if (ncol(z_table_reduced) > 1L) "row" else "none",
-    show_rownames = FALSE,
-    labels_col = res_table$NAME[topn],
-    clustering_distance_rows = "correlation",
-    clustering_distance_cols = "correlation",
-    clustering_method = "complete",
-    fontsize = 10,
-    fontsize_row = 6,
-    fontsize_col = 6
+        cluster_rows = nrow(z_table_reduced) > 1L,
+        cluster_cols = ncol(z_table_reduced) > 1L,
+        color = colorRampPalette(c("blue", "white", "red"))(50),
+        main = "Pscan Per-Sequence Z-Score Heatmap",
+        scale = if (ncol(z_table_reduced) > 1L) "row" else "none",
+        show_rownames = FALSE,
+        labels_col = res_table$NAME[topn],
+        clustering_distance_rows = "correlation",
+        clustering_distance_cols = "correlation",
+        clustering_method = "complete",
+        fontsize = 10,
+        fontsize_row = 6,
+        fontsize_col = 6
     )
 
     user_args <- list(...)
@@ -863,19 +874,19 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
 #' matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 #' matrices <- readRDS(matrix_path)
 #' bg_path <- system.file(
-#'   "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-#'   package = "PscanR"
+#'     "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+#'     package = "PscanR"
 #' )
 #' background <- ps_retrieve_bg_from_file(bg_path, matrices)
 #' motif_ids <- c(
-#'   "MA0506.1", "MA0632.2", "MA0615.1",
-#'   "MA0076.2", "MA0645.1", "MA0838.1"
+#'     "MA0506.1", "MA0632.2", "MA0615.1",
+#'     "MA0076.2", "MA0645.1", "MA0838.1"
 #' )
 #' background <- background[motif_ids]
 #'
 #' # Execute the Pscan algorithm and view the result table
 #' results <- pscan(prom_seq, background,
-#'   BPPARAM = BiocParallel::SerialParam()
+#'     BPPARAM = BiocParallel::SerialParam()
 #' )
 #'
 #' ps_hitpos_map(results, shift = -200)
@@ -893,16 +904,16 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
     }
 
     defaults <- list(
-    cluster_rows = TRUE,
-    cluster_cols = TRUE,
-    color = colorRampPalette(c("white", "yellow", "red"))(100),
-    main = "Pscan Hits Position Heatmap",
-    fontsize = 10, show_rownames = FALSE, scale = "none",
-    clustering_distance_rows = "manhattan",
-    clustering_distance_cols = "manhattan",
-    clustering_method = "average",
-    fontsize_row = 6,
-    fontsize_col = 6
+        cluster_rows = TRUE,
+        cluster_cols = TRUE,
+        color = colorRampPalette(c("white", "yellow", "red"))(100),
+        main = "Pscan Hits Position Heatmap",
+        fontsize = 10, show_rownames = FALSE, scale = "none",
+        clustering_distance_rows = "manhattan",
+        clustering_distance_cols = "manhattan",
+        clustering_method = "average",
+        fontsize_row = 6,
+        fontsize_col = 6
     )
 
     user_args <- list(...)
@@ -910,8 +921,8 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
     final_args <- modifyList(defaults, user_args)
 
     pos_mat <- matrix(
-    data = NA, nrow = ps_fg_size(pfms[[1]]),
-    ncol = length(topn)
+        data = NA, nrow = ps_fg_size(pfms[[1]]),
+        ncol = length(topn)
     )
 
     # `topn` indexes rows of res_table; the matrix columns are 1..length(topn).
@@ -919,9 +930,9 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
     # true today because BH-adjusted FDR is monotone in the p-value ordering
     # ps_results_table() sorts by, but it is not a property to rely on.
     for (i in seq_along(topn)) {
-    pos_mat[, i] <- ps_hits_pos(pfms[[row.names(res_table)[topn[i]]]],
-        pos_shift = shift
-    )
+        pos_mat[, i] <- ps_hits_pos(pfms[[row.names(res_table)[topn[i]]]],
+            pos_shift = shift
+        )
     }
 
     colnames(pos_mat) <- res_table$NAME[topn]
@@ -1040,31 +1051,31 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
     # Reflecting at the end of the promoter itself would place the boundary
     # where no hit can be observed and flatten the estimate short of it.
     density_hits <- .ps_bounded_density(
-    positions, .ps_hit_support(window, ncol(pfm))
+        positions, .ps_hit_support(window, ncol(pfm))
     )
 
     .ps_density_ggplot(
-    density_hits,
-    title = paste(
-        name(pfm), "binding site density across", sum_g, "promoter regions"
-    ),
-    xlab = "Position along promoters",
-    values = positions, bins = bins
+        density_hits,
+        title = paste(
+            name(pfm), "binding site density across", sum_g, "promoter regions"
+        ),
+        xlab = "Position along promoters",
+        values = positions, bins = bins
     )
 }
 
 .ps_resolve_threshold <- function(st, M, label) {
     if (!is.character(st)) {
-    return(st)
+        return(st)
     }
     switch(st,
-    "all" = 0,
-    "loose" = ps_bg_avg(M),
-    "strict" = ps_bg_avg(M) + ps_bg_std_dev(M),
-    {
-        warning(sprintf("Invalid value for %s, reverting to loose", label))
-        ps_bg_avg(M)
-    }
+        "all" = 0,
+        "loose" = ps_bg_avg(M),
+        "strict" = ps_bg_avg(M) + ps_bg_std_dev(M),
+        {
+            warning(sprintf("Invalid value for %s, reverting to loose", label))
+            ps_bg_avg(M)
+        }
     )
 }
 
@@ -1088,21 +1099,23 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
 #' @noRd
 .ps_binned_profile <- function(values, bins, limits) {
     if (is.null(bins) || is.null(values)) {
-    return(NULL)
+        return(NULL)
     }
     if (!is.numeric(bins) || length(bins) != 1L || is.na(bins) || bins < 1) {
-    stop("bins must be a single positive number", call. = FALSE)
+        stop("bins must be a single positive number", call. = FALSE)
     }
-    breaks <- seq(limits[[1L]], limits[[2L]], length.out = as.integer(bins) + 1L)
+    breaks <- seq(
+        limits[[1L]], limits[[2L]], length.out = as.integer(bins) + 1L
+    )
     width <- diff(breaks)[[1L]]
     counts <- tabulate(
-    cut(values, breaks = breaks, include.lowest = TRUE, labels = FALSE),
-    nbins = as.integer(bins)
+        cut(values, breaks = breaks, include.lowest = TRUE, labels = FALSE),
+        nbins = as.integer(bins)
     )
     data.frame(
-    mid = breaks[-length(breaks)] + width / 2,
-    density = counts / (sum(counts) * width),
-    width = width
+        mid = breaks[-length(breaks)] + width / 2,
+        density = counts / (sum(counts) * width),
+        width = width
     )
 }
 
@@ -1121,24 +1134,24 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
 #' @noRd
 .ps_hit_support <- function(window, width) {
     if (is.null(window)) {
-    return(NULL)
+        return(NULL)
     }
     if (length(window) != 2L || !all(is.finite(window)) ||
         window[[1L]] == window[[2L]]) {
-    stop(
-        "'window' must be two finite, distinct values giving the promoter ",
-        "window the positions were taken from",
-        call. = FALSE
-    )
+        stop(
+            "'window' must be two finite, distinct values giving the promoter ",
+            "window the positions were taken from",
+            call. = FALSE
+        )
     }
     window <- sort(as.numeric(window))
     support <- c(window[[1L]], window[[2L]] - width)
     if (support[[1L]] >= support[[2L]]) {
-    stop(
-        "'window' spans ", diff(window), " bases, which is too short to ",
-        "report a hit for a motif of width ", width,
-        call. = FALSE
-    )
+        stop(
+            "'window' spans ", diff(window), " bases, which is too short to ",
+            "report a hit for a motif of width ", width,
+            call. = FALSE
+        )
     }
     support
 }
@@ -1175,29 +1188,29 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
 #' @importFrom stats density
 .ps_bounded_density <- function(x, window = NULL) {
     if (is.null(window)) {
-    limits <- range(x)
-    if (!all(is.finite(limits)) || limits[[1L]] == limits[[2L]]) {
-        return(density(x))
-    }
-    return(density(x, from = limits[[1L]], to = limits[[2L]]))
+        limits <- range(x)
+        if (!all(is.finite(limits)) || limits[[1L]] == limits[[2L]]) {
+            return(density(x))
+        }
+        return(density(x, from = limits[[1L]], to = limits[[2L]]))
     }
 
     window <- sort(as.numeric(window))
     if (length(window) != 2L || !all(is.finite(window)) ||
         window[[1L]] == window[[2L]]) {
-    stop(
-        "'window' must be two finite, distinct values giving the interval ",
-        "the positions are confined to",
-        call. = FALSE
-    )
+        stop(
+            "'window' must be two finite, distinct values giving the interval ",
+            "the positions are confined to",
+            call. = FALSE
+        )
     }
     outside <- x < window[[1L]] | x > window[[2L]]
     if (any(outside)) {
-    stop(
-        sum(outside), " value(s) fall outside 'window' [",
-        window[[1L]], ", ", window[[2L]], "]",
-        call. = FALSE
-    )
+        stop(
+            sum(outside), " value(s) fall outside 'window' [",
+            window[[1L]], ", ", window[[2L]], "]",
+            call. = FALSE
+        )
     }
 
     # Estimate on the sample mirrored across both bounds, then keep the middle
@@ -1206,8 +1219,8 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
     bw <- density(x)$bw
     mirrored <- c(x, 2 * window[[1L]] - x, 2 * window[[2L]] - x)
     out <- density(
-    mirrored,
-    bw = bw, from = window[[1L]], to = window[[2L]]
+        mirrored,
+        bw = bw, from = window[[1L]], to = window[[2L]]
     )
     out$y <- out$y * 3
     out$n <- length(x)
@@ -1244,41 +1257,41 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
 
     plot <- ggplot2::ggplot(curve, ggplot2::aes(x = .data$x, y = .data$y))
     plot <- if (is.null(bars)) {
-    # Without bars the filled area gives the curve some weight.
-    plot + ggplot2::geom_area(fill = .PS_DENSITY_COLOUR, alpha = 0.15)
+        # Without bars the filled area gives the curve some weight.
+        plot + ggplot2::geom_area(fill = .PS_DENSITY_COLOUR, alpha = 0.15)
     } else {
-    # With bars it would only muddy them, so the curve is drawn on its own.
-    plot + ggplot2::geom_col(
-        data = bars,
-        mapping = ggplot2::aes(x = .data$mid, y = .data$density),
-        width = bars$width[[1L]], fill = "grey82", colour = "white",
-        linewidth = 0.25
-    )
+        # With bars it would only muddy them, so the curve is drawn on its own.
+        plot + ggplot2::geom_col(
+            data = bars,
+            mapping = ggplot2::aes(x = .data$mid, y = .data$density),
+            width = bars$width[[1L]], fill = "grey82", colour = "white",
+            linewidth = 0.25
+        )
     }
 
     plot +
-    ggplot2::geom_line(colour = .PS_DENSITY_COLOUR, linewidth = 0.8) +
-    ggplot2::geom_vline(
-        xintercept = peak, colour = "grey50", linetype = "dashed",
-        linewidth = 0.6
-    ) +
-    ggplot2::annotate(
-        "text",
-        x = peak, y = max(d$y), label = paste("Mode:", round(peak)),
-        hjust = if (past_middle) 1.1 else -0.1, vjust = -0.6, size = 3.5,
-        colour = "grey30"
-    ) +
-    # The label sits just above the peak, so the panel needs headroom that the
-    # default expansion does not leave.
-    ggplot2::scale_y_continuous(
-        expand = ggplot2::expansion(mult = c(0, 0.12))
-    ) +
-    ggplot2::labs(title = title, x = xlab, y = "Density") +
-    ggplot2::theme_minimal(base_size = 11) +
-    ggplot2::theme(
-        panel.grid.minor = ggplot2::element_blank(),
-        plot.title = ggplot2::element_text(size = 11)
-    )
+        ggplot2::geom_line(colour = .PS_DENSITY_COLOUR, linewidth = 0.8) +
+        ggplot2::geom_vline(
+            xintercept = peak, colour = "grey50", linetype = "dashed",
+            linewidth = 0.6
+        ) +
+        ggplot2::annotate(
+            "text",
+            x = peak, y = max(d$y), label = paste("Mode:", round(peak)),
+            hjust = if (past_middle) 1.1 else -0.1, vjust = -0.6, size = 3.5,
+            colour = "grey30"
+        ) +
+        # The label sits just above the peak, so the panel needs headroom
+        # that the default expansion does not leave.
+        ggplot2::scale_y_continuous(
+            expand = ggplot2::expansion(mult = c(0, 0.12))
+        ) +
+        ggplot2::labs(title = title, x = xlab, y = "Density") +
+        ggplot2::theme_minimal(base_size = 11) +
+        ggplot2::theme(
+            panel.grid.minor = ggplot2::element_blank(),
+            plot.title = ggplot2::element_text(size = 11)
+        )
 }
 
 #' Structural Class of Each Motif
@@ -1323,21 +1336,24 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
 #' head(ps_motif_class(J2020))
 ps_motif_class <- function(pfms) {
     if (!is(pfms, "PFMatrixList")) {
-    stop("pfms must be a PSMatrixList or PFMatrixList object", call. = FALSE)
+        stop(
+            "pfms must be a PSMatrixList or PFMatrixList object",
+            call. = FALSE
+        )
     }
 
     out <- vapply(pfms, function(x) {
-    value <- matrixClass(x)
-    if (length(value) == 0L || is.na(value[[1L]])) {
-        return("Unclassified")
-    }
-    # JASPAR ships a few classes with stray surrounding whitespace, which
-    # would otherwise split one class into two grouping levels.
-    label <- trimws(value[[1L]])
-    if (!nzchar(label)) {
-        return("Unclassified")
-    }
-    label
+        value <- matrixClass(x)
+        if (length(value) == 0L || is.na(value[[1L]])) {
+            return("Unclassified")
+        }
+        # JASPAR ships a few classes with stray surrounding whitespace, which
+        # would otherwise split one class into two grouping levels.
+        label <- trimws(value[[1L]])
+        if (!nzchar(label)) {
+            return("Unclassified")
+        }
+        label
     }, character(1L))
 
     stats::setNames(out, ID(pfms))
@@ -1412,33 +1428,61 @@ ps_motif_class <- function(pfms) {
 #'
 #' # Or by the JASPAR family tag.
 #' ps_motif_barplot(results, n = 6, group = "family")
-ps_motif_barplot <- function(pfms, n = 20, statistic = c(
-                                 "ZSCORE", "P.VALUE", "FDR",
-                                 "FG_AVG", "BG_AVG"
-                             ),
-                             group = NULL, FDR = NULL) {
+ps_motif_barplot <- function(pfms, n = 20,
+    statistic = c("ZSCORE", "P.VALUE", "FDR", "FG_AVG", "BG_AVG"),
+    group = NULL, FDR = NULL) {
     statistic <- match.arg(statistic)
-
-    parts <- .ps_barplot_inputs(pfms, group)
-    res_table <- parts$table
-    grouping <- parts$grouping
-
-    if (!is.null(FDR)) {
-    if (!is.numeric(FDR) || length(FDR) != 1L || is.na(FDR)) {
-        stop("FDR must be a single numeric value", call. = FALSE)
-    }
-    keep <- res_table$FDR <= FDR
-    res_table <- res_table[keep, , drop = FALSE]
-    grouping <- grouping[keep]
-    }
-    if (nrow(res_table) == 0L) {
-    stop("No motifs left to plot after filtering", call. = FALSE)
-    }
-
+    parts <- .ps_barplot_filter(.ps_barplot_inputs(pfms, group), FDR)
     if (!is.numeric(n) || length(n) != 1L || is.na(n) || n < 1) {
-    stop("n must be a single positive number", call. = FALSE)
+        stop("n must be a single positive number", call. = FALSE)
+    }
+    plot_data <- .ps_barplot_data(parts$table, statistic, n)
+    rows <- attr(plot_data, "rows")
+    axis_label <- attr(plot_data, "axis_label")
+
+    if (is.null(parts$grouping)) {
+        plot <- ggplot2::ggplot(
+            plot_data, ggplot2::aes(x = .data$value, y = .data$label)
+        ) +
+            ggplot2::geom_col(width = 0.72, fill = "grey35")
+    } else {
+        plot_data$group <- parts$grouping[rows]
+        plot <- .ps_grouped_barplot(plot_data)
     }
 
+    plot +
+        ggplot2::scale_x_continuous(
+            expand = ggplot2::expansion(mult = c(0, 0.05))
+        ) +
+        ggplot2::labs(x = axis_label, y = NULL) +
+        ggplot2::theme_minimal(base_size = 11) +
+        ggplot2::theme(
+            panel.grid.major.y = ggplot2::element_blank(),
+            panel.grid.minor = ggplot2::element_blank(),
+            legend.position = "top",
+            legend.justification = "left"
+        )
+}
+
+# Keep the motifs at or below an FDR threshold, if one is given.
+.ps_barplot_filter <- function(parts, FDR) {
+    if (!is.null(FDR)) {
+        if (!is.numeric(FDR) || length(FDR) != 1L || is.na(FDR)) {
+            stop("FDR must be a single numeric value", call. = FALSE)
+        }
+        keep <- parts$table$FDR <= FDR
+        parts$table <- parts$table[keep, , drop = FALSE]
+        parts$grouping <- parts$grouping[keep]
+    }
+    if (nrow(parts$table) == 0L) {
+        stop("No motifs left to plot after filtering", call. = FALSE)
+    }
+    parts
+}
+
+# The top n motifs by the chosen statistic, with the selected rows and the
+# axis label attached as attributes.
+.ps_barplot_data <- function(res_table, statistic, n) {
     # Smaller is better for the two p-value columns, and they are plotted on a
     # log scale; everything else is read directly and ranked downwards.
     ascending <- statistic %in% c("P.VALUE", "FDR")
@@ -1447,30 +1491,27 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
     keep <- utils::head(ord, min(as.integer(n), nrow(res_table)))
 
     plot_data <- data.frame(
-    motif = res_table$NAME[keep],
-    motif_id = row.names(res_table)[keep],
-    value = if (ascending) -log10(value[keep]) else value[keep],
-    stringsAsFactors = FALSE
+        motif = res_table$NAME[keep],
+        motif_id = row.names(res_table)[keep],
+        value = if (ascending) -log10(value[keep]) else value[keep],
+        stringsAsFactors = FALSE
     )
     # Ties on NAME would collapse bars, so order the factor on the identifier.
     plot_data$label <- factor(
-    plot_data$motif_id,
-    levels = rev(plot_data$motif_id),
-    labels = rev(plot_data$motif)
+        plot_data$motif_id,
+        levels = rev(plot_data$motif_id),
+        labels = rev(plot_data$motif)
     )
-    axis_label <- if (ascending) {
-    paste0("-log10(", statistic, ")")
+    attr(plot_data, "rows") <- keep
+    attr(plot_data, "axis_label") <- if (ascending) {
+        paste0("-log10(", statistic, ")")
     } else {
-    statistic
+        statistic
     }
+    plot_data
+}
 
-    if (is.null(grouping)) {
-    plot <- ggplot2::ggplot(
-        plot_data, ggplot2::aes(x = .data$value, y = .data$label)
-    ) +
-        ggplot2::geom_col(width = 0.72, fill = "grey35")
-    } else {
-    plot_data$group <- grouping[keep]
+.ps_grouped_barplot <- function(plot_data) {
     n_groups <- length(unique(plot_data$group))
     plot <- ggplot2::ggplot(
         plot_data,
@@ -1482,97 +1523,84 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
         ggplot2::guides(fill = ggplot2::guide_legend(ncol = 2))
     if (n_groups <= length(.PS_GROUP_PALETTE)) {
         plot <- plot + ggplot2::scale_fill_manual(
-        values = utils::head(.PS_GROUP_PALETTE, n_groups)
+            values = utils::head(.PS_GROUP_PALETTE, n_groups)
         )
     }
-    }
-
-    plot +
-    ggplot2::scale_x_continuous(
-        expand = ggplot2::expansion(mult = c(0, 0.05))
-    ) +
-    ggplot2::labs(x = axis_label, y = NULL) +
-    ggplot2::theme_minimal(base_size = 11) +
-    ggplot2::theme(
-        panel.grid.major.y = ggplot2::element_blank(),
-        panel.grid.minor = ggplot2::element_blank(),
-        legend.position = "top",
-        legend.justification = "left"
-    )
+    plot
 }
 
 # Accepts either a scan result or a results table, and resolves `group` to a
 # character vector aligned with the table rows (or NULL).
 .ps_barplot_inputs <- function(pfms, group) {
     if (is(pfms, "PFMatrixList")) {
-    res_table <- .ps_results_table_core(pfms)
-    grouping <- .ps_resolve_group(group, pfms, row.names(res_table))
-    return(list(table = res_table, grouping = grouping))
+        res_table <- .ps_results_table_core(pfms)
+        grouping <- .ps_resolve_group(group, pfms, row.names(res_table))
+        return(list(table = res_table, grouping = grouping))
     }
     if (is.data.frame(pfms)) {
-    required <- c("NAME", "ZSCORE", "P.VALUE", "FDR")
-    missing_cols <- setdiff(required, names(pfms))
-    if (length(missing_cols) > 0L) {
-        stop(
-        "'pfms' looks like a data.frame but is missing column(s): ",
-        paste(missing_cols, collapse = ", "),
-        ". Pass a PSMatrixList or the output of ps_results_table().",
-        call. = FALSE
-        )
-    }
-    if (is.character(group) && length(group) == 1L) {
-        stop(
-        "group = \"", group, "\" needs motif metadata, which a results ",
-        "table does not carry. Pass the PSMatrixList instead, or supply ",
-        "'group' as a vector.",
-        call. = FALSE
-        )
-    }
-    grouping <- .ps_resolve_group(group, NULL, row.names(pfms))
-    return(list(table = pfms, grouping = grouping))
+        required <- c("NAME", "ZSCORE", "P.VALUE", "FDR")
+        missing_cols <- setdiff(required, names(pfms))
+        if (length(missing_cols) > 0L) {
+            stop(
+                "'pfms' looks like a data.frame but is missing column(s): ",
+                paste(missing_cols, collapse = ", "),
+                ". Pass a PSMatrixList or the output of ps_results_table().",
+                call. = FALSE
+            )
+        }
+        if (is.character(group) && length(group) == 1L) {
+            stop(
+                "group = \"", group, "\" needs motif metadata, which a ",
+                "results table does not carry. Pass the PSMatrixList instead, ",
+                "or supply 'group' as a vector.",
+                call. = FALSE
+            )
+        }
+        grouping <- .ps_resolve_group(group, NULL, row.names(pfms))
+        return(list(table = pfms, grouping = grouping))
     }
     stop(
-    "pfms must be a PSMatrixList or a data.frame from ps_results_table()",
-    call. = FALSE
+        "pfms must be a PSMatrixList or a data.frame from ps_results_table()",
+        call. = FALSE
     )
 }
 
 .ps_resolve_group <- function(group, pfms, motif_ids) {
     if (is.null(group)) {
-    return(NULL)
+        return(NULL)
     }
     if (is.character(group) && length(group) == 1L &&
         group %in% c("class", "family")) {
-    if (identical(group, "class")) {
-        return(unname(ps_motif_class(pfms)[motif_ids]))
-    }
-    families <- vapply(pfms, function(x) {
-        value <- tags(x)$family
-        if (is.null(value) || !nzchar(value[[1L]])) {
-        return("Unclassified")
+        if (identical(group, "class")) {
+            return(unname(ps_motif_class(pfms)[motif_ids]))
         }
-        as.character(value)[[1L]]
-    }, character(1L))
-    return(unname(stats::setNames(families, ID(pfms))[motif_ids]))
+        families <- vapply(pfms, function(x) {
+            value <- tags(x)$family
+            if (is.null(value) || !nzchar(value[[1L]])) {
+                return("Unclassified")
+            }
+            as.character(value)[[1L]]
+        }, character(1L))
+        return(unname(stats::setNames(families, ID(pfms))[motif_ids]))
     }
     if (!is.character(group) && !is.factor(group)) {
-    stop(
-        "group must be NULL, \"class\", \"family\", or a character or ",
-        "factor vector",
-        call. = FALSE
-    )
+        stop(
+            "group must be NULL, \"class\", \"family\", or a character or ",
+            "factor vector",
+            call. = FALSE
+        )
     }
     group <- as.character(group)
     if (!is.null(names(group))) {
-    return(unname(group[motif_ids]))
+        return(unname(group[motif_ids]))
     }
     if (length(group) != length(motif_ids)) {
-    stop(
-        "group has ", length(group), " entries but there are ",
-        length(motif_ids), " motifs. Supply one entry per motif, or name ",
-        "the vector by matrix identifier.",
-        call. = FALSE
-    )
+        stop(
+            "group has ", length(group), " entries but there are ",
+            length(motif_ids), " motifs. Supply one entry per motif, or name ",
+            "the vector by matrix identifier.",
+            call. = FALSE
+        )
     }
     group
 }
@@ -1640,28 +1668,55 @@ ps_motif_barplot <- function(pfms, n = 20, statistic = c(
 #' ps_hit_score_plot(results, shift = -200)
 ps_hit_score_plot <- function(x, shift = 0, alpha = NULL, size = NULL) {
     motifs <- if (is(x, "PFMatrixList")) {
-    as.list(x)
+        as.list(x)
     } else if (is(x, "PSMatrix")) {
-    list(x)
+        list(x)
     } else {
-    stop("x must be a PSMatrix or a PSMatrixList", call. = FALSE)
+        stop("x must be a PSMatrix or a PSMatrixList", call. = FALSE)
     }
+    points <- .ps_hit_score_points(motifs, shift)
+    motif_names <- vapply(motifs, name, character(1L))
 
-    points <- do.call(rbind, lapply(motifs, function(m) {
-    loose <- ps_bg_avg(m)
-    strict <- loose + ps_bg_std_dev(m)
-    scores <- ps_hits_score(m)
-    keep <- is.finite(scores)
-    scores <- scores[keep]
-    data.frame(
-        motif = rep(name(m), length(scores)),
-        position = ps_hits_pos(m, pos_shift = shift)[keep],
-        score = scores,
-        band = .PS_SCORE_BANDS[
-        1L + (scores >= loose) + (scores >= strict)
-        ],
-        stringsAsFactors = FALSE
+    # Panels share one aesthetic, so the busiest panel sets it. The scale runs
+    # from the values that suit a few hundred points to ones that survive tens
+    # of thousands, interpolated on a log scale between 1e3 and 2e4 promoters.
+    busiest <- max(table(points$motif))
+    crowding <- min(1, max(0, log10(busiest / 1e3) / log10(2e4 / 1e3)))
+    if (is.null(alpha)) alpha <- 0.55 * (1 - crowding) + 0.06 * crowding
+    if (is.null(size)) size <- 0.9 * (1 - crowding) + 0.35 * crowding
+
+    references <- data.frame(
+        motif = factor(motif_names, levels = unique(motif_names)),
+        loose = vapply(motifs, ps_bg_avg, numeric(1L)),
+        strict = vapply(motifs, function(m) {
+            ps_bg_avg(m) + ps_bg_std_dev(m)
+        }, numeric(1L))
     )
+    plot <- .ps_hit_score_ggplot(points, references, alpha, size)
+    if (nlevels(points$motif) > 1L) {
+        plot + ggplot2::facet_wrap(~motif)
+    } else {
+        plot + ggplot2::labs(title = levels(points$motif)[[1L]])
+    }
+}
+
+# One row per promoter and motif: position, score, and score band.
+.ps_hit_score_points <- function(motifs, shift) {
+    points <- do.call(rbind, lapply(motifs, function(m) {
+        loose <- ps_bg_avg(m)
+        strict <- loose + ps_bg_std_dev(m)
+        scores <- ps_hits_score(m)
+        keep <- is.finite(scores)
+        scores <- scores[keep]
+        data.frame(
+            motif = rep(name(m), length(scores)),
+            position = ps_hits_pos(m, pos_shift = shift)[keep],
+            score = scores,
+            band = .PS_SCORE_BANDS[
+                1L + (scores >= loose) + (scores >= strict)
+            ],
+            stringsAsFactors = FALSE
+        )
     }))
     if (nrow(points) == 0L) {
         stop("No finite motif hit scores are available to plot", call. = FALSE)
@@ -1670,63 +1725,39 @@ ps_hit_score_plot <- function(x, shift = 0, alpha = NULL, size = NULL) {
     # Panels follow the order the motifs were given, not the alphabet.
     motif_names <- vapply(motifs, name, character(1L))
     points$motif <- factor(points$motif, levels = unique(motif_names))
+    points
+}
 
-    # Panels share one aesthetic, so the busiest panel sets it. The scale runs
-    # from the values that suit a few hundred points to ones that survive tens
-    # of thousands, interpolated on a log scale between 1e3 and 2e4 promoters.
-    busiest <- max(table(points$motif))
-    crowding <- min(1, max(0, log10(busiest / 1e3) / log10(2e4 / 1e3)))
-    if (is.null(alpha)) {
-    alpha <- 0.55 * (1 - crowding) + 0.06 * crowding
-    }
-    if (is.null(size)) {
-    size <- 0.9 * (1 - crowding) + 0.35 * crowding
-    }
-
-    references <- data.frame(
-    motif = factor(motif_names, levels = unique(motif_names)),
-    loose = vapply(motifs, ps_bg_avg, numeric(1L)),
-    strict = vapply(motifs, function(m) {
-        ps_bg_avg(m) + ps_bg_std_dev(m)
-    }, numeric(1L))
-    )
-
-    plot <- ggplot2::ggplot(
-    points, ggplot2::aes(x = .data$position, y = .data$score)
+.ps_hit_score_ggplot <- function(points, references, alpha, size) {
+    ggplot2::ggplot(
+        points, ggplot2::aes(x = .data$position, y = .data$score)
     ) +
-    ggplot2::geom_hline(
-        data = references, ggplot2::aes(yintercept = .data$loose),
-        colour = "grey65", linetype = "dashed", linewidth = 0.4
-    ) +
-    ggplot2::geom_hline(
-        data = references, ggplot2::aes(yintercept = .data$strict),
-        colour = "grey40", linetype = "dashed", linewidth = 0.4
-    ) +
-    ggplot2::geom_point(
-        ggplot2::aes(colour = .data$band),
-        size = size, alpha = alpha
-    ) +
-    ggplot2::scale_colour_manual(
-        values = stats::setNames(
-        c(.PS_DENSITY_COLOUR, .PS_GROUP_PALETTE[[2L]], "grey72"),
-        rev(.PS_SCORE_BANDS)
+        ggplot2::geom_hline(
+            data = references, ggplot2::aes(yintercept = .data$loose),
+            colour = "grey65", linetype = "dashed", linewidth = 0.4
+        ) +
+        ggplot2::geom_hline(
+            data = references, ggplot2::aes(yintercept = .data$strict),
+            colour = "grey40", linetype = "dashed", linewidth = 0.4
+        ) +
+        ggplot2::geom_point(
+            ggplot2::aes(colour = .data$band),
+            size = size, alpha = alpha
+        ) +
+        ggplot2::scale_colour_manual(
+            values = stats::setNames(
+                c(.PS_DENSITY_COLOUR, .PS_GROUP_PALETTE[[2L]], "grey72"),
+                rev(.PS_SCORE_BANDS)
+            )
+        ) +
+        ggplot2::labs(
+            x = "Position along promoters", y = "Hit score", colour = NULL
+        ) +
+        ggplot2::theme_minimal(base_size = 11) +
+        ggplot2::theme(
+            panel.grid.minor = ggplot2::element_blank(),
+            legend.position = "top",
+            legend.justification = "left",
+            strip.text = ggplot2::element_text(face = "bold")
         )
-    ) +
-    ggplot2::labs(
-        x = "Position along promoters", y = "Hit score", colour = NULL
-    ) +
-    ggplot2::theme_minimal(base_size = 11) +
-    ggplot2::theme(
-        panel.grid.minor = ggplot2::element_blank(),
-        legend.position = "top",
-        legend.justification = "left",
-        strip.text = ggplot2::element_text(face = "bold")
-    )
-
-    if (nlevels(points$motif) > 1L) {
-    plot <- plot + ggplot2::facet_wrap(~motif)
-    } else {
-    plot <- plot + ggplot2::labs(title = levels(points$motif)[[1L]])
-    }
-    plot
 }

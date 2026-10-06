@@ -33,8 +33,9 @@ MANE Select is preferred over RefSeq Select. The returned table can be
   cached, inspected, and reused in multiple analyses.
 
 The automatic metadata download provided by this function is human-specific
-  and applies only to the RefSeq transcript scheme. It currently uses UCSC
-  hg38 MANE and RefSeq Select tracks. For every other reference, use
+  and applies only to the RefSeq transcript scheme. It currently uses the
+  UCSC hg38 MANE and RefSeq Select tracks, retrieved with
+  \code{UCSC.utils::fetch_UCSC_track_data()}. For every other reference, use
   representative mode or supply species-specific selection metadata.
 }
 \examples{

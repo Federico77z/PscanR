@@ -1,26 +1,29 @@
+# Assisted-by: OpenAI Codex and Claude Code (code refactoring, review and
+# documentation). All changes were reviewed and tested by the authors.
+
 #' @import TFBSTools
 #' @importFrom TFBSTools PFMatrix
 .PSMatrix <- setClass("PSMatrix",
     slots = representation(
-    ps_bg_avg = "numeric",
-    ps_fg_avg = "numeric",
-    ps_bg_std_dev = "numeric",
-    ps_bg_size = "integer",
-    ps_fg_size = "integer",
-    ps_hits_pos = "integer",
-    ps_hits_pos_bg = "integer",
-    ps_hits_strand = "character",
-    ps_hits_strand_bg = "character",
-    ps_hits_score = "numeric",
-    ps_hits_score_bg = "numeric",
-    ps_hits_oligo = "character",
-    ps_hits_oligo_bg = "character",
-    ps_zscore = "numeric",
-    ps_pvalue = "numeric",
-    ps_seq_names = "character",
-    ps_bg_seq_names = "character",
-    .PS_PSEUDOCOUNT = "numeric",
-    .PS_ALPHABET = "integer"
+        ps_bg_avg = "numeric",
+        ps_fg_avg = "numeric",
+        ps_bg_std_dev = "numeric",
+        ps_bg_size = "integer",
+        ps_fg_size = "integer",
+        ps_hits_pos = "integer",
+        ps_hits_pos_bg = "integer",
+        ps_hits_strand = "character",
+        ps_hits_strand_bg = "character",
+        ps_hits_score = "numeric",
+        ps_hits_score_bg = "numeric",
+        ps_hits_oligo = "character",
+        ps_hits_oligo_bg = "character",
+        ps_zscore = "numeric",
+        ps_pvalue = "numeric",
+        ps_seq_names = "character",
+        ps_bg_seq_names = "character",
+        .PS_PSEUDOCOUNT = "numeric",
+        .PS_ALPHABET = "integer"
     ),
     contains = "PFMatrix"
 )
@@ -91,18 +94,18 @@
 #' J2020 <- readRDS(J2020_path)
 #'
 #' result <- PSMatrix(
-#'   pfm = J2020[[1]],
-#'   ps_bg_avg = 0.25,
-#'   ps_fg_avg = 0.5,
-#'   ps_bg_std_dev = 0.05,
-#'   ps_bg_size = 1000L # number of background sequences
+#'     pfm = J2020[[1]],
+#'     ps_bg_avg = 0.25,
+#'     ps_fg_avg = 0.5,
+#'     ps_bg_std_dev = 0.05,
+#'     ps_bg_size = 1000L # number of background sequences
 #' )
 #' print(result)
 PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
-                        ps_fg_avg = as.numeric(NA),
-                        ps_bg_std_dev = as.numeric(NA),
-                        ps_bg_size = as.integer(NA),
-                        .PS_PSEUDOCOUNT = 0.01, ...) {
+    ps_fg_avg = as.numeric(NA),
+    ps_bg_std_dev = as.numeric(NA),
+    ps_bg_size = as.integer(NA),
+    .PS_PSEUDOCOUNT = 0.01, ...) {
     dots <- list(...)
     if (length(dots) != 0L) {
         dot_names <- names(dots)
@@ -115,28 +118,28 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
     }
     #  .ps_required_packages()
     .ps_norm_matrix(.PSMatrix(pfm,
-    ps_bg_avg = ps_bg_avg,
-    ps_fg_avg = ps_fg_avg,
-    ps_bg_std_dev = ps_bg_std_dev,
-    ps_bg_size = ps_bg_size,
-    ps_fg_size = as.integer(NA),
-    ps_zscore = as.numeric(NA),
-    ps_pvalue = as.numeric(NA),
-    ps_seq_names = character(),
-    ps_bg_seq_names = character(),
-    .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT,
-    ps_hits_pos = integer(),
-    ps_hits_pos_bg = integer(),
-    ps_hits_strand = character(),
-    ps_hits_strand_bg = character(),
-    ps_hits_score = numeric(),
-    ps_hits_score_bg = numeric(),
-    ps_hits_oligo = character(),
-    ps_hits_oligo_bg = character(),
-    .PS_ALPHABET = setNames(
-        seq_len(4),
-        c("A", "C", "G", "T")
-    )
+        ps_bg_avg = ps_bg_avg,
+        ps_fg_avg = ps_fg_avg,
+        ps_bg_std_dev = ps_bg_std_dev,
+        ps_bg_size = ps_bg_size,
+        ps_fg_size = as.integer(NA),
+        ps_zscore = as.numeric(NA),
+        ps_pvalue = as.numeric(NA),
+        ps_seq_names = character(),
+        ps_bg_seq_names = character(),
+        .PS_PSEUDOCOUNT = .PS_PSEUDOCOUNT,
+        ps_hits_pos = integer(),
+        ps_hits_pos_bg = integer(),
+        ps_hits_strand = character(),
+        ps_hits_strand_bg = character(),
+        ps_hits_score = numeric(),
+        ps_hits_score_bg = numeric(),
+        ps_hits_oligo = character(),
+        ps_hits_oligo_bg = character(),
+        .PS_ALPHABET = setNames(
+            seq_len(4),
+            c("A", "C", "G", "T")
+        )
     ))
 }
 
@@ -182,40 +185,40 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #' J2020 <- readRDS(J2020_path)
 #'
 #' PSM1 <- PSMatrix(
-#'   pfm = J2020[[1]],
-#'   ps_bg_avg = 0.25,
-#'   ps_fg_avg = 0.5,
-#'   ps_bg_std_dev = 0.05,
-#'   ps_bg_size = 1000L # number of background sequences
+#'     pfm = J2020[[1]],
+#'     ps_bg_avg = 0.25,
+#'     ps_fg_avg = 0.5,
+#'     ps_bg_std_dev = 0.05,
+#'     ps_bg_size = 1000L # number of background sequences
 #' )
 #' PSM2 <- PSMatrix(
-#'   pfm = J2020[[2]],
-#'   ps_bg_avg = 0.25,
-#'   ps_fg_avg = 0.5,
-#'   ps_bg_std_dev = 0.05,
-#'   ps_bg_size = 1000L # number of background sequences
+#'     pfm = J2020[[2]],
+#'     ps_bg_avg = 0.25,
+#'     ps_fg_avg = 0.5,
+#'     ps_bg_std_dev = 0.05,
+#'     ps_bg_size = 1000L # number of background sequences
 #' )
 #' result <- PSMatrixList(PSM1, PSM2)
 #' ps_results_table(result)
 #' @export
 PSMatrixList <- function(...,
-                            transcriptIDLegend = character(),
-                            use.names = TRUE) {
+    transcriptIDLegend = character(),
+    use.names = TRUE) {
     if (!is.character(transcriptIDLegend)) {
-    stop("'transcriptIDLegend' must be a character vector")
+        stop("'transcriptIDLegend' must be a character vector")
     }
 
     listData <- list(...)
     out <- XMatrixList(listData,
-    use.names = use.names,
-    type = "PSMatrixList",
-    matrixClass = "PSMatrix"
+        use.names = use.names,
+        type = "PSMatrixList",
+        matrixClass = "PSMatrix"
     )
 
     # XMatrixList() knows nothing of the slot PSMatrixList adds, so the legend
     # is set here. Without this the argument would be accepted and discarded,
     # and no rebuilt list could ever be a full background.
-    out@transcriptIDLegend <- transcriptIDLegend
+    out <- .ps_set_legend(out, transcriptIDLegend)
 
     return(out)
 }

@@ -83,17 +83,17 @@ to create a `PSMatrixList` with background statistics.
 \examples{
 # The online helper downloads its matching background and motif collection.
 if (interactive()) {
-  bg_matrices <- ps_retrieve_bg(
-    "Jaspar2020", "hs",
-    c(-200, 50), "hg38"
-  )
-  bg_matrices[[4]]
+    bg_matrices <- ps_retrieve_bg(
+        "Jaspar2020", "hs",
+        c(-200, 50), "hg38"
+    )
+    bg_matrices[[4]]
 }
 
 # The equivalent bundled files provide a fast, offline example.
 bg_path <- system.file(
-  "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
-  package = "PscanR"
+    "extdata", "J2020_hg38_200u_50d_UCSC.psbg.txt",
+    package = "PscanR"
 )
 matrix_path <- system.file("extdata", "J2020.rds", package = "PscanR")
 matrices <- readRDS(matrix_path)

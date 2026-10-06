@@ -74,9 +74,9 @@ full_bg_path <- system.file("extdata", "full_pfms.rds", package = "PscanR")
 full_pfms <- readRDS(full_bg_path)
 
 IDs <- c(
-  "NM_031921.6", "NM_001005484.2", "NR_047525.1", "NR_029639.1",
-  "NR_036051.1", "NR_029834.1", "NM_001029885.2", "NR_148357.1",
-  "NR_148960.1", "NM_001130413.4"
+    "NM_031921.6", "NM_001005484.2", "NR_047525.1", "NR_029639.1",
+    "NR_036051.1", "NR_029834.1", "NM_001029885.2", "NR_148357.1",
+    "NR_148960.1", "NM_001130413.4"
 )
 
 # The bundled background is a 36-promoter toy, so retrieving ten of them is

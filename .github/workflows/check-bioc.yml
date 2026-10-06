@@ -20,7 +20,6 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
-      R_KEEP_PKG_SOURCE: yes
 
     steps:
       - uses: actions/checkout@v5
@@ -58,11 +57,19 @@ jobs:
           echo "PKG_TARBALL=$(ls -1 /tmp/build/*.tar.gz)" >> "$GITHUB_ENV"
           ls -l /tmp/build
 
+      # Bioconductor checks new submissions with its own check.Renviron
+      # (https://github.com/Bioconductor/packagebuilder), not --as-cran.
+      - name: Fetch Bioconductor check settings
+        run: |
+          curl -fsSL -o /tmp/check.Renviron \
+            https://raw.githubusercontent.com/Bioconductor/packagebuilder/master/check.Renviron
+          echo "R_CHECK_ENVIRON=/tmp/check.Renviron" >> "$GITHUB_ENV"
+
       - name: R CMD check
         run: |
           rcmdcheck::rcmdcheck(
             Sys.getenv('PKG_TARBALL'),
-            args = c('--no-manual', '--as-cran'),
+            args = c('--no-manual', '--timings'),
             error_on = 'warning',
             check_dir = '/tmp/check')
         shell: Rscript {0}

@@ -14,6 +14,12 @@ vignette: >
     %\VignetteEncoding{UTF-8}
 ---
 
+```{css, echo=FALSE}
+table.ps-functions { border-collapse: collapse; width: 100%; }
+table.ps-functions th { border-bottom: 2px solid #ccc; }
+table.ps-functions td { border-bottom: 1px solid #ddd; }
+```
+
 # Introduction
 
 This vignette summarises the principal PscanR functions for motif enrichment
@@ -61,50 +67,51 @@ foreground scores close to background and is not significantly enriched
 
 # Table 1: Motif enrichment analysis and input preparation
 
-<table style="border-collapse: collapse; width: 100%;">
+<table class="ps-functions">
     <thead>
     <tr>
-        <th style="width:20%; border-bottom: 2px solid #ccc;">Function</th>
-        <th style="width:80%; border-bottom: 2px solid #ccc;">Description</th>
+        <th style="width:20%;">Function</th>
+        <th style="width:80%;">Description</th>
     </tr>
     </thead>
     <tbody>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>pscan()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td><code>pscan()</code></td>
+        <td>
     Computes the best match to each motif in each promoter and tests motif
     enrichment against the supplied background score distributions.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     <code>pscan_full_bg()</code>
 </td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     Retrieves stored motif hits for foreground identifiers from a full
     background and calculates enrichment without rescanning the DNA sequences.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>pscan_filtered()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td><code>pscan_filtered()</code></td>
+        <td>
     Selects promoters whose best match to a specified motif meets a threshold
     defined from its background distribution, then scans the selected promoters
     against the supplied motif collection.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>ps_select_promoters()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td><code>ps_select_promoters()</code></td>
+        <td>
     Selects one promoter per mapped gene from supplied sequences and annotation,
     using transcript preferences or rules appropriate to the identifier scheme.
     Reports the scheme and the reason for each selection.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>ps_selection_summary()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
-    Summarises a mapping produced by <code>ps_select_promoters()</code>, including
+        <td><code>ps_selection_summary()</code></td>
+        <td>
+    Summarises a mapping produced by <code>ps_select_promoters()</code>,
+    including
     identifier schemes, selection rules, genes with multiple candidates, and
     selections requiring a tie-breaking rule after ranking.
 </td>
@@ -113,7 +120,8 @@ foreground scores close to background and is not significantly enriched
         <td><code>ps_load_select_transcripts()</code></td>
         <td>
     Downloads and caches human hg38 MANE Select and RefSeq Select metadata from
-    UCSC for use with <code>ps_select_promoters()</code>. Other organisms require
+    UCSC for use with <code>ps_select_promoters()</code>. Other organisms
+    require
     an appropriate user-supplied selection table or representative selection.
 </td>
     </tr>
@@ -130,69 +138,74 @@ promoters, mean score, and score standard deviation for each motif; a full
 background also retains the individual hits. Foreground and background must
 use matching promoter definitions and motif matrices.
 
-<table style="border-collapse: collapse; width: 100%;">
+<table class="ps-functions">
     <thead>
     <tr>
-        <th style="width:30%; border-bottom: 2px solid #ccc;">Function</th>
-        <th style="width:70%; border-bottom: 2px solid #ccc;">Description</th>
+        <th style="width:30%;">Function</th>
+        <th style="width:70%;">Description</th>
     </tr>
     </thead>
     <tbody>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
             <code>ps_build_bg()</code>
         </td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     Scans the supplied reference sequences and computes background statistics
     for each motif after sequence filtering and deduplication.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     <code>ps_retrieve_bg()</code>
 </td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     Retrieves a precomputed background and associates its statistics with the
     matching motif matrices in a <code>PSMatrixList</code>.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     <code>ps_available_bg()</code>
 </td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     Displays the names of all available precomputed backgrounds, with options to
     filter by keywords.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>ps_retrieve_bg_from_file()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td><code>ps_retrieve_bg_from_file()</code></td>
+        <td>
     Reads a background text file and associates the stored size, mean score,
     and standard deviation with the supplied motif matrices by identifier.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>ps_build_bg_from_table()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
-    Associates background parameters held in a <code>data.frame</code> with a list of position frequency matrices and returns the result as a <code>PSMatrixList</code>.
+        <td><code>ps_build_bg_from_table()</code></td>
+        <td>
+    Associates background parameters held in a <code>data.frame</code> with a
+    list of position frequency matrices and returns the result as a
+    <code>PSMatrixList</code>.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>ps_get_bg_table()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
-    Extracts the background statistics (size, mean and standard deviation) from a <code>PSMatrixList</code> as a <code>data.frame</code>, which is the inverse of <code>ps_build_bg_from_table()</code>.
+        <td><code>ps_get_bg_table()</code></td>
+        <td>
+    Extracts the background statistics (size, mean and standard deviation) from
+    a <code>PSMatrixList</code> as a <code>data.frame</code>, which is the
+    inverse of <code>ps_build_bg_from_table()</code>.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>ps_write_bg_to_file()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
-    Writes the background statistics of a <code>PSMatrixList</code> to a text file, in the format <code>ps_retrieve_bg_from_file()</code> reads back.
+        <td><code>ps_write_bg_to_file()</code></td>
+        <td>
+    Writes the background statistics of a <code>PSMatrixList</code> to a text
+    file, in the format <code>ps_retrieve_bg_from_file()</code> reads back.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>ps_build_bg(fullBG = TRUE)</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td><code>ps_build_bg(fullBG = TRUE)</code></td>
+        <td>
     Builds a full background containing summary statistics and the best hit's
     score, position, strand, and matched oligonucleotide for each retained
     promoter and motif. Full backgrounds require substantially more storage;
@@ -200,8 +213,8 @@ use matching promoter definitions and motif matrices.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>pscan_full_bg()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td><code>pscan_full_bg()</code></td>
+        <td>
     Uses foreground transcript identifiers to retrieve hits stored in a full
     background. Reusing these hits reduces computation for repeated analyses
     against the same reference set.
@@ -222,57 +235,57 @@ use matching promoter definitions and motif matrices.
 
 # Table 3: Result summaries and visualisation
 
-<table style="border-collapse: collapse; width: 100%;">
+<table class="ps-functions">
     <thead>
     <tr>
-        <th style="width:25%; border-bottom: 2px solid #ccc;">Function</th>
-        <th style="width:85%; border-bottom: 2px solid #ccc;">Description</th>
+        <th style="width:25%;">Function</th>
+        <th style="width:85%;">Description</th>
     </tr>
     </thead>
     <tbody>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     <code>ps_results_table()</code>
 </td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     Returns motif-level results ordered by increasing p-value, with decreasing
     z-score used to resolve ties. Motifs can be selected using a specified
     false discovery rate (FDR) threshold.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
             <code>ps_z_table()</code>
         </td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     Returns a matrix of standardised best-hit scores, with promoters as rows
     and motifs as columns, from a <code>PSMatrixList</code>.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     <code>ps_zscore_heatmap()</code>
 </td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     Displays a heatmap of per-promoter motif z-scores after motif selection by
     FDR. By default, rows are scaled and both axes are clustered using
     correlation distances; the cells are not pairwise correlation coefficients.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     <code>ps_hitpos_map()</code>
 </td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
         Displays the position of each promoter's best motif match as a heatmap
         to compare positional patterns across motifs.
         </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
     <code>ps_density_plot()</code>
 </td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td>
         Estimates the positional density of a motif's best hits, optionally
         restricted by a score threshold. A supplied promoter window enables
         boundary correction, and optional bins show a histogram on the same
@@ -280,15 +293,15 @@ use matching promoter definitions and motif matrices.
         </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>ps_hit_score_plot()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td><code>ps_hit_score_plot()</code></td>
+        <td>
     Plots best-hit score against position for each promoter, allowing joint
     assessment of match strength and positional concentration.
 </td>
     </tr>
     <tr>
-        <td style="border-bottom: 1px solid #ddd;"><code>ps_motif_barplot()</code></td>
-        <td style="border-bottom: 1px solid #ddd;">
+        <td><code>ps_motif_barplot()</code></td>
+        <td>
     Displays the highest-ranked motifs as horizontal bars, optionally coloured
     by a grouping such as transcription factor structural class.
 </td>

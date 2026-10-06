@@ -53,7 +53,8 @@ reports candidate binding sites.
 
 [TFBSTools](https://bioconductor.org/packages/TFBSTools/) supplies the motif
 classes that PscanR extends; Biostrings supplies sequence representations and
-scoring primitives. [motifmatchr](https://bioconductor.org/packages/motifmatchr/)
+scoring primitives.
+[motifmatchr](https://bioconductor.org/packages/motifmatchr/)
 uses MOODS to find matches across many motifs and sequences.
 [PWMEnrich](https://bioconductor.org/packages/PWMEnrich/) provides another
 Biostrings-based toolkit for known-motif scanning and enrichment. These tools
@@ -103,7 +104,8 @@ annotations. Each precomputed background records its window in its name, as in
 `950u_50d`.
 
 The next section demonstrates the use of a precomputed background. The vignette
-[Building a background for PscanR](PscanR_Custom_Background.html) describes the construction and use of custom
+[Building a background for PscanR](PscanR_Custom_Background.html) describes the
+construction and use of custom
 backgrounds.
 
 ## Obtaining a precomputed background
@@ -142,7 +144,8 @@ are available. The supported species and assemblies are:
 
 -   *Saccharomyces cerevisiae*, sacCer3
 
-The available promoter windows span 200 bp upstream and 50 bp downstream, 450 upstream and
+The available promoter windows span 200 bp upstream and 50 bp downstream, 450
+upstream and
 50 downstream, 500 upstream and 0 downstream, 950 upstream and 50 downstream,
 and 1000 upstream and 0 downstream, for the JASPAR 2020, 2022, and 2024
 releases. Only JASPAR CORE motifs are used.
@@ -171,7 +174,8 @@ J2020_PSBG[[4]] # one matrix, with its background statistics
 ```
 
 If no available background matches the required species, window, or motif
-collection, construct a custom background as described in [Building a background for PscanR](PscanR_Custom_Background.html).
+collection, construct a custom background as described in [Building a background
+for PscanR](PscanR_Custom_Background.html).
 
 # Preparing promoter sequences for `pscan()`
 

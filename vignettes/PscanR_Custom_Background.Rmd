@@ -1,19 +1,19 @@
 ---
 title: "Building a background for PscanR"
 author:
-  - Federico Zambelli
+    - Federico Zambelli
 date: "`r Sys.Date()`"
 output:
-  BiocStyle::html_document:
-    toc: true
-    toc_depth: 2
+    BiocStyle::html_document:
+        toc: true
+        toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{5. Building a background for PscanR}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{5. Building a background for PscanR}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
 editor_options:
-  markdown:
-    wrap: 80
+    markdown:
+        wrap: 80
 ---
 
 ```{r setup, include=FALSE}
@@ -81,7 +81,8 @@ For pre-submission installation from source, see the package README.
 # Introduction
 
 PscanR provides access to precomputed backgrounds for five model organisms:
-human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR annotation),
+human, mouse, and fruit fly (RefSeq annotation), *Arabidopsis* (TAIR
+annotation),
 and yeast (SGD annotation).
 
 `ps_available_bg()` lists the available resources:
@@ -122,7 +123,8 @@ for enrichment. Both computations run during vignette builds.
 
 ```{r small-background-roundtrip}
 example_sequences <- readRDS(fixture("rp_promoters.rds"))
-example_sequences <- example_sequences[seq_len(min(40L, length(example_sequences)))]
+n_example <- min(40L, length(example_sequences))
+example_sequences <- example_sequences[seq_len(n_example)]
 example_motifs <- JASPAR2020::JASPAR2020
 example_motifs <- TFBSTools::getMatrixSet(
     example_motifs, list(collection = "CORE", tax_group = "fungi")
@@ -155,10 +157,10 @@ window as the intended foreground: **−950 to +50 bp relative to the TSS**.
 The reference is specified by three components:
 
 1. **Annotation:** UCSC's `sgdGene` table, provided by the
-   `TxDb.Scerevisiae.UCSC.sacCer3.sgdGene` package, whose version records
-   the annotation release used;
+    `TxDb.Scerevisiae.UCSC.sacCer3.sgdGene` package, whose version records
+    the annotation release used;
 2. **Genome:** `BSgenome.Scerevisiae.UCSC.sacCer3`, whose chromosome names
-   must agree with the annotation's;
+    must agree with the annotation's;
 3. **Window:** 950 bp upstream and 50 bp downstream of the TSS.
 
 Changes to the assembly or annotation can alter promoter sequences and
@@ -168,12 +170,13 @@ promoter definition for foreground and background.
 ```{r promoters, eval=FALSE}
 
 # UCSC's sgdGene table, packaged and versioned.
-txdb <- TxDb.Scerevisiae.UCSC.sacCer3.sgdGene::TxDb.Scerevisiae.UCSC.sacCer3.sgdGene
+library(TxDb.Scerevisiae.UCSC.sacCer3.sgdGene)
+txdb <- TxDb.Scerevisiae.UCSC.sacCer3.sgdGene
 
 # The background covers the 16 nuclear chromosomes.
 tx <- GenomicFeatures::transcripts(txdb, columns = c("tx_id", "tx_name"))
-tx <- tx[as.character(GenomicRanges::seqnames(tx)) %in%
-             paste0("chr", as.roman(1:16))]
+nuclear <- paste0("chr", as.roman(seq_len(16)))
+tx <- tx[as.character(GenomicRanges::seqnames(tx)) %in% nuclear]
 names(tx) <- GenomicRanges::mcols(tx)$tx_name
 
 # promoters() is strand-aware and anchored on the transcription start site.
@@ -251,7 +254,10 @@ build_timings$Speedup <- round(
 )
 knitr::kable(
     build_timings, digits = 1,
-    caption = "Background construction time in seconds, using one or eight cores."
+    caption = paste(
+        "Background construction time in seconds,",
+        "using one or eight cores."
+    )
 )
 ```
 
@@ -327,7 +333,8 @@ decimal places in this comparison.
 
 Floating-point arithmetic and text serialisation can introduce small numerical
 differences. Agreement to ten decimal places is the criterion used for this
-verification, not a guarantee of exact byte-equality across platforms. Those tiny 
+verification, not a guarantee of exact byte-equality across platforms. Those
+tiny 
 differences across platforms are usually negligible and do not impact PscanR 
 results in any meaningful way. 
 
@@ -366,10 +373,12 @@ full_bg <- ps_build_bg(
 input names. Deduplicating beforehand prevents the function from retaining
 identifiers associated with the removed duplicate sequences.
 
-**Storage requirements.** Full backgrounds can use sizeable storage up to hundreds 
+**Storage requirements.** Full backgrounds can use sizeable storage up to
+hundreds 
 of megabytes depending on the number of promoters and matrices. 
 The bundled yeast demonstration contains `r length(fullbg$motifs)`
-matrices and occupies approximately `r round(fullbg$size_bytes / 1024)` KiB. Linear
+matrices and occupies approximately `r round(fullbg$size_bytes / 1024)` KiB.
+Linear
 extrapolation by matrix count gives approximately `r full_bg_all_mb` MiB for
 all `r verification$motif_count` yeast matrices. Complete full-background 
 collections are not maintaned nor bundled with the package.
@@ -437,24 +446,25 @@ background. Here, the SGD systematic identifiers name the stored promoters.
 Record the following choices to support reproducibility:
 
 1. **Annotation source.** A packaged `TxDb` if Bioconductor ships one for the
-   organism. Otherwise a UCSC table via `txdbmaker::makeTxDbFromUCSC()`, or a
-   GFF/GTF via `txdbmaker::makeTxDbFromGFF()`; with those, record *which
-   release* was used and when it was retrieved.
+    organism. Otherwise a UCSC table via `txdbmaker::makeTxDbFromUCSC()`, or a
+    GFF/GTF via `txdbmaker::makeTxDbFromGFF()`; with those, record *which
+    release* was used and when it was retrieved.
 2. **Genome sequence.**
-   A `BSgenome` package if one exists; otherwise a FASTA read with
-   `Biostrings::readDNAStringSet()`. Record the assembly and ensure that
-   chromosome names agree with the annotation.
+    A `BSgenome` package if one exists; otherwise a FASTA read with
+    `Biostrings::readDNAStringSet()`. Record the assembly and ensure that
+    chromosome names agree with the annotation.
 3. **Window.** Specify the upstream and downstream extent relative to the TSS.
-   Foreground and background must share this window and compatible reference
-   sequences and annotations.
+    Foreground and background must share this window and compatible reference
+    sequences and annotations.
 4. **Motif collection, and its taxonomic subset.** Inspect what the collection
-   contains and record its release. In the JASPAR CORE fungi collection used
-   here, `r pct_cerevisiae`% of matrices have *S. cerevisiae* species annotation.
-   Assess suitability for the organism under study.
+    contains and record its release. In the JASPAR CORE fungi collection used
+    here, `r pct_cerevisiae`% of matrices have *S. cerevisiae* species
+    annotation.
+    Assess suitability for the organism under study.
 5. **Identifier scheme.** Preserve meaningful identifier suffixes. The
-   `scheme` argument of `pscan_full_bg()` supports `"refseq"`, `"sgd"`,
-   `"tair"`, and `"generic"`; `"auto"` detects recognised conventions.
-   Generic identifiers are matched without suffix removal.
+    `scheme` argument of `pscan_full_bg()` supports `"refseq"`, `"sgd"`,
+    `"tair"`, and `"generic"`; `"auto"` detects recognised conventions.
+    Generic identifiers are matched without suffix removal.
 
 # Summary
 
@@ -464,11 +474,12 @@ Record the following choices to support reproducibility:
 
 genome <- BSgenome.Scerevisiae.UCSC.sacCer3::BSgenome.Scerevisiae.UCSC.sacCer3
 
-txdb <- TxDb.Scerevisiae.UCSC.sacCer3.sgdGene::TxDb.Scerevisiae.UCSC.sacCer3.sgdGene
+library(TxDb.Scerevisiae.UCSC.sacCer3.sgdGene)
+txdb <- TxDb.Scerevisiae.UCSC.sacCer3.sgdGene
 
 tx <- GenomicFeatures::transcripts(txdb, columns = c("tx_id", "tx_name"))
-tx <- tx[as.character(GenomicRanges::seqnames(tx)) %in%
-             paste0("chr", as.roman(1:16))]
+nuclear <- paste0("chr", as.roman(seq_len(16)))
+tx <- tx[as.character(GenomicRanges::seqnames(tx)) %in% nuclear]
 names(tx) <- GenomicRanges::mcols(tx)$tx_name
 
 ranges <- GenomicRanges::promoters(tx, upstream = 950, downstream = 50)

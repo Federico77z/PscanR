@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code refactoring, review and
+# documentation). All changes were reviewed and tested by the authors.
+
 #' Get the Transcript ID Legend from a PSMatrixList object
 #'
 #' This method retrieves the value stored in the `transcriptIDLegend` slot of
@@ -25,6 +28,24 @@ setMethod("ps_transcript_legend", "PSMatrixList", function(x) {
 
     return(out)
 })
+
+# Internal accessors and setters. Together with the exported accessors and
+# the class methods in this file, these are the only code that touches slots.
+.ps_set_legend <- function(x, value) {
+    x@transcriptIDLegend <- value
+    x
+}
+
+.ps_set_hits_score <- function(x, value) {
+    x@ps_hits_score <- value
+    x
+}
+
+# Length of the stored background hits, read from the slot so that no names
+# are attached on the way out (see .ps_check_bg_scan_size()).
+.ps_bg_hit_count <- function(x) {
+    length(x@ps_hits_score_bg)
+}
 
 #' Get Background Average Score
 #'
@@ -537,12 +558,12 @@ setMethod(
     "ps_hits_pos",
     "PSMatrix",
     function(x, pos_shift = 0L, withDimnames = TRUE) {
-    out <- x@ps_hits_pos - 1L + pos_shift
+        out <- x@ps_hits_pos - 1L + pos_shift
 
-    out <- if (withDimnames) .ps_seq_names(x, out) else unname(out)
+        out <- if (withDimnames) .ps_seq_names(x, out) else unname(out)
 
-    return(out)
-})
+        return(out)
+    })
 
 #' Get Motif Hit Positions in a Background Dataset
 #'
@@ -736,54 +757,65 @@ setMethod(
         if (!use_full_BG) {
             x@ps_hits_score <- .ps_norm_score(x)
         }
-
         if (BG) {
-            x@ps_bg_size <- as.integer(length(x@ps_hits_pos))
-            x@ps_bg_avg <- mean(x@ps_hits_score, na.rm = TRUE)
-            bg_sd <- sd(x@ps_hits_score, na.rm = TRUE)
-            if (!is.na(bg_sd) && bg_sd == 0) bg_sd <- 0.00001
-            x@ps_bg_std_dev <- bg_sd
-
-            if (fullBG) {
-                x@ps_hits_pos_bg <- Pos
-                x@ps_hits_strand_bg <- Strand
-                x@ps_hits_score_bg <- x@ps_hits_score
-                names(x@ps_hits_score_bg) <- x@ps_bg_seq_names
-                x@ps_hits_oligo_bg <- Oligo
-            }
-            x@ps_hits_pos <- integer()
-            x@ps_hits_strand <- character()
-            x@ps_hits_score <- numeric()
+            .ps_store_bg_hits(x, Pos, Strand, Oligo, fullBG)
         } else {
-            x@ps_fg_size <- length(x@ps_hits_pos)
-            x@ps_hits_oligo <- Oligo
-            if (!is.na(x@ps_bg_avg) && !is.na(x@ps_bg_std_dev)) {
-                # One-sample upper-tail z-test against the background mean.
-                # The upper tail is evaluated directly with
-                # pnorm(lower.tail = FALSE): computing it as 1 - pnorm(z)
-                # saturates at 1.11e-16 and returns exactly 0 for z > ~8.3,
-                # which silently discards the most enriched motifs.
-                scores <- x@ps_hits_score[!is.na(x@ps_hits_score)]
-                if (length(scores) <= 2L) {
-                    stop("not enough foreground observations for the z-test",
-                        call. = FALSE)
-                }
-                std_err <- x@ps_bg_std_dev / sqrt(length(scores))
-                zscore <- (mean(scores) - x@ps_bg_avg) / std_err
-
-                x@ps_zscore <- c(z = zscore)
-                x@ps_pvalue <- pnorm(zscore, lower.tail = FALSE)
-                x@ps_fg_avg <- mean(x@ps_hits_score, na.rm = TRUE)
-            }
-
-            x@ps_hits_pos_bg <- integer()
-            x@ps_hits_strand_bg <- character()
-            x@ps_hits_score_bg <- numeric()
-            x@ps_hits_oligo_bg <- character()
+            .ps_store_fg_hits(x, Oligo)
         }
-        return(x)
     }
 )
+
+# Background scan: keep the summary statistics, and with fullBG also the
+# per-promoter hits; foreground slots are emptied.
+.ps_store_bg_hits <- function(x, Pos, Strand, Oligo, fullBG) {
+    x@ps_bg_size <- as.integer(length(x@ps_hits_pos))
+    x@ps_bg_avg <- mean(x@ps_hits_score, na.rm = TRUE)
+    bg_sd <- sd(x@ps_hits_score, na.rm = TRUE)
+    if (!is.na(bg_sd) && bg_sd == 0) bg_sd <- 0.00001
+    x@ps_bg_std_dev <- bg_sd
+
+    if (fullBG) {
+        x@ps_hits_pos_bg <- Pos
+        x@ps_hits_strand_bg <- Strand
+        x@ps_hits_score_bg <- x@ps_hits_score
+        names(x@ps_hits_score_bg) <- x@ps_bg_seq_names
+        x@ps_hits_oligo_bg <- Oligo
+    }
+    x@ps_hits_pos <- integer()
+    x@ps_hits_strand <- character()
+    x@ps_hits_score <- numeric()
+    x
+}
+
+# Foreground scan: keep the hits and, when the background statistics are
+# known, compute the z-score and p-value; background hit slots are emptied.
+.ps_store_fg_hits <- function(x, Oligo) {
+    x@ps_fg_size <- length(x@ps_hits_pos)
+    x@ps_hits_oligo <- Oligo
+    if (!is.na(x@ps_bg_avg) && !is.na(x@ps_bg_std_dev)) {
+        # One-sample upper-tail z-test against the background mean. The upper
+        # tail is evaluated directly with pnorm(lower.tail = FALSE): computing
+        # it as 1 - pnorm(z) saturates at 1.11e-16 and returns exactly 0 for
+        # z > ~8.3, which silently discards the most enriched motifs.
+        scores <- x@ps_hits_score[!is.na(x@ps_hits_score)]
+        if (length(scores) <= 2L) {
+            stop("not enough foreground observations for the z-test",
+                call. = FALSE)
+        }
+        std_err <- x@ps_bg_std_dev / sqrt(length(scores))
+        zscore <- (mean(scores) - x@ps_bg_avg) / std_err
+
+        x@ps_zscore <- c(z = zscore)
+        x@ps_pvalue <- pnorm(zscore, lower.tail = FALSE)
+        x@ps_fg_avg <- mean(x@ps_hits_score, na.rm = TRUE)
+    }
+
+    x@ps_hits_pos_bg <- integer()
+    x@ps_hits_strand_bg <- character()
+    x@ps_hits_score_bg <- numeric()
+    x@ps_hits_oligo_bg <- character()
+    x
+}
 
 
 setMethod(".ps_norm_score", "PSMatrix", function(x) {
@@ -1232,17 +1264,6 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
     .ps_pick_single_hit(scores$forward, scores$reverse, Seq, W)
 })
 
-# setMethod(".ps_assign_score", "PSMatrix", function(x, S){
-# sum(Matrix(x)[matrix(data = c(.PS_ALPHABET(x)[S], 1:length(x)), ncol = 2, nrow
-# = length(x))])
-# })
-
-# .ps_assign_score scored a single window one base at a time. It is no longer
-# used: .ps_scan_s now scores all windows at once via matrix indexing. Kept
-# (commented out) for reference.
-# .ps_assign_score <- function(S, x, AB, ncolx) {
-#   sum(x[ncolx + AB[S]]) # Assign score to oligo
-# }
 
 #' Validate a PSMatrix object
 #'
@@ -1272,6 +1293,13 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
 #' @keywords internal
 #' @noRd
 .ps_valid_psmatrix <- function(object) {
+    problem <- .ps_check_summary_slots(object)
+    if (is.null(problem)) problem <- .ps_check_hit_lengths(object)
+    if (is.null(problem)) TRUE else problem
+}
+
+# Length and range of the scalar summary slots; NULL when they are valid.
+.ps_check_summary_slots <- function(object) {
     if (length(object@ps_bg_avg) != 1) {
         return("Background average must be of length 1")
     }
@@ -1299,7 +1327,12 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
             "Invalid value for Background stddev: ", object@ps_bg_std_dev
         ))
     }
+    NULL
+}
 
+# Foreground and full-background hit vectors must be parallel, and a stored
+# background scan must agree with ps_bg_size; NULL when they are valid.
+.ps_check_hit_lengths <- function(object) {
     foreground_lengths <- c(
         position = length(object@ps_hits_pos),
         strand = length(object@ps_hits_strand),
@@ -1314,7 +1347,6 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
                 sep = "=", collapse = ", "), ")"
         ))
     }
-
     background_lengths <- c(
         position = length(object@ps_hits_pos_bg),
         strand = length(object@ps_hits_strand_bg),
@@ -1338,8 +1370,7 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
             object@ps_bg_size, ")"
         ))
     }
-
-    TRUE
+    NULL
 }
 
 
@@ -1485,18 +1516,8 @@ setReplaceMethod("ps_bg_size", "PSMatrix", function(x, value) {
 #' @export
 #' @importFrom TFBSTools PFMatrix
 setAs("PFMatrix", "PSMatrix", function(from) {
-    # .ps_norm_matrix(new(
-    #   "PSMatrix", from, ps_bg_avg = as.numeric(NA),
-    #   ps_fg_avg = as.numeric(NA), ps_bg_std_dev = as.numeric(NA),
-    #   ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01
-    # ))
-
     PSMatrix(from)
 })
-
-# PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA), ps_fg_avg =
-# as.numeric(NA), ps_bg_std_dev = as.numeric(NA),
-#                     ps_bg_size = as.integer(NA), .PS_PSEUDOCOUNT = 0.01, ...)
 
 #' Convert PFMatrixList to PSMatrixList
 #'
