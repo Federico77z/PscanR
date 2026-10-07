@@ -123,10 +123,9 @@ ps_available_bg()
 
 ```
 
-```{r download-background}
+```{r download-background, message=FALSE}
 J2020_PSBG <- ps_retrieve_bg(
-    "Jaspar2020", "hs", c(-200, 50), "hg38",
-    source = "zenodo"
+    "Jaspar2020", "hs", c(-200, 50), "hg38"
 )
 J2020_PSBG
 J2020_PSBG[[4]] # one matrix, with its background statistics
@@ -157,8 +156,8 @@ Each precomputed background is a separate ExperimentHub resource of the
 `PscanRBackgrounds` data package, and the files are hosted on Zenodo in one
 record per JASPAR release. By default `ps_retrieve_bg()` retrieves a background
 through ExperimentHub and, if the Hub cannot be reached, falls back to Zenodo
-with a warning; `source = "zenodo"`, used above, downloads the file from
-Zenodo directly. If a single file cannot be retrieved, the immutable record
+with a warning; `source = "zenodo"` downloads the file from Zenodo directly.
+If a single file cannot be retrieved, the immutable record
 <https://doi.org/10.5281/zenodo.21821764>, which archives all backgrounds in a
 single ZIP, is used instead. Downloads are cached, and every file is verified
 against the SHA-256 checksum recorded in the catalog.
