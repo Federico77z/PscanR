@@ -105,17 +105,14 @@ ps_available_bg(keyword = "TAIR9", details = TRUE)
 
 `ps_retrieve_bg()` retrieves the background statistics
 and associates them with the matching JASPAR matrices in a `PSMatrixList`.
-Here `source = "zenodo"` downloads the file from Zenodo directly; by default it
-is retrieved through ExperimentHub.
 
-```{r retrieve-background}
+```{r retrieve-background, message=FALSE}
 background <- ps_retrieve_bg(
     JASPAR_matrix = "Jaspar2020",
     org = "at",
     prom_reg = c(-1000, 0),
     assembly = "TAIR9",
-    version = 2,
-    source = "zenodo"
+    version = 2
 )
 length(background)
 ```
