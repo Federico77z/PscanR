@@ -1,7 +1,7 @@
 Package: PscanR
 Type: Package
 Title: Motif Enrichment Analysis of Regulatory DNA Sequences
-Version: 0.99.1
+Version: 0.99.2
 Encoding: UTF-8
 Depends: R (>= 4.6.0)
 Imports:
@@ -47,7 +47,9 @@ Authors@R: c(person("Federico", "Zambelli", email = "federico.zambelli@unimi.it"
     role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3487-4331")),
     person("Giulio", "Pavesi", email = "giulio.pavesi@unimi.it", role = "aut",
     comment = c(ORCID = "0000-0001-5705-6249")),
-    person("Diana", "Betelli", role = "ctb"))
+    person("Diana", "Betelli", role = "ctb"),
+    person("Italy's National Recovery and Resilience Plan (PNRR)",
+        role = "fnd", comment = "project ELIXIRNextGenIT, R0000010"))
 Description: R implementation of the 'Pscan' algorithm for motif enrichment 
     analysis in regulatory DNA sequences, based on Zambelli et al. (2009) 
     <doi:10.1093/nar/gkp464>.
@@ -61,6 +63,5 @@ License: GPL-3
 VignetteBuilder: knitr
 URL: https://github.com/Federico77z/PscanR
 BugReports: https://github.com/Federico77z/PscanR/issues
-RoxygenNote: 8.0.0
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0

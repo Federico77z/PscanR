@@ -1,3 +1,14 @@
+# PscanR 0.99.2
+
+- Changes from the Bioconductor review:
+  - `ps_motif_barplot()` and the density and hit-score plots use the Okabe-Ito
+    colour-blind-safe palette from `grDevices::palette.colors()`.
+  - The vignettes locate their bundled files with `system.file()`, so every
+    displayed chunk can be run as shown.
+  - The funder is listed in `Authors@R`.
+  - Minor code cleanup: no comparisons with `TRUE`, `startsWith()` for prefix
+    tests, `toString()` for comma-separated lists.
+
 # PscanR 0.99.0
 
 - Initial Bioconductor submission.

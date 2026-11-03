@@ -91,10 +91,10 @@
 .ps_transcript_class <- function(x, scheme) {
     x <- as.character(x)
     if (identical(scheme, "refseq")) {
-        return(ifelse(grepl("^NM_", x), "NM",
-            ifelse(grepl("^NR_", x), "NR",
-                ifelse(grepl("^XM_", x), "XM",
-                    ifelse(grepl("^XR_", x), "XR",
+        return(ifelse(startsWith(x, "NM_"), "NM",
+            ifelse(startsWith(x, "NR_"), "NR",
+                ifelse(startsWith(x, "XM_"), "XM",
+                    ifelse(startsWith(x, "XR_"), "XR",
                         ifelse(grepl("^[NXY]P_", x), "protein", "other")
                     )
                 )
@@ -283,7 +283,7 @@
         if (length(detected$ambiguous) > 0L) {
             paste0(
                 " (partial matches: ",
-                paste(detected$ambiguous, collapse = ", "), ")"
+                toString(detected$ambiguous), ")"
             )
         } else {
             ""

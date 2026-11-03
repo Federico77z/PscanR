@@ -465,7 +465,7 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     if (length(missing_cols) > 0L) {
         stop(
             "'annotation' is missing required column(s): ",
-            paste(missing_cols, collapse = ", ")
+            toString(missing_cols)
         )
     }
 

@@ -134,7 +134,7 @@ ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
     # for it to index into and it stays empty.
     pfms <- do.call(PSMatrixList, pfms)
 
-    if (fullBG == TRUE) {
+    if (fullBG) {
         pfms <- .mapping_unique_names(x, pfms)
     }
 

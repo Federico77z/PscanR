@@ -27,14 +27,10 @@ knitr::opts_chunk$set(
     message = FALSE
 )
 
-fixture <- function(...) {
-    system.file(
-        "extdata", "vignettes", "custom_background", ...,
-        package = "PscanR", mustWork = TRUE
-    )
-}
-
-run <- readRDS(fixture("ucbg_summary.rds"))
+run <- readRDS(system.file(
+    "extdata", "vignettes", "custom_background", "ucbg_summary.rds",
+    package = "PscanR"
+))
 verification <- run$verification
 fullbg <- run$fullbg
 
@@ -42,10 +38,18 @@ timing_of <- function(manifest, step) {
     manifest$elapsed_seconds[manifest$step == step]
 }
 timings_1core <- read.delim(
-    fixture("timings_1core.tsv"), stringsAsFactors = FALSE
+    system.file(
+        "extdata", "vignettes", "custom_background", "timings_1core.tsv",
+        package = "PscanR"
+    ),
+    stringsAsFactors = FALSE
 )
 timings_8core <- read.delim(
-    fixture("timings_8core.tsv"), stringsAsFactors = FALSE
+    system.file(
+        "extdata", "vignettes", "custom_background", "timings_8core.tsv",
+        package = "PscanR"
+    ),
+    stringsAsFactors = FALSE
 )
 build_speedup <- round(
     timing_of(timings_1core, "background_short") /
@@ -103,8 +107,8 @@ cerevisiae*, using promoters from −950 to +50 bp relative to the transcription
 start site (TSS). This permits comparison with the published background.
 
 The bundled timing and verification results were generated using the developers'
-computational environment. The code below documents the construction procedure; 
-expensive or externally dependent steps are not evaluated during vignette 
+computational environment. The code below documents the construction procedure;
+expensive or externally dependent steps are not evaluated during vignette
 compilation.
 
 The yeast example permits a relatively short demonstration. In the recorded
@@ -122,7 +126,10 @@ API demonstration, not a replacement for the complete promoter universe used
 for enrichment. Both computations run during vignette builds.
 
 ```{r small-background-roundtrip}
-example_sequences <- readRDS(fixture("rp_promoters.rds"))
+example_sequences <- readRDS(system.file(
+    "extdata", "vignettes", "custom_background", "rp_promoters.rds",
+    package = "PscanR"
+))
 n_example <- min(40L, length(example_sequences))
 example_sequences <- example_sequences[seq_len(n_example)]
 example_motifs <- JASPAR2020::JASPAR2020
@@ -276,7 +283,11 @@ The following output shows the header, the first three motif records, and the
 file size in bytes:
 
 ```{r show-file}
-bg_file <- fixture("J2020_sacCer3_950u_50d_UCSC.rebuild.txt")
+bg_file <- system.file(
+    "extdata", "vignettes", "custom_background",
+    "J2020_sacCer3_950u_50d_UCSC.rebuild.txt",
+    package = "PscanR"
+)
 cat(readLines(bg_file, n = 4), sep = "\n")
 file.size(bg_file)
 ```
@@ -334,9 +345,9 @@ decimal places in this comparison.
 Floating-point arithmetic and text serialisation can introduce small numerical
 differences. Agreement to ten decimal places is the criterion used for this
 verification, not a guarantee of exact byte-equality across platforms. Those
-tiny 
-differences across platforms are usually negligible and do not impact PscanR 
-results in any meaningful way. 
+tiny
+differences across platforms are usually negligible and do not impact PscanR
+results in any meaningful way.
 
 # Part B: Building and querying a full background
 
@@ -360,7 +371,10 @@ the stored hits, and calculates foreground enrichment without rescanning DNA.
 ```{r build-full, eval=FALSE}
 
 # The bundled fullbg_motifs.tsv records the fifteen selected matrices.
-subset_ids <- read.delim(fixture("fullbg_motifs.tsv"))$MATRIX
+subset_ids <- read.delim(system.file(
+    "extdata", "vignettes", "custom_background", "fullbg_motifs.tsv",
+    package = "PscanR"
+))$MATRIX
 
 full_bg <- ps_build_bg(
     prom_seq, motifs[subset_ids],
@@ -374,19 +388,19 @@ input names. Deduplicating beforehand prevents the function from retaining
 identifiers associated with the removed duplicate sequences.
 
 **Storage requirements.** Full backgrounds can use sizeable storage up to
-hundreds 
-of megabytes depending on the number of promoters and matrices. 
+hundreds
+of megabytes depending on the number of promoters and matrices.
 The bundled yeast demonstration contains `r length(fullbg$motifs)`
 matrices and occupies approximately `r round(fullbg$size_bytes / 1024)` KiB.
 Linear
 extrapolation by matrix count gives approximately `r full_bg_all_mb` MiB for
-all `r verification$motif_count` yeast matrices. Complete full-background 
+all `r verification$motif_count` yeast matrices. Complete full-background
 collections are not maintaned nor bundled with the package.
 
 ## Saving and reloading a full background
 
 Save a full background as an `.rds` file to preserve its `PSMatrixList`, hits,
-and identifier legend. 
+and identifier legend.
 
 ```{r save-full, eval=FALSE}
 saveRDS(full_bg, "sacCer3_950u_50d_fullBG_15motifs.rds", compress = "xz")
@@ -398,7 +412,11 @@ reduce storage requirements at the cost of additional compression time.
 Reloading restores the hits and legend used in the following foreground query.
 
 ```{r load-full}
-full_bg <- readRDS(fixture("sacCer3_950u_50d_fullBG_15motifs.rds"))
+full_bg <- readRDS(system.file(
+    "extdata", "vignettes", "custom_background",
+    "sacCer3_950u_50d_fullBG_15motifs.rds",
+    package = "PscanR"
+))
 TFBSTools::name(full_bg)
 ```
 
@@ -413,7 +431,10 @@ mapped to SGD systematic identifiers. The background contains
 `r fullbg$rp_used` of these identifiers.
 
 ```{r foreground}
-rp_promoters <- readRDS(fixture("rp_promoters.rds"))
+rp_promoters <- readRDS(system.file(
+    "extdata", "vignettes", "custom_background", "rp_promoters.rds",
+    package = "PscanR"
+))
 rp_ids <- names(rp_promoters)
 length(rp_ids)
 ```

@@ -423,7 +423,7 @@ test_that("protein accessions are excluded and reported", {
     c("GENE1", "GENE2"), promoter_ids = promoters, annotation = annotation,
     mode = "representative", quiet = TRUE
   )
-  expect_false(any(grepl("^NP_", selected$promoter_id)))
+  expect_false(any(startsWith(selected$promoter_id, "NP_")))
   summary <- ps_selection_summary(selected)
   expect_identical(summary$overall$candidates_excluded_protein, 1L)
   expect_identical(summary$overall$genes_mapped, 2L)

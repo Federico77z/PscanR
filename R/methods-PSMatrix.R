@@ -899,7 +899,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 # Doing the encoding once (in the multi-matrix callers) avoids re-encoding every
 # sequence for every motif.
 .ps_encode_bases <- function(seqs) {
-    b <- as.integer(charToRaw(paste0(seqs, collapse = "")))
+    b <- as.integer(charToRaw(paste(seqs, collapse = "")))
     code <- rep(NA_integer_, length(b))
     code[b == 65L | b == 97L] <- 1L
     code[b == 67L | b == 99L] <- 2L
@@ -927,7 +927,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
         # built once for a multi-motif scan rather than once per motif. Large
         # background scans retain the bounded-memory R path below.
         attr(encoded, "subject") <- Biostrings::DNAString(
-            paste0(seqs, collapse = "")
+            paste(seqs, collapse = "")
         )
     }
     encoded
@@ -1209,7 +1209,7 @@ setMethod(
         x <- .ps_set_seq_names(x, seqs, BG, use_full_BG)
         seqs <- as.character(seqs)
 
-        if (use_full_BG == TRUE) {
+        if (use_full_BG) {
             x <- .ps_scan_use_full_bg(x, seqs, BG, use_full_BG)
         } else {
             x <- .ps_scan_standard(
@@ -1343,8 +1343,8 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
     if (length(unique(foreground_lengths)) != 1L) {
         return(paste0(
             "Invalid PSMatrix object: foreground hit vectors have different ",
-            "lengths (", paste(names(foreground_lengths), foreground_lengths,
-                sep = "=", collapse = ", "), ")"
+            "lengths (", toString(paste(names(foreground_lengths),
+                foreground_lengths, sep = "=")), ")"
         ))
     }
     background_lengths <- c(
@@ -1357,8 +1357,8 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
     if (length(unique(background_lengths)) != 1L) {
         return(paste0(
             "Invalid PSMatrix object: full-background hit vectors have ",
-            "different lengths (", paste(names(background_lengths),
-                background_lengths, sep = "=", collapse = ", "), ")"
+            "different lengths (", toString(paste(names(background_lengths),
+                background_lengths, sep = "=")), ")"
         ))
     }
     if (background_lengths[[1L]] > 0L &&

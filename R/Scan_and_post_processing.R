@@ -320,7 +320,7 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
             "Found ", length(rem_names), " identifier(s) absent from the ",
             "background (excluded during background construction for high N ",
             "content or a length mismatch, or never part of it). Removing: ",
-            paste(rem_names, collapse = ", "), call. = FALSE
+            toString(rem_names), call. = FALSE
         )
     }
     x <- x[!is.na(x)]
@@ -336,7 +336,7 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     if (length(ambiguous) > 0) {
         warning(
             "Ambiguous transcript identifier(s) under scheme \"", scheme,
-            "\": ", paste(utils::head(ambiguous, 10), collapse = ", "),
+            "\": ", toString(utils::head(ambiguous, 10)),
             if (length(ambiguous) > 10) ", ..." else "",
             ". Each matches more than one background transcript; the first ",
             "was used. Supply fully qualified identifiers to disambiguate.",
@@ -817,7 +817,7 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
         final_args$scale <- "none"
     }
 
-    res <- do.call(pheatmap::pheatmap, c(list(z_table_reduced), final_args))
+    do.call(pheatmap::pheatmap, c(list(z_table_reduced), final_args))
 
     invisible(z_table_reduced)
 }
@@ -940,7 +940,7 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
     if (nrow(pos_mat) < 2L) final_args$cluster_rows <- FALSE
     if (ncol(pos_mat) < 2L) final_args$cluster_cols <- FALSE
 
-    res <- do.call(pheatmap::pheatmap, c(list(pos_mat), final_args))
+    do.call(pheatmap::pheatmap, c(list(pos_mat), final_args))
 
     invisible(pos_mat)
 }
@@ -948,17 +948,17 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 # Shared styling for the ggplot2 plotters, so that figures produced by
 # different functions in this file read as one family.
 #
-# Categorical fill colours, chosen so that adjacent pairs stay distinguishable
-# under the common forms of colour-vision deficiency. Beyond this many groups
-# ps_motif_barplot() uses the ggplot2 default instead, since no fixed order
-# stays separable.
-.PS_GROUP_PALETTE <- c(
-    "#2a78d6", "#eb6834", "#1baf7a", "#eda100",
-    "#e87ba4", "#008300", "#4a3aa7", "#e34948"
-)
+# Categorical fill colours: the colour-blind-safe palette of Okabe and Ito
+# (2008, Color Universal Design), as provided by grDevices::palette.colors(),
+# without its black. Beyond this many groups ps_motif_barplot() uses the
+# ggplot2 default instead.
+.PS_OKABE_ITO <- grDevices::palette.colors(palette = "Okabe-Ito", names = TRUE)
+.PS_GROUP_PALETTE <- unname(.PS_OKABE_ITO[-1L])
 
-# Single-series colour for the density figures, taken from the same palette.
-.PS_DENSITY_COLOUR <- .PS_GROUP_PALETTE[[1L]]
+# Single-series and accent colours for the density and hit-score figures,
+# taken from the same palette.
+.PS_DENSITY_COLOUR <- unname(.PS_OKABE_ITO[["blue"]])
+.PS_ACCENT_COLOUR <- unname(.PS_OKABE_ITO[["vermillion"]])
 
 # The three score bands the two background thresholds cut a scan into, weakest
 # first. Named in the vocabulary the `st` argument uses elsewhere, so a reader
@@ -1543,7 +1543,7 @@ ps_motif_barplot <- function(pfms, n = 20,
         if (length(missing_cols) > 0L) {
             stop(
                 "'pfms' looks like a data.frame but is missing column(s): ",
-                paste(missing_cols, collapse = ", "),
+                toString(missing_cols),
                 ". Pass a PSMatrixList or the output of ps_results_table().",
                 call. = FALSE
             )
@@ -1746,7 +1746,7 @@ ps_hit_score_plot <- function(x, shift = 0, alpha = NULL, size = NULL) {
         ) +
         ggplot2::scale_colour_manual(
             values = stats::setNames(
-                c(.PS_DENSITY_COLOUR, .PS_GROUP_PALETTE[[2L]], "grey72"),
+                c(.PS_DENSITY_COLOUR, .PS_ACCENT_COLOUR, "grey72"),
                 rev(.PS_SCORE_BANDS)
             )
         ) +

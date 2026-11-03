@@ -27,12 +27,6 @@ knitr::opts_chunk$set(
     message = FALSE
 )
 
-fixture <- function(...) {
-    system.file(
-        "extdata", "vignettes", "mouse_hd_retina", ...,
-        package = "PscanR", mustWork = TRUE
-    )
-}
 ```
 
 # Installation
@@ -85,7 +79,11 @@ repeated genome-wide sequence extraction.
 
 ```{r read-gene-sets}
 membership <- read.delim(
-    fixture("paper_subset_membership.tsv"),
+    system.file(
+        "extdata", "vignettes", "mouse_hd_retina",
+        "paper_subset_membership.tsv",
+        package = "PscanR"
+    ),
     stringsAsFactors = FALSE
 )
 str(membership)
@@ -186,7 +184,10 @@ The following bundled example contains ten genes from this dataset with
 multiple candidate transcripts:
 
 ```{r promoter-scheme, message=TRUE}
-example <- readRDS(fixture("promoter_selection_example.rds"))
+example <- readRDS(system.file(
+    "extdata", "vignettes", "mouse_hd_retina", "promoter_selection_example.rds",
+    package = "PscanR"
+))
 
 selection <- ps_select_promoters(
     genes = example$genes,
@@ -235,7 +236,11 @@ background was computed over.
 retina_up_genes <- gene_sets$d
 
 # Transcript identifiers and start sites used to construct the background.
-snapshot <- readRDS(fixture("mm10_950u_50d_refseq_snapshot.rds"))
+snapshot <- readRDS(system.file(
+    "extdata", "vignettes", "mouse_hd_retina",
+    "mm10_950u_50d_refseq_snapshot.rds",
+    package = "PscanR"
+))
 transcripts <- snapshot$transcripts
 
 transcript_tss <- GenomicRanges::GRanges(
@@ -283,7 +288,10 @@ The mapping and scan results are bundled in a precomputed object, allowing the
 remaining examples to run without repeating promoter extraction or scanning.
 
 ```{r load-precomputed}
-precomputed <- readRDS(fixture("uc2_vignette_data.rds"))
+precomputed <- readRDS(system.file(
+    "extdata", "vignettes", "mouse_hd_retina", "uc2_vignette_data.rds",
+    package = "PscanR"
+))
 retina_mapping <- precomputed$retina_mapping
 ```
 
@@ -453,7 +461,7 @@ consistent with the complete table. NEUROD2 illustrates a negative z-score,
 indicating a foreground mean below the background mean. Its z-score of
 `r sprintf("%.1f", enrichment["MA0668.1", "ZSCORE"])`
 is associated with p ≈ 1 because the reported p-value is an upper-tail test
-for enrichment. 
+for enrichment.
 
 The function returns a `ggplot` object that can be customised with a title,
 theme, or additional layers:
@@ -595,7 +603,7 @@ n_subset_e <- qc$scan_eligible_sequences[qc$subset == "e"]
 
 Set `e` contains only `r n_subset_e` promoters. Its small size limits
 interpretation of the normal approximation
-used for enrichment. 
+used for enrichment.
 
 # Inspecting the result object
 

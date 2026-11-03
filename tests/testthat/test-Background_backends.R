@@ -73,7 +73,7 @@ test_that("archive extraction validates the member and its version", {
     expect_identical(readLines(extracted), readLines(background))
 
     bad <- entry
-    bad$artifact_sha256 <- paste(rep("0", 64L), collapse = "")
+    bad$artifact_sha256 <- strrep("0", 64L)
     expect_error(PscanR:::.ps_extract_background(archive, bad), "SHA-256")
     missing <- entry
     missing$artifact <- "backgrounds/absent.psbg2.txt"
@@ -117,7 +117,7 @@ test_that("Hub lookup requires one matching resource and a valid file", {
     expect_error(
         PscanR:::.ps_fetch_experimenthub_background(entry), "invalid file"
     )
-    entry$artifact_sha256 <- paste(rep("0", 64L), collapse = "")
+    entry$artifact_sha256 <- strrep("0", 64L)
     hub <- mock_hub(path, title)
     expect_error(
         PscanR:::.ps_fetch_experimenthub_background(entry), "SHA-256"

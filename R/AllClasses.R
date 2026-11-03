@@ -112,7 +112,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
         if (is.null(dot_names)) dot_names <- rep("", length(dots))
         dot_names[dot_names == ""] <- paste0("..", which(dot_names == ""))
         stop(
-            "unused argument(s): ", paste(dot_names, collapse = ", "),
+            "unused argument(s): ", toString(dot_names),
             call. = FALSE
         )
     }

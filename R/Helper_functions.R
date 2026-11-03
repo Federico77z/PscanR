@@ -175,7 +175,7 @@
         warning(
             length(diff_length_seq), " sequences found with length ",
             "different from the reference. Removing the following ",
-            "sequences: ", paste(names(diff_length_seq), collapse = ", "),
+            "sequences: ", toString(names(diff_length_seq)),
             call. = FALSE
         )
     }
@@ -189,7 +189,7 @@
         warning(
             "Found ", length(rem_names), " sequences with more than 50% of ",
             "N. Removing the following sequences: ",
-            paste(rem_names, collapse = ", "), call. = FALSE
+            toString(rem_names), call. = FALSE
         )
     }
     x <- x[n_proportions <= 0.5]
@@ -318,7 +318,7 @@
     if (!is.character(source) || !length(source) || anyNA(source)) {
         stop(
             "source must be one of: ",
-            paste(.ps_background_sources, collapse = ", "), call. = FALSE
+            toString(.ps_background_sources), call. = FALSE
         )
     }
     match.arg(tolower(source), .ps_background_sources)
@@ -360,7 +360,7 @@
     if (length(missing)) {
         stop(
             "Invalid PscanR background catalog; missing columns: ",
-            paste(missing, collapse = ", "), call. = FALSE
+            toString(missing), call. = FALSE
         )
     }
     for (column in c(
@@ -598,8 +598,8 @@
             call. = FALSE
         )
     }
-    member <- paste0(
-        .ps_background_archive_name, "/backgrounds/",
+    member <- file.path(
+        .ps_background_archive_name, "backgrounds",
         basename(entry$artifact[[1]])
     )
     members <- utils::unzip(archive, list = TRUE)$Name

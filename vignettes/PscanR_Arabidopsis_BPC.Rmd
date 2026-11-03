@@ -27,12 +27,6 @@ knitr::opts_chunk$set(
     message = FALSE
 )
 
-fixture <- function(...) {
-    system.file(
-        "extdata", "vignettes", "arabidopsis_bpc", ...,
-        package = "PscanR", mustWork = TRUE
-    )
-}
 ```
 
 # Installation
@@ -79,12 +73,16 @@ the *Arabidopsis* gynoecium.
 The input is a two-column table containing gene identifiers and directions of
 expression change.
 
-The examples below use bundled results to avoid network access and repeated 
+The examples below use bundled results to avoid network access and repeated
 genome-wide sequence extraction.
 
 ```{r read-gene-sets}
 gene_sets <- read.delim(
-    fixture("arabidopsis_bpc_gene_sets.tsv"),
+    system.file(
+        "extdata", "vignettes", "arabidopsis_bpc",
+        "arabidopsis_bpc_gene_sets.tsv",
+        package = "PscanR"
+    ),
     stringsAsFactors = FALSE
 )
 str(gene_sets)
@@ -265,7 +263,10 @@ The mapping and scan results are bundled in a precomputed object, allowing the
 remaining examples to run without repeating promoter extraction or scanning.
 
 ```{r load-precomputed}
-precomputed <- readRDS(fixture("arabidopsis_bpc_results.rds"))
+precomputed <- readRDS(system.file(
+    "extdata", "vignettes", "arabidopsis_bpc", "arabidopsis_bpc_results.rds",
+    package = "PscanR"
+))
 down_mapping <- precomputed$down_mapping
 ```
 
@@ -294,7 +295,10 @@ keep execution short; this demonstration does not replace the full analysis,
 and its FDR adjustment covers only those two motifs.
 
 ```{r small-scan}
-small_example <- readRDS(fixture("promoter_selection_example.rds"))
+small_example <- readRDS(system.file(
+    "extdata", "vignettes", "arabidopsis_bpc", "promoter_selection_example.rds",
+    package = "PscanR"
+))
 small_sequences <- ps_select_promoters(
     genes = small_example$genes,
     promoter_sequences = small_example$promoter_sequences,
@@ -669,7 +673,7 @@ approximately equal to nominal p-values multiplied by 530, with listed values
 below 0.1.
 The overlap of 164 out of 168 therefore refers to the reproduction's
 Bonferroni criterion, `p * 530 < 0.1`, chosen to match those deposited values;
-it is not the count obtained from the default PscanR `FDR` column. 
+it is not the count obtained from the default PscanR `FDR` column.
 
 # Data provenance
 

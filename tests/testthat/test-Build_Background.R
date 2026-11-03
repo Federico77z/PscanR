@@ -90,6 +90,6 @@ test_that("ps_available_bg lists the bundled catalog without Hub access", {
     bg <- ps_available_bg()
     expect_type(bg, "character")
     expect_length(bg, 105L)
-    expect_true(all(grepl("\\.psbg2\\.txt$", bg)))
+    expect_true(all(endsWith(bg, ".psbg2.txt")))
     expect_error(ps_available_bg(keyword = "not-a-background"), "Found 0 matches")
 })

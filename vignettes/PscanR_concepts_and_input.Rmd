@@ -47,7 +47,7 @@ sequence motif enrichment. It identifies transcription
 factors (TFs) that are potential regulators of a set of co-regulated or
 co-expressed genes. By scanning input sequences (e.g., promoters) against a
 database of known TF binding motifs, PscanR tests for motif enrichment and
-reports candidate binding sites. 
+reports candidate binding sites.
 
 ## Relationship to other motif tools
 
@@ -90,7 +90,7 @@ statistics stored in a `PSMatrixList` object.
 PscanR treats the input sequences as a sample from a defined reference
 population, usually the annotated promoters of the species under investigation.
 This reference population supplies the background model for statistical
-analyses. 
+analyses.
 
 Because the background is the distribution of scores over the whole promoter
 universe, the foreground and the background must describe the *same* kind of
@@ -203,7 +203,7 @@ be selected directly without choosing among transcripts of the same gene.
 The package includes the historical human NRF1 example list of RefSeq
 transcripts from the original Pscan web interface. See
 [Zambelli, Pesole and Pavesi (2009)](https://doi.org/10.1093/nar/gkp464)
-for the software and interface. 
+for the software and interface.
 
 ```{r chunk-2}
 file_path <- system.file("extdata", "nrf1100.txt", package = "PscanR")
