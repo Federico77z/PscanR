@@ -278,16 +278,13 @@
 }
 
 .ps_warn_generic_scheme <- function(detected) {
+    partial <- if (length(detected$ambiguous) > 0L) {
+        paste0(" (partial matches: ", toString(detected$ambiguous), ")")
+    } else {
+        ""
+    }
     warning(
-        "Could not identify the transcript identifier scheme",
-        if (length(detected$ambiguous) > 0L) {
-            paste0(
-                " (partial matches: ",
-                toString(detected$ambiguous), ")"
-            )
-        } else {
-            ""
-        },
+        "Could not identify the transcript identifier scheme", partial,
         ". Falling back to scheme \"generic\": identifiers are matched ",
         "whole, nothing is stripped, and every transcript ranks equally. ",
         "Pass 'scheme' explicitly if this is wrong.",
