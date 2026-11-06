@@ -680,8 +680,8 @@ setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
     return(out)
 })
 
-setMethod("all_sequences_ID", "PSMatrix", function(x, withDimnames = TRUE) {
-    out <- x@all_sequences_ID
+setMethod("all_sequences_id", "PSMatrix", function(x, withDimnames = TRUE) {
+    out <- x@all_sequences_id
 
     return(out)
 })
@@ -730,7 +730,7 @@ setMethod("all_sequences_ID", "PSMatrix", function(x, withDimnames = TRUE) {
 #'
 #' @export
 setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L,
-                                                withDimnames = TRUE) {
+    withDimnames = TRUE) {
     out <- data.frame(
         "SCORE" = x@ps_hits_score,
         "POS" = ps_hits_pos(x, pos_shift = pos_shift, withDimnames = FALSE),
@@ -749,12 +749,12 @@ setMethod("ps_hits_table", "PSMatrix", function(x, pos_shift = 0L,
 setMethod(
     ".ps_add_hits", "PSMatrix",
     function(x, Pos, Strand, Score, Oligo, BG = FALSE,
-        use_full_BG = FALSE, fullBG = FALSE, withDimnames = TRUE
+        use_full_bg = FALSE, fullBG = FALSE, withDimnames = TRUE
     ) {
         x@ps_hits_pos <- Pos
         x@ps_hits_strand <- Strand
         x@ps_hits_score <- Score
-        if (!use_full_BG) {
+        if (!use_full_bg) {
             x@ps_hits_score <- .ps_norm_score(x)
         }
         if (BG) {
@@ -820,7 +820,7 @@ setMethod(
 
 setMethod(".ps_norm_score", "PSMatrix", function(x) {
     ps_score <- 1 + ((maxScore(Matrix(x)) - ps_hits_score(x)) /
-        (minScore(Matrix(x)) - maxScore(Matrix(x))))
+            (minScore(Matrix(x)) - maxScore(Matrix(x))))
 
     return(ps_score)
 })
@@ -858,9 +858,9 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 
 # .ps_set_seq_names, .ps_scan_use_full_bg, and .ps_scan_standard are internal
 # helpers used by ps_scan.
-.ps_set_seq_names <- function(x, seqs, BG, use_full_BG) {
-    if (BG || use_full_BG) {
-        if (use_full_BG) {
+.ps_set_seq_names <- function(x, seqs, BG, use_full_bg) {
+    if (BG || use_full_bg) {
+        if (use_full_bg) {
             x@ps_seq_names <- seqs
         } else {
             x@ps_bg_seq_names <- names(seqs)
@@ -871,7 +871,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     x
 }
 
-.ps_scan_use_full_bg <- function(x, seqs, BG, use_full_BG) {
+.ps_scan_use_full_bg <- function(x, seqs, BG, use_full_bg) {
     # `seqs` are retained background sequence names resolved by pscan_full_bg(),
     # which are already exactly the names carried here. Matching them verbatim
     # avoids collapsing distinct transcripts that differ only after a dot.
@@ -884,7 +884,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     )
     x <- .ps_add_hits(x,
         Score = res$score, Strand = res$strand, Pos = res$pos,
-        Oligo = res$oligo, BG = BG, use_full_BG = use_full_BG
+        Oligo = res$oligo, BG = BG, use_full_bg = use_full_bg
     )
     x@ps_bg_seq_names <- character()
     x
@@ -937,19 +937,19 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 # primitive. Valid starts are selected within each concatenated sequence, so no
 # window can cross a sequence boundary. Matrix layout and tie handling reproduce
 # .ps_scan_s: first window on each strand, then forward strand on equal scores.
-.ps_scan_biostrings <- function(seqs, subject, M, M_rc, W, n, L) {
+.ps_scan_biostrings <- function(seqs, subject, M, M_RC, W, n, L) {
     nw <- L - W + 1L
     subject_width <- n * L
     starting_at <- seq_len(subject_width - W + 1L)
     rownames(M) <- Biostrings::DNA_BASES
-    rownames(M_rc) <- Biostrings::DNA_BASES
+    rownames(M_RC) <- Biostrings::DNA_BASES
 
     score_fwd <- Biostrings::PWMscoreStartingAt(
         M, subject,
         starting.at = starting_at
     )
     score_rev <- Biostrings::PWMscoreStartingAt(
-        M_rc, subject,
+        M_RC, subject,
         starting.at = starting_at
     )
 
@@ -1013,7 +1013,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     list(score = score, strand = strand, pos = pos)
 }
 
-.ps_score_encoded_block <- function(S, M, M_rc, W, nw, has_ambiguous) {
+.ps_score_encoded_block <- function(S, M, M_RC, W, nw, has_ambiguous) {
     n <- nrow(S)
     score_fwd <- matrix(0, nrow = n, ncol = nw)
     score_rev <- matrix(0, nrow = n, ncol = nw)
@@ -1021,7 +1021,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
         columns <- seq.int(j, nw + j - 1L)
         bases <- S[, columns, drop = FALSE]
         score_fwd <- score_fwd + M[, j][bases]
-        score_rev <- score_rev + M_rc[, j][bases]
+        score_rev <- score_rev + M_RC[, j][bases]
     }
     if (!has_ambiguous) {
         return(.ps_pick_block_hits(score_fwd, score_rev, rep(FALSE, n)))
@@ -1033,7 +1033,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     .ps_pick_block_hits(score_fwd, score_rev, all_na)
 }
 
-.ps_scan_encoded_blocks <- function(seqs, S, M, M_rc, W, has_ambiguous) {
+.ps_scan_encoded_blocks <- function(seqs, S, M, M_RC, W, has_ambiguous) {
     n <- nrow(S)
     nw <- ncol(S) - W + 1L
     score <- numeric(n)
@@ -1045,7 +1045,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     for (start in seq.int(1L, n, by = block)) {
         idx <- seq.int(start, min(start + block - 1L, n))
         hit <- .ps_score_encoded_block(
-            S[idx, , drop = FALSE], M, M_rc, W, nw, has_ambiguous
+            S[idx, , drop = FALSE], M, M_RC, W, nw, has_ambiguous
         )
         score[idx] <- hit$score
         pos[idx] <- hit$pos
@@ -1055,7 +1055,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     list(score = score, strand = strand, pos = pos, oligo = oligo)
 }
 
-.ps_scan_batched <- function(seqs, S, M, M_rc, W) {
+.ps_scan_batched <- function(seqs, S, M, M_RC, W) {
     n <- nrow(S)
     L <- ncol(S)
     if (L < W) {
@@ -1067,23 +1067,23 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     has_ambiguous <- attr(S, "has_ambiguous", exact = TRUE)
     subject <- attr(S, "subject", exact = TRUE)
     if (identical(has_ambiguous, FALSE) && !is.null(subject)) {
-        return(.ps_scan_biostrings(seqs, subject, M, M_rc, W, n, L))
+        return(.ps_scan_biostrings(seqs, subject, M, M_RC, W, n, L))
     }
     if (is.null(has_ambiguous)) {
         has_ambiguous <- anyNA(S)
     }
-    .ps_scan_encoded_blocks(seqs, S, M, M_rc, W, has_ambiguous)
+    .ps_scan_encoded_blocks(seqs, S, M, M_RC, W, has_ambiguous)
 }
 
 .ps_scan_standard <- function(
-    x, seqs, BG, use_full_BG, fullBG, encoded = NULL
+    x, seqs, BG, use_full_bg, fullBG, encoded = NULL
 ) {
     rc_x <- reverseComplement(x)
     nrows <- length(.PS_ALPHABET(x))
     W <- ncol(Matrix(x))
     # Forward and reverse-complement score matrices: built once per motif.
     M <- matrix(as.numeric(Matrix(x)), nrow = nrows, ncol = W)
-    M_rc <- matrix(as.numeric(Matrix(rc_x)), nrow = nrows, ncol = W)
+    M_RC <- matrix(as.numeric(Matrix(rc_x)), nrow = nrows, ncol = W)
 
     if (is.null(encoded)) {
         encoded <- .ps_encode_seqs(seqs)
@@ -1091,10 +1091,10 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 
     if (!is.null(encoded)) {
         # Fast path for equal-length sequences: vectorised batched scan.
-        res <- .ps_scan_batched(seqs, encoded, M, M_rc, W)
+        res <- .ps_scan_batched(seqs, encoded, M, M_RC, W)
     } else {
         # Fallback: sequences of differing length -> per-sequence kernel.
-        Margs <- list(M = M, M_rc = M_rc, W = W)
+        Margs <- list(M = M, M_RC = M_RC, W = W)
         r <- mapply(.ps_scan_s, list(x), seqs, MoreArgs = Margs)
         res <- list(
             score = as.numeric(r["score", ]),
@@ -1110,7 +1110,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
         Pos = as.integer(res$pos),
         Oligo = res$oligo,
         BG = BG,
-        use_full_BG = use_full_BG,
+        use_full_bg = use_full_bg,
         fullBG = fullBG
     )
     if (!fullBG) {
@@ -1133,7 +1133,7 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 #' @param BG A logical value indicating whether to calculate background
 #'    statistics.
 #'    Default is set to `FALSE`.
-#' @param use_full_BG A logical value (default is `FALSE`).
+#' @param use_full_bg A logical value (default is `FALSE`).
 #'    If `TRUE`, the method assumes that the PSMatrix represents a special
 #'    "full-background" set.
 #'    In this case, the `seqs` parameter should be a vector of sequence names
@@ -1160,13 +1160,13 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 #' and specialized background sequence sets (either using a background flag
 #' or a full-background flag).
 #'
-#' If `use_full_BG` is set to `TRUE`, the function assumes that `seqs` contains
+#' If `use_full_bg` is set to `TRUE`, the function assumes that `seqs` contains
 #' sequence identifiers rather than the sequences themselves. In this case, the
 #' method matches the sequence names to those in the `PSMatrix`'s background
 #' hit data and retrieves the corresponding binding information (score, strand,
 #' position, oligo).
 #'
-#' When `use_full_BG` is set to `FALSE`, the function scans both the forward and
+#' When `use_full_bg` is set to `FALSE`, the function scans both the forward and
 #' reverse complement strands of the sequences to ensure all potential binding
 #' sites are detected. Optionally, the background statistics
 #' (background average and standard deviation) can be computed and used during
@@ -1194,26 +1194,26 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 #
 #' @usage
 #' \S4method{ps_scan}{PSMatrix}(x, seqs, BG = FALSE,
-#'   use_full_BG = FALSE, fullBG = FALSE, encoded = NULL)
+#'   use_full_bg = FALSE, fullBG = FALSE, encoded = NULL)
 setMethod(
     "ps_scan",
     "PSMatrix",
     function(
-        x, seqs, BG = FALSE, use_full_BG = FALSE, fullBG = FALSE,
+        x, seqs, BG = FALSE, use_full_bg = FALSE, fullBG = FALSE,
         encoded = NULL
     ) {
-        if (!is(seqs, "DNAStringSet") && !use_full_BG) {
+        if (!is(seqs, "DNAStringSet") && !use_full_bg) {
             stop("seqs is not an object of DNAStringSet class")
         }
 
-        x <- .ps_set_seq_names(x, seqs, BG, use_full_BG)
+        x <- .ps_set_seq_names(x, seqs, BG, use_full_bg)
         seqs <- as.character(seqs)
 
-        if (use_full_BG) {
-            x <- .ps_scan_use_full_bg(x, seqs, BG, use_full_BG)
+        if (use_full_bg) {
+            x <- .ps_scan_use_full_bg(x, seqs, BG, use_full_bg)
         } else {
             x <- .ps_scan_standard(
-                x, seqs, BG, use_full_BG, fullBG, encoded = encoded
+                x, seqs, BG, use_full_bg, fullBG, encoded = encoded
             )
         }
 
@@ -1223,14 +1223,14 @@ setMethod(
 
 
 #' @importMethodsFrom Biostrings maxScore minScore reverseComplement
-.ps_score_single_windows <- function(code, M, M_rc, W) {
+.ps_score_single_windows <- function(code, M, M_RC, W) {
     nw <- length(code) - W + 1L
     score_fwd <- numeric(nw)
     score_rev <- numeric(nw)
     for (j in seq_len(W)) {
         bases <- code[seq.int(j, nw + j - 1L)]
         score_fwd <- score_fwd + M[bases, j]
-        score_rev <- score_rev + M_rc[bases, j]
+        score_rev <- score_rev + M_RC[bases, j]
     }
     list(forward = score_fwd, reverse = score_rev)
 }
@@ -1256,11 +1256,11 @@ setMethod(
     )
 }
 
-setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
+setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_RC, W) {
     if (nchar(Seq) < W) {
         return(list(score = NA_real_, strand = "+", pos = 1L, oligo = ""))
     }
-    scores <- .ps_score_single_windows(.ps_encode_bases(Seq), M, M_rc, W)
+    scores <- .ps_score_single_windows(.ps_encode_bases(Seq), M, M_RC, W)
     .ps_pick_single_hit(scores$forward, scores$reverse, Seq, W)
 })
 
@@ -1310,19 +1310,19 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
         return("Background stdev must be of length 1")
     }
     if (!is.na(object@ps_bg_avg) &&
-        (object@ps_bg_avg < 0 || object@ps_bg_avg > 1)) {
+            (object@ps_bg_avg < 0 || object@ps_bg_avg > 1)) {
         return(paste(
             "Invalid value for Background average: ", object@ps_bg_avg
         ))
     }
     if (!is.na(object@ps_fg_avg) &&
-        (object@ps_fg_avg < 0 || object@ps_fg_avg > 1)) {
+            (object@ps_fg_avg < 0 || object@ps_fg_avg > 1)) {
         return(paste(
             "Invalid value for Foreground average: ", object@ps_fg_avg
         ))
     }
     if (!is.na(object@ps_bg_std_dev) &&
-        (object@ps_bg_std_dev <= 0 || object@ps_bg_std_dev > 1)) {
+            (object@ps_bg_std_dev <= 0 || object@ps_bg_std_dev > 1)) {
         return(paste(
             "Invalid value for Background stddev: ", object@ps_bg_std_dev
         ))
@@ -1344,7 +1344,7 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
         return(paste0(
             "Invalid PSMatrix object: foreground hit vectors have different ",
             "lengths (", toString(paste(names(foreground_lengths),
-                foreground_lengths, sep = "=")), ")"
+                    foreground_lengths, sep = "=")), ")"
         ))
     }
     background_lengths <- c(
@@ -1358,12 +1358,12 @@ setMethod(".ps_scan_s", "PSMatrix", function(x, Seq, M, M_rc, W) {
         return(paste0(
             "Invalid PSMatrix object: full-background hit vectors have ",
             "different lengths (", toString(paste(names(background_lengths),
-                background_lengths, sep = "=")), ")"
+                    background_lengths, sep = "=")), ")"
         ))
     }
     if (background_lengths[[1L]] > 0L &&
-        (is.na(object@ps_bg_size) ||
-            background_lengths[[1L]] != object@ps_bg_size)) {
+            (is.na(object@ps_bg_size) ||
+                    background_lengths[[1L]] != object@ps_bg_size)) {
         return(paste0(
             "Invalid PSMatrix object: full-background hit count (",
             background_lengths[[1L]], ") does not equal ps_bg_size (",

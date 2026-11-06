@@ -31,7 +31,7 @@ test_that("ps_retrieve_bg_from_file loads bundled background statistics", {
 
 test_that("ps_build_bg_from_table assigns statistics and round-trips", {
     J2020 <- j2020()
-    J2020_subset <- J2020[1:3]
+    j2020_subset <- J2020[1:3]
     ids <- c("MA0004.1", "MA0006.1", "MA0019.1")
 
     background_data <- data.frame(
@@ -41,7 +41,7 @@ test_that("ps_build_bg_from_table assigns statistics and round-trips", {
         row.names = ids
     )
 
-    bg <- ps_build_bg_from_table(background_data, J2020_subset)
+    bg <- ps_build_bg_from_table(background_data, j2020_subset)
     expect_s4_class(bg, "PSMatrixList")
     expect_equal(length(bg), 3L)
     expect_equal(ps_bg_size(bg[[1]]), 500L)
@@ -55,7 +55,7 @@ test_that("ps_build_bg_from_table assigns statistics and round-trips", {
     expect_equal(tab[ids, "BG_MEAN"], background_data[ids, "BG_MEAN"])
 
     # Row/PFM count mismatch only warns (does not error)
-    expect_warning(ps_build_bg_from_table(background_data, J2020_subset[1:2]))
+    expect_warning(ps_build_bg_from_table(background_data, j2020_subset[1:2]))
 })
 
 test_that("ps_write_bg_to_file and ps_retrieve_bg_from_file round-trip", {
@@ -63,9 +63,9 @@ test_that("ps_write_bg_to_file and ps_retrieve_bg_from_file round-trip", {
     sub <- J2020[1:2]
 
     PSM1 <- PSMatrix(pfm = sub[[1]], ps_bg_avg = 0.25, ps_fg_avg = 0.5,
-                     ps_bg_std_dev = 0.05, ps_bg_size = 250L)
+        ps_bg_std_dev = 0.05, ps_bg_size = 250L)
     PSM2 <- PSMatrix(pfm = sub[[2]], ps_bg_avg = 0.30, ps_fg_avg = 0.5,
-                     ps_bg_std_dev = 0.06, ps_bg_size = 300L)
+        ps_bg_std_dev = 0.06, ps_bg_size = 300L)
     psl <- PSMatrixList(PSM1, PSM2)
     names(psl) <- c(ID(PSM1), ID(PSM2))
 
@@ -91,5 +91,7 @@ test_that("ps_available_bg lists the bundled catalog without Hub access", {
     expect_type(bg, "character")
     expect_length(bg, 105L)
     expect_true(all(endsWith(bg, ".psbg2.txt")))
-    expect_error(ps_available_bg(keyword = "not-a-background"), "Found 0 matches")
+    expect_error(
+        ps_available_bg(keyword = "not-a-background"), "Found 0 matches"
+    )
 })

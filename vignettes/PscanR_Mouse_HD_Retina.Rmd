@@ -135,7 +135,7 @@ and associates them with the matching JASPAR matrices in a `PSMatrixList`.
 
 ```{r retrieve-background}
 background <- ps_retrieve_bg(
-    JASPAR_matrix = "Jaspar2020",
+    jaspar_release = "Jaspar2020",
     org = "mm",
     prom_reg = c(-950, 50),
     assembly = "mm10",

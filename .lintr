@@ -1,0 +1,10 @@
+linters: linters_with_defaults(
+    indentation_linter(indent = 4L, hanging_indent_style = "never"),
+    line_length_linter(80L),
+    object_name_linter(styles = c("snake_case", "symbols", "CamelCase",
+        "camelCase", "SNAKE_CASE", "dotted.case")),
+    return_linter = NULL,
+    object_usage_linter = NULL
+  )
+exclusions: list("inst/scripts")
+encoding: "UTF-8"

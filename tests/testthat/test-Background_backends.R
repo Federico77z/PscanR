@@ -5,7 +5,7 @@ bundled_background <- function() {
 }
 
 background_entry <- function(path = bundled_background(),
-                             file = "backgrounds/J2020_hg38_200u_50d_UCSC.psbg2.txt") {
+    file = "backgrounds/J2020_hg38_200u_50d_UCSC.psbg2.txt") {
     data.frame(
         background_version = 2L,
         artifact = file,
@@ -44,7 +44,8 @@ make_background_archive <- function(background, file) {
     old <- setwd(root)
     on.exit(setwd(old), add = TRUE)
     status <- utils::zip(
-        archive, files = file.path("PscanR_backgrounds_v2", "backgrounds", file),
+        archive,
+        files = file.path("PscanR_backgrounds_v2", "backgrounds", file),
         flags = "-X -q"
     )
     stopifnot(identical(status, 0L))
@@ -98,29 +99,29 @@ test_that("Hub lookup requires one matching resource and a valid file", {
     local_mocked_bindings(
         .ps_open_experimenthub = function() hub, .package = "PscanR"
     )
-    expect_identical(PscanR:::.ps_fetch_experimenthub_background(entry), path)
+    expect_identical(PscanR:::.ps_fetch_hub_background(entry), path)
     hub <- mock_hub(path, "another-resource")
     expect_error(
-        PscanR:::.ps_fetch_experimenthub_background(entry), "one unique"
+        PscanR:::.ps_fetch_hub_background(entry), "one unique"
     )
     hub <- mock_hub(rep(path, 2L), rep(title, 2L))
     expect_error(
-        PscanR:::.ps_fetch_experimenthub_background(entry), "one unique"
+        PscanR:::.ps_fetch_hub_background(entry), "one unique"
     )
     hub <- mock_hub(rep(path, 2L), c(NA, title))
-    expect_identical(PscanR:::.ps_fetch_experimenthub_background(entry), path)
+    expect_identical(PscanR:::.ps_fetch_hub_background(entry), path)
     hub <- mock_hub(tempfile(), title)
     expect_error(
-        PscanR:::.ps_fetch_experimenthub_background(entry), "invalid file"
+        PscanR:::.ps_fetch_hub_background(entry), "invalid file"
     )
     hub <- mock_hub(NA_character_, title)
     expect_error(
-        PscanR:::.ps_fetch_experimenthub_background(entry), "invalid file"
+        PscanR:::.ps_fetch_hub_background(entry), "invalid file"
     )
     entry$artifact_sha256 <- strrep("0", 64L)
     hub <- mock_hub(path, title)
     expect_error(
-        PscanR:::.ps_fetch_experimenthub_background(entry), "SHA-256"
+        PscanR:::.ps_fetch_hub_background(entry), "SHA-256"
     )
 })
 
@@ -209,7 +210,7 @@ test_that("a failed per-release download falls back to the archive", {
 test_that("ExperimentHub failure falls back to Zenodo with a warning", {
     path <- bundled_background()
     local_mocked_bindings(
-        .ps_fetch_experimenthub_background = function(entry) {
+        .ps_fetch_hub_background = function(entry) {
             stop("Hub unavailable")
         },
         .ps_fetch_zenodo_background = function(entry) path,
@@ -226,7 +227,7 @@ test_that("ExperimentHub failure falls back to Zenodo with a warning", {
 
 test_that("failure of both backends is reported", {
     local_mocked_bindings(
-        .ps_fetch_experimenthub_background = function(entry) {
+        .ps_fetch_hub_background = function(entry) {
             stop("Hub unavailable")
         },
         .ps_fetch_zenodo_background = function(entry) {

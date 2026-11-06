@@ -85,9 +85,9 @@ test_that("a table from a different promoter set is refused", {
     )
 
     # An ordinary PFMatrixList carries no scan, so nothing is compared.
-    J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-    skip_if_not(nzchar(J2020_path), "J2020.rds example data not installed")
-    ordinary <- ps_retrieve_bg_from_file(foreign, readRDS(J2020_path))
+    j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+    skip_if_not(nzchar(j2020_path), "J2020.rds example data not installed")
+    ordinary <- ps_retrieve_bg_from_file(foreign, readRDS(j2020_path))
     expect_identical(ps_bg_size(ordinary[[1]]), 39438L)
 })
 
@@ -99,7 +99,7 @@ test_that("pscan, pscan_full_bg and pscan_filtered preserve the legend", {
     on.exit(options(old), add = TRUE)
 
     scanned <- pscan(prom[seq_len(5)], full[seq_len(2)],
-                     BPPARAM = BiocParallel::SerialParam())
+        BPPARAM = BiocParallel::SerialParam())
     expect_identical(ps_transcript_legend(scanned), legend)
 
     ids <- utils::head(names(legend), 10)
@@ -107,8 +107,8 @@ test_that("pscan, pscan_full_bg and pscan_filtered preserve the legend", {
     expect_identical(ps_transcript_legend(retrieved), legend)
 
     filtered <- pscan_filtered(prom[seq_len(20)], full[[1]], n = 1,
-                              background = full[seq_len(2)],
-                              BPPARAM = BiocParallel::SerialParam())
+        background = full[seq_len(2)],
+        BPPARAM = BiocParallel::SerialParam())
     expect_identical(ps_transcript_legend(filtered), legend)
 })
 
@@ -122,10 +122,12 @@ test_that("pscan_full_bg rejects a legend without a background scan", {
     # its own no longer identifies a full background. Reading one as a
     # background would answer with foreground hits over a subset.
     scanned <- pscan(prom[seq_len(5)], full[seq_len(2)],
-                     BPPARAM = BiocParallel::SerialParam())
+        BPPARAM = BiocParallel::SerialParam())
     expect_true(length(ps_transcript_legend(scanned)) > 0)
     expect_error(
-        pscan_full_bg(names(ps_transcript_legend(full))[1], scanned, quiet = TRUE),
+        pscan_full_bg(
+            names(ps_transcript_legend(full))[1], scanned, quiet = TRUE
+        ),
         "no per-promoter background scan"
     )
 
@@ -134,11 +136,13 @@ test_that("pscan_full_bg rejects a legend without a background scan", {
     legendless@transcriptIDLegend <- character()
     expect_error(
         pscan_full_bg(names(ps_transcript_legend(full))[1], legendless,
-                     quiet = TRUE),
+            quiet = TRUE),
         "empty transcriptIDLegend"
     )
 
-    expect_error(pscan_full_bg("NM_000546", full[[1]]), "must be a PSMatrixList")
+    expect_error(
+        pscan_full_bg("NM_000546", full[[1]]), "must be a PSMatrixList"
+    )
 })
 
 test_that("ps_build_bg still sets the legend only for a full background", {
@@ -147,12 +151,12 @@ test_that("ps_build_bg still sets the legend only for a full background", {
     x <- prom[seq_len(8)]
 
     ordinary <- ps_build_bg(x, full[seq_len(2)],
-                            BPPARAM = BiocParallel::SerialParam())
+        BPPARAM = BiocParallel::SerialParam())
     expect_identical(ps_transcript_legend(ordinary), character())
 
     complete <- ps_build_bg(x, full[seq_len(2)],
-                            BPPARAM = BiocParallel::SerialParam(),
-                            fullBG = TRUE)
+        BPPARAM = BiocParallel::SerialParam(),
+        fullBG = TRUE)
     legend <- ps_transcript_legend(complete)
     expect_identical(names(legend), names(x))
     # Each name maps to the representative kept by unique(); here every

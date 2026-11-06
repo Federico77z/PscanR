@@ -45,8 +45,8 @@ examples.
 \examples{
 # Load the example dataset for JASPAR2020 matrices collection
 # for vertebrates.
-J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-J2020 <- readRDS(J2020_path)
+j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(j2020_path)
 # File path to save the result (temporary file)
 file_path <- tempfile(fileext = ".txt")
 

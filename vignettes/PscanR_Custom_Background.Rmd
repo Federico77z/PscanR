@@ -141,7 +141,7 @@ short_file <- tempfile(fileext = ".txt")
 ps_write_bg_to_file(short_example, short_file)
 short_restored <- ps_retrieve_bg_from_file(short_file, example_motifs)
 stopifnot(isTRUE(all.equal(ps_get_bg_table(short_example),
-    ps_get_bg_table(short_restored))))
+            ps_get_bg_table(short_restored))))
 full_example <- ps_build_bg(example_sequences, example_motifs, fullBG = TRUE)
 full_file <- tempfile(fileext = ".rds")
 saveRDS(full_example, full_file, compress = "xz")
@@ -330,9 +330,9 @@ knitr::kable(
             verification$motif_count,
             verification$size_equal,
             sprintf("%d / %d", verification$mean_agree_10dp,
-                    verification$motif_count),
+                verification$motif_count),
             sprintf("%d / %d", verification$stdev_agree_10dp,
-                    verification$motif_count)
+                verification$motif_count)
         )
     ),
     align = c("l", "r")

@@ -37,7 +37,7 @@
     # unconditional warning: `fraction <= threshold` is then false for every
     # real input. `Inf`, which silences the check, is deliberately allowed.
     if (!is.numeric(threshold) || length(threshold) != 1L ||
-        is.na(threshold) || threshold <= 0) {
+            is.na(threshold) || threshold <= 0) {
         threshold <- 0.1
     }
     # Per-motif and NA for any motif absent from the background table, so the
@@ -84,7 +84,7 @@
     vapply(pfms, function(m) {
         size <- accessor(m)
         if (!is.numeric(size) || length(size) != 1L || !is.finite(size) ||
-            size < 0 || size > .Machine$integer.max) {
+                size < 0 || size > .Machine$integer.max) {
             return(NA_integer_)
         }
         as.integer(size)
@@ -265,7 +265,7 @@
 .mapping_unique_names <- function(x, pfms) {
     original_names <- names(x)
 
-    all_sequences_ID <- setNames(character(length(x)), original_names)
+    all_sequences_id <- setNames(character(length(x)), original_names)
 
     # duplicate elimination
     unique_x <- BiocGenerics::unique(x)
@@ -274,7 +274,7 @@
     x_char <- as.character(x)
     unique_x_char <- as.character(unique_x)
 
-    all_sequences_ID <- setNames(
+    all_sequences_id <- setNames(
         unique_names[match(x_char, unique_x_char)],
         original_names
     )
@@ -283,9 +283,9 @@
     removed_sequences <- setdiff(original_names, names(x))
 
     # NA corresponds to sequences eliminated by .clean_sequence()
-    all_sequences_ID[removed_sequences] <- NA
+    all_sequences_id[removed_sequences] <- NA
 
-    pfms <- .ps_set_legend(pfms, all_sequences_ID)
+    pfms <- .ps_set_legend(pfms, all_sequences_id)
 
     return(pfms)
 }
@@ -379,20 +379,20 @@
     catalog
 }
 
-.ps_bg_target <- function(JASPAR_matrix, org, prom_reg, assembly, version) {
-    if (!is.character(JASPAR_matrix) || length(JASPAR_matrix) != 1L ||
-        is.na(JASPAR_matrix)) {
-        stop("JASPAR_matrix must be a single string", call. = FALSE)
+.ps_bg_target <- function(jaspar_release, org, prom_reg, assembly, version) {
+    if (!is.character(jaspar_release) || length(jaspar_release) != 1L ||
+            is.na(jaspar_release)) {
+        stop("jaspar_release must be a single string", call. = FALSE)
     }
-    JASPAR_matrix <- toupper(JASPAR_matrix)
-    if (!grepl("^JASPAR[0-9]{4}$", JASPAR_matrix)) {
+    jaspar_release <- toupper(jaspar_release)
+    if (!grepl("^JASPAR[0-9]{4}$", jaspar_release)) {
         stop(
-            "JASPAR_matrix must have the form JASPAR followed by a year",
+            "jaspar_release must have the form JASPAR followed by a year",
             call. = FALSE
         )
     }
     if (!is.character(org) || length(org) != 1L || is.na(org) ||
-        !org %in% c("hs", "mm", "at", "sc", "dm")) {
+            !org %in% c("hs", "mm", "at", "sc", "dm")) {
         stop("Unsupported organism code: ", org, call. = FALSE)
     }
     resolved_assembly <- switch(
@@ -400,11 +400,11 @@
         sc = "sacCer3", dm = "dm6"
     )
     if (length(resolved_assembly) != 1L || is.na(resolved_assembly) ||
-        !nzchar(resolved_assembly)) {
+            !nzchar(resolved_assembly)) {
         stop("assembly is required for organism '", org, "'", call. = FALSE)
     }
     if (!is.numeric(prom_reg) || length(prom_reg) != 2L ||
-        anyNA(prom_reg) || prom_reg[[1]] > 0 || prom_reg[[2]] < 0) {
+            anyNA(prom_reg) || prom_reg[[1]] > 0 || prom_reg[[2]] < 0) {
         stop("prom_reg must be c(-upstream, downstream)", call. = FALSE)
     }
     version <- as.character(version)
@@ -416,7 +416,7 @@
         stop("version must be 'latest' or a positive integer", call. = FALSE)
     }
     list(
-        release = as.integer(sub("^JASPAR", "", JASPAR_matrix)),
+        release = as.integer(sub("^JASPAR", "", jaspar_release)),
         assembly = resolved_assembly,
         upstream = abs(as.integer(prom_reg[[1]])),
         downstream = abs(as.integer(prom_reg[[2]])),
@@ -427,10 +427,10 @@
 }
 
 .ps_resolve_bg_catalog <- function(
-    catalog, JASPAR_matrix, org, prom_reg, assembly, version
+    catalog, jaspar_release, org, prom_reg, assembly, version
 ) {
     target <- .ps_bg_target(
-        JASPAR_matrix, org, prom_reg, assembly, version
+        jaspar_release, org, prom_reg, assembly, version
     )
     candidates <- catalog[
         catalog$status == "validated" & catalog$organism == org &
@@ -500,7 +500,7 @@
     record <- unname(.ps_zenodo_file_records[release])
     version <- as.integer(entry$background_version[[1]])
     if (!length(record) || is.na(record) ||
-        !identical(version, .ps_background_archive_version)) {
+            !identical(version, .ps_background_archive_version)) {
         return(NULL)
     }
     paste0(
@@ -528,7 +528,7 @@
     ExperimentHub::ExperimentHub()
 }
 
-.ps_fetch_experimenthub_background <- function(entry) {
+.ps_fetch_hub_background <- function(entry) {
     title <- .ps_hub_title(entry)
     hub <- .ps_open_experimenthub()
     keep <- as.character(hub$preparerclass) == .ps_experimenthub_package &
@@ -542,7 +542,7 @@
     }
     path <- hub[[names(hub)[keep]]]
     if (!is.character(path) || length(path) != 1L || is.na(path) ||
-        !file.exists(path)) {
+            !file.exists(path)) {
         stop(
             "ExperimentHub returned an invalid file for ", title,
             call. = FALSE
@@ -644,7 +644,7 @@
     source <- .ps_match_background_source(source)
     if (source == "zenodo") return(.ps_fetch_zenodo_background(entry))
     tryCatch(
-        .ps_fetch_experimenthub_background(entry),
+        .ps_fetch_hub_background(entry),
         error = function(error) {
             warning(
                 "ExperimentHub background retrieval failed: ",

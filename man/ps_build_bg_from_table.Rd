@@ -65,14 +65,14 @@ background_data <- data.frame(
 )
 
 # Retrieve motif matrices for vertebrates from JASPAR2020
-J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-J2020 <- readRDS(J2020_path)
-J2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
+j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(j2020_path)
+j2020_subset <- J2020[1:3] # match the number of rows in `backgound_data`
 
 rownames(background_data) <- c("MA0004.1", "MA0006.1", "MA0019.1")
 
 # Generate background-scored motif matrices
-bg_matrices <- ps_build_bg_from_table(background_data, J2020_subset)
+bg_matrices <- ps_build_bg_from_table(background_data, j2020_subset)
 bg_matrices
 bg_matrices[[1]]
 }

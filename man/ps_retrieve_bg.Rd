@@ -5,7 +5,7 @@
 \title{Generate PSMatrixList from Background data and JASPAR Matrix}
 \usage{
 ps_retrieve_bg(
-  JASPAR_matrix,
+  jaspar_release,
   org,
   prom_reg,
   assembly = character(),
@@ -15,7 +15,7 @@ ps_retrieve_bg(
 )
 }
 \arguments{
-\item{JASPAR_matrix}{A character string specifying the JASPAR database
+\item{jaspar_release}{A character string specifying the JASPAR database
 version. You can choose between 'JASPAR2020', 'JASPAR2022', or
 'JASPAR2024' (non case sensitive).}
 

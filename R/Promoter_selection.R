@@ -126,7 +126,7 @@ ps_load_select_transcripts <- function(
         "mane", c("maneStat", "ncbiId", "geneName2")
     )
     mane <- mane[mane$maneStat == "MANE Select" &
-        !is.na(mane$ncbiId) & mane$ncbiId != "", ]
+            !is.na(mane$ncbiId) & mane$ncbiId != "", ]
     data.frame(
         transcript_id = mane$ncbiId,
         transcript_base = .ps_transcript_base(mane$ncbiId, "refseq"),
@@ -475,17 +475,17 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
         stringsAsFactors = FALSE
     )
     annotation <- annotation[!is.na(annotation$gene) &
-        annotation$gene != "" &
-        !is.na(annotation$transcript_id) &
-        annotation$transcript_id != "", ]
+            annotation$gene != "" &
+            !is.na(annotation$transcript_id) &
+            annotation$transcript_id != "", ]
     annotation[!duplicated(annotation), ]
 }
 
 .ps_rank_gene_promoters <- function(genes, annotation, promoter_ids,
-                                    select_transcripts, scheme, mode,
-                                    fallback) {
+    select_transcripts, scheme, mode,
+    fallback) {
     annotation <- annotation[annotation$gene %in% genes, ]
-    annotation <- .ps_prepare_promoter_candidates(
+    annotation <- .ps_prepare_prom_candidates(
         annotation, promoter_ids, select_transcripts, scheme, mode
     )
     if (nrow(annotation) == 0L) {
@@ -500,8 +500,8 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
     .ps_finalize_promoter_mapping(annotation, genes, scheme, mode)
 }
 
-.ps_prepare_promoter_candidates <- function(annotation, promoter_ids,
-                                            select_transcripts, scheme, mode) {
+.ps_prepare_prom_candidates <- function(annotation, promoter_ids,
+    select_transcripts, scheme, mode) {
     # Protein accessions are not transcripts. An OrgDb REFSEQ query returns
     # them alongside mRNAs (NP_034436 next to NM_010306), so drop them before
     # anything else and report how many there were. Counting here rather than
@@ -769,7 +769,7 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
 #' ps_selection_summary(mapping)
 ps_selection_summary <- function(mapping) {
     if (is.list(mapping) && !is.data.frame(mapping) &&
-        !is.null(mapping$mapping)) {
+            !is.null(mapping$mapping)) {
         mapping <- mapping$mapping
     }
     if (!is.data.frame(mapping) || !"promoter_id" %in% names(mapping)) {
