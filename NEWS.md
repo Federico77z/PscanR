@@ -6,6 +6,8 @@
   - The vignettes locate their bundled files with `system.file()`, so every
     displayed chunk can be run as shown.
   - The funder is listed in `Authors@R`.
+  - `PscanRBackgrounds`, the ExperimentHub package with the precomputed
+    backgrounds, is in Suggests now that it is part of Bioconductor.
   - Minor code cleanup: no comparisons with `TRUE`, `startsWith()` for prefix
     tests, `toString()` for comma-separated lists.
 

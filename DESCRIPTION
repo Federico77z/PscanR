@@ -38,6 +38,7 @@ Suggests:
     org.Hs.eg.db,
     org.Mm.eg.db,
     org.Sc.sgd.db,
+    PscanRBackgrounds,
     rmarkdown,
     testthat,
     TxDb.Scerevisiae.UCSC.sacCer3.sgdGene,

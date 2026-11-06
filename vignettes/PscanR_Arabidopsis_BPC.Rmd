@@ -104,7 +104,7 @@ ps_available_bg(keyword = "TAIR9", details = TRUE)
 `ps_retrieve_bg()` retrieves the background statistics
 and associates them with the matching JASPAR matrices in a `PSMatrixList`.
 
-```{r retrieve-background, message=FALSE}
+```{r retrieve-background}
 background <- ps_retrieve_bg(
     JASPAR_matrix = "Jaspar2020",
     org = "at",

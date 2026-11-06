@@ -123,7 +123,7 @@ ps_available_bg()
 
 ```
 
-```{r download-background, message=FALSE}
+```{r download-background}
 J2020_PSBG <- ps_retrieve_bg(
     "Jaspar2020", "hs", c(-200, 50), "hg38"
 )
@@ -153,9 +153,11 @@ and 1000 upstream and 0 downstream, for the JASPAR 2020, 2022, and 2024
 releases. Only JASPAR CORE motifs are used.
 
 Each precomputed background is a separate ExperimentHub resource of the
-`PscanRBackgrounds` data package, and the files are hosted on Zenodo in one
-record per JASPAR release. By default `ps_retrieve_bg()` retrieves a background
-through ExperimentHub and, if the Hub cannot be reached, falls back to Zenodo
+`PscanRBackgrounds` data package, which documents the resources and can be
+installed with `BiocManager::install("PscanRBackgrounds")`. The files are
+hosted on Zenodo in one record per JASPAR release. By default
+`ps_retrieve_bg()` retrieves a background through ExperimentHub and, if the
+Hub cannot be reached, falls back to Zenodo
 with a warning; `source = "zenodo"` downloads the file from Zenodo directly.
 If a single file cannot be retrieved, the immutable record
 <https://doi.org/10.5281/zenodo.21821764>, which archives all backgrounds in a

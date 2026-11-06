@@ -118,7 +118,7 @@ assembly. The assembly is needed only for the two species that have more than
 one.
 
 Each background is a separate ExperimentHub resource of the
-[PscanRBackgrounds](https://github.com/Federico77z/PscanRBackgrounds) data
+[PscanRBackgrounds](https://bioconductor.org/packages/PscanRBackgrounds) data
 package. Retrieval goes through ExperimentHub and falls back, with a warning,
 to the immutable Zenodo record <https://doi.org/10.5281/zenodo.21821764>,
 which archives the same files in a single ZIP, when the Hub cannot be reached. Downloads are cached, and every file is verified by
