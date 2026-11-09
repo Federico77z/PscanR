@@ -176,10 +176,6 @@
     padded
 }
 
-.ps_natural_order <- function(x) {
-    order(.ps_natural_key(x), method = "radix")
-}
-
 #' Dense rank under C-locale byte ordering
 #'
 #' Equal values receive equal ranks, so a rank never manufactures a

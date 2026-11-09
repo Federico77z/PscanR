@@ -334,10 +334,8 @@ test_that("scheme detection recognises every supported reference", {
 
 test_that("natural ordering compares embedded numbers numerically", {
     ids <- c("AT4G32850.10", "AT4G32850.2", "AT4G32850.9", "AT4G32850.1")
-    expect_identical(
-        ids[.ps_natural_order(ids)],
-        c("AT4G32850.1", "AT4G32850.2", "AT4G32850.9", "AT4G32850.10")
-    )
+    # Promoter selection ranks identifiers with this key.
+    expect_identical(.ps_dense_rank(.ps_natural_key(ids)), c(4L, 2L, 3L, 1L))
 })
 
 test_that("selection does not depend on the order promoters are supplied", {

@@ -143,7 +143,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 }
 
 #' @importFrom TFBSTools PFMatrixList
-.PSMatrixList <- setClass("PSMatrixList",
+setClass("PSMatrixList",
     contains = "PFMatrixList",
     slots = list(transcriptIDLegend = "character")
 )
