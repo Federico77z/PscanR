@@ -751,8 +751,8 @@ setGeneric(
 )
 
 setGeneric(
-    "all_sequences_ID",
-    function(x, ...) standardGeneric("all_sequences_ID")
+    "all_sequences_id",
+    function(x, ...) standardGeneric("all_sequences_id")
 )
 
 #' Generic Setter Method for Background Mean Value of an object

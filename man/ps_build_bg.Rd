@@ -93,8 +93,8 @@ prom_seq <- readRDS(file_path)
 prom_seq <- prom_seq[1:3]
 
 # Use two matrices from the bundled JASPAR2020 collection.
-J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-J2020 <- readRDS(J2020_path)[1:2]
+j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(j2020_path)[1:2]
 
 # Generate the background-scored motif matrices
 bg_matrices <- ps_build_bg(prom_seq, J2020,

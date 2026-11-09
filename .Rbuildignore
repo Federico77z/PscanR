@@ -9,6 +9,7 @@
 ^\.Renviron\.bioc$
 ^\.Rhistory$
 ^\.gitignore$
+^\.lintr$
 ^\.deps\.rds$
 ^raw_data$
 ^test_and_scripts$

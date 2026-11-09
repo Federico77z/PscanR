@@ -91,21 +91,21 @@
 .ps_transcript_class <- function(x, scheme) {
     x <- as.character(x)
     if (identical(scheme, "refseq")) {
-        return(ifelse(grepl("^NM_", x), "NM",
-            ifelse(grepl("^NR_", x), "NR",
-                ifelse(grepl("^XM_", x), "XM",
-                    ifelse(grepl("^XR_", x), "XR",
-                        ifelse(grepl("^[NXY]P_", x), "protein", "other")
+        return(ifelse(startsWith(x, "NM_"), "NM",
+                ifelse(startsWith(x, "NR_"), "NR",
+                    ifelse(startsWith(x, "XM_"), "XM",
+                        ifelse(startsWith(x, "XR_"), "XR",
+                            ifelse(grepl("^[NXY]P_", x), "protein", "other")
+                        )
                     )
                 )
-            )
-        ))
+            ))
     }
     if (identical(scheme, "tair")) {
         variant <- .ps_tair_variant(x)
         return(ifelse(is.na(variant), "other",
-            ifelse(variant == 1L, "primary", "alternative")
-        ))
+                ifelse(variant == 1L, "primary", "alternative")
+            ))
     }
     if (identical(scheme, "sgd")) {
         return(rep_len("single", length(x)))
@@ -278,16 +278,13 @@
 }
 
 .ps_warn_generic_scheme <- function(detected) {
+    partial <- if (length(detected$ambiguous) > 0L) {
+        paste0(" (partial matches: ", toString(detected$ambiguous), ")")
+    } else {
+        ""
+    }
     warning(
-        "Could not identify the transcript identifier scheme",
-        if (length(detected$ambiguous) > 0L) {
-            paste0(
-                " (partial matches: ",
-                paste(detected$ambiguous, collapse = ", "), ")"
-            )
-        } else {
-            ""
-        },
+        "Could not identify the transcript identifier scheme", partial,
         ". Falling back to scheme \"generic\": identifiers are matched ",
         "whole, nothing is stripped, and every transcript ranks equally. ",
         "Pass 'scheme' explicitly if this is wrong.",
@@ -300,7 +297,7 @@
 .ps_report_detected_scheme <- function(detected, reference) {
     resolved <- detected$scheme
     candidates <- reference[!is.na(reference) &
-        grepl(.ps_scheme_pattern(resolved), reference)]
+            grepl(.ps_scheme_pattern(resolved), reference)]
     example <- if (length(candidates) > 0L) {
         candidates[[1L]]
     } else {
@@ -333,7 +330,7 @@
 .ps_check_annotation_scheme <- function(promoter_ids, annotation_ids,
     resolved) {
     if (length(promoter_ids) > 0L && length(annotation_ids) > 0L &&
-        !identical(resolved, "generic")) {
+            !identical(resolved, "generic")) {
         annotation_detected <- .ps_detect_scheme(annotation_ids)
         if (!annotation_detected$scheme %in% c(resolved, "generic")) {
             stop(

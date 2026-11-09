@@ -40,8 +40,8 @@ incomplete in some collections, and its vocabulary changes between JASPAR
 releases, so it does not give a stable grouping across analyses.
 }
 \examples{
-J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-J2020 <- readRDS(J2020_path)
+j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(j2020_path)
 head(ps_motif_class(J2020))
 }
 \seealso{

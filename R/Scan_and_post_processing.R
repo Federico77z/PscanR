@@ -247,8 +247,8 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
         stop("ID must be a character vector containing transcript identifiers")
     }
     .ps_check_full_bg(full_pfms)
-    all_seq_ID <- ps_transcript_legend(full_pfms)
-    x <- .ps_map_to_full_bg(ID, all_seq_ID, scheme, quiet)
+    all_seq_id <- ps_transcript_legend(full_pfms)
+    x <- .ps_map_to_full_bg(ID, all_seq_id, scheme, quiet)
 
     .ps_warn_foreground_fraction(
         length(x), .ps_sizes(full_pfms, ps_bg_size), "scan"
@@ -260,11 +260,11 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
         FUN = ps_scan,
         x,
         BG = FALSE,
-        use_full_BG = TRUE
+        use_full_bg = TRUE
     )
 
     BiocGenerics::do.call(
-        PSMatrixList, c(pfms, list(transcriptIDLegend = all_seq_ID))
+        PSMatrixList, c(pfms, list(transcriptIDLegend = all_seq_id))
     )
 }
 
@@ -296,23 +296,23 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 
 # Map the requested transcript identifiers onto the sequence names kept in
 # the full background, warning about ambiguous and absent identifiers.
-.ps_map_to_full_bg <- function(ID, all_seq_ID, scheme, quiet) {
+.ps_map_to_full_bg <- function(ID, all_seq_id, scheme, quiet) {
     # Reduce both sides to the transcript key the scheme defines. For RefSeq
     # that removes a version; for TAIR it removes nothing, because there the
     # suffix distinguishes splice variants with different TSSs. The legend
     # *values* are left untouched: they already name sequences in the
     # background exactly.
     scheme <- .ps_resolve_scheme(
-        scheme = scheme, promoter_ids = names(all_seq_ID),
+        scheme = scheme, promoter_ids = names(all_seq_id),
         annotation_ids = ID, quiet = quiet
     )
-    legend_key <- .ps_transcript_base(names(all_seq_ID), scheme)
+    legend_key <- .ps_transcript_base(names(all_seq_id), scheme)
     query_key <- .ps_transcript_base(ID, scheme)
     .ps_warn_ambiguous_keys(query_key, legend_key, scheme)
 
-    # Use of all_seq_ID (mapping vector) to extract sequences name retained
+    # Use of all_seq_id (mapping vector) to extract sequences name retained
     # in full BG that have the same sequence to those inserted by the user.
-    x <- stats::setNames(unname(all_seq_ID)[match(query_key, legend_key)], ID)
+    x <- stats::setNames(unname(all_seq_id)[match(query_key, legend_key)], ID)
 
     rem_names <- names(x[is.na(x)])
     if (length(rem_names) > 0) {
@@ -320,7 +320,7 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
             "Found ", length(rem_names), " identifier(s) absent from the ",
             "background (excluded during background construction for high N ",
             "content or a length mismatch, or never part of it). Removing: ",
-            paste(rem_names, collapse = ", "), call. = FALSE
+            toString(rem_names), call. = FALSE
         )
     }
     x <- x[!is.na(x)]
@@ -336,7 +336,7 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     if (length(ambiguous) > 0) {
         warning(
             "Ambiguous transcript identifier(s) under scheme \"", scheme,
-            "\": ", paste(utils::head(ambiguous, 10), collapse = ", "),
+            "\": ", toString(utils::head(ambiguous, 10)),
             if (length(ambiguous) > 10) ", ..." else "",
             ". Each matches more than one background transcript; the first ",
             "was used. Supply fully qualified identifiers to disambiguate.",
@@ -367,14 +367,14 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     W <- ncol(Matrix(Jmatrix))
     # Build the strand score matrices once and reuse them for every sequence.
     M <- matrix(as.numeric(Matrix(Jmatrix)), nrow = nrows, ncol = W)
-    M_rc <- matrix(as.numeric(Matrix(rc_matrix)), nrow = nrows, ncol = W)
+    M_RC <- matrix(as.numeric(Matrix(rc_matrix)), nrow = nrows, ncol = W)
     seqs <- as.character(prom_seq)
     encoded <- .ps_encode_seqs(seqs)
     if (!is.null(encoded)) {
-        scores <- .ps_scan_batched(seqs, encoded, M, M_rc, W)$score
+        scores <- .ps_scan_batched(seqs, encoded, M, M_RC, W)$score
     } else {
         res <- mapply(.ps_scan_s, list(Jmatrix), seqs,
-            MoreArgs = list(M = M, M_rc = M_rc, W = W)
+            MoreArgs = list(M = M, M_RC = M_RC, W = W)
         )
         scores <- as.numeric(res["score", ])
     }
@@ -468,8 +468,8 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #'     "J2020_hg38_200u_50d_UCSC.psbg.txt",
 #'     package = "PscanR"
 #' )
-#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-#' J2020 <- readRDS(J2020_path)
+#' j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(j2020_path)
 #' bg <- ps_retrieve_bg_from_file(bg_path, J2020)
 #'
 #' JM <- bg[[1]]
@@ -617,7 +617,7 @@ ps_results_table <- function(pfms, FDR = 1) {
     .ps_checks2(pfms)
 
     if (!is.numeric(FDR) || length(FDR) != 1L || is.na(FDR) ||
-        FDR < 0 || FDR > 1) {
+            FDR < 0 || FDR > 1) {
         stop("FDR must be a single numeric value between 0 and 1")
     }
 
@@ -817,7 +817,7 @@ ps_zscore_heatmap <- function(pfms, FDR = 0.01, ...) {
         final_args$scale <- "none"
     }
 
-    res <- do.call(pheatmap::pheatmap, c(list(z_table_reduced), final_args))
+    do.call(pheatmap::pheatmap, c(list(z_table_reduced), final_args))
 
     invisible(z_table_reduced)
 }
@@ -940,7 +940,7 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
     if (nrow(pos_mat) < 2L) final_args$cluster_rows <- FALSE
     if (ncol(pos_mat) < 2L) final_args$cluster_cols <- FALSE
 
-    res <- do.call(pheatmap::pheatmap, c(list(pos_mat), final_args))
+    do.call(pheatmap::pheatmap, c(list(pos_mat), final_args))
 
     invisible(pos_mat)
 }
@@ -948,17 +948,17 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 # Shared styling for the ggplot2 plotters, so that figures produced by
 # different functions in this file read as one family.
 #
-# Categorical fill colours, chosen so that adjacent pairs stay distinguishable
-# under the common forms of colour-vision deficiency. Beyond this many groups
-# ps_motif_barplot() uses the ggplot2 default instead, since no fixed order
-# stays separable.
-.PS_GROUP_PALETTE <- c(
-    "#2a78d6", "#eb6834", "#1baf7a", "#eda100",
-    "#e87ba4", "#008300", "#4a3aa7", "#e34948"
-)
+# Categorical fill colours: the colour-blind-safe palette of Okabe and Ito
+# (2008, Color Universal Design), as provided by grDevices::palette.colors(),
+# without its black. Beyond this many groups ps_motif_barplot() uses the
+# ggplot2 default instead.
+.PS_OKABE_ITO <- grDevices::palette.colors(palette = "Okabe-Ito", names = TRUE)
+.PS_GROUP_PALETTE <- unname(.PS_OKABE_ITO[-1L])
 
-# Single-series colour for the density figures, taken from the same palette.
-.PS_DENSITY_COLOUR <- .PS_GROUP_PALETTE[[1L]]
+# Single-series and accent colours for the density and hit-score figures,
+# taken from the same palette.
+.PS_DENSITY_COLOUR <- unname(.PS_OKABE_ITO[["blue"]])
+.PS_ACCENT_COLOUR <- unname(.PS_OKABE_ITO[["vermillion"]])
 
 # The three score bands the two background thresholds cut a scan into, weakest
 # first. Named in the vocabulary the `st` argument uses elsewhere, so a reader
@@ -1029,7 +1029,7 @@ ps_hitpos_map <- function(pfms, FDR = 0.01, shift = 0, ...) {
 #' @export
 #' @importFrom stats density
 ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
-                            window = NULL, bins = NULL) {
+    window = NULL, bins = NULL) {
     # st = score threshold. It can be passed as a numeric value
     # or as one of three characters "all", "loose", "strict".
     st <- .ps_resolve_threshold(st, pfm, "st")
@@ -1137,7 +1137,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
         return(NULL)
     }
     if (length(window) != 2L || !all(is.finite(window)) ||
-        window[[1L]] == window[[2L]]) {
+            window[[1L]] == window[[2L]]) {
         stop(
             "'window' must be two finite, distinct values giving the promoter ",
             "window the positions were taken from",
@@ -1197,7 +1197,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
 
     window <- sort(as.numeric(window))
     if (length(window) != 2L || !all(is.finite(window)) ||
-        window[[1L]] == window[[2L]]) {
+            window[[1L]] == window[[2L]]) {
         stop(
             "'window' must be two finite, distinct values giving the interval ",
             "the positions are confined to",
@@ -1331,8 +1331,8 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
 #' @export
 #'
 #' @examples
-#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-#' J2020 <- readRDS(J2020_path)
+#' j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(j2020_path)
 #' head(ps_motif_class(J2020))
 ps_motif_class <- function(pfms) {
     if (!is(pfms, "PFMatrixList")) {
@@ -1408,8 +1408,8 @@ ps_motif_class <- function(pfms) {
 #' @examples
 #' prom_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 #' prom_seq <- readRDS(prom_path)[1:10]
-#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-#' J2020 <- readRDS(J2020_path)
+#' j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(j2020_path)
 #' bg_path <- system.file("extdata",
 #'     "J2020_hg38_200u_50d_UCSC.psbg.txt",
 #'     package = "PscanR"
@@ -1543,7 +1543,7 @@ ps_motif_barplot <- function(pfms, n = 20,
         if (length(missing_cols) > 0L) {
             stop(
                 "'pfms' looks like a data.frame but is missing column(s): ",
-                paste(missing_cols, collapse = ", "),
+                toString(missing_cols),
                 ". Pass a PSMatrixList or the output of ps_results_table().",
                 call. = FALSE
             )
@@ -1570,7 +1570,7 @@ ps_motif_barplot <- function(pfms, n = 20,
         return(NULL)
     }
     if (is.character(group) && length(group) == 1L &&
-        group %in% c("class", "family")) {
+            group %in% c("class", "family")) {
         if (identical(group, "class")) {
             return(unname(ps_motif_class(pfms)[motif_ids]))
         }
@@ -1746,7 +1746,7 @@ ps_hit_score_plot <- function(x, shift = 0, alpha = NULL, size = NULL) {
         ) +
         ggplot2::scale_colour_manual(
             values = stats::setNames(
-                c(.PS_DENSITY_COLOUR, .PS_GROUP_PALETTE[[2L]], "grey72"),
+                c(.PS_DENSITY_COLOUR, .PS_ACCENT_COLOUR, "grey72"),
                 rev(.PS_SCORE_BANDS)
             )
         ) +

@@ -3,6 +3,8 @@
 ## R CMD check and BiocCheck on the built tarball (as the Single Package
 ## Builder does), plus BiocCheckGitClone on the repository itself. Build and
 ## check output go to /tmp so that BiocCheck never scans its own output.
+## A separate job runs lintr with the package's .lintr configuration and
+## fails on any lint.
 name: check-bioc
 
 on:
@@ -47,6 +49,16 @@ jobs:
         run: |
           remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories())
           BiocManager::install(c('rcmdcheck', 'BiocCheck'), ask = FALSE, update = FALSE)
+        shell: Rscript {0}
+
+      # TEMPORARY: PscanRBackgrounds (Suggests) was accepted on 2026-11-06 but
+      # is not yet in the Bioconductor devel repository, so install it from
+      # bioc.r-universe.dev. Remove this step once BiocManager can install it.
+      - name: Install PscanRBackgrounds from bioc.r-universe.dev (temporary)
+        run: |
+          install.packages('PscanRBackgrounds',
+              repos = c('https://bioc.r-universe.dev', BiocManager::repositories()))
+          stopifnot(requireNamespace('PscanRBackgrounds', quietly = TRUE))
         shell: Rscript {0}
 
       - name: Build source tarball
@@ -101,3 +113,23 @@ jobs:
             /tmp/check/**/00BiocCheck.log
           retention-days: 30
           if-no-files-found: warn
+
+  lint:
+    runs-on: ubuntu-latest
+    container: bioconductor/bioconductor_docker:devel
+    name: lintr
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install lintr
+        run: install.packages('lintr')
+        shell: Rscript {0}
+
+      # Rules and exclusions come from .lintr at the repository root.
+      - name: Lint
+        run: |
+          lints <- lintr::lint_package()
+          print(lints)
+          if (length(lints) > 0L) stop(length(lints), " lints found")
+        shell: Rscript {0}

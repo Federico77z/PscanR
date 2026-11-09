@@ -90,8 +90,8 @@
 #' @examples
 #'
 #' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-#' J2020 <- readRDS(J2020_path)
+#' j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(j2020_path)
 #'
 #' result <- PSMatrix(
 #'     pfm = J2020[[1]],
@@ -112,11 +112,10 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
         if (is.null(dot_names)) dot_names <- rep("", length(dots))
         dot_names[dot_names == ""] <- paste0("..", which(dot_names == ""))
         stop(
-            "unused argument(s): ", paste(dot_names, collapse = ", "),
+            "unused argument(s): ", toString(dot_names),
             call. = FALSE
         )
     }
-    #  .ps_required_packages()
     .ps_norm_matrix(.PSMatrix(pfm,
         ps_bg_avg = ps_bg_avg,
         ps_fg_avg = ps_fg_avg,
@@ -181,8 +180,8 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 #'
 #' @examples
 #' # Load JASPAR motif matrices for vertebrates
-#' J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-#' J2020 <- readRDS(J2020_path)
+#' j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+#' J2020 <- readRDS(j2020_path)
 #'
 #' PSM1 <- PSMatrix(
 #'     pfm = J2020[[1]],

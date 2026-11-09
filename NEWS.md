@@ -1,3 +1,20 @@
+# PscanR 0.99.2
+
+- Changes from the Bioconductor review:
+  - `ps_motif_barplot()` and the density and hit-score plots use the Okabe-Ito
+    colour-blind-safe palette from `grDevices::palette.colors()`.
+  - The vignettes locate their bundled files with `system.file()`, so every
+    displayed chunk can be run as shown.
+  - The funder is listed in `Authors@R`.
+  - `PscanRBackgrounds`, the ExperimentHub package with the precomputed
+    backgrounds, is in Suggests now that it is part of Bioconductor.
+  - Minor code cleanup: no comparisons with `TRUE`, `startsWith()` for prefix
+    tests, `toString()` for comma-separated lists.
+  - The code follows a lintr configuration (`.lintr`: 4-space indentation,
+    80 columns) that CI enforces; the tests were reindented to match.
+  - Consistent argument names: `ps_retrieve_bg(jaspar_release = )` (was
+    `JASPAR_matrix`) and `ps_scan(use_full_bg = )` (was `use_full_BG`).
+
 # PscanR 0.99.0
 
 - Initial Bioconductor submission.

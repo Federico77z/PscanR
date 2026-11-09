@@ -59,8 +59,8 @@ always shown on the axis, so the grouping is never carried by colour alone.
 \examples{
 prom_path <- system.file("extdata", "prom_seq.rds", package = "PscanR")
 prom_seq <- readRDS(prom_path)[1:10]
-J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-J2020 <- readRDS(J2020_path)
+j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(j2020_path)
 bg_path <- system.file("extdata",
     "J2020_hg38_200u_50d_UCSC.psbg.txt",
     package = "PscanR"

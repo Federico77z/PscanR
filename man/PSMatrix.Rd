@@ -106,8 +106,8 @@ set.}
 \examples{
 
 # Load JASPAR motif matrices for vertebrates
-J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-J2020 <- readRDS(J2020_path)
+j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(j2020_path)
 
 result <- PSMatrix(
     pfm = J2020[[1]],

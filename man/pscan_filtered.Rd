@@ -87,8 +87,8 @@ bg_path <- system.file("extdata",
     "J2020_hg38_200u_50d_UCSC.psbg.txt",
     package = "PscanR"
 )
-J2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
-J2020 <- readRDS(J2020_path)
+j2020_path <- system.file("extdata", "J2020.rds", package = "PscanR")
+J2020 <- readRDS(j2020_path)
 bg <- ps_retrieve_bg_from_file(bg_path, J2020)
 
 JM <- bg[[1]]
