@@ -166,20 +166,11 @@
 
 #' @keywords internal
 .clean_sequence <- function(x) {
-    seq_widths <- Biostrings::width(x)
-    ref_width <- max(Biostrings::width(x))
-
-    diff_length_seq <- x[seq_widths != ref_width]
-
-    if (length(diff_length_seq) != 0) {
-        warning(
-            length(diff_length_seq), " sequences found with length ",
-            "different from the reference. Removing the following ",
-            "sequences: ", toString(names(diff_length_seq)),
-            call. = FALSE
-        )
+    x <- .ps_keep_modal_length(x)
+    if (length(x) == 0L) {
+        return(x)
     }
-    x <- x[seq_widths == ref_width]
+    ref_width <- Biostrings::width(x)[1L]
 
     freqs <- Biostrings::alphabetFrequency(x, as.prob = FALSE)
     n_proportions <- freqs[, "N"] / ref_width
@@ -194,6 +185,39 @@
     }
     x <- x[n_proportions <= 0.5]
     return(x)
+}
+
+# A promoter's best motif score depends on its length, so promoters of
+# different lengths are not comparable. Keep those of the most common length
+# (the longest one if several lengths are equally common) and warn about the
+# rest.
+.ps_keep_modal_length <- function(x) {
+    widths <- Biostrings::width(x)
+    if (length(widths) == 0L || all(widths == widths[1L])) {
+        return(x)
+    }
+    counts <- table(widths)
+    ref_width <- max(as.integer(names(counts)[counts == max(counts)]))
+    keep <- widths == ref_width
+    .ps_warn_discarded_lengths(x, keep, ref_width)
+    x[keep]
+}
+
+.ps_warn_discarded_lengths <- function(x, keep, ref_width) {
+    dropped <- x[!keep]
+    ids <- names(dropped)
+    if (is.null(ids)) {
+        ids <- paste0("#", which(!keep))
+    }
+    shown <- paste0(ids, " (", Biostrings::width(dropped), " bp)")
+    if (length(shown) > 10L) {
+        shown <- c(shown[1:10], sprintf("and %d more", length(shown) - 10L))
+    }
+    msg <- sprintf(paste(
+        "Promoter sequences differ in length. Keeping %d promoters of %d bp",
+        "(the most common length) and discarding %d of other lengths: %s"
+    ), sum(keep), ref_width, sum(!keep), toString(shown))
+    warning(msg, call. = FALSE)
 }
 
 # The legend is a slot of the list, not of its matrices, so every

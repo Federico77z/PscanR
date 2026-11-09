@@ -965,13 +965,36 @@ test_that("a non-positive threshold falls back to the default", {
     )
 })
 
-test_that("promoters of different lengths warn once and match batched scans", {
-    # pscan() and ps_build_bg() drop such promoters in .clean_sequence();
-    # ps_scan() and pscan_filtered() scan them one at a time.
-    x <- Biostrings::DNAStringSet(c(
-        "ATGCTGCAATCGA", "CATGCTAAGCTATTGCA", "GTACTACTAAATGCC", "TCAGACCATT"
+test_that("only promoters of the most common length are kept", {
+    seqs <- c(a = "ATGCTGCAATCGA", b = "CATGCTAAGCTAT", c = "GTACTACTAAATG",
+        d = "CATGCTAAGCTATTGCA", e = "TCAGACCATTAAAGC", f = "GTACTACTAAATGCC")
+    mixed <- Biostrings::DNAStringSet(seqs[c("a", "b", "c", "d")])
+    expect_warning(kept <- .clean_sequence(mixed), paste0(
+        "Keeping 3 promoters of 13 bp \\(the most common length\\) and ",
+        "discarding 1 of other lengths: d \\(17 bp\\)"
     ))
-    names(x) <- c("NM_001078.4", "NM_000639.3", "NM_000756.8", "NM_001094.2")
+    expect_identical(names(kept), c("a", "b", "c"))
+
+    # Equally common lengths: the longest wins.
+    tie <- Biostrings::DNAStringSet(seqs[c("a", "b", "e", "f")])
+    expect_warning(kept <- .clean_sequence(tie), "Keeping 2 promoters of 15 bp")
+    expect_identical(names(kept), c("e", "f"))
+
+    # Long lists of discarded promoters are cut after ten names.
+    many <- Biostrings::DNAStringSet(c(rep(seqs[["a"]], 14), rep("ACGT", 12)))
+    names(many) <- paste0("p", seq_along(many))
+    expect_warning(.clean_sequence(many), "discarding 12 .*, and 2 more$")
+
+    # Same-length input passes without a warning.
+    expect_no_warning(kept <- .clean_sequence(mixed[1:3]))
+    expect_length(kept, 3L)
+})
+
+test_that("pscan, pscan_filtered and ps_scan handle mixed promoter lengths", {
+    x <- Biostrings::DNAStringSet(c(
+        a = "ATGCTGCAATCGA", b = "CATGCTAAGCTAT", c = "GTACTACTAAATG",
+        d = "CATGCTAAGCTATTGCA"
+    ))
     PFM1 <- PFMatrix(ID = "PSM1", name = "Example1", matrixClass = "PWM",
         profileMatrix = matrix(c(4, 19, 0, 0, 0, 0,
                 16, 0, 20, 0, 0, 0,
@@ -991,44 +1014,46 @@ test_that("promoters of different lengths warn once and match batched scans", {
     PSM2 <- PSMatrix(PFM2, ps_bg_avg = 0.8806266, ps_fg_avg = 0.8679936,
         ps_bg_std_dev = 0.07161552, ps_bg_size = 250L)
     pfms <- PSMatrixList(PSM1, PSM2)
-    # Runs expr and returns its value with the number of length warnings.
-    count_length_warnings <- function(expr) {
-        n <- 0L
+    serial <- BiocParallel::SerialParam()
+    # Runs expr and returns its value with the messages of its warnings.
+    collect_warnings <- function(expr) {
+        messages <- character()
         value <- withCallingHandlers(expr, warning = function(w) {
-            if (grepl("differ in length", conditionMessage(w))) n <<- n + 1L
+            messages <<- c(messages, conditionMessage(w))
             invokeRestart("muffleWarning")
         })
-        list(value = value, n = n)
+        list(value = value, messages = messages)
     }
-    # The batched score of one promoter: three copies have equal lengths,
-    # and the z-test needs more than two observations.
+
+    # pscan() and pscan_filtered() keep the three 13 bp promoters, with one
+    # warning per call. A threshold below every score keeps all of them in
+    # the filter step.
+    scanned <- collect_warnings(pscan(x, pfms, BPPARAM = serial))
+    expect_identical(sum(grepl("Keeping 3 promoters", scanned$messages)), 1L)
+    expect_identical(unname(ps_seq_names(scanned$value[[1]])), c("a", "b", "c"))
+    lenient <- PSMatrix(PFM1, ps_bg_avg = 0, ps_fg_avg = 0,
+        ps_bg_std_dev = 0.01, ps_bg_size = 250L)
+    filtered <- collect_warnings(pscan_filtered(
+        x, lenient, n = 1, background = pfms, BPPARAM = serial
+    ))
+    expect_identical(filtered$messages[grepl("length", filtered$messages)],
+        scanned$messages[grepl("length", scanned$messages)])
+    expect_identical(
+        unname(ps_seq_names(filtered$value[[1]])), c("a", "b", "c")
+    )
+
+    # ps_scan() called directly scans all four promoters one at a time, with
+    # one warning, and its scores equal the batched ones. Three copies of a
+    # promoter have equal lengths, and the z-test needs more than two.
+    direct <- collect_warnings(ps_scan(PSM1, x))
+    expect_identical(sum(grepl("differ in length", direct$messages)), 1L)
     batched_score <- function(pfm, s) {
         copies <- rep(s, 3L)
         names(copies) <- paste0("copy", 1:3)
         ps_hits_score(ps_scan(pfm, copies), withDimnames = FALSE)[[1]]
     }
-
-    scanned <- count_length_warnings(ps_scan(PSM1, x))
-    expect_identical(scanned$n, 1L)
     expect_equal(
-        ps_hits_score(scanned$value, withDimnames = FALSE),
+        ps_hits_score(direct$value, withDimnames = FALSE),
         vapply(seq_along(x), function(i) batched_score(PSM1, x[i]), 1)
     )
-
-    # One warning per call, not one per motif. A threshold below every score
-    # keeps all four promoters, so the scan after the filter also sees
-    # promoters of different lengths.
-    lenient <- PSMatrix(PFM1, ps_bg_avg = 0, ps_fg_avg = 0,
-        ps_bg_std_dev = 0.01, ps_bg_size = 250L)
-    filtered <- count_length_warnings(pscan_filtered(
-        x, lenient, n = 1, background = pfms,
-        BPPARAM = BiocParallel::SerialParam()
-    ))
-    expect_identical(filtered$n, 1L)
-    for (k in seq_along(pfms)) {
-        expect_equal(
-            ps_hits_score(filtered$value[[k]], withDimnames = FALSE),
-            vapply(seq_along(x), function(i) batched_score(pfms[[k]], x[i]), 1)
-        )
-    }
 })

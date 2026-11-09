@@ -1,11 +1,14 @@
 # PscanR 0.99.3
 
-- `ps_scan()` and `pscan_filtered()` warn, once per call, when the promoter
-  sequences differ in length. A promoter's best motif score depends on its
-  length, so such promoters are not comparable with a background of
-  promoters of one fixed length; they are also scanned one at a time, which
-  is slower. (`pscan()` and `ps_build_bg()` already remove promoters whose
-  length differs from the longest one, with a warning.)
+- Promoters of different lengths are not comparable, because a promoter's
+  best motif score depends on its length. `pscan()`, `pscan_filtered()` and
+  `ps_build_bg()` now keep the promoters of the most common length (before,
+  those of the longest one), and the warning reports how many promoters were
+  kept, their length, and how many were discarded.
+- `pscan_filtered()` removes duplicated promoters and promoters of other
+  lengths, as `pscan()` does.
+- `ps_scan()` warns when it is called directly on promoters of different
+  lengths, which it scans one at a time.
 - `pscan_filtered()` encodes the promoters once for all motifs, as `pscan()`
   does.
 - Removed internal code without callers: `.ps_natural_order()`, the stored

@@ -33,9 +33,8 @@ with a PWM.}
 
 \item{encoded}{Internal. An optional pre-encoded integer matrix of the
 sequences (one column per sequence) produced by the calling functions to
-avoid re-encoding the same sequences for every motif, or `FALSE` when
-the sequences differ in length and must be scanned one at a time.
-Users should leave this as the default `NULL`.}
+avoid re-encoding the same sequences for every motif. Users should leave
+this as the default `NULL`.}
 }
 \value{
 A `PSMatrix` object, with updated information about the motif hits

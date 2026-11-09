@@ -13,6 +13,9 @@
 #' @param x A `DNAStringSet` object containing the set of regulatory sequences
 #'    from co-regulated or co-expressed genes (i.e. a set of gene promoters).
 #'    See the Biostrings package for details.
+#'    Duplicated sequences are removed. All promoters should have the same
+#'    length; if they do not, only those of the most common length are
+#'    kept, with a warning.
 #'
 #' @param pfms A `PSMatrixList` object containing PWMs and background
 #'    statistics.
@@ -369,8 +372,8 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     M <- matrix(as.numeric(Matrix(Jmatrix)), nrow = nrows, ncol = W)
     M_RC <- matrix(as.numeric(Matrix(rc_matrix)), nrow = nrows, ncol = W)
     seqs <- as.character(prom_seq)
-    encoded <- .ps_encode_for_scan(seqs, warn = FALSE)
-    if (is.matrix(encoded)) {
+    encoded <- .ps_encode_seqs(seqs)
+    if (!is.null(encoded)) {
         scores <- .ps_scan_batched(seqs, encoded, M, M_RC, W)$score
     } else {
         res <- mapply(.ps_scan_s, list(Jmatrix), seqs,
@@ -403,6 +406,9 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #' background reference.
 #'
 #' @param prom_seq A DNAStringSet object. The promoter sequences to be filtered.
+#'    Duplicated sequences are removed. All promoters should have the same
+#'    length; if they do not, only those of the most common length are
+#'    kept, with a warning.
 #' @param Jmatrix A PSMatrix object. A JASPAR matrix containing background
 #'    average and standard deviation statistics, used to filter promoter
 #'    sequences.
@@ -487,9 +493,8 @@ pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
     # From `background`, not `Jmatrix`: the legend belongs to the promoter
     # universe, and `Jmatrix` is a single matrix with no such slot.
     legend <- .ps_legend_of(background)
-    if (.ps_unequal_lengths(as.character(prom_seq))) {
-        .ps_warn_unequal_lengths(as.character(prom_seq))
-    }
+    # As in pscan(): no duplicates, and one promoter length.
+    prom_seq <- .clean_sequence(BiocGenerics::unique(prom_seq))
 
     filtered_prom_seq <- .ps_filter_promoters(prom_seq, Jmatrix, n)
     if (is.null(filtered_prom_seq)) {
@@ -501,9 +506,8 @@ pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
         .ps_sizes(background, ps_bg_size), "scan"
     )
 
-    encoded <- .ps_encode_for_scan(
-        as.character(filtered_prom_seq), warn = FALSE
-    )
+    # Encode the sequences once and reuse the encoding for every motif.
+    encoded <- .ps_encode_seqs(as.character(filtered_prom_seq))
     pfms <- BiocParallel::bplapply(
         background,
         FUN = ps_scan,

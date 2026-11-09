@@ -16,6 +16,9 @@
 #'   regulatory sequences chosen as the background reference set
 #'   (e.g., gene promoters retrieved from a `TxDb` object).
 #'   These sequences are the target for background scanning.
+#'   Duplicated sequences are removed. All promoters should have the same
+#'   length; if they do not, only those of the most common length are
+#'   kept, with a warning.
 #'
 #' @param pfms A `PFMatrixList` of transcription-factor binding motifs, for
 #'   example matrices obtained from JASPAR.
