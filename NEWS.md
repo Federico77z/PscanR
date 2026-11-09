@@ -1,3 +1,20 @@
+# PscanR 0.99.3
+
+- `ps_scan()` and `pscan_filtered()` warn, once per call, when the promoter
+  sequences differ in length. A promoter's best motif score depends on its
+  length, so such promoters are not comparable with a background of
+  promoters of one fixed length; they are also scanned one at a time, which
+  is slower. (`pscan()` and `ps_build_bg()` already remove promoters whose
+  length differs from the longest one, with a warning.)
+- `pscan_filtered()` encodes the promoters once for all motifs, as `pscan()`
+  does.
+- Removed internal code without callers: `.ps_natural_order()`, the stored
+  `PSMatrixList` class generator, and the `.PS_PSEUDOCOUNT()` and
+  `all_sequences_id()` accessor generics (the latter read a slot that
+  `PSMatrix` does not have).
+- Tests cover the per-sequence scanner used for promoters of different
+  lengths.
+
 # PscanR 0.99.2
 
 - Changes from the Bioconductor review:

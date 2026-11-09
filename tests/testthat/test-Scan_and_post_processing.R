@@ -964,3 +964,71 @@ test_that("a non-positive threshold falls back to the default", {
         pscan(small$x, small$pfms, BPPARAM = BiocParallel::SerialParam())
     )
 })
+
+test_that("promoters of different lengths warn once and match batched scans", {
+    # pscan() and ps_build_bg() drop such promoters in .clean_sequence();
+    # ps_scan() and pscan_filtered() scan them one at a time.
+    x <- Biostrings::DNAStringSet(c(
+        "ATGCTGCAATCGA", "CATGCTAAGCTATTGCA", "GTACTACTAAATGCC", "TCAGACCATT"
+    ))
+    names(x) <- c("NM_001078.4", "NM_000639.3", "NM_000756.8", "NM_001094.2")
+    PFM1 <- PFMatrix(ID = "PSM1", name = "Example1", matrixClass = "PWM",
+        profileMatrix = matrix(c(4, 19, 0, 0, 0, 0,
+                16, 0, 20, 0, 0, 0,
+                0, 1, 0, 20, 0, 20,
+                0, 0, 0, 0, 20, 0),
+            nrow = 4, byrow = TRUE,
+            dimnames = list(c("A", "C", "G", "T"))))
+    PFM2 <- PFMatrix(ID = "PSM2", name = "Example2", matrixClass = "PWM",
+        profileMatrix = matrix(c(3, 0, 0, 0, 0, 0,
+                8, 0, 23, 0, 0, 0,
+                2, 23, 0, 23, 0, 24,
+                11, 1, 1, 1, 24, 0),
+            nrow = 4, byrow = TRUE,
+            dimnames = list(c("A", "C", "G", "T"))))
+    PSM1 <- PSMatrix(PFM1, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478,
+        ps_bg_std_dev = 0.07493493, ps_bg_size = 250L)
+    PSM2 <- PSMatrix(PFM2, ps_bg_avg = 0.8806266, ps_fg_avg = 0.8679936,
+        ps_bg_std_dev = 0.07161552, ps_bg_size = 250L)
+    pfms <- PSMatrixList(PSM1, PSM2)
+    # Runs expr and returns its value with the number of length warnings.
+    count_length_warnings <- function(expr) {
+        n <- 0L
+        value <- withCallingHandlers(expr, warning = function(w) {
+            if (grepl("differ in length", conditionMessage(w))) n <<- n + 1L
+            invokeRestart("muffleWarning")
+        })
+        list(value = value, n = n)
+    }
+    # The batched score of one promoter: three copies have equal lengths,
+    # and the z-test needs more than two observations.
+    batched_score <- function(pfm, s) {
+        copies <- rep(s, 3L)
+        names(copies) <- paste0("copy", 1:3)
+        ps_hits_score(ps_scan(pfm, copies), withDimnames = FALSE)[[1]]
+    }
+
+    scanned <- count_length_warnings(ps_scan(PSM1, x))
+    expect_identical(scanned$n, 1L)
+    expect_equal(
+        ps_hits_score(scanned$value, withDimnames = FALSE),
+        vapply(seq_along(x), function(i) batched_score(PSM1, x[i]), 1)
+    )
+
+    # One warning per call, not one per motif. A threshold below every score
+    # keeps all four promoters, so the scan after the filter also sees
+    # promoters of different lengths.
+    lenient <- PSMatrix(PFM1, ps_bg_avg = 0, ps_fg_avg = 0,
+        ps_bg_std_dev = 0.01, ps_bg_size = 250L)
+    filtered <- count_length_warnings(pscan_filtered(
+        x, lenient, n = 1, background = pfms,
+        BPPARAM = BiocParallel::SerialParam()
+    ))
+    expect_identical(filtered$n, 1L)
+    for (k in seq_along(pfms)) {
+        expect_equal(
+            ps_hits_score(filtered$value[[k]], withDimnames = FALSE),
+            vapply(seq_along(x), function(i) batched_score(pfms[[k]], x[i]), 1)
+        )
+    }
+})

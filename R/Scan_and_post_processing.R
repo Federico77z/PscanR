@@ -369,8 +369,8 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     M <- matrix(as.numeric(Matrix(Jmatrix)), nrow = nrows, ncol = W)
     M_RC <- matrix(as.numeric(Matrix(rc_matrix)), nrow = nrows, ncol = W)
     seqs <- as.character(prom_seq)
-    encoded <- .ps_encode_seqs(seqs)
-    if (!is.null(encoded)) {
+    encoded <- .ps_encode_for_scan(seqs, warn = FALSE)
+    if (is.matrix(encoded)) {
         scores <- .ps_scan_batched(seqs, encoded, M, M_RC, W)$score
     } else {
         res <- mapply(.ps_scan_s, list(Jmatrix), seqs,
@@ -487,6 +487,9 @@ pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
     # From `background`, not `Jmatrix`: the legend belongs to the promoter
     # universe, and `Jmatrix` is a single matrix with no such slot.
     legend <- .ps_legend_of(background)
+    if (.ps_unequal_lengths(as.character(prom_seq))) {
+        .ps_warn_unequal_lengths(as.character(prom_seq))
+    }
 
     filtered_prom_seq <- .ps_filter_promoters(prom_seq, Jmatrix, n)
     if (is.null(filtered_prom_seq)) {
@@ -498,11 +501,15 @@ pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
         .ps_sizes(background, ps_bg_size), "scan"
     )
 
+    encoded <- .ps_encode_for_scan(
+        as.character(filtered_prom_seq), warn = FALSE
+    )
     pfms <- BiocParallel::bplapply(
         background,
         FUN = ps_scan,
         filtered_prom_seq,
         BG = FALSE,
+        encoded = encoded,
         BPPARAM = BPPARAM,
         BPOPTIONS = BPOPTIONS
     )

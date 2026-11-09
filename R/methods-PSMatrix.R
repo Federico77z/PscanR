@@ -667,21 +667,8 @@ setMethod("ps_bg_seq_names", "PSMatrix", function(x, withDimnames = TRUE) {
 })
 
 
-setMethod(".PS_PSEUDOCOUNT", "PSMatrix", function(x, withDimnames = TRUE) {
-    out <- x@.PS_PSEUDOCOUNT
-
-    return(out)
-})
-
-
 setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
     out <- x@.PS_ALPHABET
-
-    return(out)
-})
-
-setMethod("all_sequences_id", "PSMatrix", function(x, withDimnames = TRUE) {
-    out <- x@all_sequences_id
 
     return(out)
 })
@@ -933,6 +920,39 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     encoded
 }
 
+# Promoters of different lengths cannot share one encoding and are scanned
+# one at a time. They are also a poor input: the best motif score of a
+# promoter depends on its length, so Pscan statistics are comparable only
+# when all promoters, foreground and background, span the same window.
+.ps_unequal_lengths <- function(seqs) {
+    L <- nchar(seqs)
+    length(L) > 1L && any(L != L[1L])
+}
+
+.ps_warn_unequal_lengths <- function(seqs) {
+    L <- nchar(seqs)
+    msg <- sprintf(paste(
+        "Promoter sequences differ in length (%d to %d bp). The best motif",
+        "score of a promoter depends on its length, so Pscan results are",
+        "comparable only when all promoters, foreground and background, span",
+        "the same window. The sequences are scanned one at a time, which is",
+        "slower."
+    ), min(L), max(L))
+    warning(msg, call. = FALSE)
+}
+
+# Encode once for a multi-motif scan. FALSE tells ps_scan() that the
+# sequences differ in length, so they are scanned one at a time without
+# warning again for every motif.
+.ps_encode_for_scan <- function(seqs, warn = TRUE) {
+    encoded <- .ps_encode_seqs(seqs)
+    if (is.null(encoded) && .ps_unequal_lengths(seqs)) {
+        if (warn) .ps_warn_unequal_lengths(seqs)
+        encoded <- FALSE
+    }
+    encoded
+}
+
 # Score unambiguous, equal-length sequences through Biostrings' vectorised PWM
 # primitive. Valid starts are selected within each concatenated sequence, so no
 # window can cross a sequence boundary. Matrix layout and tie handling reproduce
@@ -1086,10 +1106,10 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     M_RC <- matrix(as.numeric(Matrix(rc_x)), nrow = nrows, ncol = W)
 
     if (is.null(encoded)) {
-        encoded <- .ps_encode_seqs(seqs)
+        encoded <- .ps_encode_for_scan(seqs)
     }
 
-    if (!is.null(encoded)) {
+    if (is.matrix(encoded)) {
         # Fast path for equal-length sequences: vectorised batched scan.
         res <- .ps_scan_batched(seqs, encoded, M, M_RC, W)
     } else {
@@ -1146,8 +1166,9 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 #'    with a PWM.
 #' @param encoded Internal. An optional pre-encoded integer matrix of the
 #'    sequences (one column per sequence) produced by the calling functions to
-#'    avoid re-encoding the same sequences for every motif. Users should leave
-#'    this as the default `NULL`.
+#'    avoid re-encoding the same sequences for every motif, or `FALSE` when
+#'    the sequences differ in length and must be scanned one at a time.
+#'    Users should leave this as the default `NULL`.
 #'
 #' @return A `PSMatrix` object, with updated information about the motif hits
 #'     in the sequences. This includes the positions, strands, scores, and
