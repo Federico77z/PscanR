@@ -940,6 +940,16 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     warning(msg, call. = FALSE)
 }
 
+.ps_check_scorable <- function(x, seqs, W) {
+    longest <- if (length(seqs)) max(nchar(seqs)) else W
+    if (longest < W) {
+        stop(sprintf(paste(
+            "None of the promoters is long enough for motif %s (%d bp):",
+            "the longest is %d bp."
+        ), ID(x), W, longest), call. = FALSE)
+    }
+}
+
 
 # Score unambiguous, equal-length sequences through Biostrings' vectorised PWM
 # primitive. Valid starts are selected within each concatenated sequence, so no
@@ -1094,7 +1104,9 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     M_RC <- matrix(as.numeric(Matrix(rc_x)), nrow = nrows, ncol = W)
 
     if (is.null(encoded)) {
+        # Called directly: the entry points have already checked lengths.
         .ps_warn_unequal_lengths(seqs)
+        .ps_check_scorable(x, seqs, W)
         encoded <- .ps_encode_seqs(seqs)
     }
 

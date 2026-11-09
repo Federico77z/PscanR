@@ -1057,3 +1057,50 @@ test_that("pscan, pscan_filtered and ps_scan handle mixed promoter lengths", {
         vapply(seq_along(x), function(i) batched_score(PSM1, x[i]), 1)
     )
 })
+
+test_that("promoters shorter than a motif stop with an informative error", {
+    x <- Biostrings::DNAStringSet(c(
+        a = "ATGCTGCAATCGA", b = "CATGCTAAGCTAT", c = "GTACTACTAAATG"
+    ))
+    PFM1 <- PFMatrix(ID = "PSM1", name = "Example1", matrixClass = "PWM",
+        profileMatrix = matrix(c(4, 19, 0, 0, 0, 0,
+                16, 0, 20, 0, 0, 0,
+                0, 1, 0, 20, 0, 20,
+                0, 0, 0, 0, 20, 0),
+            nrow = 4, byrow = TRUE,
+            dimnames = list(c("A", "C", "G", "T"))))
+    PFM_LONG <- PFMatrix(ID = "LONG", name = "Long", matrixClass = "PWM",
+        profileMatrix = matrix(rep(c(8, 4, 4, 4), 15), nrow = 4,
+            dimnames = list(c("A", "C", "G", "T"))))
+    PSM1 <- PSMatrix(PFM1, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478,
+        ps_bg_std_dev = 0.07493493, ps_bg_size = 250L)
+    PSM_LONG <- PSMatrix(PFM_LONG, ps_bg_avg = 0.8, ps_fg_avg = 0.8,
+        ps_bg_std_dev = 0.07, ps_bg_size = 250L)
+    serial <- BiocParallel::SerialParam()
+    msg <- paste0("The promoters are 13 bp long, shorter than 1 of the 2 ",
+        "motifs, which cannot be scored: LONG \\(15 bp\\)")
+
+    expect_error(pscan(x, PSMatrixList(PSM1, PSM_LONG), BPPARAM = serial), msg)
+    expect_error(
+        ps_build_bg(x, PFMatrixList(PFM1, PFM_LONG), BPPARAM = serial), msg
+    )
+    expect_error(pscan_filtered(
+        x, PSM_LONG, n = 1, background = PSMatrixList(PSM1), BPPARAM = serial
+    ), msg)
+    expect_error(pscan_filtered(
+        x, PSM1, n = 1, background = PSMatrixList(PSM_LONG), BPPARAM = serial
+    ), msg)
+    expect_error(ps_scan(PSM_LONG, x), paste0(
+        "None of the promoters is long enough for motif LONG \\(15 bp\\): ",
+        "the longest is 13 bp"
+    ))
+
+    # A few short promoters, e.g. near a chromosome start, are discarded with
+    # a warning; the check applies to the promoters that are kept.
+    with_short <- c(x, Biostrings::DNAStringSet(c(s = "ACGTA")))
+    expect_warning(
+        res <- pscan(with_short, PSMatrixList(PSM1), BPPARAM = serial),
+        "discarding 1 of other lengths: s \\(5 bp\\)"
+    )
+    expect_s4_class(res, "PSMatrixList")
+})

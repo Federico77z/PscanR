@@ -17,7 +17,9 @@ pscan_filtered(
 \item{prom_seq}{A DNAStringSet object. The promoter sequences to be filtered.
 Duplicated sequences are removed. All promoters should have the same
 length; if they do not, only those of the most common length are
-kept, with a warning.}
+kept, with a warning.
+If the promoters kept are shorter than any motif, the function stops
+with an error that names those motifs.}
 
 \item{Jmatrix}{A PSMatrix object. A JASPAR matrix containing background
 average and standard deviation statistics, used to filter promoter

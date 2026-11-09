@@ -16,6 +16,8 @@
 #'    Duplicated sequences are removed. All promoters should have the same
 #'    length; if they do not, only those of the most common length are
 #'    kept, with a warning.
+#'    If the promoters kept are shorter than any motif, the function stops
+#'    with an error that names those motifs.
 #'
 #' @param pfms A `PSMatrixList` object containing PWMs and background
 #'    statistics.
@@ -138,6 +140,7 @@ pscan <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 
     x <- BiocGenerics::unique(x)
     x <- .clean_sequence(x)
+    .ps_check_motif_widths(x, pfms)
 
     # After cleaning, so the count is the one the statistic will actually use,
     # and before the scan, so the user hears it while it is still cheap to act.
@@ -409,6 +412,8 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #'    Duplicated sequences are removed. All promoters should have the same
 #'    length; if they do not, only those of the most common length are
 #'    kept, with a warning.
+#'    If the promoters kept are shorter than any motif, the function stops
+#'    with an error that names those motifs.
 #' @param Jmatrix A PSMatrix object. A JASPAR matrix containing background
 #'    average and standard deviation statistics, used to filter promoter
 #'    sequences.
@@ -495,6 +500,7 @@ pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
     legend <- .ps_legend_of(background)
     # As in pscan(): no duplicates, and one promoter length.
     prom_seq <- .clean_sequence(BiocGenerics::unique(prom_seq))
+    .ps_check_motif_widths(prom_seq, c(list(Jmatrix), as.list(background)))
 
     filtered_prom_seq <- .ps_filter_promoters(prom_seq, Jmatrix, n)
     if (is.null(filtered_prom_seq)) {

@@ -220,6 +220,32 @@
     warning(msg, call. = FALSE)
 }
 
+# A motif wider than the promoters cannot be scored on any of them, and a
+# Pscan run in which some motifs cannot be tested makes no sense: stop and
+# name them. Called after .clean_sequence(), so all promoters have one length.
+.ps_check_motif_widths <- function(x, pfms) {
+    if (length(x) == 0L) {
+        return(invisible(NULL))
+    }
+    len <- Biostrings::width(x)[1L]
+    widths <- vapply(pfms, function(m) ncol(Matrix(m)), integer(1))
+    too_long <- widths > len
+    if (!any(too_long)) {
+        return(invisible(NULL))
+    }
+    ids <- vapply(pfms, ID, character(1))[too_long]
+    shown <- paste0(ids, " (", widths[too_long], " bp)")
+    if (length(shown) > 10L) {
+        shown <- c(shown[1:10], sprintf("and %d more", length(shown) - 10L))
+    }
+    msg <- sprintf(paste(
+        "The promoters are %d bp long, shorter than %d of the %d motifs,",
+        "which cannot be scored: %s. Use longer promoters, or leave these",
+        "motifs out of the collection."
+    ), len, sum(too_long), length(widths), toString(shown))
+    stop(msg, call. = FALSE)
+}
+
 # The legend is a slot of the list, not of its matrices, so every
 # do.call(PSMatrixList, ...) rebuild loses it unless it is carried across by
 # hand. Returns character() for a PFMatrixList, which has no such slot.

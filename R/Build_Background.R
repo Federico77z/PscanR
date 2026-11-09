@@ -19,6 +19,8 @@
 #'   Duplicated sequences are removed. All promoters should have the same
 #'   length; if they do not, only those of the most common length are
 #'   kept, with a warning.
+#'   If the promoters kept are shorter than any motif, the function stops
+#'   with an error that names those motifs.
 #'
 #' @param pfms A `PFMatrixList` of transcription-factor binding motifs, for
 #'   example matrices obtained from JASPAR.
@@ -113,6 +115,7 @@ ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 
     x_unique <- BiocGenerics::unique(x)
     x_unique <- .clean_sequence(x_unique)
+    .ps_check_motif_widths(x_unique, pfms)
 
     pfms <- as(pfms, "PSMatrixList")
 

@@ -9,6 +9,12 @@
   lengths, as `pscan()` does.
 - `ps_scan()` warns when it is called directly on promoters of different
   lengths, which it scans one at a time.
+- `pscan()`, `pscan_filtered()` and `ps_build_bg()` stop with an error that
+  names the motifs when the promoters kept are shorter than any motif in the
+  collection. Before, `pscan()` failed with an unrelated z-test error,
+  `pscan_filtered()` with "logical subscript contains NAs", and
+  `ps_build_bg()` silently stored `NaN` background statistics. `ps_scan()`
+  stops with a clear error when no promoter is long enough for its motif.
 - `pscan_filtered()` encodes the promoters once for all motifs, as `pscan()`
   does.
 - Removed internal code without callers: `.ps_natural_order()`, the stored
