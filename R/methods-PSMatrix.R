@@ -943,10 +943,11 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
 .ps_check_scorable <- function(x, seqs, W) {
     longest <- if (length(seqs)) max(nchar(seqs)) else W
     if (longest < W) {
-        stop(sprintf(paste(
+        msg <- sprintf(paste(
             "None of the promoters is long enough for motif %s (%d bp):",
             "the longest is %d bp."
-        ), ID(x), W, longest), call. = FALSE)
+        ), ID(x), W, longest)
+        stop(msg, call. = FALSE)
     }
 }
 

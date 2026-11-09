@@ -167,7 +167,8 @@
     }
     shown <- paste0(ids, " (", Biostrings::width(dropped), " bp)")
     if (length(shown) > 10L) {
-        shown <- c(shown[1:10], sprintf("and %d more", length(shown) - 10L))
+        shown <- c(shown[seq_len(10L)],
+            sprintf("and %d more", length(shown) - 10L))
     }
     msg <- sprintf(paste(
         "Promoter sequences differ in length. Keeping %d promoters of %d bp",
@@ -192,7 +193,8 @@
     ids <- vapply(pfms, ID, character(1))[too_long]
     shown <- paste0(ids, " (", widths[too_long], " bp)")
     if (length(shown) > 10L) {
-        shown <- c(shown[1:10], sprintf("and %d more", length(shown) - 10L))
+        shown <- c(shown[seq_len(10L)],
+            sprintf("and %d more", length(shown) - 10L))
     }
     msg <- sprintf(paste(
         "The promoters are %d bp long, shorter than %d of the %d motifs,",
