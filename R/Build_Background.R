@@ -16,6 +16,11 @@
 #'   regulatory sequences chosen as the background reference set
 #'   (e.g., gene promoters retrieved from a `TxDb` object).
 #'   These sequences are the target for background scanning.
+#'   Duplicated sequences are removed. All promoters should have the same
+#'   length; if they do not, only those of the most common length are
+#'   kept, with a warning.
+#'   If the promoters kept are shorter than any motif, the function stops
+#'   with an error that names those motifs.
 #'
 #' @param pfms A `PFMatrixList` of transcription-factor binding motifs, for
 #'   example matrices obtained from JASPAR.
@@ -106,10 +111,13 @@
 ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
     BPOPTIONS = bpoptions(),
     fullBG = FALSE) {
-    .ps_checks(x, pfms, type = 1)
+    .ps_assert_class(x, "DNAStringSet", "x")
+    .ps_assert_class(pfms, c("PFMatrixList", "PSMatrixList"), "pfms")
+    .ps_assert_flag(fullBG, "fullBG")
 
     x_unique <- BiocGenerics::unique(x)
     x_unique <- .clean_sequence(x_unique)
+    .ps_check_motif_widths(x_unique, pfms)
 
     pfms <- as(pfms, "PSMatrixList")
 
@@ -213,7 +221,9 @@ ps_build_bg <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 #'
 #' @export
 ps_retrieve_bg_from_file <- function(file, pfms) {
-    .ps_checks(file, pfms, type = 2)
+    .ps_assert_string(file, "file")
+    .ps_assert_class(pfms, c("PFMatrixList", "PSMatrixList"), "pfms")
+    .ps_check_short_matrix_file(file)
 
     short.matrix <- read.table(file, header = FALSE, row.names = 1, skip = 1)
 
@@ -293,7 +303,9 @@ ps_retrieve_bg_from_file <- function(file, pfms) {
 #' bg_matrices[[1]]
 #' @export
 ps_build_bg_from_table <- function(x, pfms) {
-    .ps_checks(x, pfms, type = 3)
+    .ps_assert_class(x, "data.frame", "x")
+    .ps_assert_class(pfms, c("PFMatrixList", "PSMatrixList"), "pfms")
+    .ps_check_bg_table(x)
 
     # Only the three summary statistics are replaced, so the promoter universe
     # `pfms` describes is unchanged and its legend still applies.
@@ -377,7 +389,7 @@ ps_build_bg_from_table <- function(x, pfms) {
 #'
 #' @export
 ps_get_bg_table <- function(pfms) {
-    .ps_checks2(pfms)
+    .ps_assert_class(pfms, "PSMatrixList", "pfms")
 
     BG_SIZE <- vapply(pfms, ps_bg_size, integer(length = 1))
     BG_MEAN <- vapply(pfms, ps_bg_avg, numeric(length = 1))
@@ -470,7 +482,8 @@ ps_write_bg_to_file <- function(pfms, file) {
     # double faithfully; fifteen discards most of the disagreement. Neither
     # precision buys cross-platform byte-identity, because that is not the
     # text format's to give.
-    .ps_checks2(pfms, file)
+    .ps_assert_class(pfms, "PSMatrixList", "pfms")
+    .ps_assert_writable_file(file, "file")
 
     tab <- ps_get_bg_table(pfms)
 
@@ -689,16 +702,12 @@ ps_retrieve_bg <- function(jaspar_release, org, prom_reg,
 #'
 #' @export
 ps_available_bg <- function(keyword = NULL, details = FALSE) {
-    if (!is.logical(details) || length(details) != 1L || is.na(details)) {
-        stop("details must be TRUE or FALSE", call. = FALSE)
-    }
+    .ps_assert_flag(details, "details")
     catalog <- .ps_background_catalog()
     catalog <- catalog[catalog$status == "validated", , drop = FALSE]
     file_names <- basename(catalog$artifact)
     if (!is.null(keyword)) {
-        if (!is.character(keyword) || length(keyword) != 1L || is.na(keyword)) {
-            stop("keyword must be a single string", call. = FALSE)
-        }
+        .ps_assert_string(keyword, "keyword")
         keep <- grep(keyword, file_names)
         if (!length(keep)) stop("Found 0 matches for: ", keyword, call. = FALSE)
         catalog <- catalog[keep, , drop = FALSE]

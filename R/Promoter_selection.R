@@ -401,17 +401,17 @@ ps_select_promoters <- function(genes, promoter_sequences = NULL,
 ) {
     genes <- .ps_norm_gene_vector(genes)
     if (length(genes) == 0L) {
-        stop("'genes' must contain at least one non-empty value.")
+        stop("'genes' must contain at least one non-empty value",
+            call. = FALSE)
     }
     if (is.null(promoter_sequences)) {
         return(list(genes = genes, promoter_ids = promoter_ids))
     }
-    if (!inherits(promoter_sequences, "DNAStringSet")) {
-        stop("'promoter_sequences' must be a DNAStringSet object.")
-    }
+    .ps_assert_class(promoter_sequences, "DNAStringSet", "promoter_sequences")
     promoter_ids <- names(promoter_sequences)
     if (is.null(promoter_ids) || any(promoter_ids == "")) {
-        stop("'promoter_sequences' must have transcript identifier names.")
+        stop("'promoter_sequences' must have transcript identifier names",
+            call. = FALSE)
     }
     list(genes = genes, promoter_ids = promoter_ids)
 }

@@ -9,7 +9,12 @@ pscan(x, pfms, BPPARAM = BiocParallel::SerialParam(), BPOPTIONS = bpoptions())
 \arguments{
 \item{x}{A `DNAStringSet` object containing the set of regulatory sequences
 from co-regulated or co-expressed genes (i.e. a set of gene promoters).
-See the Biostrings package for details.}
+See the Biostrings package for details.
+Duplicated sequences are removed. All promoters should have the same
+length; if they do not, only those of the most common length are
+kept, with a warning.
+If the promoters kept are shorter than any motif, the function stops
+with an error that names those motifs.}
 
 \item{pfms}{A `PSMatrixList` object containing PWMs and background
 statistics.

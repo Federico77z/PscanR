@@ -674,11 +674,6 @@ setGeneric(
     function(x, ...) standardGeneric("ps_bg_seq_names")
 )
 
-setGeneric(
-    ".PS_PSEUDOCOUNT",
-    function(x, ...) standardGeneric(".PS_PSEUDOCOUNT")
-)
-
 
 setGeneric(
     ".PS_ALPHABET",
@@ -748,11 +743,6 @@ setGeneric(
 setGeneric(
     ".ps_add_hits",
     function(x, ...) standardGeneric(".ps_add_hits")
-)
-
-setGeneric(
-    "all_sequences_id",
-    function(x, ...) standardGeneric("all_sequences_id")
 )
 
 #' Generic Setter Method for Background Mean Value of an object

@@ -1,3 +1,38 @@
+# PscanR 0.99.3
+
+- Promoters of different lengths are not comparable, because a promoter's
+  best motif score depends on its length. `pscan()`, `pscan_filtered()` and
+  `ps_build_bg()` now keep the promoters of the most common length (before,
+  those of the longest one), and the warning reports how many promoters were
+  kept, their length, and how many were discarded.
+- `pscan_filtered()` removes duplicated promoters and promoters of other
+  lengths, as `pscan()` does.
+- `ps_scan()` warns when it is called directly on promoters of different
+  lengths, which it scans one at a time.
+- `pscan()`, `pscan_filtered()` and `ps_build_bg()` stop with an error that
+  names the motifs when the promoters kept are shorter than any motif in the
+  collection. Before, `pscan()` failed with an unrelated z-test error,
+  `pscan_filtered()` with "logical subscript contains NAs", and
+  `ps_build_bg()` silently stored `NaN` background statistics. `ps_scan()`
+  stops with a clear error when no promoter is long enough for its motif.
+- `pscan_filtered()` encodes the promoters once for all motifs, as `pscan()`
+  does.
+- Argument checks are shared by all exported functions and stop with one
+  wording, such as "'x' must be a DNAStringSet", without showing internal
+  function names. Checks that were missing are added:
+  `ps_retrieve_bg_from_file()` requires a file path, `ps_build_bg_from_table()`
+  a data.frame,
+  `ps_build_bg()` a logical `fullBG`, and `pscan_filtered()` a numeric `n`.
+  `ps_write_bg_to_file()` reports an output file or directory it cannot write
+  to; the check existed but never ran. `ps_motif_barplot()` accepts an `FDR`
+  only between 0 and 1, as `ps_results_table()` does.
+- Removed internal code without callers: `.ps_natural_order()`, the stored
+  `PSMatrixList` class generator, and the `.PS_PSEUDOCOUNT()` and
+  `all_sequences_id()` accessor generics (the latter read a slot that
+  `PSMatrix` does not have).
+- Tests cover the per-sequence scanner used for promoters of different
+  lengths.
+
 # PscanR 0.99.2
 
 - Changes from the Bioconductor review:

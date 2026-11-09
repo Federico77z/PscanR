@@ -667,21 +667,8 @@ setMethod("ps_bg_seq_names", "PSMatrix", function(x, withDimnames = TRUE) {
 })
 
 
-setMethod(".PS_PSEUDOCOUNT", "PSMatrix", function(x, withDimnames = TRUE) {
-    out <- x@.PS_PSEUDOCOUNT
-
-    return(out)
-})
-
-
 setMethod(".PS_ALPHABET", "PSMatrix", function(x, withDimnames = TRUE) {
     out <- x@.PS_ALPHABET
-
-    return(out)
-})
-
-setMethod("all_sequences_id", "PSMatrix", function(x, withDimnames = TRUE) {
-    out <- x@all_sequences_id
 
     return(out)
 })
@@ -933,6 +920,38 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     encoded
 }
 
+# pscan(), pscan_filtered() and ps_build_bg() keep promoters of one length
+# (.clean_sequence()), but ps_scan() called directly may receive promoters
+# of different lengths. They cannot share one encoding and are scanned one
+# at a time; they are also a poor input, because the best motif score of a
+# promoter depends on its length.
+.ps_warn_unequal_lengths <- function(seqs) {
+    L <- nchar(seqs)
+    if (length(L) < 2L || all(L == L[1L])) {
+        return(invisible(NULL))
+    }
+    msg <- sprintf(paste(
+        "Promoter sequences differ in length (%d to %d bp). The best motif",
+        "score of a promoter depends on its length, so Pscan results are",
+        "comparable only when all promoters, foreground and background, span",
+        "the same window. The sequences are scanned one at a time, which is",
+        "slower."
+    ), min(L), max(L))
+    warning(msg, call. = FALSE)
+}
+
+.ps_check_scorable <- function(x, seqs, W) {
+    longest <- if (length(seqs)) max(nchar(seqs)) else W
+    if (longest < W) {
+        msg <- sprintf(paste(
+            "None of the promoters is long enough for motif %s (%d bp):",
+            "the longest is %d bp."
+        ), ID(x), W, longest)
+        stop(msg, call. = FALSE)
+    }
+}
+
+
 # Score unambiguous, equal-length sequences through Biostrings' vectorised PWM
 # primitive. Valid starts are selected within each concatenated sequence, so no
 # window can cross a sequence boundary. Matrix layout and tie handling reproduce
@@ -1086,6 +1105,9 @@ setMethod(".ps_norm_matrix", "PSMatrix", function(x) {
     M_RC <- matrix(as.numeric(Matrix(rc_x)), nrow = nrows, ncol = W)
 
     if (is.null(encoded)) {
+        # Called directly: the entry points have already checked lengths.
+        .ps_warn_unequal_lengths(seqs)
+        .ps_check_scorable(x, seqs, W)
         encoded <- .ps_encode_seqs(seqs)
     }
 
@@ -1202,8 +1224,8 @@ setMethod(
         x, seqs, BG = FALSE, use_full_bg = FALSE, fullBG = FALSE,
         encoded = NULL
     ) {
-        if (!is(seqs, "DNAStringSet") && !use_full_bg) {
-            stop("seqs is not an object of DNAStringSet class")
+        if (!use_full_bg) {
+            .ps_assert_class(seqs, "DNAStringSet", "seqs")
         }
 
         x <- .ps_set_seq_names(x, seqs, BG, use_full_bg)

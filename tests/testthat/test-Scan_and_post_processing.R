@@ -36,7 +36,7 @@ test_that("PscanR works", {
     # Invalid input
     err_pfms <- c(5, 6, 89, 4)
     expect_error(pscan(x, err_pfms, BPPARAM = BiocParallel::SerialParam()),
-        "pfms is not an object of PSMatrixList class")
+        "'pfms' must be a PSMatrixList")
 
 
 })
@@ -87,15 +87,15 @@ test_that("ps_result_table works", {
     # Invalid input
     err_pfms <- c(5, 6, 89, 4)
     expect_error(ps_results_table(err_pfms),
-        "pfms is not an object of PSMatrixList class")
+        "'pfms' must be a PSMatrixList")
     expect_error(ps_results_table(result, FDR = -0.1),
-        "FDR must be a single numeric value between 0 and 1")
+        "'FDR' must be a single number between 0 and 1")
     expect_error(ps_results_table(result, FDR = 1.1),
-        "FDR must be a single numeric value between 0 and 1")
+        "'FDR' must be a single number between 0 and 1")
     expect_error(ps_results_table(result, FDR = c(0.01, 0.05)),
-        "FDR must be a single numeric value between 0 and 1")
+        "'FDR' must be a single number between 0 and 1")
     expect_error(ps_results_table(result, FDR = NA_real_),
-        "FDR must be a single numeric value between 0 and 1")
+        "'FDR' must be a single number between 0 and 1")
 
 })
 
@@ -138,7 +138,7 @@ test_that("ps_z_table works", {
     # Invalid input
     err_pfms <- c(5, 6, 89, 4)
     expect_error(ps_z_table(err_pfms),
-        "pfms is not an object of PSMatrixList class")
+        "'pfms' must be a PSMatrixList")
 
 })
 
@@ -542,7 +542,7 @@ test_that("ps_motif_barplot clamps n and honours the FDR filter", {
     expect_identical(
         nrow(ps_motif_barplot(results, n = 99)$data), length(results)
     )
-    expect_error(ps_motif_barplot(results, n = 0), "positive")
+    expect_error(ps_motif_barplot(results, n = 0), "'n' must be")
 
     res_table <- ps_results_table(results)
     cutoff <- stats::median(res_table$FDR)
@@ -705,7 +705,7 @@ test_that("ps_density_plot can draw a binned profile on the density scale", {
     # Without bins the first layer is the filled area, not bars.
     plain <- ps_density_plot(pfm, shift = -200, window = c(-200, 50))
     expect_lt(nrow(ggplot2::layer_data(plain, 1)), 512 + 12)
-    expect_error(ps_density_plot(pfm, bins = 0), "positive")
+    expect_error(ps_density_plot(pfm, bins = 0), "'bins' must be")
 })
 
 test_that("the binned profile counts every value exactly once", {
@@ -963,4 +963,144 @@ test_that("a non-positive threshold falls back to the default", {
     expect_no_warning(
         pscan(small$x, small$pfms, BPPARAM = BiocParallel::SerialParam())
     )
+})
+
+test_that("only promoters of the most common length are kept", {
+    seqs <- c(a = "ATGCTGCAATCGA", b = "CATGCTAAGCTAT", c = "GTACTACTAAATG",
+        d = "CATGCTAAGCTATTGCA", e = "TCAGACCATTAAAGC", f = "GTACTACTAAATGCC")
+    mixed <- Biostrings::DNAStringSet(seqs[c("a", "b", "c", "d")])
+    expect_warning(kept <- .clean_sequence(mixed), paste0(
+        "Keeping 3 promoters of 13 bp \\(the most common length\\) and ",
+        "discarding 1 of other lengths: d \\(17 bp\\)"
+    ))
+    expect_identical(names(kept), c("a", "b", "c"))
+
+    # Equally common lengths: the longest wins.
+    tie <- Biostrings::DNAStringSet(seqs[c("a", "b", "e", "f")])
+    expect_warning(kept <- .clean_sequence(tie), "Keeping 2 promoters of 15 bp")
+    expect_identical(names(kept), c("e", "f"))
+
+    # Long lists of discarded promoters are cut after ten names.
+    many <- Biostrings::DNAStringSet(c(rep(seqs[["a"]], 14), rep("ACGT", 12)))
+    names(many) <- paste0("p", seq_along(many))
+    expect_warning(.clean_sequence(many), "discarding 12 .*, and 2 more$")
+
+    # Same-length input passes without a warning.
+    expect_no_warning(kept <- .clean_sequence(mixed[1:3]))
+    expect_length(kept, 3L)
+})
+
+test_that("pscan, pscan_filtered and ps_scan handle mixed promoter lengths", {
+    x <- Biostrings::DNAStringSet(c(
+        a = "ATGCTGCAATCGA", b = "CATGCTAAGCTAT", c = "GTACTACTAAATG",
+        d = "CATGCTAAGCTATTGCA"
+    ))
+    PFM1 <- PFMatrix(ID = "PSM1", name = "Example1", matrixClass = "PWM",
+        profileMatrix = matrix(c(4, 19, 0, 0, 0, 0,
+                16, 0, 20, 0, 0, 0,
+                0, 1, 0, 20, 0, 20,
+                0, 0, 0, 0, 20, 0),
+            nrow = 4, byrow = TRUE,
+            dimnames = list(c("A", "C", "G", "T"))))
+    PFM2 <- PFMatrix(ID = "PSM2", name = "Example2", matrixClass = "PWM",
+        profileMatrix = matrix(c(3, 0, 0, 0, 0, 0,
+                8, 0, 23, 0, 0, 0,
+                2, 23, 0, 23, 0, 24,
+                11, 1, 1, 1, 24, 0),
+            nrow = 4, byrow = TRUE,
+            dimnames = list(c("A", "C", "G", "T"))))
+    PSM1 <- PSMatrix(PFM1, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478,
+        ps_bg_std_dev = 0.07493493, ps_bg_size = 250L)
+    PSM2 <- PSMatrix(PFM2, ps_bg_avg = 0.8806266, ps_fg_avg = 0.8679936,
+        ps_bg_std_dev = 0.07161552, ps_bg_size = 250L)
+    pfms <- PSMatrixList(PSM1, PSM2)
+    serial <- BiocParallel::SerialParam()
+    # Runs expr and returns its value with the messages of its warnings.
+    collect_warnings <- function(expr) {
+        messages <- character()
+        value <- withCallingHandlers(expr, warning = function(w) {
+            messages <<- c(messages, conditionMessage(w))
+            invokeRestart("muffleWarning")
+        })
+        list(value = value, messages = messages)
+    }
+
+    # pscan() and pscan_filtered() keep the three 13 bp promoters, with one
+    # warning per call. A threshold below every score keeps all of them in
+    # the filter step.
+    scanned <- collect_warnings(pscan(x, pfms, BPPARAM = serial))
+    expect_identical(sum(grepl("Keeping 3 promoters", scanned$messages)), 1L)
+    expect_identical(unname(ps_seq_names(scanned$value[[1]])), c("a", "b", "c"))
+    lenient <- PSMatrix(PFM1, ps_bg_avg = 0, ps_fg_avg = 0,
+        ps_bg_std_dev = 0.01, ps_bg_size = 250L)
+    filtered <- collect_warnings(pscan_filtered(
+        x, lenient, n = 1, background = pfms, BPPARAM = serial
+    ))
+    expect_identical(filtered$messages[grepl("length", filtered$messages)],
+        scanned$messages[grepl("length", scanned$messages)])
+    expect_identical(
+        unname(ps_seq_names(filtered$value[[1]])), c("a", "b", "c")
+    )
+
+    # ps_scan() called directly scans all four promoters one at a time, with
+    # one warning, and its scores equal the batched ones. Three copies of a
+    # promoter have equal lengths, and the z-test needs more than two.
+    direct <- collect_warnings(ps_scan(PSM1, x))
+    expect_identical(sum(grepl("differ in length", direct$messages)), 1L)
+    batched_score <- function(pfm, s) {
+        copies <- rep(s, 3L)
+        names(copies) <- paste0("copy", 1:3)
+        ps_hits_score(ps_scan(pfm, copies), withDimnames = FALSE)[[1]]
+    }
+    expect_equal(
+        ps_hits_score(direct$value, withDimnames = FALSE),
+        vapply(seq_along(x), function(i) batched_score(PSM1, x[i]), 1)
+    )
+})
+
+test_that("promoters shorter than a motif stop with an informative error", {
+    x <- Biostrings::DNAStringSet(c(
+        a = "ATGCTGCAATCGA", b = "CATGCTAAGCTAT", c = "GTACTACTAAATG"
+    ))
+    PFM1 <- PFMatrix(ID = "PSM1", name = "Example1", matrixClass = "PWM",
+        profileMatrix = matrix(c(4, 19, 0, 0, 0, 0,
+                16, 0, 20, 0, 0, 0,
+                0, 1, 0, 20, 0, 20,
+                0, 0, 0, 0, 20, 0),
+            nrow = 4, byrow = TRUE,
+            dimnames = list(c("A", "C", "G", "T"))))
+    PFM_LONG <- PFMatrix(ID = "LONG", name = "Long", matrixClass = "PWM",
+        profileMatrix = matrix(rep(c(8, 4, 4, 4), 15), nrow = 4,
+            dimnames = list(c("A", "C", "G", "T"))))
+    PSM1 <- PSMatrix(PFM1, ps_bg_avg = 0.8267, ps_fg_avg = 0.8155478,
+        ps_bg_std_dev = 0.07493493, ps_bg_size = 250L)
+    PSM_LONG <- PSMatrix(PFM_LONG, ps_bg_avg = 0.8, ps_fg_avg = 0.8,
+        ps_bg_std_dev = 0.07, ps_bg_size = 250L)
+    serial <- BiocParallel::SerialParam()
+    msg <- paste0("The promoters are 13 bp long, shorter than 1 of the 2 ",
+        "motifs, which cannot be scored: LONG \\(15 bp\\)")
+
+    expect_error(pscan(x, PSMatrixList(PSM1, PSM_LONG), BPPARAM = serial), msg)
+    expect_error(
+        ps_build_bg(x, PFMatrixList(PFM1, PFM_LONG), BPPARAM = serial), msg
+    )
+    expect_error(pscan_filtered(
+        x, PSM_LONG, n = 1, background = PSMatrixList(PSM1), BPPARAM = serial
+    ), msg)
+    expect_error(pscan_filtered(
+        x, PSM1, n = 1, background = PSMatrixList(PSM_LONG), BPPARAM = serial
+    ), msg)
+    expect_error(ps_scan(PSM_LONG, x), paste0(
+        "None of the promoters is long enough for motif LONG \\(15 bp\\): ",
+        "the longest is 13 bp"
+    ))
+
+    # A few short promoters, e.g. near a chromosome start, are discarded with
+    # a warning; the check applies to the promoters that are kept.
+    with_short <- c(x, Biostrings::DNAStringSet(c(s = "ACGTA")))
+    expect_warning(
+        res <- pscan(with_short, PSMatrixList(PSM1), BPPARAM = serial),
+        "discarding 1 of other lengths: s \\(5 bp\\)"
+    )
+    expect_s4_class(res, "PSMatrixList")
 })

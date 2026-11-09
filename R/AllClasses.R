@@ -143,7 +143,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 }
 
 #' @importFrom TFBSTools PFMatrixList
-.PSMatrixList <- setClass("PSMatrixList",
+setClass("PSMatrixList",
     contains = "PFMatrixList",
     slots = list(transcriptIDLegend = "character")
 )
@@ -203,9 +203,7 @@ PSMatrix <- function(pfm, ps_bg_avg = as.numeric(NA),
 PSMatrixList <- function(...,
     transcriptIDLegend = character(),
     use.names = TRUE) {
-    if (!is.character(transcriptIDLegend)) {
-        stop("'transcriptIDLegend' must be a character vector")
-    }
+    .ps_assert_character(transcriptIDLegend, "transcriptIDLegend")
 
     listData <- list(...)
     out <- XMatrixList(listData,

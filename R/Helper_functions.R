@@ -93,11 +93,12 @@
 
 .ps_check_short_matrix_file <- function(path) {
     if (file.access(path, mode = 4) != 0) {
-        stop(sprintf("Cannot access file path: %s", path))
+        stop(sprintf("Cannot access file path: %s", path), call. = FALSE)
     }
     first_line <- readLines(path, n = 1)
     if (first_line != "[SHORT TFBS MATRIX]") {
-        stop(sprintf("%s does not look like a Pscan .short_matrix file", path))
+        stop(sprintf("%s does not look like a Pscan .short_matrix file", path),
+            call. = FALSE)
     }
 }
 
@@ -105,81 +106,27 @@
     req_cols <- c("BG_SIZE", "BG_MEAN", "BG_STDEV")
     if (!all(req_cols %in% colnames(x))) {
         stop(
-            "x does not contain required columns",
-            "\"BG_SIZE\", \"BG_MEAN\", \"BG_STDEV\""
+            "'x' must have the columns BG_SIZE, BG_MEAN and BG_STDEV",
+            call. = FALSE
         )
     }
     if (!all(
         is.numeric(x$BG_SIZE), is.numeric(x$BG_MEAN),
         is.numeric(x$BG_STDEV)
     )) {
-        stop("Required columns of x must be of numeric type")
+        stop("The BG_SIZE, BG_MEAN and BG_STDEV columns of 'x' must be numeric",
+            call. = FALSE)
     }
 }
 
-.ps_checks <- function(x, pfms, type) {
-
-    if (type == 4 && !is(pfms, "PSMatrixList")) {
-        stop("pfms is not an object of PSMatrixList class")
-    }
-
-    if (type == 4) {
-        .ps_warn_missing_bg(pfms)
-    }
-
-    if (!is(pfms, "PFMatrixList") && !is(pfms, "PSMatrixList")) {
-        stop("pfms is not an object of PFMatrixList or PSMatrixList class")
-    }
-
-    if (is.character(x) && type == 2) {
-        .ps_check_short_matrix_file(x)
-    } else if (!is(x, "DNAStringSet") && (type == 1 || type == 4)) {
-        stop("x is not an object of DNAStringSet class")
-    } else if (is.data.frame(x) && type == 3) {
-        .ps_check_bg_table(x)
-    }
-}
-
-#' @keywords internal
-.ps_checks2 <- function(pfms, file = NULL, ...) {
-
-    if (!is(pfms, "PSMatrixList")) {
-        stop("pfms is not an object of PSMatrixList class")
-    }
-
-    if (!is.null(file) && !is.character(file)) {
-        stop("file must be a character string indicating the file path")
-
-        file_dir <- dirname(file)
-
-        if (!file.exists(file)) {
-            if (file.access(file_dir, mode = 2) != 0) {
-                stop(sprintf("Can't write to directory: %s", file_dir))
-            }
-        } else {
-            if (file.access(file, mode = 2) != 0) {
-                stop(sprintf("Can't write to existing file: %s", file))
-            }
-        }
-    }
-}
 
 #' @keywords internal
 .clean_sequence <- function(x) {
-    seq_widths <- Biostrings::width(x)
-    ref_width <- max(Biostrings::width(x))
-
-    diff_length_seq <- x[seq_widths != ref_width]
-
-    if (length(diff_length_seq) != 0) {
-        warning(
-            length(diff_length_seq), " sequences found with length ",
-            "different from the reference. Removing the following ",
-            "sequences: ", toString(names(diff_length_seq)),
-            call. = FALSE
-        )
+    x <- .ps_keep_modal_length(x)
+    if (length(x) == 0L) {
+        return(x)
     }
-    x <- x[seq_widths == ref_width]
+    ref_width <- Biostrings::width(x)[1L]
 
     freqs <- Biostrings::alphabetFrequency(x, as.prob = FALSE)
     n_proportions <- freqs[, "N"] / ref_width
@@ -194,6 +141,67 @@
     }
     x <- x[n_proportions <= 0.5]
     return(x)
+}
+
+# A promoter's best motif score depends on its length, so promoters of
+# different lengths are not comparable. Keep those of the most common length
+# (the longest one if several lengths are equally common) and warn about the
+# rest.
+.ps_keep_modal_length <- function(x) {
+    widths <- Biostrings::width(x)
+    if (length(widths) == 0L || all(widths == widths[1L])) {
+        return(x)
+    }
+    counts <- table(widths)
+    ref_width <- max(as.integer(names(counts)[counts == max(counts)]))
+    keep <- widths == ref_width
+    .ps_warn_discarded_lengths(x, keep, ref_width)
+    x[keep]
+}
+
+.ps_warn_discarded_lengths <- function(x, keep, ref_width) {
+    dropped <- x[!keep]
+    ids <- names(dropped)
+    if (is.null(ids)) {
+        ids <- paste0("#", which(!keep))
+    }
+    shown <- paste0(ids, " (", Biostrings::width(dropped), " bp)")
+    if (length(shown) > 10L) {
+        shown <- c(shown[seq_len(10L)],
+            sprintf("and %d more", length(shown) - 10L))
+    }
+    msg <- sprintf(paste(
+        "Promoter sequences differ in length. Keeping %d promoters of %d bp",
+        "(the most common length) and discarding %d of other lengths: %s"
+    ), sum(keep), ref_width, sum(!keep), toString(shown))
+    warning(msg, call. = FALSE)
+}
+
+# A motif wider than the promoters cannot be scored on any of them, and a
+# Pscan run in which some motifs cannot be tested makes no sense: stop and
+# name them. Called after .clean_sequence(), so all promoters have one length.
+.ps_check_motif_widths <- function(x, pfms) {
+    if (length(x) == 0L) {
+        return(invisible(NULL))
+    }
+    len <- Biostrings::width(x)[1L]
+    widths <- vapply(pfms, function(m) ncol(Matrix(m)), integer(1))
+    too_long <- widths > len
+    if (!any(too_long)) {
+        return(invisible(NULL))
+    }
+    ids <- vapply(pfms, ID, character(1))[too_long]
+    shown <- paste0(ids, " (", widths[too_long], " bp)")
+    if (length(shown) > 10L) {
+        shown <- c(shown[seq_len(10L)],
+            sprintf("and %d more", length(shown) - 10L))
+    }
+    msg <- sprintf(paste(
+        "The promoters are %d bp long, shorter than %d of the %d motifs,",
+        "which cannot be scored: %s. Use longer promoters, or leave these",
+        "motifs out of the collection."
+    ), len, sum(too_long), length(widths), toString(shown))
+    stop(msg, call. = FALSE)
 }
 
 # The legend is a slot of the list, not of its matrices, so every
@@ -317,7 +325,7 @@
 .ps_match_background_source <- function(source) {
     if (!is.character(source) || !length(source) || anyNA(source)) {
         stop(
-            "source must be one of: ",
+            "'source' must be one of: ",
             toString(.ps_background_sources), call. = FALSE
         )
     }
@@ -387,7 +395,7 @@
     jaspar_release <- toupper(jaspar_release)
     if (!grepl("^JASPAR[0-9]{4}$", jaspar_release)) {
         stop(
-            "jaspar_release must have the form JASPAR followed by a year",
+            "'jaspar_release' must have the form JASPAR followed by a year",
             call. = FALSE
         )
     }
@@ -405,15 +413,15 @@
     }
     if (!is.numeric(prom_reg) || length(prom_reg) != 2L ||
             anyNA(prom_reg) || prom_reg[[1]] > 0 || prom_reg[[2]] < 0) {
-        stop("prom_reg must be c(-upstream, downstream)", call. = FALSE)
+        stop("'prom_reg' must be c(-upstream, downstream)", call. = FALSE)
     }
     version <- as.character(version)
     if (length(version) != 1L || is.na(version)) {
-        stop("version must be 'latest' or a positive integer", call. = FALSE)
+        stop("'version' must be 'latest' or a positive integer", call. = FALSE)
     }
     latest <- identical(tolower(version), "latest")
     if (!latest && !grepl("^[1-9][0-9]*$", version)) {
-        stop("version must be 'latest' or a positive integer", call. = FALSE)
+        stop("'version' must be 'latest' or a positive integer", call. = FALSE)
     }
     list(
         release = as.integer(sub("^JASPAR", "", jaspar_release)),

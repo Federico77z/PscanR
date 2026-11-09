@@ -14,6 +14,7 @@
 ^raw_data$
 ^test_and_scripts$
 ^SUBMISSION\.md$
+^DEVELOPERS\.md$
 ^.*\.BiocCheck$
 ^.*\.Rcheck$
 ^vignettes/.*\.html$

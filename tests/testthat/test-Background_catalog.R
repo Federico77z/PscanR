@@ -42,7 +42,7 @@ test_that("background catalog supports filename and detailed listings", {
         ps_available_bg("missing"), "Found 0 matches"
     )
     expect_error(
-        ps_available_bg(details = NA), "details must be"
+        ps_available_bg(details = NA), "'details' must be"
     )
 })
 
@@ -75,7 +75,7 @@ test_that("background catalog resolves latest and pinned versions", {
         PscanR:::.ps_resolve_bg_catalog(
             catalog, "JASPAR2024", "hs", c(-950, 50), "hg38", "zero"
         ),
-        "version must be"
+        "'version' must be"
     )
 })
 
