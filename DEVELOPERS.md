@@ -12,8 +12,7 @@ documentation is in the vignettes and the manual pages. The method is
 described in Zambelli, Pesole and Pavesi (2009),
 <https://doi.org/10.1093/nar/gkp464>.
 
-This file is listed in `.Rbuildignore`: it is part of the repository, not of
-the package tarball.
+This file is listed in `.Rbuildignore`.
 
 ## Repository layout
 
