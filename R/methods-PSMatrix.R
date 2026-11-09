@@ -1223,8 +1223,8 @@ setMethod(
         x, seqs, BG = FALSE, use_full_bg = FALSE, fullBG = FALSE,
         encoded = NULL
     ) {
-        if (!is(seqs, "DNAStringSet") && !use_full_bg) {
-            stop("seqs is not an object of DNAStringSet class")
+        if (!use_full_bg) {
+            .ps_assert_class(seqs, "DNAStringSet", "seqs")
         }
 
         x <- .ps_set_seq_names(x, seqs, BG, use_full_bg)

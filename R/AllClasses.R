@@ -203,9 +203,7 @@ setClass("PSMatrixList",
 PSMatrixList <- function(...,
     transcriptIDLegend = character(),
     use.names = TRUE) {
-    if (!is.character(transcriptIDLegend)) {
-        stop("'transcriptIDLegend' must be a character vector")
-    }
+    .ps_assert_character(transcriptIDLegend, "transcriptIDLegend")
 
     listData <- list(...)
     out <- XMatrixList(listData,

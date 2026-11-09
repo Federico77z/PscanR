@@ -93,11 +93,12 @@
 
 .ps_check_short_matrix_file <- function(path) {
     if (file.access(path, mode = 4) != 0) {
-        stop(sprintf("Cannot access file path: %s", path))
+        stop(sprintf("Cannot access file path: %s", path), call. = FALSE)
     }
     first_line <- readLines(path, n = 1)
     if (first_line != "[SHORT TFBS MATRIX]") {
-        stop(sprintf("%s does not look like a Pscan .short_matrix file", path))
+        stop(sprintf("%s does not look like a Pscan .short_matrix file", path),
+            call. = FALSE)
     }
 }
 
@@ -105,64 +106,19 @@
     req_cols <- c("BG_SIZE", "BG_MEAN", "BG_STDEV")
     if (!all(req_cols %in% colnames(x))) {
         stop(
-            "x does not contain required columns",
-            "\"BG_SIZE\", \"BG_MEAN\", \"BG_STDEV\""
+            "'x' must have the columns BG_SIZE, BG_MEAN and BG_STDEV",
+            call. = FALSE
         )
     }
     if (!all(
         is.numeric(x$BG_SIZE), is.numeric(x$BG_MEAN),
         is.numeric(x$BG_STDEV)
     )) {
-        stop("Required columns of x must be of numeric type")
+        stop("The BG_SIZE, BG_MEAN and BG_STDEV columns of 'x' must be numeric",
+            call. = FALSE)
     }
 }
 
-.ps_checks <- function(x, pfms, type) {
-
-    if (type == 4 && !is(pfms, "PSMatrixList")) {
-        stop("pfms is not an object of PSMatrixList class")
-    }
-
-    if (type == 4) {
-        .ps_warn_missing_bg(pfms)
-    }
-
-    if (!is(pfms, "PFMatrixList") && !is(pfms, "PSMatrixList")) {
-        stop("pfms is not an object of PFMatrixList or PSMatrixList class")
-    }
-
-    if (is.character(x) && type == 2) {
-        .ps_check_short_matrix_file(x)
-    } else if (!is(x, "DNAStringSet") && (type == 1 || type == 4)) {
-        stop("x is not an object of DNAStringSet class")
-    } else if (is.data.frame(x) && type == 3) {
-        .ps_check_bg_table(x)
-    }
-}
-
-#' @keywords internal
-.ps_checks2 <- function(pfms, file = NULL, ...) {
-
-    if (!is(pfms, "PSMatrixList")) {
-        stop("pfms is not an object of PSMatrixList class")
-    }
-
-    if (!is.null(file) && !is.character(file)) {
-        stop("file must be a character string indicating the file path")
-
-        file_dir <- dirname(file)
-
-        if (!file.exists(file)) {
-            if (file.access(file_dir, mode = 2) != 0) {
-                stop(sprintf("Can't write to directory: %s", file_dir))
-            }
-        } else {
-            if (file.access(file, mode = 2) != 0) {
-                stop(sprintf("Can't write to existing file: %s", file))
-            }
-        }
-    }
-}
 
 #' @keywords internal
 .clean_sequence <- function(x) {
@@ -367,7 +323,7 @@
 .ps_match_background_source <- function(source) {
     if (!is.character(source) || !length(source) || anyNA(source)) {
         stop(
-            "source must be one of: ",
+            "'source' must be one of: ",
             toString(.ps_background_sources), call. = FALSE
         )
     }
@@ -437,7 +393,7 @@
     jaspar_release <- toupper(jaspar_release)
     if (!grepl("^JASPAR[0-9]{4}$", jaspar_release)) {
         stop(
-            "jaspar_release must have the form JASPAR followed by a year",
+            "'jaspar_release' must have the form JASPAR followed by a year",
             call. = FALSE
         )
     }
@@ -455,15 +411,15 @@
     }
     if (!is.numeric(prom_reg) || length(prom_reg) != 2L ||
             anyNA(prom_reg) || prom_reg[[1]] > 0 || prom_reg[[2]] < 0) {
-        stop("prom_reg must be c(-upstream, downstream)", call. = FALSE)
+        stop("'prom_reg' must be c(-upstream, downstream)", call. = FALSE)
     }
     version <- as.character(version)
     if (length(version) != 1L || is.na(version)) {
-        stop("version must be 'latest' or a positive integer", call. = FALSE)
+        stop("'version' must be 'latest' or a positive integer", call. = FALSE)
     }
     latest <- identical(tolower(version), "latest")
     if (!latest && !grepl("^[1-9][0-9]*$", version)) {
-        stop("version must be 'latest' or a positive integer", call. = FALSE)
+        stop("'version' must be 'latest' or a positive integer", call. = FALSE)
     }
     list(
         release = as.integer(sub("^JASPAR", "", jaspar_release)),

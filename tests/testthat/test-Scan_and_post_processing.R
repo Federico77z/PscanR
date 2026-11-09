@@ -36,7 +36,7 @@ test_that("PscanR works", {
     # Invalid input
     err_pfms <- c(5, 6, 89, 4)
     expect_error(pscan(x, err_pfms, BPPARAM = BiocParallel::SerialParam()),
-        "pfms is not an object of PSMatrixList class")
+        "'pfms' must be a PSMatrixList")
 
 
 })
@@ -87,15 +87,15 @@ test_that("ps_result_table works", {
     # Invalid input
     err_pfms <- c(5, 6, 89, 4)
     expect_error(ps_results_table(err_pfms),
-        "pfms is not an object of PSMatrixList class")
+        "'pfms' must be a PSMatrixList")
     expect_error(ps_results_table(result, FDR = -0.1),
-        "FDR must be a single numeric value between 0 and 1")
+        "'FDR' must be a single number between 0 and 1")
     expect_error(ps_results_table(result, FDR = 1.1),
-        "FDR must be a single numeric value between 0 and 1")
+        "'FDR' must be a single number between 0 and 1")
     expect_error(ps_results_table(result, FDR = c(0.01, 0.05)),
-        "FDR must be a single numeric value between 0 and 1")
+        "'FDR' must be a single number between 0 and 1")
     expect_error(ps_results_table(result, FDR = NA_real_),
-        "FDR must be a single numeric value between 0 and 1")
+        "'FDR' must be a single number between 0 and 1")
 
 })
 
@@ -138,7 +138,7 @@ test_that("ps_z_table works", {
     # Invalid input
     err_pfms <- c(5, 6, 89, 4)
     expect_error(ps_z_table(err_pfms),
-        "pfms is not an object of PSMatrixList class")
+        "'pfms' must be a PSMatrixList")
 
 })
 
@@ -542,7 +542,7 @@ test_that("ps_motif_barplot clamps n and honours the FDR filter", {
     expect_identical(
         nrow(ps_motif_barplot(results, n = 99)$data), length(results)
     )
-    expect_error(ps_motif_barplot(results, n = 0), "positive")
+    expect_error(ps_motif_barplot(results, n = 0), "'n' must be")
 
     res_table <- ps_results_table(results)
     cutoff <- stats::median(res_table$FDR)
@@ -705,7 +705,7 @@ test_that("ps_density_plot can draw a binned profile on the density scale", {
     # Without bins the first layer is the filled area, not bars.
     plain <- ps_density_plot(pfm, shift = -200, window = c(-200, 50))
     expect_lt(nrow(ggplot2::layer_data(plain, 1)), 512 + 12)
-    expect_error(ps_density_plot(pfm, bins = 0), "positive")
+    expect_error(ps_density_plot(pfm, bins = 0), "'bins' must be")
 })
 
 test_that("the binned profile counts every value exactly once", {

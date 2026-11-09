@@ -132,7 +132,9 @@
 #'
 pscan <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
     BPOPTIONS = bpoptions()) {
-    .ps_checks(x, pfms, type = 4)
+    .ps_assert_class(x, "DNAStringSet", "x")
+    .ps_assert_class(pfms, "PSMatrixList", "pfms")
+    .ps_warn_missing_bg(pfms)
 
     # Carried, not derived: the legend describes the background's promoter
     # universe, which the scan does not change.
@@ -249,9 +251,7 @@ pscan <- function(x, pfms, BPPARAM = BiocParallel::SerialParam(),
 #'
 #' @export
 pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
-    if (!is.character(ID)) {
-        stop("ID must be a character vector containing transcript identifiers")
-    }
+    .ps_assert_character(ID, "ID")
     .ps_check_full_bg(full_pfms)
     all_seq_id <- ps_transcript_legend(full_pfms)
     x <- .ps_map_to_full_bg(ID, all_seq_id, scheme, quiet)
@@ -276,9 +276,7 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 
 # A full background must hold a per-promoter background scan and a legend.
 .ps_check_full_bg <- function(full_pfms) {
-    if (!is(full_pfms, "PSMatrixList")) {
-        stop("'full_pfms' must be a PSMatrixList")
-    }
+    .ps_assert_class(full_pfms, "PSMatrixList", "full_pfms")
     # Every PSMatrixList now carries whatever legend its input had, so a
     # non-empty legend no longer means "this object holds a background scan".
     # Testing for the scan itself is what stops a pscan() result from being
@@ -288,13 +286,15 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
         stop(
             "'full_pfms' carries no per-promoter background scan, so there ",
             "is nothing to retrieve. Build it with ",
-            "ps_build_bg(..., fullBG = TRUE)."
+            "ps_build_bg(..., fullBG = TRUE).",
+            call. = FALSE
         )
     }
     if (length(ps_transcript_legend(full_pfms)) == 0) {
         stop(
             "'full_pfms' has an empty transcriptIDLegend, so transcript ",
-            "identifiers cannot be resolved against the background."
+            "identifiers cannot be resolved against the background.",
+            call. = FALSE
         )
     }
     invisible(TRUE)
@@ -352,20 +352,7 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
     invisible(ambiguous)
 }
 
-# .ps_check_filtered_inputs and .ps_filter_promoters are internal helpers used
-# by pscan_filtered.
-.ps_check_filtered_inputs <- function(prom_seq, Jmatrix, background) {
-    if (!is(prom_seq, "DNAStringSet")) {
-        stop("Invalid input: 'prom_seq' must be a DNAStringSet")
-    }
-    if (!is(Jmatrix, "PSMatrix")) {
-        stop("Invalid input: 'Jmatrix' must be a PSMatrix")
-    }
-    if (!is(background, "PSMatrixList")) {
-        stop("Invalid input: 'background' must be a PSMatrixList")
-    }
-}
-
+# .ps_filter_promoters is an internal helper used by pscan_filtered.
 .ps_filter_promoters <- function(prom_seq, Jmatrix, n) {
     threshold <- ps_bg_avg(Jmatrix) + n * ps_bg_std_dev(Jmatrix)
     rc_matrix <- reverseComplement(Jmatrix)
@@ -493,7 +480,10 @@ pscan_full_bg <- function(ID, full_pfms, scheme = "auto", quiet = FALSE) {
 #' @export
 pscan_filtered <- function(prom_seq, Jmatrix, n = 1, background,
     BPPARAM = BiocParallel::SerialParam(), BPOPTIONS = bpoptions()) {
-    .ps_check_filtered_inputs(prom_seq, Jmatrix, background)
+    .ps_assert_class(prom_seq, "DNAStringSet", "prom_seq")
+    .ps_assert_class(Jmatrix, "PSMatrix", "Jmatrix")
+    .ps_assert_class(background, "PSMatrixList", "background")
+    .ps_assert_number(n, "n")
 
     # From `background`, not `Jmatrix`: the legend belongs to the promoter
     # universe, and `Jmatrix` is a single matrix with no such slot.
@@ -631,12 +621,8 @@ ps_results_table <- function(pfms, FDR = 1) {
 # plot repeat the warning that pscan() and ps_results_table() already gave
 # would put one on every figure chunk of a vignette.
 .ps_results_table_core <- function(pfms, FDR = 1) {
-    .ps_checks2(pfms)
-
-    if (!is.numeric(FDR) || length(FDR) != 1L || is.na(FDR) ||
-            FDR < 0 || FDR > 1) {
-        stop("FDR must be a single numeric value between 0 and 1")
-    }
+    .ps_assert_class(pfms, "PSMatrixList", "pfms")
+    .ps_assert_number(FDR, "FDR", min = 0, max = 1)
 
     bg_v <- vapply(pfms, ps_bg_avg, numeric(length = 1L))
     std_v <- vapply(pfms, ps_bg_std_dev, numeric(length = 1L))
@@ -714,7 +700,7 @@ ps_results_table <- function(pfms, FDR = 1) {
 #'
 #' @export
 ps_z_table <- function(pfms) {
-    .ps_checks2(pfms)
+    .ps_assert_class(pfms, "PSMatrixList", "pfms")
 
     tbl <- lapply(pfms, ps_hits_z)
 
@@ -1118,9 +1104,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
     if (is.null(bins) || is.null(values)) {
         return(NULL)
     }
-    if (!is.numeric(bins) || length(bins) != 1L || is.na(bins) || bins < 1) {
-        stop("bins must be a single positive number", call. = FALSE)
-    }
+    .ps_assert_number(bins, "bins", min = 1)
     breaks <- seq(
         limits[[1L]], limits[[2L]], length.out = as.integer(bins) + 1L
     )
@@ -1352,12 +1336,7 @@ ps_density_plot <- function(pfm, shift = 0, st = ps_bg_avg(pfm),
 #' J2020 <- readRDS(j2020_path)
 #' head(ps_motif_class(J2020))
 ps_motif_class <- function(pfms) {
-    if (!is(pfms, "PFMatrixList")) {
-        stop(
-            "pfms must be a PSMatrixList or PFMatrixList object",
-            call. = FALSE
-        )
-    }
+    .ps_assert_class(pfms, c("PFMatrixList", "PSMatrixList"), "pfms")
 
     out <- vapply(pfms, function(x) {
         value <- matrixClass(x)
@@ -1450,9 +1429,7 @@ ps_motif_barplot <- function(pfms, n = 20,
     group = NULL, FDR = NULL) {
     statistic <- match.arg(statistic)
     parts <- .ps_barplot_filter(.ps_barplot_inputs(pfms, group), FDR)
-    if (!is.numeric(n) || length(n) != 1L || is.na(n) || n < 1) {
-        stop("n must be a single positive number", call. = FALSE)
-    }
+    .ps_assert_number(n, "n", min = 1)
     plot_data <- .ps_barplot_data(parts$table, statistic, n)
     rows <- attr(plot_data, "rows")
     axis_label <- attr(plot_data, "axis_label")
@@ -1484,9 +1461,7 @@ ps_motif_barplot <- function(pfms, n = 20,
 # Keep the motifs at or below an FDR threshold, if one is given.
 .ps_barplot_filter <- function(parts, FDR) {
     if (!is.null(FDR)) {
-        if (!is.numeric(FDR) || length(FDR) != 1L || is.na(FDR)) {
-            stop("FDR must be a single numeric value", call. = FALSE)
-        }
+        .ps_assert_number(FDR, "FDR", min = 0, max = 1)
         keep <- parts$table$FDR <= FDR
         parts$table <- parts$table[keep, , drop = FALSE]
         parts$grouping <- parts$grouping[keep]
@@ -1577,7 +1552,7 @@ ps_motif_barplot <- function(pfms, n = 20,
         return(list(table = pfms, grouping = grouping))
     }
     stop(
-        "pfms must be a PSMatrixList or a data.frame from ps_results_table()",
+        "'pfms' must be a PSMatrixList or a data.frame from ps_results_table()",
         call. = FALSE
     )
 }
@@ -1602,7 +1577,7 @@ ps_motif_barplot <- function(pfms, n = 20,
     }
     if (!is.character(group) && !is.factor(group)) {
         stop(
-            "group must be NULL, \"class\", \"family\", or a character or ",
+            "'group' must be NULL, \"class\", \"family\", or a character or ",
             "factor vector",
             call. = FALSE
         )
@@ -1684,13 +1659,8 @@ ps_motif_barplot <- function(pfms, n = 20,
 #'
 #' ps_hit_score_plot(results, shift = -200)
 ps_hit_score_plot <- function(x, shift = 0, alpha = NULL, size = NULL) {
-    motifs <- if (is(x, "PFMatrixList")) {
-        as.list(x)
-    } else if (is(x, "PSMatrix")) {
-        list(x)
-    } else {
-        stop("x must be a PSMatrix or a PSMatrixList", call. = FALSE)
-    }
+    .ps_assert_class(x, c("PSMatrix", "PSMatrixList"), "x")
+    motifs <- if (is(x, "PSMatrix")) list(x) else as.list(x)
     points <- .ps_hit_score_points(motifs, shift)
     motif_names <- vapply(motifs, name, character(1L))
 
