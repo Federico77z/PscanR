@@ -51,16 +51,6 @@ jobs:
           BiocManager::install(c('rcmdcheck', 'BiocCheck'), ask = FALSE, update = FALSE)
         shell: Rscript {0}
 
-      # TEMPORARY: PscanRBackgrounds (Suggests) was accepted on 2026-11-06 but
-      # is not yet in the Bioconductor devel repository, so install it from
-      # bioc.r-universe.dev. Remove this step once BiocManager can install it.
-      - name: Install PscanRBackgrounds from bioc.r-universe.dev (temporary)
-        run: |
-          install.packages('PscanRBackgrounds',
-              repos = c('https://bioc.r-universe.dev', BiocManager::repositories()))
-          stopifnot(requireNamespace('PscanRBackgrounds', quietly = TRUE))
-        shell: Rscript {0}
-
       - name: Build source tarball
         run: |
           rm -f .deps.rds

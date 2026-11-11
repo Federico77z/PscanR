@@ -226,9 +226,11 @@ transcription factor.
 - **AI assistance.** Source files written or changed with substantial AI
   assistance carry an `Assisted-by:` note (see `inst/PROVENANCE.md`).
 - **NEWS and version.** Each user-visible change gets an entry in `NEWS.md`
-  under the next version. `Version` in `DESCRIPTION` is increased (0.99.z
-  during review, then the Bioconductor scheme) once per push to the
-  Bioconductor repository, because the build system builds only new versions.
+  under the next version. `Version` in `DESCRIPTION` is increased once per
+  push to the Bioconductor repository, because the build system builds only
+  new versions. At each release Bioconductor sets the middle number: even in
+  the release (1.0.0 for the first one), odd in devel (1.1.0). Pushes then
+  increase the last number.
 
 ## Checking a change
 
@@ -254,17 +256,16 @@ requests to `main` and `devel`, and can be started by hand:
 
 ## Branches and releases
 
-- `main` is the version submitted to Bioconductor. Changes reach it only
-  through pull requests, which the maintainer merges.
+- `main` is the version in Bioconductor devel. Changes reach it only through
+  pull requests, which the maintainer merges.
 - Work is done on topic branches; AI-assisted work is on `Claude`. Bring a
   topic branch up to date with `main` before starting new work on it.
-- During the review, `main` is pushed to the `devel` branch of
-  <https://github.com/BiocStaging/PscanR>, and each push with a new version
-  triggers a build report on the review issue.
-- After acceptance, `main` is pushed to the `devel` branch of
-  `git.bioconductor.org/packages/PscanR` (SSH keys registered in
-  BiocCredentials). Fixes for a released version go to its `RELEASE_3_xx`
-  branch as well. GitHub `main` and Bioconductor `devel` are kept identical.
+- `main` is pushed to the `devel` branch of
+  `git@git.bioconductor.org:packages/PscanR` (SSH keys registered in
+  BiocCredentials), for example with a remote `upstream` whose push refspec
+  is `main:devel`. GitHub `main` and Bioconductor `devel` are kept identical.
+- Each Bioconductor release creates a `RELEASE_3_xx` branch. A fix for a
+  released version goes to `devel` first and is then applied to that branch.
 
 ## Adding a JASPAR release or new backgrounds
 
@@ -287,11 +288,3 @@ files and a `catalog.tsv`.
    `.ps_hub_title()`.
 7. Update the tests in `test-Background_backends.R` and
    `test-Background_catalog.R` that check the catalog contents.
-
-## Temporary items
-
-- `check-bioc.yml` installs PscanRBackgrounds from
-  <https://bioc.r-universe.dev> because the package is not yet in the
-  Bioconductor devel experiment-data repository. Remove that step once it is.
-- `README.md` links the PscanRBackgrounds GitHub repository; replace the link
-  with <https://bioconductor.org/packages/PscanRBackgrounds> at the same time.
