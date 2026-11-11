@@ -29,14 +29,6 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
 BiocManager::install("PscanR")
 ```
 
-Before Bioconductor 3.24 is released on 25 November 2026, PscanR is available
-only in the development version of Bioconductor, which also runs on R 4.6:
-
-```r
-BiocManager::install(version = "devel")
-BiocManager::install("PscanR")
-```
-
 The precomputed backgrounds are in the companion data package
 [PscanRBackgrounds](https://bioconductor.org/packages/PscanRBackgrounds), from
 which `ps_retrieve_bg()` downloads them through ExperimentHub (see
