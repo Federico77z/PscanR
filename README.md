@@ -19,22 +19,20 @@ background statistics and per-promoter hits alongside the matrices themselves.
 
 ## Installation
 
-PscanR is at version 0.99.0 and is **not yet on Bioconductor**. Install it from
-GitHub:
+PscanR is part of [Bioconductor](https://bioconductor.org/packages/PscanR),
+starting with release 3.24. Install it with BiocManager:
 
 ```r
-pak::pak("Federico77z/PscanR")
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
+}
+BiocManager::install("PscanR")
 ```
 
-`pak` resolves Bioconductor repositories on its own, which matters here: PscanR
-imports seven Bioconductor packages and suggests fifteen more.
-
-Once the package is accepted into Bioconductor, the usual route will work
-instead:
-
-```r
-BiocManager::install("PscanR")   # not available yet
-```
+The precomputed backgrounds are in the companion data package
+[PscanRBackgrounds](https://bioconductor.org/packages/PscanRBackgrounds), from
+which `ps_retrieve_bg()` downloads them through ExperimentHub (see
+[Precomputed backgrounds](#precomputed-backgrounds)).
 
 ## Quick start
 
@@ -118,11 +116,16 @@ assembly. The assembly is needed only for the two species that have more than
 one.
 
 Each background is a separate ExperimentHub resource of the
-[PscanRBackgrounds](https://github.com/Federico77z/PscanRBackgrounds) data
-package. Retrieval goes through ExperimentHub and falls back, with a warning,
-to the immutable Zenodo record <https://doi.org/10.5281/zenodo.21821764>,
-which archives the same files in a single ZIP, when the Hub cannot be reached. Downloads are cached, and every file is verified by
-SHA-256 on arrival. Pass `source = "zenodo"` to go to Zenodo directly.
+[PscanRBackgrounds](https://bioconductor.org/packages/PscanRBackgrounds) data
+package. When ExperimentHub cannot be reached, retrieval falls back, with a
+warning, to the Zenodo record of the background's JASPAR release
+([2020](https://doi.org/10.5281/zenodo.23183695),
+[2022](https://doi.org/10.5281/zenodo.23183713),
+[2024](https://doi.org/10.5281/zenodo.23183720)), and then to the record that
+archives all the files in a single ZIP
+(<https://doi.org/10.5281/zenodo.21821764>). Downloads are cached, and every
+file is verified by SHA-256 on arrival. Pass `source = "zenodo"` to go to
+Zenodo directly.
 
 **The foreground promoter window must match the background's.** A `950u_50d`
 background describes promoters from -950 to +50 relative to the TSS, and a
@@ -149,6 +152,13 @@ Five vignettes, in the order they are meant to be read:
 ```r
 browseVignettes("PscanR")
 ```
+
+## Getting help
+
+Questions about using PscanR are welcome on the
+[Bioconductor support site](https://support.bioconductor.org/tag/PscanR), with
+the tag `PscanR`. Bug reports and feature requests go to the
+[GitHub issues](https://github.com/Federico77z/PscanR/issues).
 
 ## Citation
 

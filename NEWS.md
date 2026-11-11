@@ -1,3 +1,9 @@
+# PscanR 0.99.4
+
+- The README describes installation from Bioconductor, links the
+  PscanRBackgrounds package page on Bioconductor, and gives the order in which
+  `ps_retrieve_bg()` tries ExperimentHub and the Zenodo records.
+
 # PscanR 0.99.3
 
 - Promoters of different lengths are not comparable, because a promoter's
