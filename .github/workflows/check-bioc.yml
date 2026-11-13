@@ -84,9 +84,10 @@ jobs:
 
       - name: BiocCheck
         run: |
+          # No `new-package` = TRUE since acceptance (2026-11-10): with it,
+          # BiocCheck errors because 'PscanR' already exists in Bioconductor.
           result <- BiocCheck::BiocCheck(
-            Sys.getenv('PKG_TARBALL'), checkDir = '/tmp/check',
-            `new-package` = TRUE)
+            Sys.getenv('PKG_TARBALL'), checkDir = '/tmp/check')
           stopifnot(result$getNum('error') == 0L, result$getNum('warning') == 0L)
         shell: Rscript {0}
 
