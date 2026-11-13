@@ -248,6 +248,11 @@ head(ps_results_table(res))
 decreasing z-score used to resolve ties. NRF1 is the highest-ranked motif,
 consistent with the origin of the curated target set.
 
+The p-values are one-sided: they test whether a motif is enriched in the
+foreground. A motif that is depleted has a negative z-score and a p-value close
+to 1, so under-representation is read from the z-score. The `FDR` column
+adjusts the p-values over all the motifs analysed.
+
 ## Selecting promoters from a gene list
 
 A differential expression analysis often produces a gene list. A gene may have

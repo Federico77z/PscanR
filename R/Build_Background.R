@@ -253,6 +253,8 @@ ps_retrieve_bg_from_file <- function(file, pfms) {
 #'   example, from the JASPAR database.
 #'   The number of elements in `pfms` should match the number of rows of `x`,
 #'   and their identifiers should correspond.
+#'   A `PSMatrixList`, such as the output of `ps_retrieve_bg()`, is also
+#'   accepted: its background statistics are replaced by those in `x`.
 #'
 #' @details
 #' This function:

@@ -31,9 +31,12 @@ It contains the following columns:
   \item "ZSCORE": The one-sample Z-statistic
   `(FG_AVG - BG_AVG) / (BG_STDEV / sqrt(n))`, where `n` is the number of
   non-missing foreground scores.
-  \item "P.VALUE": The p-value for each PWM.
-  \item "FDR": The adjusted p-value, representing the False Discovery Rate,
-  is calculated using the Benjamini-Hochberg correction.
+  \item "P.VALUE": The one-sided (upper-tail) p-value of the z-test,
+  `pnorm(ZSCORE, lower.tail = FALSE)`. It tests for enrichment only: a
+  motif that is under-represented in the foreground has a negative
+  `ZSCORE` and a p-value close to 1.
+  \item "FDR": The Benjamini-Hochberg adjustment of `P.VALUE` over all the
+  motifs in `pfms`, computed before the `FDR` filter is applied.
 }
 }
 \description{
