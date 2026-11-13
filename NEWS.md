@@ -1,3 +1,13 @@
+# PscanR 0.99.5
+
+- The documentation of `ps_results_table()` and the concepts vignette state
+  that `P.VALUE` is one-sided (upper tail, so it tests for enrichment only) and
+  that `FDR` adjusts it over all the motifs, before the `FDR` filter is
+  applied.
+- The documentation of `ps_build_bg_from_table()` states that a
+  `PSMatrixList`, such as the output of `ps_retrieve_bg()`, is accepted and
+  that its background statistics are replaced by those supplied.
+
 # PscanR 0.99.4
 
 - The README describes installation from Bioconductor, links the
