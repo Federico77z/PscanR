@@ -73,14 +73,15 @@ pct_cerevisiae <- round(100 * n_cerevisiae / length(is_cerevisiae))
 
 # Installation
 
-PscanR is being prepared for Bioconductor submission. After acceptance, install
-it with the following command (not executed while building this vignette):
+PscanR is part of Bioconductor, starting with release 3.24. Install it with
+the following command (not executed while building this vignette):
 
 ```{r installation, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
+}
 BiocManager::install("PscanR")
 ```
-
-For pre-submission installation from source, see the package README.
 
 # Introduction
 

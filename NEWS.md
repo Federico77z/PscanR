@@ -1,3 +1,9 @@
+# PscanR 0.99.6
+
+- The installation section of the vignettes describes installation from
+  Bioconductor, replacing the instructions written before the package was
+  submitted.
+
 # PscanR 0.99.5
 
 - The documentation of `ps_results_table()` and the concepts vignette state
